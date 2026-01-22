@@ -1,7 +1,15 @@
 {
-  "name": "convex",
+  "name": "@repo/convex",
   "private": true,
   "version": "0.0.0",
+  "main": "./convex/_generated/api.js",
+  "types": "./convex/_generated/api.d.ts",
+  "exports": {
+    ".": {
+      "types": "./convex/_generated/api.d.ts",
+      "default": "./convex/_generated/api.js"
+    }
+  },
   "scripts": {
     "dev": "convex dev",
     "predev": "convex dev --until-success && convex dashboard",
@@ -9,6 +17,8 @@
     "lint": "tsc -p convex && eslint . --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
+    "@auth/core": "0.37.0",
+    "@convex-dev/auth": "^0.0.90",
     "convex": "^1.31.6"
   },
   "devDependencies": {

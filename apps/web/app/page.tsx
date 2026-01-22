@@ -1,101 +1,181 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
 import styles from "./page.module.css";
+import { AuthScreen } from "./components/AuthScreen";
 
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
-};
+const features = [
+  {
+    icon: "🏆",
+    title: "Tournament Management",
+    description:
+      "Create brackets with ease. Single elimination, double elimination, round-robin, and Swiss formats supported.",
+  },
+  {
+    icon: "⚡",
+    title: "Real-Time Scoring",
+    description:
+      "Update scores instantly—standings sync in real-time across all devices. Powered by Convex.",
+  },
+  {
+    icon: "📊",
+    title: "Live Leaderboards",
+    description:
+      "Dynamic leaderboards that update automatically. Track standings, stats, and tournament progress.",
+  },
+  {
+    icon: "👥",
+    title: "Team Profiles",
+    description:
+      "Manage teams and players with detailed profiles, historical stats, and performance analytics.",
+  },
+  {
+    icon: "📱",
+    title: "Mobile Ready",
+    description:
+      "Score matches from any device. Perfect for courtside scoring and field updates.",
+  },
+  {
+    icon: "🔔",
+    title: "Instant Alerts",
+    description:
+      "Real-time notifications on match results, upcoming games, and tournament milestones.",
+  },
+];
 
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
-
-  return (
-    <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
-  );
-};
+const stats = [
+  { value: "10K+", label: "Tournaments" },
+  { value: "50K+", label: "Matches" },
+  { value: "100K+", label: "Users" },
+  { value: "99.9%", label: "Uptime" },
+];
 
 export default function Home() {
   return (
     <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
+      {/* Navigation */}
+      <nav className={styles.nav}>
+        <div className={styles.navLogo}>
+          <span className={styles.navLogoIcon}>⚡</span>
+          SCOREFORGE
+        </div>
+        <div className={styles.navLinks}>
+          <a href="#features" className={styles.navLink}>
+            Features
           </a>
-          <a
-            href="https://turborepo.dev/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
+          <a href="#stats" className={styles.navLink}>
+            Stats
+          </a>
+          <a href="#get-started" className={styles.navCta}>
+            Get Started
           </a>
         </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
-        </Button>
-      </main>
+      </nav>
+
+      {/* Hero Section */}
+      <section className={styles.hero}>
+        <div className={styles.heroContent}>
+          <div className={styles.heroEyebrow}>
+            <span className={styles.heroEyebrowDot} />
+            Live Tournament Platform
+          </div>
+          <h1 className={styles.heroTitle}>
+            SCORE
+            <span className={styles.heroTitleAccent}>FORGE</span>
+          </h1>
+          <p className={styles.heroSubtitle}>
+            The definitive platform for managing sports tournaments and tracking
+            scores in real-time. From local leagues to major competitions—forge
+            your path to victory.
+          </p>
+          <div className={styles.heroCta}>
+            <a href="#get-started" className={styles.btnPrimary}>
+              Start Free →
+            </a>
+            <a href="#features" className={styles.btnSecondary}>
+              Explore Features
+            </a>
+          </div>
+
+          <div className={styles.heroStats}>
+            {stats.map((stat) => (
+              <div key={stat.label} className={styles.heroStat}>
+                <span className={styles.heroStatValue}>{stat.value}</span>
+                <span className={styles.heroStatLabel}>{stat.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className={styles.features}>
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionLabel}>Features</span>
+          <h2 className={styles.sectionTitle}>
+            EVERYTHING YOU NEED TO RUN TOURNAMENTS
+          </h2>
+          <p className={styles.sectionSubtitle}>
+            Powerful features designed for tournament organizers, coaches, and
+            sports enthusiasts who demand the best.
+          </p>
+        </div>
+        <div className={styles.featureGrid}>
+          {features.map((feature) => (
+            <div key={feature.title} className={styles.featureCard}>
+              <div className={styles.featureIcon}>{feature.icon}</div>
+              <h3 className={styles.featureTitle}>{feature.title}</h3>
+              <p className={styles.featureDesc}>{feature.description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section id="stats" className={styles.stats}>
+        <div className={styles.statsInner}>
+          <div className={styles.statsHeader}>
+            <span className={styles.sectionLabel}>By The Numbers</span>
+            <h2 className={styles.sectionTitle}>TRUSTED WORLDWIDE</h2>
+          </div>
+          <div className={styles.statsGrid}>
+            {stats.map((stat) => (
+              <div key={stat.label} className={styles.statItem}>
+                <div className={styles.statValue}>{stat.value}</div>
+                <div className={styles.statLabel}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Auth Section */}
+      <section id="get-started" className={styles.authSection}>
+        <div className={styles.authContainer}>
+          <div className={styles.authHeader}>
+            <h2 className={styles.authTitle}>JOIN THE GAME</h2>
+            <p className={styles.authSubtitle}>
+              Create your free account and start managing tournaments today.
+            </p>
+          </div>
+          <AuthScreen />
+        </div>
+      </section>
+
+      {/* Footer */}
       <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.dev?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.dev →
-        </a>
+        <div className={styles.footerInner}>
+          <div className={styles.footerLogo}>SCOREFORGE</div>
+          <p className={styles.footerText}>Built for the love of sports</p>
+          <div className={styles.footerLinks}>
+            <a href="#features" className={styles.footerLink}>
+              Features
+            </a>
+            <a href="#stats" className={styles.footerLink}>
+              Stats
+            </a>
+            <a href="#get-started" className={styles.footerLink}>
+              Sign Up
+            </a>
+          </div>
+        </div>
       </footer>
     </div>
   );
