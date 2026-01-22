@@ -8,6 +8,9 @@
     ".": {
       "types": "./convex/_generated/api.d.ts",
       "default": "./convex/_generated/api.js"
+    },
+    "./dataModel": {
+      "types": "./convex/_generated/dataModel.d.ts"
     }
   },
   "scripts": {

@@ -31,6 +31,17 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="organizations"
+        options={{
+          title: "ORGS",
+          tabBarIcon: ({ color, focused }) => (
+            <View style={focused ? styles.iconContainerActive : styles.iconContainer}>
+              <IconSymbol size={24} name="building.2.fill" color={color} />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="explore"
         options={{
           title: "TOURNAMENTS",

@@ -153,7 +153,7 @@ export default function SignInScreen() {
 
           {/* Footer */}
           <Animated.View entering={FadeInDown.duration(600).delay(300)} style={styles.footer}>
-            <ThemedText style={styles.footerText}>Don't have an account?</ThemedText>
+            <ThemedText style={styles.footerText}>{"Don't have an account?"}</ThemedText>
             <Link href="/(auth)/sign-up" asChild>
               <Pressable>
                 <ThemedText style={styles.footerLink}>Sign Up</ThemedText>
