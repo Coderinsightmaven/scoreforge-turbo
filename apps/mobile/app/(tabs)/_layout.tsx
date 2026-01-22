@@ -1,10 +1,10 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Tabs } from "expo-router";
+import React from "react";
+import { StyleSheet, View } from "react-native";
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors, Shadows } from '@/constants/theme';
+import { HapticTab } from "@/components/haptic-tab";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Colors, Shadows } from "@/constants/theme";
 
 export default function TabLayout() {
   return (
@@ -22,7 +22,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'HOME',
+          title: "HOME",
           tabBarIcon: ({ color, focused }) => (
             <View style={focused ? styles.iconContainerActive : styles.iconContainer}>
               <IconSymbol size={24} name="house.fill" color={color} />
@@ -33,10 +33,21 @@ export default function TabLayout() {
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'TOURNAMENTS',
+          title: "TOURNAMENTS",
           tabBarIcon: ({ color, focused }) => (
             <View style={focused ? styles.iconContainerActive : styles.iconContainer}>
               <IconSymbol size={24} name="trophy.fill" color={color} />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "PROFILE",
+          tabBarIcon: ({ color, focused }) => (
+            <View style={focused ? styles.iconContainerActive : styles.iconContainer}>
+              <IconSymbol size={24} name="person.fill" color={color} />
             </View>
           ),
         }}
@@ -61,7 +72,7 @@ const styles = StyleSheet.create({
   },
   tabBarLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 1,
     marginTop: 4,
   },
