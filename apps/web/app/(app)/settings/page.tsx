@@ -5,6 +5,7 @@ import { api } from "@repo/convex";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Skeleton, SkeletonForm } from "@/app/components/Skeleton";
 
 export default function SettingsPage() {
   const user = useQuery(api.users.currentUser);
@@ -245,20 +246,69 @@ export default function SettingsPage() {
 function LoadingSkeleton() {
   return (
     <div className="min-h-screen">
-      <header className="relative py-12 px-6 bg-bg-secondary">
-        <div className="max-w-[var(--content-max)] mx-auto">
-          <div className="w-24 h-5 bg-bg-elevated rounded animate-pulse mb-6" />
-          <div className="w-48 h-10 bg-bg-elevated rounded animate-pulse" />
+      <header className="relative py-12 px-6 bg-bg-secondary overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-[100px] left-[30%] w-[600px] h-[400px] bg-[radial-gradient(ellipse_at_center,var(--accent-glow)_0%,transparent_60%)] opacity-30" />
+          <div className="absolute inset-0 grid-bg opacity-50" />
+        </div>
+        <div className="relative max-w-[var(--content-max)] mx-auto">
+          <Skeleton className="w-28 h-5 mb-6" />
+          <Skeleton className="h-10 w-48 mb-2" />
+          <Skeleton className="h-5 w-72" />
         </div>
       </header>
       <main className="py-8 px-6 max-w-[var(--content-max)] mx-auto">
         <div className="grid gap-8 lg:grid-cols-3">
+          {/* Profile Card */}
           <div className="lg:col-span-2">
-            <div className="h-96 bg-bg-card rounded-2xl animate-pulse" />
+            <div className="bg-bg-card border border-border rounded-2xl overflow-hidden">
+              <div className="p-6 border-b border-border">
+                <Skeleton className="h-6 w-48" />
+              </div>
+              <div className="p-6 space-y-6">
+                {/* Avatar */}
+                <div className="flex items-center gap-6">
+                  <Skeleton className="w-20 h-20 rounded-full" />
+                  <div>
+                    <Skeleton className="h-5 w-32 mb-2" />
+                    <Skeleton className="h-4 w-48" />
+                  </div>
+                </div>
+                {/* Form fields */}
+                <SkeletonForm fields={2} />
+              </div>
+            </div>
           </div>
+
+          {/* Sidebar */}
           <div className="space-y-6">
-            <div className="h-48 bg-bg-card rounded-2xl animate-pulse" />
-            <div className="h-40 bg-bg-card rounded-2xl animate-pulse" />
+            {/* Account Info Card */}
+            <div className="bg-bg-card border border-border rounded-2xl overflow-hidden">
+              <div className="p-6 border-b border-border">
+                <Skeleton className="h-6 w-24" />
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <Skeleton className="h-3 w-24 mb-2" />
+                  <Skeleton className="h-5 w-40" />
+                </div>
+                <div>
+                  <Skeleton className="h-3 w-28 mb-2" />
+                  <Skeleton className="h-5 w-20" />
+                </div>
+              </div>
+            </div>
+
+            {/* Danger Zone */}
+            <div className="bg-bg-card border border-red/20 rounded-2xl overflow-hidden">
+              <div className="p-6 border-b border-red/20">
+                <Skeleton className="h-6 w-32" />
+              </div>
+              <div className="p-6">
+                <Skeleton className="h-4 w-full mb-4" />
+                <Skeleton className="h-12 w-full rounded-lg" />
+              </div>
+            </div>
           </div>
         </div>
       </main>

@@ -6,6 +6,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { use } from "react";
 import { useRouter } from "next/navigation";
+import { Skeleton, SkeletonListItem, SkeletonForm } from "@/app/components/Skeleton";
 
 export default function OrganizationSettingsPage({
   params,
@@ -547,15 +548,76 @@ function DangerZoneSection({
 function LoadingSkeleton() {
   return (
     <div className="min-h-screen">
-      <header className="relative py-8 px-6 bg-bg-secondary">
-        <div className="max-w-[var(--content-max)] mx-auto">
-          <div className="w-32 h-5 bg-bg-elevated rounded animate-pulse mb-4" />
-          <div className="w-64 h-8 bg-bg-elevated rounded animate-pulse" />
+      <header className="relative py-8 px-6 bg-bg-secondary overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-[100px] left-[30%] w-[600px] h-[400px] bg-[radial-gradient(ellipse_at_center,var(--accent-glow)_0%,transparent_60%)] opacity-30" />
+          <div className="absolute inset-0 grid-bg opacity-50" />
+        </div>
+        <div className="relative max-w-[var(--content-max)] mx-auto">
+          <Skeleton className="w-40 h-5 mb-4" />
+          <Skeleton className="h-8 w-64 mb-2" />
+          <Skeleton className="h-5 w-48" />
         </div>
       </header>
       <main className="py-8 px-6 max-w-[var(--content-max)] mx-auto space-y-8">
-        <div className="h-64 bg-bg-card rounded-2xl animate-pulse" />
-        <div className="h-48 bg-bg-card rounded-2xl animate-pulse" />
+        {/* General Settings Section */}
+        <div className="bg-bg-card border border-border rounded-2xl overflow-hidden">
+          <div className="p-6 border-b border-border">
+            <Skeleton className="h-6 w-40" />
+          </div>
+          <div className="p-6">
+            <SkeletonForm fields={2} />
+          </div>
+        </div>
+
+        {/* Members Section */}
+        <div className="bg-bg-card border border-border rounded-2xl overflow-hidden">
+          <div className="p-6 border-b border-border">
+            <Skeleton className="h-6 w-32" />
+          </div>
+          <div className="divide-y divide-border">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-4 p-4">
+                <Skeleton className="w-10 h-10 rounded-full" />
+                <div className="flex-1 min-w-0">
+                  <Skeleton className="h-5 w-32 mb-2" />
+                  <Skeleton className="h-4 w-48" />
+                </div>
+                <Skeleton className="h-8 w-24 rounded-lg" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Invitations Section */}
+        <div className="bg-bg-card border border-border rounded-2xl overflow-hidden">
+          <div className="p-6 border-b border-border">
+            <Skeleton className="h-6 w-36" />
+          </div>
+          <div className="p-6">
+            <div className="flex gap-3">
+              <Skeleton className="h-12 flex-1 rounded-lg" />
+              <Skeleton className="h-12 w-28 rounded-lg" />
+              <Skeleton className="h-12 w-24 rounded-lg" />
+            </div>
+          </div>
+        </div>
+
+        {/* Danger Zone */}
+        <div className="bg-bg-card border border-red/20 rounded-2xl overflow-hidden">
+          <div className="p-6 border-b border-red/20">
+            <Skeleton className="h-6 w-32" />
+          </div>
+          <div className="p-6">
+            <div className="flex items-center justify-between p-4 bg-bg-elevated border border-border rounded-lg">
+              <div>
+                <Skeleton className="h-5 w-40 mb-2" />
+                <Skeleton className="h-4 w-56" />
+              </div>
+              <Skeleton className="h-10 w-36 rounded-lg" />
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   );

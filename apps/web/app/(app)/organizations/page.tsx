@@ -3,6 +3,7 @@
 import { useQuery } from "convex/react";
 import { api } from "@repo/convex";
 import Link from "next/link";
+import { Skeleton } from "@/app/components/Skeleton";
 
 export default function OrganizationsPage() {
   const organizations = useQuery(api.organizations.listMyOrganizations);
@@ -45,10 +46,7 @@ export default function OrganizationsPage() {
           {!organizations ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div
-                  key={i}
-                  className="h-24 bg-bg-card rounded-xl animate-pulse"
-                />
+                <OrganizationCardSkeleton key={i} />
               ))}
             </div>
           ) : organizations.length === 0 ? (
@@ -155,6 +153,22 @@ function EmptyState() {
       >
         <span>+</span> Create Organization
       </Link>
+    </div>
+  );
+}
+
+function OrganizationCardSkeleton() {
+  return (
+    <div className="flex items-center gap-4 p-4 bg-bg-card border border-border rounded-xl">
+      <Skeleton className="w-14 h-14 rounded-lg" />
+      <div className="flex-1">
+        <Skeleton className="h-5 w-40 mb-2" />
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-5 w-16 rounded" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+      </div>
+      <Skeleton className="w-6 h-6" />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { api } from "@repo/convex";
 import { useState } from "react";
 import Link from "next/link";
 import { use } from "react";
+import { Skeleton, SkeletonBracket, SkeletonTabs } from "@/app/components/Skeleton";
 
 type Tab = "bracket" | "matches" | "participants" | "standings";
 
@@ -660,19 +661,52 @@ function StandingsTab({ tournamentId }: { tournamentId: string }) {
 function LoadingSkeleton() {
   return (
     <div className="min-h-screen">
-      <header className="relative py-12 px-6 bg-bg-secondary">
-        <div className="max-w-[var(--content-max)] mx-auto">
-          <div className="w-[120px] h-5 bg-bg-elevated rounded animate-pulse mb-6" />
-          <div className="flex items-start gap-6">
-            <div className="w-[100px] h-[100px] bg-bg-elevated rounded-2xl animate-pulse" />
+      <header className="relative py-12 px-6 bg-bg-secondary overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-[100px] left-[30%] w-[600px] h-[400px] bg-[radial-gradient(ellipse_at_center,var(--accent-glow)_0%,transparent_60%)] opacity-30" />
+          <div className="absolute inset-0 grid-bg opacity-50" />
+        </div>
+        <div className="relative max-w-[var(--content-max)] mx-auto">
+          <Skeleton className="w-28 h-5 mb-6" />
+          <div className="flex flex-col md:flex-row md:items-start gap-6">
+            <Skeleton className="w-[100px] h-[100px] rounded-2xl flex-shrink-0" />
             <div className="flex-1">
-              <div className="w-[150px] h-5 bg-bg-elevated rounded animate-pulse mb-2" />
-              <div className="w-[300px] h-9 bg-bg-elevated rounded animate-pulse mb-4" />
-              <div className="w-[200px] h-6 bg-bg-elevated rounded animate-pulse" />
+              <div className="flex items-center gap-3 mb-2">
+                <Skeleton className="h-6 w-20 rounded" />
+                <Skeleton className="h-5 w-28" />
+              </div>
+              <Skeleton className="h-10 w-72 mb-2" />
+              <Skeleton className="h-5 w-96 max-w-full mb-4" />
+              <div className="flex flex-wrap gap-6">
+                <div className="flex items-baseline gap-1">
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-10 w-28 rounded-lg" />
+              <Skeleton className="h-10 w-32 rounded-lg" />
             </div>
           </div>
         </div>
       </header>
+
+      {/* Tabs skeleton */}
+      <nav className="bg-bg-secondary border-b border-border">
+        <div className="max-w-[var(--content-max)] mx-auto px-6">
+          <SkeletonTabs count={4} className="py-3" />
+        </div>
+      </nav>
+
+      {/* Content skeleton */}
+      <main className="py-8 px-6 max-w-[var(--content-max)] mx-auto">
+        <SkeletonBracket />
+      </main>
     </div>
   );
 }
@@ -700,9 +734,28 @@ function NotFound() {
 function TabSkeleton() {
   return (
     <div className="animate-fadeIn">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-20 bg-bg-card rounded-xl animate-pulse" />
+      <div className="flex flex-col gap-2">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div
+            key={i}
+            className="flex flex-col p-4 bg-bg-card border border-border rounded-xl"
+            style={{ animationDelay: `${i * 0.05}s` }}
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-4 w-20" />
+              <div className="ml-auto">
+                <Skeleton className="h-5 w-16 rounded" />
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-6 w-8" />
+              <Skeleton className="h-4 w-8 flex-shrink-0" />
+              <Skeleton className="h-6 w-8" />
+              <Skeleton className="h-5 w-32" />
+            </div>
+          </div>
         ))}
       </div>
     </div>

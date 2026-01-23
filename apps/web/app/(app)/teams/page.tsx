@@ -3,6 +3,7 @@
 import { useQuery } from "convex/react";
 import { api } from "@repo/convex";
 import Link from "next/link";
+import { Skeleton } from "@/app/components/Skeleton";
 
 export default function TeamsPage() {
   const organizations = useQuery(api.organizations.listMyOrganizations);
@@ -175,15 +176,38 @@ function EmptyState() {
 
 function LoadingSkeleton() {
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <div className="w-48 h-6 bg-bg-card rounded animate-pulse" />
-        <div className="w-20 h-8 bg-bg-card rounded animate-pulse" />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-36 bg-bg-card rounded-xl animate-pulse" />
-        ))}
+    <div className="space-y-12">
+      {[1, 2].map((section) => (
+        <div key={section}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-6 w-40" />
+              <Skeleton className="h-5 w-20" />
+            </div>
+            <Skeleton className="h-8 w-20 rounded-lg" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <TeamCardSkeleton key={i} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TeamCardSkeleton() {
+  return (
+    <div className="p-4 bg-bg-card border border-border rounded-xl">
+      <Skeleton className="w-12 h-12 rounded-lg mb-3" />
+      <Skeleton className="h-5 w-3/4 mb-2" />
+      <div className="space-y-1">
+        <div className="flex items-center gap-1.5">
+          <Skeleton className="w-4 h-4" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+        <Skeleton className="h-4 w-16" />
       </div>
     </div>
   );

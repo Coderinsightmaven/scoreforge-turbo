@@ -5,6 +5,11 @@ import { api } from "@repo/convex";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import {
+  Skeleton,
+  SkeletonStatCard,
+  SkeletonCard,
+} from "@/app/components/Skeleton";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -31,14 +36,7 @@ export default function DashboardPage() {
 
   // Show loading while checking onboarding state
   if (onboardingState === undefined || (onboardingState && onboardingState.organizationCount === 0)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl text-accent animate-float mb-4">⚡</div>
-          <p className="text-text-secondary">Loading...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
@@ -123,10 +121,7 @@ export default function DashboardPage() {
           {!organizations ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="h-24 bg-bg-card rounded-xl animate-pulse"
-                />
+                <OrganizationCardSkeleton key={i} />
               ))}
             </div>
           ) : organizations.length === 0 ? (
@@ -348,5 +343,84 @@ function QuickAction({
         →
       </span>
     </Link>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="min-h-screen">
+      {/* Hero Section Skeleton */}
+      <section className="relative overflow-hidden py-16 px-6">
+        <div className="absolute inset-0">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-accent/10 blur-[120px] rounded-full" />
+          <div className="absolute inset-0 grid-bg opacity-50" />
+        </div>
+        <div className="relative max-w-[var(--content-max)] mx-auto">
+          <Skeleton className="h-4 w-32 mb-4" />
+          <Skeleton className="h-14 w-96 mb-2" />
+          <Skeleton className="h-6 w-64" />
+        </div>
+      </section>
+
+      {/* Stats Skeleton */}
+      <section className="px-6 pb-12">
+        <div className="max-w-[var(--content-max)] mx-auto">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <SkeletonStatCard key={i} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Organizations Skeleton */}
+      <section className="px-6 pb-12">
+        <div className="max-w-[var(--content-max)] mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-8 h-8 rounded" />
+              <Skeleton className="h-6 w-48" />
+            </div>
+            <Skeleton className="h-10 w-40 rounded-lg" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <OrganizationCardSkeleton key={i} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Actions Skeleton */}
+      <section className="px-6 pb-16">
+        <div className="max-w-[var(--content-max)] mx-auto">
+          <Skeleton className="h-4 w-32 mb-4" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-4 p-4 bg-bg-card border border-border rounded-xl">
+                <Skeleton className="w-10 h-10 rounded-lg" />
+                <div className="flex-1">
+                  <Skeleton className="h-5 w-32 mb-2" />
+                  <Skeleton className="h-4 w-48" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function OrganizationCardSkeleton() {
+  return (
+    <div className="flex items-center gap-4 p-4 bg-bg-card border border-border rounded-xl">
+      <Skeleton className="w-12 h-12 rounded-lg" />
+      <div className="flex-1">
+        <Skeleton className="h-5 w-32 mb-2" />
+        <Skeleton className="h-5 w-16 rounded" />
+      </div>
+      <Skeleton className="w-6 h-6" />
+    </div>
   );
 }

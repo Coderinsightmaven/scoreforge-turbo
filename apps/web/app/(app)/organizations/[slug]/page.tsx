@@ -5,6 +5,7 @@ import { api } from "@repo/convex";
 import { useState } from "react";
 import Link from "next/link";
 import { use } from "react";
+import { Skeleton, SkeletonTabs, SkeletonCard } from "@/app/components/Skeleton";
 
 type Tab = "tournaments" | "teams" | "members";
 
@@ -432,18 +433,49 @@ function MembersTab({
 function LoadingSkeleton() {
   return (
     <div className="min-h-screen">
-      <header className="py-8 px-6">
-        <div className="max-w-[var(--content-max)] mx-auto">
-          <div className="w-24 h-4 bg-bg-card rounded animate-pulse mb-6" />
+      {/* Hero Header */}
+      <header className="relative overflow-hidden py-8 px-6">
+        <div className="absolute inset-0">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-accent/10 blur-[100px] rounded-full" />
+          <div className="absolute inset-0 grid-bg opacity-50" />
+        </div>
+        <div className="relative max-w-[var(--content-max)] mx-auto">
+          <Skeleton className="w-28 h-5 mb-6" />
           <div className="flex items-center gap-6">
-            <div className="w-20 h-20 bg-bg-card rounded-xl animate-pulse" />
+            <Skeleton className="w-20 h-20 rounded-xl" />
             <div className="flex-1">
-              <div className="w-48 h-8 bg-bg-card rounded animate-pulse mb-2" />
-              <div className="w-32 h-4 bg-bg-card rounded animate-pulse" />
+              <Skeleton className="h-10 w-64 mb-2" />
+              <div className="flex items-center gap-3 mt-2">
+                <Skeleton className="h-8 w-20 rounded-lg" />
+                <Skeleton className="h-5 w-32" />
+              </div>
             </div>
+            <Skeleton className="h-10 w-24 rounded-lg" />
           </div>
         </div>
       </header>
+
+      {/* Tabs */}
+      <nav className="px-6 border-b border-border">
+        <div className="max-w-[var(--content-max)] mx-auto">
+          <SkeletonTabs count={3} className="py-3" />
+        </div>
+      </nav>
+
+      {/* Content */}
+      <main className="px-6 py-8">
+        <div className="max-w-[var(--content-max)] mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-10 w-36 rounded-lg" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
@@ -470,10 +502,29 @@ function NotFound() {
 
 function TabSkeleton() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="h-32 bg-bg-card rounded-xl animate-pulse" />
-      ))}
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <Skeleton className="h-6 w-32" />
+        <Skeleton className="h-10 w-36 rounded-lg" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div
+            key={i}
+            className="p-4 bg-bg-card border border-border rounded-xl"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <Skeleton className="w-10 h-10 rounded" />
+              <Skeleton className="w-16 h-5 rounded" />
+            </div>
+            <Skeleton className="h-5 w-3/4 mb-2" />
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-4 w-12" />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
