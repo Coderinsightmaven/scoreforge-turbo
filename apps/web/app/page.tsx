@@ -69,7 +69,7 @@ export default function LandingPage() {
       </AuthLoading>
 
       <Authenticated>
-        <RedirectToDashboard />
+        <RedirectToOnboarding />
       </Authenticated>
 
       <Unauthenticated>
@@ -92,11 +92,11 @@ function LoadingScreen() {
   );
 }
 
-function RedirectToDashboard() {
+function RedirectToOnboarding() {
   const router = useRouter();
 
   useEffect(() => {
-    router.push("/dashboard");
+    router.push("/onboarding");
   }, [router]);
 
   return <LoadingScreen />;

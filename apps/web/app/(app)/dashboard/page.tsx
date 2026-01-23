@@ -3,13 +3,43 @@
 import { useQuery } from "convex/react";
 import { api } from "@repo/convex";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const user = useQuery(api.users.currentUser);
   const organizations = useQuery(api.organizations.listMyOrganizations);
+  const onboardingState = useQuery(api.users.getOnboardingState);
+
+  // Redirect to onboarding if user hasn't completed setup
+  useEffect(() => {
+    if (onboardingState === undefined) return;
+    if (onboardingState === null) {
+      router.push("/sign-in");
+      return;
+    }
+
+    // If user has no organizations and has pending invitations, redirect to onboarding
+    if (onboardingState.organizationCount === 0) {
+      router.push("/onboarding");
+    }
+  }, [onboardingState, router]);
 
   const greeting = getGreeting();
   const firstName = user?.name?.split(" ")[0] || "there";
+
+  // Show loading while checking onboarding state
+  if (onboardingState === undefined || (onboardingState && onboardingState.organizationCount === 0)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl text-accent animate-float mb-4">⚡</div>
+          <p className="text-text-secondary">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">

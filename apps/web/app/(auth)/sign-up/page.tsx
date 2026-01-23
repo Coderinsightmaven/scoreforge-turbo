@@ -15,8 +15,16 @@ export default function SignUpPage() {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
+    const firstName = (formData.get("firstName") as string)?.trim();
+    const lastName = (formData.get("lastName") as string)?.trim();
     const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirmPassword") as string;
+
+    if (!firstName || !lastName) {
+      setError("Please enter your first and last name");
+      setLoading(false);
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
@@ -30,6 +38,10 @@ export default function SignUpPage() {
       return;
     }
 
+    // Combine first and last name for the name field
+    formData.set("name", `${firstName} ${lastName}`);
+    formData.delete("firstName");
+    formData.delete("lastName");
     formData.set("flow", "signUp");
     formData.delete("confirmPassword");
 
@@ -70,18 +82,35 @@ export default function SignUpPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="name" className="text-sm font-medium text-text-secondary">
-            Full Name
-          </label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            autoComplete="name"
-            placeholder="John Doe"
-            className="px-4 py-3 text-base text-text-primary bg-bg-elevated border border-border rounded-lg placeholder:text-text-muted focus:outline-none focus:border-accent focus:bg-bg-secondary transition-all"
-          />
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1">
+            <label htmlFor="firstName" className="text-sm font-medium text-text-secondary">
+              First Name
+            </label>
+            <input
+              id="firstName"
+              name="firstName"
+              type="text"
+              required
+              autoComplete="given-name"
+              placeholder="John"
+              className="px-4 py-3 text-base text-text-primary bg-bg-elevated border border-border rounded-lg placeholder:text-text-muted focus:outline-none focus:border-accent focus:bg-bg-secondary transition-all"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="lastName" className="text-sm font-medium text-text-secondary">
+              Last Name
+            </label>
+            <input
+              id="lastName"
+              name="lastName"
+              type="text"
+              required
+              autoComplete="family-name"
+              placeholder="Doe"
+              className="px-4 py-3 text-base text-text-primary bg-bg-elevated border border-border rounded-lg placeholder:text-text-muted focus:outline-none focus:border-accent focus:bg-bg-secondary transition-all"
+            />
+          </div>
         </div>
 
         <div className="flex flex-col gap-1">
