@@ -3,6 +3,38 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { organizationRoles } from "./schema";
 
+/**
+ * Generate a cryptographically random API key
+ * Format: sf_XXXXXXXX_YYYYYYYYYYYYYYYYYYYYYYYY
+ */
+function generateApiKey(): { fullKey: string; prefix: string; hashedKey: string } {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let prefixPart = "";
+  let suffixPart = "";
+
+  for (let i = 0; i < 8; i++) {
+    prefixPart += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  for (let i = 0; i < 24; i++) {
+    suffixPart += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+
+  const fullKey = `sf_${prefixPart}_${suffixPart}`;
+  const prefix = `sf_${prefixPart}`;
+
+  // Simple hash for storage
+  let hash = 0;
+  for (let i = 0; i < fullKey.length; i++) {
+    const char = fullKey.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash;
+  }
+  const hashStr = Math.abs(hash).toString(16).padStart(8, "0");
+  const hashedKey = `${hashStr}_${fullKey.length}_${fullKey.slice(-4)}`;
+
+  return { fullKey, prefix, hashedKey };
+}
+
 // Helper to generate a URL-friendly slug
 function generateSlug(name: string): string {
   return name
@@ -199,7 +231,11 @@ export const createOrganization = mutation({
     name: v.string(),
     description: v.optional(v.string()),
   },
-  returns: v.id("organizations"),
+  returns: v.object({
+    organizationId: v.id("organizations"),
+    slug: v.string(),
+    apiKey: v.string(),
+  }),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
@@ -238,7 +274,23 @@ export const createOrganization = mutation({
       joinedAt: Date.now(),
     });
 
-    return orgId;
+    // Auto-generate a default API key
+    const { fullKey, prefix, hashedKey } = generateApiKey();
+    await ctx.db.insert("apiKeys", {
+      organizationId: orgId,
+      key: hashedKey,
+      keyPrefix: prefix,
+      name: "Default API Key",
+      createdBy: userId,
+      createdAt: Date.now(),
+      isActive: true,
+    });
+
+    return {
+      organizationId: orgId,
+      slug,
+      apiKey: fullKey,
+    };
   },
 });
 
@@ -324,6 +376,16 @@ export const deleteOrganization = mutation({
       throw new Error("Only the owner can delete an organization");
     }
 
+    // Delete all API keys
+    const apiKeys = await ctx.db
+      .query("apiKeys")
+      .withIndex("by_organization", (q) => q.eq("organizationId", args.organizationId))
+      .collect();
+
+    for (const apiKey of apiKeys) {
+      await ctx.db.delete("apiKeys", apiKey._id);
+    }
+
     // Delete all memberships
     const members = await ctx.db
       .query("organizationMembers")
@@ -331,7 +393,7 @@ export const deleteOrganization = mutation({
       .collect();
 
     for (const member of members) {
-      await ctx.db.delete(member._id);
+      await ctx.db.delete("organizationMembers", member._id);
     }
 
     // Delete the organization

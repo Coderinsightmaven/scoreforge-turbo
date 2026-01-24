@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as apiKeys from "../apiKeys.js";
 import type * as auth from "../auth.js";
 import type * as http from "../http.js";
 import type * as lib_bracketGenerator from "../lib/bracketGenerator.js";
@@ -15,6 +16,7 @@ import type * as matches from "../matches.js";
 import type * as myFunctions from "../myFunctions.js";
 import type * as organizationMembers from "../organizationMembers.js";
 import type * as organizations from "../organizations.js";
+import type * as publicApi from "../publicApi.js";
 import type * as teams from "../teams.js";
 import type * as tennis from "../tennis.js";
 import type * as tournamentParticipants from "../tournamentParticipants.js";
@@ -30,6 +32,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  apiKeys: typeof apiKeys;
   auth: typeof auth;
   http: typeof http;
   "lib/bracketGenerator": typeof lib_bracketGenerator;
@@ -37,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   myFunctions: typeof myFunctions;
   organizationMembers: typeof organizationMembers;
   organizations: typeof organizations;
+  publicApi: typeof publicApi;
   teams: typeof teams;
   tennis: typeof tennis;
   tournamentParticipants: typeof tournamentParticipants;

@@ -184,6 +184,20 @@ export const volleyballState = v.object({
 export default defineSchema({
   ...authTables,
 
+  // API keys for external access to public endpoints
+  apiKeys: defineTable({
+    organizationId: v.id("organizations"),
+    key: v.string(), // Hashed API key
+    keyPrefix: v.string(), // First 8 chars for identification (e.g., "sf_abc123")
+    name: v.string(), // User-friendly name for the key
+    createdBy: v.id("users"),
+    createdAt: v.number(),
+    lastUsedAt: v.optional(v.number()),
+    isActive: v.boolean(),
+  })
+    .index("by_organization", ["organizationId"])
+    .index("by_key", ["key"]),
+
   // Organizations table
   organizations: defineTable({
     name: v.string(),

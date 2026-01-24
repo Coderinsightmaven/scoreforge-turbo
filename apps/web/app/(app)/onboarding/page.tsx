@@ -14,8 +14,16 @@ export default function OnboardingPage() {
   const [orgDescription, setOrgDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [createdOrg, setCreatedOrg] = useState<{
+    slug: string;
+    apiKey: string;
+  } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    // Don't redirect if we just created an org and are showing the API key
+    if (createdOrg) return;
+
     if (onboardingState === undefined) return;
     if (onboardingState === null) {
       // Not authenticated, redirect to sign-in
@@ -34,7 +42,7 @@ export default function OnboardingPage() {
         router.push("/dashboard");
       }
     }
-  }, [onboardingState, router]);
+  }, [onboardingState, router, createdOrg]);
 
   const handleCreateOrganization = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,21 +54,119 @@ export default function OnboardingPage() {
     setLoading(true);
     setError(null);
     try {
-      await createOrganization({
+      const result = await createOrganization({
         name: orgName.trim(),
         description: orgDescription.trim() || undefined,
       });
-      // Refresh onboarding state to get the new org slug
-      // The useEffect will handle the redirect
-      router.push("/dashboard");
+      // Show the API key before redirecting
+      setCreatedOrg({
+        slug: result.slug,
+        apiKey: result.apiKey,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create organization");
       setLoading(false);
     }
   };
 
+  const copyToClipboard = () => {
+    if (createdOrg) {
+      navigator.clipboard.writeText(createdOrg.apiKey);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   if (onboardingState === undefined) {
     return <LoadingScreen />;
+  }
+
+  // Show success screen with API key after creating org
+  if (createdOrg) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6 py-12">
+        {/* Background */}
+        <div className="fixed inset-0 -z-10">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-success/10 blur-[120px] rounded-full" />
+          <div className="absolute inset-0 grid-bg opacity-50" />
+        </div>
+
+        <div className="w-full max-w-lg">
+          <div className="relative bg-bg-card border border-border rounded-2xl overflow-hidden">
+            {/* Header */}
+            <div className="text-center px-8 pt-10 pb-6">
+              <div className="w-14 h-14 mx-auto flex items-center justify-center bg-success/10 rounded-2xl mb-4">
+                <svg className="w-7 h-7 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h1 className="font-display text-2xl font-semibold tracking-tight text-text-primary mb-2">
+                Organization Created!
+              </h1>
+              <p className="text-sm text-text-secondary">
+                Your organization is ready. Save your API key below.
+              </p>
+            </div>
+
+            {/* API Key Section */}
+            <div className="px-8 pb-8">
+              <div className="p-4 bg-accent/5 border border-accent/20 rounded-lg mb-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <svg className="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+                  </svg>
+                  <span className="text-sm font-medium text-accent">Your API Key</span>
+                </div>
+                <p className="text-xs text-text-secondary mb-3">
+                  Copy this key now — you won&apos;t be able to see it again! Use it to access your match data from external applications.
+                </p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 px-3 py-2 bg-bg-card border border-border rounded text-xs font-mono text-text-primary break-all">
+                    {createdOrg.apiKey}
+                  </code>
+                  <button
+                    onClick={copyToClipboard}
+                    className="px-4 py-2 text-sm font-semibold text-text-inverse bg-accent rounded-lg hover:bg-accent-bright transition-colors flex-shrink-0"
+                  >
+                    {copied ? "Copied!" : "Copy"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Documentation hint */}
+              <div className="p-4 bg-bg-elevated border border-border rounded-lg mb-6">
+                <h3 className="text-sm font-medium text-text-primary mb-2">Quick Start</h3>
+                <p className="text-xs text-text-secondary mb-3">
+                  Use your API key to fetch match data:
+                </p>
+                <pre className="p-3 bg-bg-card border border-border rounded text-xs overflow-x-auto">
+                  <code className="text-text-secondary">{`// Fetch live matches
+const matches = await client.query(
+  api.publicApi.listMatches,
+  {
+    apiKey: "${createdOrg.apiKey.slice(0, 15)}...",
+    tournamentId: "YOUR_TOURNAMENT_ID",
+    status: "live"
+  }
+);`}</code>
+                </pre>
+                <p className="text-xs text-text-muted mt-2">
+                  See full documentation in Organization Settings → API Keys
+                </p>
+              </div>
+
+              <button
+                onClick={() => router.push(`/organizations/${createdOrg.slug}`)}
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-accent text-text-inverse font-semibold rounded-lg hover:bg-accent-bright transition-all"
+              >
+                <span>Go to Organization</span>
+                <span>→</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // User has no organizations - show create org form

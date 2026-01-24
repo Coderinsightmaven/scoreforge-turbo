@@ -71,6 +71,9 @@ export default function OrganizationSettingsPage({
         {/* Add Member Section */}
         <AddMemberSection organization={organization} />
 
+        {/* API Keys Section */}
+        <ApiKeysSection organization={organization} />
+
         {/* Danger Zone */}
         <DangerZoneSection
           organization={organization}
@@ -467,6 +470,246 @@ function AddMemberSection({
             Member added successfully!
           </div>
         )}
+      </div>
+    </section>
+  );
+}
+
+function ApiKeysSection({
+  organization,
+}: {
+  organization: { _id: string; myRole: string };
+}) {
+  const apiKeys = useQuery(api.apiKeys.listApiKeys, {
+    organizationId: organization._id as any,
+  });
+  const generateApiKey = useMutation(api.apiKeys.generateApiKey);
+  const revokeApiKey = useMutation(api.apiKeys.revokeApiKey);
+
+  const [generating, setGenerating] = useState(false);
+  const [newKey, setNewKey] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [showDocs, setShowDocs] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    setError(null);
+    try {
+      const result = await generateApiKey({
+        organizationId: organization._id as any,
+        name: `API Key ${(apiKeys?.length || 0) + 1}`,
+      });
+      setNewKey(result.fullKey);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to generate API key");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleRevoke = async (keyId: string, keyPrefix: string) => {
+    if (!confirm(`Are you sure you want to revoke ${keyPrefix}...? This cannot be undone.`)) {
+      return;
+    }
+    try {
+      await revokeApiKey({ keyId: keyId as any });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to revoke key");
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const activeKeys = apiKeys?.filter((k) => k.isActive) || [];
+
+  return (
+    <section className="bg-bg-card border border-border rounded-2xl overflow-hidden">
+      <div className="p-6 border-b border-border">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-lg font-medium text-text-primary">
+              API Keys
+            </h2>
+            <p className="text-sm text-text-muted mt-1">
+              Access match data from external applications
+            </p>
+          </div>
+          <button
+            onClick={() => setShowDocs(!showDocs)}
+            className="px-4 py-2 text-sm font-medium text-accent hover:text-accent-bright transition-colors"
+          >
+            {showDocs ? "Hide Docs" : "View Docs"}
+          </button>
+        </div>
+      </div>
+
+      {/* Documentation Section */}
+      {showDocs && (
+        <div className="p-6 border-b border-border bg-bg-elevated/50">
+          <h3 className="font-display text-base font-medium text-text-primary mb-4">
+            API Documentation
+          </h3>
+
+          <div className="space-y-4 text-sm">
+            <div>
+              <p className="text-text-secondary mb-2">
+                Use your API key to fetch match data from external applications.
+                The API provides read-only access to tournaments and matches in your organization.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-medium text-text-primary mb-2">Available Endpoints</h4>
+              <ul className="list-disc list-inside text-text-secondary space-y-1">
+                <li><code className="px-1 py-0.5 bg-bg-card rounded text-accent">publicApi.listTournaments</code> - List all tournaments</li>
+                <li><code className="px-1 py-0.5 bg-bg-card rounded text-accent">publicApi.listMatches</code> - List matches for a tournament</li>
+                <li><code className="px-1 py-0.5 bg-bg-card rounded text-accent">publicApi.getMatch</code> - Get a single match by ID</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-medium text-text-primary mb-2">JavaScript Example</h4>
+              <div className="relative">
+                <pre className="p-4 bg-bg-card border border-border rounded-lg overflow-x-auto text-xs">
+                  <code className="text-text-secondary">{`import { ConvexClient } from "convex/browser";
+
+const client = new ConvexClient("${typeof window !== 'undefined' ? window.location.origin.replace('3000', '3210') : 'YOUR_CONVEX_URL'}");
+
+// List all tournaments
+const tournaments = await client.query(api.publicApi.listTournaments, {
+  apiKey: "YOUR_API_KEY",
+});
+
+// List live matches for a tournament
+const matches = await client.query(api.publicApi.listMatches, {
+  apiKey: "YOUR_API_KEY",
+  tournamentId: "TOURNAMENT_ID",
+  status: "live",  // optional: "pending", "scheduled", "live", "completed"
+});
+
+// Get a specific match
+const match = await client.query(api.publicApi.getMatch, {
+  apiKey: "YOUR_API_KEY",
+  matchId: "MATCH_ID",
+});`}</code>
+                </pre>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-medium text-text-primary mb-2">Response Format</h4>
+              <p className="text-text-secondary mb-2">
+                Each match includes scores, participants, timestamps, and sport-specific state (tennis sets/games, volleyball sets/points).
+              </p>
+              <pre className="p-4 bg-bg-card border border-border rounded-lg overflow-x-auto text-xs">
+                <code className="text-text-secondary">{`{
+  "match": {
+    "id": "...",
+    "round": 1,
+    "matchNumber": 1,
+    "status": "live",
+    "scores": { "participant1": 2, "participant2": 1 },
+    "participant1": { "id": "...", "displayName": "Team A", "wins": 3 },
+    "participant2": { "id": "...", "displayName": "Team B", "wins": 2 },
+    "tennisState": { ... },  // For tennis matches
+    "volleyballState": { ... }  // For volleyball matches
+  },
+  "tournament": {
+    "id": "...",
+    "name": "Summer Championship",
+    "sport": "tennis",
+    "format": "single_elimination"
+  }
+}`}</code>
+              </pre>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="p-6 space-y-4">
+        {/* New Key Alert */}
+        {newKey && (
+          <div className="p-4 bg-success/10 border border-success/20 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-success">New API Key Generated</span>
+              <button
+                onClick={() => setNewKey(null)}
+                className="text-text-muted hover:text-text-primary"
+              >
+                ×
+              </button>
+            </div>
+            <p className="text-xs text-text-secondary mb-3">
+              Copy this key now. You won&apos;t be able to see it again!
+            </p>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 px-3 py-2 bg-bg-card border border-border rounded text-xs font-mono text-text-primary break-all">
+                {newKey}
+              </code>
+              <button
+                onClick={() => copyToClipboard(newKey)}
+                className="px-3 py-2 text-sm font-medium text-text-inverse bg-accent rounded hover:bg-accent-bright transition-colors flex-shrink-0"
+              >
+                {copied ? "Copied!" : "Copy"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Existing Keys */}
+        {activeKeys.length > 0 ? (
+          <div className="space-y-2">
+            {activeKeys.map((key) => (
+              <div
+                key={key._id}
+                className="flex items-center justify-between p-3 bg-bg-elevated border border-border rounded-lg"
+              >
+                <div>
+                  <p className="font-medium text-text-primary">{key.name}</p>
+                  <p className="text-xs text-text-muted font-mono">
+                    {key.keyPrefix}...
+                    {key.lastUsedAt && (
+                      <span className="ml-2">
+                        Last used: {new Date(key.lastUsedAt).toLocaleDateString()}
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleRevoke(key._id, key.keyPrefix)}
+                  className="px-3 py-1.5 text-sm text-red hover:bg-red/10 rounded-lg transition-colors"
+                >
+                  Revoke
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-text-muted text-center py-4">
+            No active API keys. Generate one to access your data externally.
+          </p>
+        )}
+
+        {error && (
+          <div className="flex items-center gap-2 p-3 text-sm text-red bg-red/10 border border-red/20 rounded-lg">
+            <span className="flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red rounded-full flex-shrink-0">!</span>
+            {error}
+          </div>
+        )}
+
+        <button
+          onClick={handleGenerate}
+          disabled={generating}
+          className="w-full px-5 py-2.5 text-sm font-semibold text-text-inverse bg-accent rounded-lg hover:bg-accent-bright transition-colors disabled:opacity-60"
+        >
+          {generating ? "Generating..." : "Generate New API Key"}
+        </button>
       </div>
     </section>
   );
