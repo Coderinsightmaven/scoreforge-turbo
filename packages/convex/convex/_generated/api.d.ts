@@ -16,7 +16,9 @@ import type * as myFunctions from "../myFunctions.js";
 import type * as organizationMembers from "../organizationMembers.js";
 import type * as organizations from "../organizations.js";
 import type * as teams from "../teams.js";
+import type * as tennis from "../tennis.js";
 import type * as tournamentParticipants from "../tournamentParticipants.js";
+import type * as tournamentScorers from "../tournamentScorers.js";
 import type * as tournaments from "../tournaments.js";
 import type * as users from "../users.js";
 
@@ -35,7 +37,9 @@ declare const fullApi: ApiFromModules<{
   organizationMembers: typeof organizationMembers;
   organizations: typeof organizations;
   teams: typeof teams;
+  tennis: typeof tennis;
   tournamentParticipants: typeof tournamentParticipants;
+  tournamentScorers: typeof tournamentScorers;
   tournaments: typeof tournaments;
   users: typeof users;
 }>;

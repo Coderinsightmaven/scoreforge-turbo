@@ -64,11 +64,12 @@ export const presetSports = v.union(
 );
 
 /**
- * Participant types (team or individual)
+ * Participant types
  */
 export const participantTypes = v.union(
   v.literal("team"),
-  v.literal("individual")
+  v.literal("individual"),
+  v.literal("doubles")
 );
 
 /**
@@ -78,6 +79,43 @@ export const teamMemberRoles = v.union(
   v.literal("captain"),
   v.literal("player")
 );
+
+/**
+ * Tennis tournament configuration (set at tournament level)
+ */
+export const tennisConfig = v.object({
+  // Scoring mode: true = advantage scoring, false = no-ad (sudden death at deuce)
+  isAdScoring: v.boolean(),
+  // Best of 3 (setsToWin=2) or Best of 5 (setsToWin=3)
+  setsToWin: v.number(),
+});
+
+/**
+ * Tennis match state for tracking sets, games, and points
+ */
+export const tennisState = v.object({
+  // Completed sets: array of [p1Games, p2Games]
+  sets: v.array(v.array(v.number())),
+  // Current set games: [p1Games, p2Games]
+  currentSetGames: v.array(v.number()),
+  // Current game points: [p1Points, p2Points]
+  // In regular game: 0=Love, 1=15, 2=30, 3=40
+  // Values can go to 4 for advantage tracking
+  currentGamePoints: v.array(v.number()),
+  // Which participant is serving (1 or 2)
+  servingParticipant: v.number(),
+  // First server of the current set (for tracking alternation)
+  firstServerOfSet: v.number(),
+  // Scoring mode
+  isAdScoring: v.boolean(),
+  // Best of 3 (setsToWin=2) or Best of 5 (setsToWin=3)
+  setsToWin: v.number(),
+  // Tiebreak state
+  isTiebreak: v.boolean(),
+  tiebreakPoints: v.array(v.number()),
+  // Match completed
+  isMatchComplete: v.boolean(),
+});
 
 export default defineSchema({
   ...authTables,
@@ -105,19 +143,6 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_organization_and_user", ["organizationId", "userId"])
     .index("by_organization_and_role", ["organizationId", "role"]),
-
-  // Organization invitations (for email-based invites)
-  organizationInvitations: defineTable({
-    organizationId: v.id("organizations"),
-    email: v.string(),
-    role: organizationRoles,
-    invitedBy: v.id("users"),
-    expiresAt: v.number(),
-    token: v.string(),
-  })
-    .index("by_organization", ["organizationId"])
-    .index("by_email", ["email"])
-    .index("by_token", ["token"]),
 
   // Teams - groups of players within an organization
   teams: defineTable({
@@ -155,7 +180,7 @@ export default defineSchema({
     registrationEndDate: v.optional(v.number()),
     startDate: v.optional(v.number()),
     endDate: v.optional(v.number()),
-    // Scoring configuration
+    // Scoring configuration (for round robin points)
     scoringConfig: v.optional(
       v.object({
         pointsPerWin: v.optional(v.number()),
@@ -163,6 +188,8 @@ export default defineSchema({
         pointsPerLoss: v.optional(v.number()),
       })
     ),
+    // Tennis-specific configuration (only for tennis tournaments)
+    tennisConfig: v.optional(tennisConfig),
     createdBy: v.id("users"),
   })
     .index("by_organization", ["organizationId"])
@@ -170,27 +197,38 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_sport", ["sport"]),
 
-  // Tournament participants - teams or individuals registered for a tournament
+  // Tournament participants - teams, doubles, or individuals registered for a tournament
   tournamentParticipants: defineTable({
     tournamentId: v.id("tournaments"),
-    // One of these will be set based on participantType
-    teamId: v.optional(v.id("teams")),
-    userId: v.optional(v.id("users")),
-    // Display name (team name or user name)
+    type: participantTypes, // "individual" | "doubles" | "team"
     displayName: v.string(),
+    // Type-specific fields
+    playerName: v.optional(v.string()), // Individual
+    player1Name: v.optional(v.string()), // Doubles
+    player2Name: v.optional(v.string()), // Doubles
+    teamName: v.optional(v.string()), // Team
+    // Seeding & stats
     seed: v.optional(v.number()),
-    // Stats
     wins: v.number(),
     losses: v.number(),
     draws: v.number(),
     pointsFor: v.number(),
     pointsAgainst: v.number(),
-    registeredAt: v.number(),
+    createdAt: v.number(),
   })
     .index("by_tournament", ["tournamentId"])
-    .index("by_tournament_and_seed", ["tournamentId", "seed"])
-    .index("by_team", ["teamId"])
-    .index("by_user", ["userId"]),
+    .index("by_tournament_and_seed", ["tournamentId", "seed"]),
+
+  // Tournament scorers - users assigned to score matches in a tournament
+  tournamentScorers: defineTable({
+    tournamentId: v.id("tournaments"),
+    userId: v.id("users"),
+    assignedBy: v.id("users"),
+    assignedAt: v.number(),
+  })
+    .index("by_tournament", ["tournamentId"])
+    .index("by_user", ["userId"])
+    .index("by_tournament_and_user", ["tournamentId", "userId"]),
 
   // Matches - individual games within a tournament
   matches: defineTable({
@@ -204,7 +242,7 @@ export default defineSchema({
     // Participants (null for TBD)
     participant1Id: v.optional(v.id("tournamentParticipants")),
     participant2Id: v.optional(v.id("tournamentParticipants")),
-    // Scores
+    // Scores (sets won for tennis, points for other sports)
     participant1Score: v.number(),
     participant2Score: v.number(),
     // Winner
@@ -222,6 +260,8 @@ export default defineSchema({
     // For losers bracket progression
     loserNextMatchId: v.optional(v.id("matches")),
     loserNextMatchSlot: v.optional(v.number()),
+    // Tennis-specific state (only for tennis matches)
+    tennisState: v.optional(tennisState),
   })
     .index("by_tournament", ["tournamentId"])
     .index("by_tournament_and_round", ["tournamentId", "round"])

@@ -1,7 +1,7 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { matchStatus } from "./schema";
+import { matchStatus, tennisState, tennisConfig } from "./schema";
 
 // ============================================
 // Queries
@@ -201,6 +201,9 @@ export const getMatch = query({
         v.literal("admin"),
         v.literal("scorer")
       ),
+      sport: v.string(),
+      tennisState: v.optional(tennisState),
+      tennisConfig: v.optional(tennisConfig),
     }),
     v.null()
   ),
@@ -280,7 +283,161 @@ export const getMatch = query({
       completedAt: match.completedAt,
       nextMatchId: match.nextMatchId,
       myRole: membership.role,
+      sport: tournament.sport,
+      tennisState: match.tennisState,
+      tennisConfig: tournament.tennisConfig,
     };
+  },
+});
+
+/**
+ * Get live matches from tournaments the user is assigned to score
+ * - Owners/admins see all live matches in their orgs
+ * - Scorers only see live matches from tournaments they're assigned to
+ */
+export const listMyLiveMatches = query({
+  args: {},
+  returns: v.array(
+    v.object({
+      _id: v.id("matches"),
+      tournamentId: v.id("tournaments"),
+      tournamentName: v.string(),
+      round: v.number(),
+      matchNumber: v.number(),
+      bracket: v.optional(v.string()),
+      participant1: v.optional(
+        v.object({
+          _id: v.id("tournamentParticipants"),
+          displayName: v.string(),
+        })
+      ),
+      participant2: v.optional(
+        v.object({
+          _id: v.id("tournamentParticipants"),
+          displayName: v.string(),
+        })
+      ),
+      participant1Score: v.number(),
+      participant2Score: v.number(),
+      status: matchStatus,
+      startedAt: v.optional(v.number()),
+    })
+  ),
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      return [];
+    }
+
+    // Get tournaments user is explicitly assigned to as scorer
+    const scorerAssignments = await ctx.db
+      .query("tournamentScorers")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    const assignedTournamentIds = new Set(scorerAssignments.map((a) => a.tournamentId));
+
+    // Get all organizations the user is a member of
+    const memberships = await ctx.db
+      .query("organizationMembers")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    if (memberships.length === 0 && assignedTournamentIds.size === 0) {
+      return [];
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const results: any[] = [];
+    const processedTournamentIds = new Set<string>();
+
+    // Helper function to get live matches from a tournament
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const getLiveMatchesFromTournament = async (tournament: any) => {
+      const liveMatches = await ctx.db
+        .query("matches")
+        .withIndex("by_tournament_and_status", (q) =>
+          q.eq("tournamentId", tournament._id).eq("status", "live")
+        )
+        .collect();
+
+      for (const match of liveMatches) {
+        let participant1 = undefined;
+        let participant2 = undefined;
+
+        if (match.participant1Id) {
+          const p1 = await ctx.db.get("tournamentParticipants", match.participant1Id);
+          if (p1) {
+            participant1 = {
+              _id: p1._id,
+              displayName: p1.displayName,
+            };
+          }
+        }
+
+        if (match.participant2Id) {
+          const p2 = await ctx.db.get("tournamentParticipants", match.participant2Id);
+          if (p2) {
+            participant2 = {
+              _id: p2._id,
+              displayName: p2.displayName,
+            };
+          }
+        }
+
+        results.push({
+          _id: match._id,
+          tournamentId: tournament._id,
+          tournamentName: tournament.name,
+          round: match.round,
+          matchNumber: match.matchNumber,
+          bracket: match.bracket,
+          participant1,
+          participant2,
+          participant1Score: match.participant1Score,
+          participant2Score: match.participant2Score,
+          status: match.status,
+          startedAt: match.startedAt,
+        });
+      }
+    };
+
+    // First, process tournaments user is assigned to as scorer
+    for (const assignment of scorerAssignments) {
+      const tournament = await ctx.db.get("tournaments", assignment.tournamentId);
+      if (!tournament || tournament.status !== "active") continue;
+
+      await getLiveMatchesFromTournament(tournament);
+      processedTournamentIds.add(tournament._id);
+    }
+
+    // For owners/admins, also show live matches from all tournaments in their orgs
+    for (const membership of memberships) {
+      // Only owners and admins see all tournaments
+      if (membership.role !== "owner" && membership.role !== "admin") {
+        continue;
+      }
+
+      const tournaments = await ctx.db
+        .query("tournaments")
+        .withIndex("by_organization_and_status", (q) =>
+          q.eq("organizationId", membership.organizationId).eq("status", "active")
+        )
+        .collect();
+
+      for (const tournament of tournaments) {
+        // Skip if already processed
+        if (processedTournamentIds.has(tournament._id)) continue;
+
+        await getLiveMatchesFromTournament(tournament);
+        processedTournamentIds.add(tournament._id);
+      }
+    }
+
+    // Sort by startedAt (most recent first)
+    results.sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0));
+
+    return results;
   },
 });
 

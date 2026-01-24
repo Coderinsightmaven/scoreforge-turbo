@@ -18,20 +18,17 @@ export default function AddParticipantPage({
   const tournament = useQuery(api.tournaments.getTournament, {
     tournamentId: tournamentId as any,
   });
-  const teams = useQuery(
-    api.teams.listByOrganization,
-    tournament ? { organizationId: tournament.organizationId } : "skip"
-  );
-  const existingParticipants = useQuery(api.tournamentParticipants.listParticipants, {
-    tournamentId: tournamentId as any,
-  });
 
-  const registerParticipant = useMutation(api.tournamentParticipants.registerParticipant);
+  const addParticipant = useMutation(api.tournamentParticipants.addParticipant);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
-  const [displayName, setDisplayName] = useState("");
+
+  // Form state for different participant types
+  const [playerName, setPlayerName] = useState("");
+  const [player1Name, setPlayer1Name] = useState("");
+  const [player2Name, setPlayer2Name] = useState("");
+  const [teamName, setTeamName] = useState("");
   const [seed, setSeed] = useState<string>("");
 
   if (tournament === undefined) {
@@ -52,40 +49,50 @@ export default function AddParticipantPage({
     return <RegistrationClosed tournamentId={tournamentId} />;
   }
 
-  // Filter out teams that are already registered
-  const registeredTeamIds = new Set(
-    existingParticipants?.filter((p) => p.teamId).map((p) => p.teamId) || []
-  );
-  const availableTeams = teams?.filter((t) => !registeredTeamIds.has(t._id)) || [];
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
-      if (tournament.participantType === "team") {
-        if (!selectedTeamId) {
-          setError("Please select a team");
+      const seedValue = seed ? parseInt(seed, 10) : undefined;
+
+      if (tournament.participantType === "individual") {
+        if (!playerName.trim()) {
+          setError("Please enter a player name");
           setLoading(false);
           return;
         }
-        await registerParticipant({
+        await addParticipant({
           tournamentId: tournamentId as any,
-          teamId: selectedTeamId as any,
-          displayName: displayName || undefined,
+          playerName: playerName.trim(),
+          seed: seedValue,
         });
-      } else {
-        if (!displayName.trim()) {
-          setError("Please enter a display name");
+      } else if (tournament.participantType === "doubles") {
+        if (!player1Name.trim() || !player2Name.trim()) {
+          setError("Please enter both player names");
           setLoading(false);
           return;
         }
-        await registerParticipant({
+        await addParticipant({
           tournamentId: tournamentId as any,
-          displayName: displayName.trim(),
+          player1Name: player1Name.trim(),
+          player2Name: player2Name.trim(),
+          seed: seedValue,
+        });
+      } else if (tournament.participantType === "team") {
+        if (!teamName.trim()) {
+          setError("Please enter a team name");
+          setLoading(false);
+          return;
+        }
+        await addParticipant({
+          tournamentId: tournamentId as any,
+          teamName: teamName.trim(),
+          seed: seedValue,
         });
       }
+
       router.push(`/tournaments/${tournamentId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add participant");
@@ -94,6 +101,32 @@ export default function AddParticipantPage({
   };
 
   const isFull = tournament.participantCount >= tournament.maxParticipants;
+
+  const getFormTitle = () => {
+    switch (tournament.participantType) {
+      case "individual":
+        return "Register an individual player";
+      case "doubles":
+        return "Register a doubles pair";
+      case "team":
+        return "Register a team";
+      default:
+        return "Add a participant";
+    }
+  };
+
+  const isFormValid = () => {
+    switch (tournament.participantType) {
+      case "individual":
+        return playerName.trim().length > 0;
+      case "doubles":
+        return player1Name.trim().length > 0 && player2Name.trim().length > 0;
+      case "team":
+        return teamName.trim().length > 0;
+      default:
+        return false;
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-start justify-center px-6 py-12">
@@ -114,14 +147,14 @@ export default function AddParticipantPage({
         <div className="relative bg-bg-card border border-border rounded-2xl overflow-hidden">
           {/* Header */}
           <div className="text-center px-8 pt-10 pb-6">
-            <div className="text-5xl mb-4 animate-float">👥</div>
+            <div className="text-5xl mb-4 animate-float">
+              {tournament.participantType === "doubles" ? "👥" : tournament.participantType === "team" ? "🏆" : "👤"}
+            </div>
             <h1 className="font-display text-3xl tracking-wide text-text-primary mb-2">
               ADD PARTICIPANT
             </h1>
             <p className="text-text-secondary">
-              {tournament.participantType === "team"
-                ? "Select a team to register"
-                : "Register an individual participant"}
+              {getFormTitle()}
             </p>
             <div className="mt-4 flex items-center justify-center gap-2 text-sm">
               <span className="text-accent font-semibold">{tournament.participantCount}</span>
@@ -147,94 +180,103 @@ export default function AddParticipantPage({
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="px-8 pb-10 space-y-6">
-              {tournament.participantType === "team" ? (
-                /* Team Selection */
+              {/* Individual: Single Player Name */}
+              {tournament.participantType === "individual" && (
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-text-primary">
-                    Select Team
+                  <label
+                    htmlFor="playerName"
+                    className="block text-sm font-medium text-text-primary"
+                  >
+                    Player Name
                   </label>
-                  {availableTeams.length === 0 ? (
-                    <div className="p-6 border border-dashed border-border rounded-lg text-center">
-                      <p className="text-text-muted mb-2">No available teams</p>
-                      <p className="text-xs text-text-muted">
-                        All teams are already registered or no teams exist yet.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {availableTeams.map((team) => (
-                        <button
-                          key={team._id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedTeamId(team._id);
-                            if (!displayName) {
-                              setDisplayName(team.name);
-                            }
-                          }}
-                          className={`w-full flex items-center gap-3 p-4 rounded-lg border text-left transition-all ${
-                            selectedTeamId === team._id
-                              ? "bg-accent/10 border-accent"
-                              : "bg-bg-elevated border-border hover:border-text-muted"
-                          }`}
-                        >
-                          <div className="w-10 h-10 rounded-lg bg-bg-card border border-border flex items-center justify-center text-lg font-display text-accent overflow-hidden flex-shrink-0">
-                            {team.image ? (
-                              <img
-                                src={team.image}
-                                alt={team.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              team.name.charAt(0).toUpperCase()
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <span
-                              className={`block font-medium truncate ${selectedTeamId === team._id ? "text-accent" : "text-text-primary"}`}
-                            >
-                              {team.name}
-                            </span>
-                            <span className="text-xs text-text-muted">
-                              {team.memberCount} members
-                            </span>
-                          </div>
-                          {selectedTeamId === team._id && (
-                            <span className="text-accent">✓</span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  <input
+                    id="playerName"
+                    name="playerName"
+                    type="text"
+                    required
+                    value={playerName}
+                    onChange={(e) => setPlayerName(e.target.value)}
+                    placeholder="Enter player name"
+                    className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors"
+                    autoFocus
+                  />
                 </div>
-              ) : null}
+              )}
 
-              {/* Display Name */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="displayName"
-                  className="block text-sm font-medium text-text-primary"
-                >
-                  Display Name
-                  {tournament.participantType === "team" && (
-                    <span className="text-text-muted font-normal"> (Optional override)</span>
+              {/* Doubles: Two Player Names */}
+              {tournament.participantType === "doubles" && (
+                <>
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="player1Name"
+                      className="block text-sm font-medium text-text-primary"
+                    >
+                      Player 1 Name
+                    </label>
+                    <input
+                      id="player1Name"
+                      name="player1Name"
+                      type="text"
+                      required
+                      value={player1Name}
+                      onChange={(e) => setPlayer1Name(e.target.value)}
+                      placeholder="Enter first player name"
+                      className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors"
+                      autoFocus
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="player2Name"
+                      className="block text-sm font-medium text-text-primary"
+                    >
+                      Player 2 Name
+                    </label>
+                    <input
+                      id="player2Name"
+                      name="player2Name"
+                      type="text"
+                      required
+                      value={player2Name}
+                      onChange={(e) => setPlayer2Name(e.target.value)}
+                      placeholder="Enter second player name"
+                      className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors"
+                    />
+                  </div>
+                  {/* Preview of display name */}
+                  {player1Name.trim() && player2Name.trim() && (
+                    <div className="px-4 py-3 bg-accent/5 border border-accent/20 rounded-lg">
+                      <span className="text-xs text-text-muted block mb-1">Display Name Preview</span>
+                      <span className="text-sm font-medium text-accent">
+                        {player1Name.trim()} & {player2Name.trim()}
+                      </span>
+                    </div>
                   )}
-                </label>
-                <input
-                  id="displayName"
-                  name="displayName"
-                  type="text"
-                  required={tournament.participantType === "individual"}
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder={
-                    tournament.participantType === "team"
-                      ? "Leave blank to use team name"
-                      : "Enter participant name"
-                  }
-                  className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors"
-                />
-              </div>
+                </>
+              )}
+
+              {/* Team: Team Name */}
+              {tournament.participantType === "team" && (
+                <div className="space-y-2">
+                  <label
+                    htmlFor="teamName"
+                    className="block text-sm font-medium text-text-primary"
+                  >
+                    Team Name
+                  </label>
+                  <input
+                    id="teamName"
+                    name="teamName"
+                    type="text"
+                    required
+                    value={teamName}
+                    onChange={(e) => setTeamName(e.target.value)}
+                    placeholder="Enter team name"
+                    className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors"
+                    autoFocus
+                  />
+                </div>
+              )}
 
               {/* Seed (Optional) */}
               <div className="space-y-2">
@@ -277,11 +319,7 @@ export default function AddParticipantPage({
                 </Link>
                 <button
                   type="submit"
-                  disabled={
-                    loading ||
-                    (tournament.participantType === "team" && !selectedTeamId) ||
-                    (tournament.participantType === "individual" && !displayName.trim())
-                  }
+                  disabled={loading || !isFormValid()}
                   className="flex-[2] flex items-center justify-center gap-2 px-4 py-3 bg-accent text-text-inverse font-semibold rounded-lg hover:bg-accent-bright transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (

@@ -1,0 +1,497 @@
+"use client";
+
+import { useMutation } from "convex/react";
+import { api } from "@repo/convex";
+import { useState } from "react";
+
+type TennisState = {
+  sets: number[][];
+  currentSetGames: number[];
+  currentGamePoints: number[];
+  servingParticipant: number;
+  firstServerOfSet: number;
+  isAdScoring: boolean;
+  setsToWin: number;
+  isTiebreak: boolean;
+  tiebreakPoints: number[];
+  isMatchComplete: boolean;
+};
+
+type Participant = {
+  _id: string;
+  displayName: string;
+  seed?: number;
+};
+
+type Props = {
+  matchId: string;
+  participant1?: Participant;
+  participant2?: Participant;
+  tennisState: TennisState;
+  canScore: boolean;
+  status: string;
+};
+
+/**
+ * Convert numeric point to tennis terminology
+ */
+function getPointDisplay(
+  points: number[],
+  playerIndex: 0 | 1,
+  isAdScoring: boolean,
+  isTiebreak: boolean
+): string {
+  if (isTiebreak) {
+    return points[playerIndex].toString();
+  }
+
+  const [p1, p2] = points;
+  const myPoints = points[playerIndex];
+  const oppPoints = points[1 - playerIndex];
+
+  // At deuce or beyond (3-3 or higher)
+  if (p1 >= 3 && p2 >= 3) {
+    if (p1 === p2) {
+      return "40"; // Deuce
+    }
+    if (isAdScoring) {
+      if (myPoints > oppPoints) return "Ad";
+      return "40";
+    } else {
+      // No-Ad: showing 40 for both at deuce
+      return "40";
+    }
+  }
+
+  const pointNames = ["0", "15", "30", "40"];
+  return pointNames[Math.min(myPoints, 3)];
+}
+
+/**
+ * Get the game status text (e.g., "Deuce", "Advantage Player 1")
+ */
+function getGameStatus(
+  points: number[],
+  isAdScoring: boolean,
+  isTiebreak: boolean,
+  participant1Name: string,
+  participant2Name: string,
+  servingParticipant: number
+): string | null {
+  if (isTiebreak) {
+    return "Tiebreak";
+  }
+
+  const [p1, p2] = points;
+
+  if (p1 >= 3 && p2 >= 3 && p1 === p2) {
+    return "Deuce";
+  }
+
+  if (isAdScoring && (p1 >= 3 && p2 >= 3)) {
+    if (p1 > p2) {
+      return `Advantage ${participant1Name.split(" ")[0]}`;
+    }
+    if (p2 > p1) {
+      return `Advantage ${participant2Name.split(" ")[0]}`;
+    }
+  }
+
+  if (!isAdScoring && p1 === 3 && p2 === 3) {
+    const receiver = servingParticipant === 1 ? participant2Name : participant1Name;
+    return `Deciding Point (${receiver.split(" ")[0]} chooses side)`;
+  }
+
+  return null;
+}
+
+export function TennisScoreboard({
+  matchId,
+  participant1,
+  participant2,
+  tennisState,
+  canScore,
+  status,
+}: Props) {
+  const scorePoint = useMutation(api.tennis.scoreTennisPoint);
+  const setServer = useMutation(api.tennis.setTennisServer);
+  const [loading, setLoading] = useState(false);
+
+  const isLive = status === "live";
+  const canAct = canScore && isLive && !tennisState.isMatchComplete;
+
+  const handleScorePoint = async (winner: 1 | 2) => {
+    setLoading(true);
+    try {
+      await scorePoint({
+        matchId: matchId as any,
+        winnerParticipant: winner,
+      });
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : "Failed to score point");
+    }
+    setLoading(false);
+  };
+
+  const handleSetServer = async (server: 1 | 2) => {
+    try {
+      await setServer({
+        matchId: matchId as any,
+        servingParticipant: server,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const p1Name = participant1?.displayName || "Player 1";
+  const p2Name = participant2?.displayName || "Player 2";
+
+  const gameStatus = getGameStatus(
+    tennisState.isTiebreak ? tennisState.tiebreakPoints : tennisState.currentGamePoints,
+    tennisState.isAdScoring,
+    tennisState.isTiebreak,
+    p1Name,
+    p2Name,
+    tennisState.servingParticipant
+  );
+
+  // Count sets won
+  const p1SetsWon = tennisState.sets.filter((s) => s[0] > s[1]).length;
+  const p2SetsWon = tennisState.sets.filter((s) => s[1] > s[0]).length;
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Match Format Badge */}
+      <div className="flex justify-center gap-2">
+        <span className="px-3 py-1 text-xs font-semibold text-accent bg-accent/10 rounded-full">
+          Best of {tennisState.setsToWin * 2 - 1}
+        </span>
+        <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-white/5 rounded-full">
+          {tennisState.isAdScoring ? "Ad Scoring" : "No-Ad"}
+        </span>
+      </div>
+
+      {/* Main Scoreboard */}
+      <div className="bg-bg-secondary rounded-xl overflow-hidden border border-border">
+        {/* Header Row */}
+        <div className="grid grid-cols-[1fr_repeat(5,48px)_64px] gap-1 p-2 bg-bg-elevated text-xs font-semibold text-text-muted">
+          <div className="px-3">Player</div>
+          {tennisState.sets.map((_, idx) => (
+            <div key={idx} className="text-center">
+              Set {idx + 1}
+            </div>
+          ))}
+          {tennisState.sets.length < (tennisState.setsToWin * 2 - 1) && (
+            <div className="text-center text-accent">
+              Set {tennisState.sets.length + 1}
+            </div>
+          )}
+          {/* Pad remaining set columns */}
+          {Array.from({
+            length: Math.max(0, 3 - tennisState.sets.length - 1),
+          }).map((_, idx) => (
+            <div key={`pad-${idx}`} className="text-center">
+              -
+            </div>
+          ))}
+          <div className="text-center">
+            {tennisState.isTiebreak ? "TB" : "Game"}
+          </div>
+        </div>
+
+        {/* Player 1 Row */}
+        <div
+          className={`grid grid-cols-[1fr_repeat(5,48px)_64px] gap-1 p-2 items-center border-b border-border ${
+            tennisState.isMatchComplete && p1SetsWon > p2SetsWon
+              ? "bg-accent/10"
+              : ""
+          }`}
+        >
+          <div className="flex items-center gap-2 px-3">
+            {tennisState.servingParticipant === 1 && (
+              <span className="w-2 h-2 bg-success rounded-full animate-pulse" title="Serving" />
+            )}
+            <span className="font-semibold text-text-primary truncate">{p1Name}</span>
+            {participant1?.seed && (
+              <span className="text-xs text-accent">#{participant1.seed}</span>
+            )}
+          </div>
+          {/* Completed Sets */}
+          {tennisState.sets.map((set, idx) => (
+            <div
+              key={idx}
+              className={`text-center font-display text-lg font-bold ${
+                set[0] > set[1] ? "text-accent" : "text-text-primary"
+              }`}
+            >
+              {set[0]}
+            </div>
+          ))}
+          {/* Current Set */}
+          {tennisState.sets.length < (tennisState.setsToWin * 2 - 1) && (
+            <div className="text-center font-display text-lg font-bold text-accent">
+              {tennisState.currentSetGames[0]}
+            </div>
+          )}
+          {/* Pad remaining */}
+          {Array.from({
+            length: Math.max(0, 3 - tennisState.sets.length - 1),
+          }).map((_, idx) => (
+            <div key={`pad-${idx}`} className="text-center text-text-muted">
+              -
+            </div>
+          ))}
+          {/* Current Game/Tiebreak Points */}
+          <div className="text-center font-display text-xl font-bold text-accent">
+            {getPointDisplay(
+              tennisState.isTiebreak
+                ? tennisState.tiebreakPoints
+                : tennisState.currentGamePoints,
+              0,
+              tennisState.isAdScoring,
+              tennisState.isTiebreak
+            )}
+          </div>
+        </div>
+
+        {/* Player 2 Row */}
+        <div
+          className={`grid grid-cols-[1fr_repeat(5,48px)_64px] gap-1 p-2 items-center ${
+            tennisState.isMatchComplete && p2SetsWon > p1SetsWon
+              ? "bg-accent/10"
+              : ""
+          }`}
+        >
+          <div className="flex items-center gap-2 px-3">
+            {tennisState.servingParticipant === 2 && (
+              <span className="w-2 h-2 bg-success rounded-full animate-pulse" title="Serving" />
+            )}
+            <span className="font-semibold text-text-primary truncate">{p2Name}</span>
+            {participant2?.seed && (
+              <span className="text-xs text-accent">#{participant2.seed}</span>
+            )}
+          </div>
+          {/* Completed Sets */}
+          {tennisState.sets.map((set, idx) => (
+            <div
+              key={idx}
+              className={`text-center font-display text-lg font-bold ${
+                set[1] > set[0] ? "text-accent" : "text-text-primary"
+              }`}
+            >
+              {set[1]}
+            </div>
+          ))}
+          {/* Current Set */}
+          {tennisState.sets.length < (tennisState.setsToWin * 2 - 1) && (
+            <div className="text-center font-display text-lg font-bold text-accent">
+              {tennisState.currentSetGames[1]}
+            </div>
+          )}
+          {/* Pad remaining */}
+          {Array.from({
+            length: Math.max(0, 3 - tennisState.sets.length - 1),
+          }).map((_, idx) => (
+            <div key={`pad-${idx}`} className="text-center text-text-muted">
+              -
+            </div>
+          ))}
+          {/* Current Game/Tiebreak Points */}
+          <div className="text-center font-display text-xl font-bold text-accent">
+            {getPointDisplay(
+              tennisState.isTiebreak
+                ? tennisState.tiebreakPoints
+                : tennisState.currentGamePoints,
+              1,
+              tennisState.isAdScoring,
+              tennisState.isTiebreak
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Game Status */}
+      {gameStatus && !tennisState.isMatchComplete && (
+        <div className="text-center">
+          <span className="px-4 py-2 text-sm font-semibold text-gold bg-gold/10 rounded-lg">
+            {gameStatus}
+          </span>
+        </div>
+      )}
+
+      {/* Match Complete */}
+      {tennisState.isMatchComplete && (
+        <div className="text-center">
+          <span className="px-4 py-2 text-lg font-bold text-accent bg-accent/10 rounded-lg">
+            Match Complete - {p1SetsWon > p2SetsWon ? p1Name : p2Name} Wins!
+          </span>
+        </div>
+      )}
+
+      {/* Scoring Controls */}
+      {canAct && (
+        <div className="space-y-4">
+          <div className="text-center text-xs text-text-muted uppercase tracking-wide">
+            Point Won By
+          </div>
+          <div className="flex gap-4">
+            <button
+              onClick={() => handleScorePoint(1)}
+              disabled={loading}
+              className="flex-1 py-4 text-lg font-bold text-bg-void bg-accent rounded-xl hover:bg-accent-bright transition-all disabled:opacity-50"
+            >
+              {p1Name.split(" ")[0]}
+            </button>
+            <button
+              onClick={() => handleScorePoint(2)}
+              disabled={loading}
+              className="flex-1 py-4 text-lg font-bold text-bg-void bg-accent rounded-xl hover:bg-accent-bright transition-all disabled:opacity-50"
+            >
+              {p2Name.split(" ")[0]}
+            </button>
+          </div>
+
+          {/* Server Toggle */}
+          <div className="flex items-center justify-center gap-4 pt-4 border-t border-border">
+            <span className="text-xs text-text-muted">Server:</span>
+            <button
+              onClick={() => handleSetServer(1)}
+              className={`px-3 py-1 text-sm rounded-lg transition-all ${
+                tennisState.servingParticipant === 1
+                  ? "bg-success text-white"
+                  : "bg-bg-elevated text-text-secondary hover:bg-bg-card"
+              }`}
+            >
+              {p1Name.split(" ")[0]}
+            </button>
+            <button
+              onClick={() => handleSetServer(2)}
+              className={`px-3 py-1 text-sm rounded-lg transition-all ${
+                tennisState.servingParticipant === 2
+                  ? "bg-success text-white"
+                  : "bg-bg-elevated text-text-secondary hover:bg-bg-card"
+              }`}
+            >
+              {p2Name.split(" ")[0]}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Tennis Match Setup Form
+ * Only asks for first server - scoring rules come from tournament config
+ */
+export function TennisMatchSetup({
+  matchId,
+  participant1Name,
+  participant2Name,
+  onSetupComplete,
+  matchStatus,
+  tennisConfig,
+}: {
+  matchId: string;
+  participant1Name: string;
+  participant2Name: string;
+  onSetupComplete: () => void;
+  matchStatus?: string;
+  tennisConfig?: {
+    isAdScoring: boolean;
+    setsToWin: number;
+  };
+}) {
+  const initTennisMatch = useMutation(api.tennis.initTennisMatch);
+  const startMatch = useMutation(api.matches.startMatch);
+  const [firstServer, setFirstServer] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      // Initialize tennis state (pulls config from tournament)
+      await initTennisMatch({
+        matchId: matchId as any,
+        firstServer,
+      });
+      // Start the match if it's not already live
+      if (matchStatus === "pending" || matchStatus === "scheduled") {
+        await startMatch({ matchId: matchId as any });
+      }
+      onSetupComplete();
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : "Failed to initialize match");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="p-6 space-y-6">
+      <div className="text-center">
+        <h3 className="font-display text-xl font-bold text-text-primary mb-2">
+          Start Tennis Match
+        </h3>
+        <p className="text-sm text-text-secondary">
+          Select who will serve first
+        </p>
+      </div>
+
+      {/* Tournament Rules Display */}
+      {tennisConfig && (
+        <div className="flex justify-center gap-3">
+          <span className="px-3 py-1 text-xs font-semibold text-accent bg-accent/10 rounded-full">
+            Best of {tennisConfig.setsToWin * 2 - 1}
+          </span>
+          <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-white/5 rounded-full">
+            {tennisConfig.isAdScoring ? "Ad Scoring" : "No-Ad"}
+          </span>
+        </div>
+      )}
+
+      {/* First Server */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-text-primary text-center">
+          Who will serve first?
+        </label>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => setFirstServer(1)}
+            className={`flex-1 py-4 rounded-lg border font-semibold transition-all ${
+              firstServer === 1
+                ? "bg-success/10 border-success text-success"
+                : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
+            }`}
+          >
+            {participant1Name}
+          </button>
+          <button
+            type="button"
+            onClick={() => setFirstServer(2)}
+            className={`flex-1 py-4 rounded-lg border font-semibold transition-all ${
+              firstServer === 2
+                ? "bg-success/10 border-success text-success"
+                : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
+            }`}
+          >
+            {participant2Name}
+          </button>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full py-4 font-semibold text-bg-void bg-accent rounded-xl hover:bg-accent-bright transition-all disabled:opacity-50"
+      >
+        {loading ? "Starting..." : "Start Match"}
+      </button>
+    </form>
+  );
+}

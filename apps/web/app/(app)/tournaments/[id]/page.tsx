@@ -7,7 +7,7 @@ import Link from "next/link";
 import { use } from "react";
 import { Skeleton, SkeletonBracket, SkeletonTabs } from "@/app/components/Skeleton";
 
-type Tab = "bracket" | "matches" | "participants" | "standings";
+type Tab = "bracket" | "matches" | "participants" | "standings" | "scorers";
 
 export default function TournamentDetailPage({
   params,
@@ -57,6 +57,8 @@ export default function TournamentDetailPage({
     round_robin: "Round Robin",
   };
 
+  const canManage = tournament.myRole === "owner" || tournament.myRole === "admin";
+
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: "bracket", label: "Bracket", icon: "⬡" },
     { id: "matches", label: "Matches", icon: "◎" },
@@ -64,9 +66,10 @@ export default function TournamentDetailPage({
     ...(tournament.format === "round_robin"
       ? [{ id: "standings" as Tab, label: "Standings", icon: "📊" }]
       : []),
+    ...(canManage
+      ? [{ id: "scorers" as Tab, label: "Scorers", icon: "📋" }]
+      : []),
   ];
-
-  const canManage = tournament.myRole === "owner" || tournament.myRole === "admin";
 
   return (
     <div className="min-h-screen">
@@ -169,9 +172,16 @@ export default function TournamentDetailPage({
             tournamentId={id}
             canManage={canManage}
             status={tournament.status}
+            participantType={tournament.participantType}
           />
         )}
         {activeTab === "standings" && <StandingsTab tournamentId={id} />}
+        {activeTab === "scorers" && (
+          <ScorersTab
+            tournamentId={id}
+            organizationId={tournament.organizationId}
+          />
+        )}
       </main>
     </div>
   );
@@ -504,10 +514,12 @@ function ParticipantsTab({
   tournamentId,
   canManage,
   status,
+  participantType,
 }: {
   tournamentId: string;
   canManage: boolean;
   status: string;
+  participantType: string;
 }) {
   const participants = useQuery(api.tournamentParticipants.listParticipants, {
     tournamentId: tournamentId as any,
@@ -518,6 +530,25 @@ function ParticipantsTab({
   }
 
   const canAdd = canManage && (status === "draft" || status === "registration");
+
+  const getParticipantSubtext = (participant: (typeof participants)[0]) => {
+    // For doubles, show both player names if available
+    if (participant.type === "doubles" && participant.player1Name && participant.player2Name) {
+      return `${participant.player1Name} + ${participant.player2Name}`;
+    }
+    return null;
+  };
+
+  const getParticipantIcon = () => {
+    switch (participantType) {
+      case "doubles":
+        return "👥";
+      case "team":
+        return "🏆";
+      default:
+        return "👤";
+    }
+  };
 
   return (
     <div className="animate-fadeIn">
@@ -537,7 +568,7 @@ function ParticipantsTab({
 
       {participants.length === 0 ? (
         <div className="flex flex-col items-center py-16 text-center bg-bg-secondary border border-dashed border-border rounded-2xl">
-          <span className="text-5xl text-text-muted mb-4 opacity-50">👥</span>
+          <span className="text-5xl text-text-muted mb-4 opacity-50">{getParticipantIcon()}</span>
           <p className="text-text-secondary mb-6">No participants yet</p>
           {canAdd && (
             <Link
@@ -550,31 +581,39 @@ function ParticipantsTab({
         </div>
       ) : (
         <div className="flex flex-col gap-2">
-          {participants.map((participant, index) => (
-            <div
-              key={participant._id}
-              className="flex items-center gap-4 p-4 bg-bg-card border border-border rounded-xl animate-fadeInUp"
-              style={{ animationDelay: `${index * 0.03}s` }}
-            >
-              <div className="w-8 h-8 flex items-center justify-center font-display text-sm font-bold text-accent bg-accent/10 rounded-lg flex-shrink-0">
-                {participant.seed || "-"}
+          {participants.map((participant, index) => {
+            const subtext = getParticipantSubtext(participant);
+            return (
+              <div
+                key={participant._id}
+                className="flex items-center gap-4 p-4 bg-bg-card border border-border rounded-xl animate-fadeInUp"
+                style={{ animationDelay: `${index * 0.03}s` }}
+              >
+                <div className="w-8 h-8 flex items-center justify-center font-display text-sm font-bold text-accent bg-accent/10 rounded-lg flex-shrink-0">
+                  {participant.seed || "-"}
+                </div>
+                <div className="flex-1">
+                  <span className="block font-medium text-text-primary">
+                    {participant.displayName}
+                  </span>
+                  {subtext && (
+                    <span className="block text-xs text-text-muted mb-0.5">
+                      {subtext}
+                    </span>
+                  )}
+                  <span className="block text-sm text-text-muted">
+                    {participant.wins}W - {participant.losses}L
+                    {participant.draws > 0 && ` - ${participant.draws}D`}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 font-display text-base">
+                  <span className="text-success">{participant.pointsFor}</span>
+                  <span className="text-text-muted">-</span>
+                  <span className="text-red">{participant.pointsAgainst}</span>
+                </div>
               </div>
-              <div className="flex-1">
-                <span className="block font-medium text-text-primary">
-                  {participant.displayName}
-                </span>
-                <span className="block text-sm text-text-muted">
-                  {participant.wins}W - {participant.losses}L
-                  {participant.draws > 0 && ` - ${participant.draws}D`}
-                </span>
-              </div>
-              <div className="flex items-center gap-1 font-display text-base">
-                <span className="text-success">{participant.pointsFor}</span>
-                <span className="text-text-muted">-</span>
-                <span className="text-red">{participant.pointsAgainst}</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -654,6 +693,245 @@ function StandingsTab({ tournamentId }: { tournamentId: string }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function ScorersTab({
+  tournamentId,
+  organizationId,
+}: {
+  tournamentId: string;
+  organizationId: string;
+}) {
+  const scorers = useQuery(api.tournamentScorers.listScorers, {
+    tournamentId: tournamentId as any,
+  });
+  const members = useQuery(api.organizationMembers.listMembers, {
+    organizationId: organizationId as any,
+  });
+  const assignScorer = useMutation(api.tournamentScorers.assignScorer);
+  const removeScorer = useMutation(api.tournamentScorers.removeScorer);
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!scorers || !members) {
+    return <TabSkeleton />;
+  }
+
+  // Filter members who can be assigned as scorers (not already assigned)
+  const assignedUserIds = new Set(scorers.map((s) => s.userId));
+  const availableMembers = members.filter(
+    (m) => !assignedUserIds.has(m.userId) && m.role === "scorer"
+  );
+
+  const handleAssign = async () => {
+    if (!selectedUserId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await assignScorer({
+        tournamentId: tournamentId as any,
+        userId: selectedUserId as any,
+      });
+      setShowAddModal(false);
+      setSelectedUserId(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to assign scorer");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemove = async (userId: string) => {
+    if (!confirm("Remove this scorer from the tournament?")) return;
+    setRemovingId(userId);
+    try {
+      await removeScorer({
+        tournamentId: tournamentId as any,
+        userId: userId as any,
+      });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to remove scorer");
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
+  return (
+    <div className="animate-fadeIn">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="font-display text-lg font-semibold tracking-widest text-text-primary">
+          ASSIGNED SCORERS ({scorers.length})
+        </h2>
+        <button
+          onClick={() => setShowAddModal(true)}
+          disabled={availableMembers.length === 0}
+          className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold tracking-wide uppercase text-accent bg-accent/10 border border-accent/30 rounded-lg hover:bg-accent hover:text-bg-void transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span>+</span> Assign Scorer
+        </button>
+      </div>
+
+      {scorers.length === 0 ? (
+        <div className="flex flex-col items-center py-16 text-center bg-bg-secondary border border-dashed border-border rounded-2xl">
+          <span className="text-5xl text-text-muted mb-4 opacity-50">📋</span>
+          <p className="text-text-secondary mb-2">No scorers assigned yet</p>
+          <p className="text-sm text-text-muted mb-6">
+            Assign organization members with the &quot;scorer&quot; role to let them score matches in this tournament.
+          </p>
+          {availableMembers.length > 0 ? (
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="px-4 py-2 text-sm font-semibold text-bg-void bg-accent rounded-lg hover:bg-accent-bright transition-all"
+            >
+              Assign Scorer
+            </button>
+          ) : (
+            <p className="text-xs text-text-muted">
+              No available scorers in your organization. Invite members with the &quot;scorer&quot; role first.
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {scorers.map((scorer, index) => (
+            <div
+              key={scorer._id}
+              className="flex items-center gap-4 p-4 bg-bg-card border border-border rounded-xl animate-fadeInUp"
+              style={{ animationDelay: `${index * 0.03}s` }}
+            >
+              <div className="w-10 h-10 flex items-center justify-center font-display text-sm font-bold text-accent bg-accent/10 rounded-full flex-shrink-0">
+                {(scorer.userName || scorer.userEmail || "?").charAt(0).toUpperCase()}
+              </div>
+              <div className="flex-1">
+                <span className="block font-medium text-text-primary">
+                  {scorer.userName || "Unknown"}
+                </span>
+                <span className="block text-sm text-text-muted">
+                  {scorer.userEmail}
+                </span>
+              </div>
+              <div className="text-xs text-text-muted">
+                Added {new Date(scorer.assignedAt).toLocaleDateString()}
+              </div>
+              <button
+                onClick={() => handleRemove(scorer.userId)}
+                disabled={removingId === scorer.userId}
+                className="px-3 py-1.5 text-xs font-semibold text-red bg-red/10 border border-red/20 rounded-lg hover:bg-red hover:text-white transition-all disabled:opacity-50"
+              >
+                {removingId === scorer.userId ? "..." : "Remove"}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add Scorer Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-lg bg-bg-card border border-border rounded-2xl shadow-2xl animate-scaleIn">
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <h3 className="font-display text-lg font-semibold tracking-wide text-text-primary">
+                ASSIGN SCORER
+              </h3>
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  setSelectedUserId(null);
+                  setError(null);
+                }}
+                className="text-text-muted hover:text-text-primary transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6">
+              {error && (
+                <div className="flex items-center gap-2 p-3 mb-4 text-sm text-red bg-red/10 border border-red/20 rounded-lg">
+                  <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center bg-red rounded-full text-white text-xs font-bold">
+                    !
+                  </span>
+                  {error}
+                </div>
+              )}
+
+              {availableMembers.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-text-secondary mb-2">No available scorers</p>
+                  <p className="text-sm text-text-muted">
+                    All organization members with the &quot;scorer&quot; role are already assigned, or there are no members with that role.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-text-secondary mb-4">
+                    Select a member to assign as a scorer for this tournament:
+                  </p>
+                  <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto">
+                    {availableMembers.map((member) => (
+                      <button
+                        key={member.userId}
+                        type="button"
+                        onClick={() => setSelectedUserId(member.userId)}
+                        className={`w-full flex items-center gap-3 p-4 rounded-lg border text-left transition-all ${
+                          selectedUserId === member.userId
+                            ? "bg-accent/10 border-accent"
+                            : "bg-bg-elevated border-border hover:border-text-muted"
+                        }`}
+                      >
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-accent font-display bg-accent/10">
+                          {(member.user.name || member.user.email || "?").charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span
+                            className={`block font-medium truncate ${
+                              selectedUserId === member.userId
+                                ? "text-accent"
+                                : "text-text-primary"
+                            }`}
+                          >
+                            {member.user.name || "Unknown"}
+                          </span>
+                          <span className="block text-xs text-text-muted truncate">
+                            {member.user.email}
+                          </span>
+                        </div>
+                        {selectedUserId === member.userId && (
+                          <span className="text-accent">✓</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="flex justify-end gap-3 p-6 border-t border-border">
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  setSelectedUserId(null);
+                  setError(null);
+                }}
+                className="px-4 py-2 text-sm text-text-secondary bg-bg-elevated border border-border rounded-lg hover:text-text-primary hover:border-text-muted transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAssign}
+                disabled={!selectedUserId || loading}
+                className="px-4 py-2 text-sm font-semibold text-bg-void bg-accent rounded-lg hover:bg-accent-bright transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? "Assigning..." : "Assign Scorer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

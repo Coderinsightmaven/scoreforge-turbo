@@ -8,18 +8,7 @@ import Link from "next/link";
 import { use } from "react";
 
 const SPORTS = [
-  { value: "basketball", label: "Basketball", icon: "🏀" },
-  { value: "soccer", label: "Soccer", icon: "⚽" },
   { value: "tennis", label: "Tennis", icon: "🎾" },
-  { value: "football", label: "Football", icon: "🏈" },
-  { value: "baseball", label: "Baseball", icon: "⚾" },
-  { value: "volleyball", label: "Volleyball", icon: "🏐" },
-  { value: "hockey", label: "Hockey", icon: "🏒" },
-  { value: "golf", label: "Golf", icon: "⛳" },
-  { value: "badminton", label: "Badminton", icon: "🏸" },
-  { value: "table_tennis", label: "Table Tennis", icon: "🏓" },
-  { value: "cricket", label: "Cricket", icon: "🏏" },
-  { value: "rugby", label: "Rugby", icon: "🏉" },
 ] as const;
 
 const FORMATS = [
@@ -41,8 +30,9 @@ const FORMATS = [
 ] as const;
 
 const PARTICIPANT_TYPES = [
-  { value: "team", label: "Teams", description: "Teams compete against each other" },
   { value: "individual", label: "Individuals", description: "Individual players compete" },
+  { value: "doubles", label: "Doubles", description: "Pairs of players compete together" },
+  { value: "team", label: "Teams", description: "Teams compete against each other" },
 ] as const;
 
 export default function NewTournamentPage({
@@ -58,9 +48,13 @@ export default function NewTournamentPage({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [sport, setSport] = useState<string>("basketball");
+  const [sport, setSport] = useState<string>("tennis");
   const [format, setFormat] = useState<string>("single_elimination");
-  const [participantType, setParticipantType] = useState<string>("team");
+  const [participantType, setParticipantType] = useState<string>("individual");
+
+  // Tennis-specific configuration
+  const [tennisIsAdScoring, setTennisIsAdScoring] = useState(true);
+  const [tennisSetsToWin, setTennisSetsToWin] = useState(2); // Best of 3
 
   if (organization === undefined) {
     return <LoadingSkeleton />;
@@ -85,7 +79,6 @@ export default function NewTournamentPage({
     const description = (formData.get("description") as string) || undefined;
     const maxParticipants = parseInt(formData.get("maxParticipants") as string, 10);
     const startDateStr = formData.get("startDate") as string;
-    const registrationEndDateStr = formData.get("registrationEndDate") as string;
 
     try {
       const tournamentId = await createTournament({
@@ -97,9 +90,11 @@ export default function NewTournamentPage({
         participantType: participantType as any,
         maxParticipants,
         startDate: startDateStr ? new Date(startDateStr).getTime() : undefined,
-        registrationEndDate: registrationEndDateStr
-          ? new Date(registrationEndDateStr).getTime()
-          : undefined,
+        // Tennis-specific configuration
+        tennisConfig: sport === "tennis" ? {
+          isAdScoring: tennisIsAdScoring,
+          setsToWin: tennisSetsToWin,
+        } : undefined,
       });
       router.push(`/tournaments/${tournamentId}`);
     } catch (err) {
@@ -174,27 +169,77 @@ export default function NewTournamentPage({
               />
             </div>
 
-            {/* Sport Selection */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-text-primary">
-                Sport
-              </label>
-              <div className="grid grid-cols-4 gap-2">
-                {SPORTS.map((s) => (
+            {/* Sport & Tennis Configuration */}
+            <div className="space-y-4 p-4 bg-accent/5 border border-accent/20 rounded-xl">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🎾</span>
+                <span className="font-semibold text-accent">Tennis Scoring Rules</span>
+              </div>
+
+              {/* Match Format */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-text-primary">
+                  Match Format
+                </label>
+                <div className="flex gap-3">
                   <button
-                    key={s.value}
                     type="button"
-                    onClick={() => setSport(s.value)}
-                    className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${
-                      sport === s.value
-                        ? "bg-accent/10 border-accent text-accent"
+                    onClick={() => setTennisSetsToWin(2)}
+                    className={`flex-1 py-3 rounded-lg border-2 font-semibold transition-all ${
+                      tennisSetsToWin === 2
+                        ? "bg-accent border-accent text-text-inverse shadow-lg shadow-accent/25"
                         : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
                     }`}
                   >
-                    <span className="text-2xl">{s.icon}</span>
-                    <span className="text-xs font-medium">{s.label}</span>
+                    {tennisSetsToWin === 2 && <span className="mr-2">✓</span>}
+                    Best of 3
                   </button>
-                ))}
+                  <button
+                    type="button"
+                    onClick={() => setTennisSetsToWin(3)}
+                    className={`flex-1 py-3 rounded-lg border-2 font-semibold transition-all ${
+                      tennisSetsToWin === 3
+                        ? "bg-accent border-accent text-text-inverse shadow-lg shadow-accent/25"
+                        : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
+                    }`}
+                  >
+                    {tennisSetsToWin === 3 && <span className="mr-2">✓</span>}
+                    Best of 5
+                  </button>
+                </div>
+              </div>
+
+              {/* Deuce Scoring */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-text-primary">
+                  Deuce Scoring
+                </label>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setTennisIsAdScoring(true)}
+                    className={`flex-1 py-3 rounded-lg border-2 transition-all ${
+                      tennisIsAdScoring
+                        ? "bg-accent border-accent text-text-inverse shadow-lg shadow-accent/25"
+                        : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
+                    }`}
+                  >
+                    <span className="block font-semibold">{tennisIsAdScoring && "✓ "}Ad Scoring</span>
+                    <span className={`block text-xs ${tennisIsAdScoring ? "text-text-inverse/70" : "opacity-70"}`}>Traditional rules</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTennisIsAdScoring(false)}
+                    className={`flex-1 py-3 rounded-lg border-2 transition-all ${
+                      !tennisIsAdScoring
+                        ? "bg-accent border-accent text-text-inverse shadow-lg shadow-accent/25"
+                        : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
+                    }`}
+                  >
+                    <span className="block font-semibold">{!tennisIsAdScoring && "✓ "}No-Ad</span>
+                    <span className={`block text-xs ${!tennisIsAdScoring ? "text-text-inverse/70" : "opacity-70"}`}>Deciding point at deuce</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -209,18 +254,29 @@ export default function NewTournamentPage({
                     key={f.value}
                     type="button"
                     onClick={() => setFormat(f.value)}
-                    className={`w-full flex flex-col items-start gap-0.5 p-4 rounded-lg border text-left transition-all ${
+                    className={`w-full flex items-center gap-3 p-4 rounded-lg border-2 text-left transition-all ${
                       format === f.value
-                        ? "bg-accent/10 border-accent"
+                        ? "bg-accent border-accent shadow-lg shadow-accent/25"
                         : "bg-bg-elevated border-border hover:border-text-muted"
                     }`}
                   >
                     <span
-                      className={`font-semibold ${format === f.value ? "text-accent" : "text-text-primary"}`}
+                      className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                        format === f.value
+                          ? "bg-text-inverse border-text-inverse text-accent"
+                          : "border-text-muted"
+                      }`}
                     >
-                      {f.label}
+                      {format === f.value && "✓"}
                     </span>
-                    <span className="text-xs text-text-muted">{f.description}</span>
+                    <div className="flex flex-col gap-0.5">
+                      <span
+                        className={`font-semibold ${format === f.value ? "text-white" : "text-text-primary"}`}
+                      >
+                        {f.label}
+                      </span>
+                      <span className={`text-xs ${format === f.value ? "text-white/70" : "text-text-muted"}`}>{f.description}</span>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -231,24 +287,29 @@ export default function NewTournamentPage({
               <label className="block text-sm font-medium text-text-primary">
                 Participant Type
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 {PARTICIPANT_TYPES.map((p) => (
                   <button
                     key={p.value}
                     type="button"
                     onClick={() => setParticipantType(p.value)}
-                    className={`flex flex-col items-center gap-1 p-6 rounded-lg border text-center transition-all ${
+                    className={`relative flex flex-col items-center gap-1 p-4 rounded-lg border-2 text-center transition-all ${
                       participantType === p.value
-                        ? "bg-accent/10 border-accent"
+                        ? "bg-accent border-accent shadow-lg shadow-accent/25"
                         : "bg-bg-elevated border-border hover:border-text-muted"
                     }`}
                   >
+                    {participantType === p.value && (
+                      <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-text-inverse text-accent text-xs flex items-center justify-center font-bold">
+                        ✓
+                      </span>
+                    )}
                     <span
-                      className={`text-lg font-semibold ${participantType === p.value ? "text-accent" : "text-text-primary"}`}
+                      className={`text-base font-semibold ${participantType === p.value ? "text-white" : "text-text-primary"}`}
                     >
                       {p.label}
                     </span>
-                    <span className="text-xs text-text-muted">{p.description}</span>
+                    <span className={`text-xs ${participantType === p.value ? "text-white/70" : "text-text-muted"}`}>{p.description}</span>
                   </button>
                 ))}
               </div>
@@ -277,36 +338,20 @@ export default function NewTournamentPage({
               </span>
             </div>
 
-            {/* Dates */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label
-                  htmlFor="registrationEndDate"
-                  className="block text-sm font-medium text-text-primary"
-                >
-                  Registration Deadline
-                </label>
-                <input
-                  id="registrationEndDate"
-                  name="registrationEndDate"
-                  type="datetime-local"
-                  className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-lg text-text-primary focus:outline-none focus:border-accent transition-colors"
-                />
-              </div>
-              <div className="space-y-2">
-                <label
-                  htmlFor="startDate"
-                  className="block text-sm font-medium text-text-primary"
-                >
-                  Start Date
-                </label>
-                <input
-                  id="startDate"
-                  name="startDate"
-                  type="datetime-local"
-                  className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-lg text-text-primary focus:outline-none focus:border-accent transition-colors"
-                />
-              </div>
+            {/* Start Date */}
+            <div className="space-y-2">
+              <label
+                htmlFor="startDate"
+                className="block text-sm font-medium text-text-primary"
+              >
+                Start Date (Optional)
+              </label>
+              <input
+                id="startDate"
+                name="startDate"
+                type="datetime-local"
+                className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-lg text-text-primary focus:outline-none focus:border-accent transition-colors"
+              />
             </div>
 
             {error && (

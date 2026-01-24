@@ -6,6 +6,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { use } from "react";
 import { Skeleton, SkeletonScoreboard } from "@/app/components/Skeleton";
+import { TennisScoreboard, TennisMatchSetup } from "@/app/components/TennisScoreboard";
 
 export default function MatchDetailPage({
   params,
@@ -59,19 +60,49 @@ export default function MatchDetailPage({
             <MatchStatusBadge status={match.status} />
           </div>
 
-          {/* Scoreboard */}
-          <Scoreboard
-            match={match}
-            canScore={
-              canScore &&
-              (match.status === "live" ||
-                match.status === "pending" ||
-                match.status === "scheduled")
-            }
-          />
+          {/* Scoreboard - Tennis or Generic */}
+          {match.sport === "tennis" ? (
+            match.tennisState ? (
+              <TennisScoreboard
+                matchId={match._id}
+                participant1={match.participant1}
+                participant2={match.participant2}
+                tennisState={match.tennisState}
+                canScore={canScore}
+                status={match.status}
+              />
+            ) : (
+              canScore && match.status !== "completed" ? (
+                <TennisMatchSetup
+                  matchId={match._id}
+                  participant1Name={match.participant1?.displayName || "Player 1"}
+                  participant2Name={match.participant2?.displayName || "Player 2"}
+                  matchStatus={match.status}
+                  tennisConfig={match.tennisConfig}
+                  onSetupComplete={() => {}}
+                />
+              ) : (
+                <div className="p-8 text-center text-text-muted">
+                  Tennis match not yet configured
+                </div>
+              )
+            )
+          ) : (
+            <Scoreboard
+              match={match}
+              canScore={
+                canScore &&
+                (match.status === "live" ||
+                  match.status === "pending" ||
+                  match.status === "scheduled")
+              }
+            />
+          )}
 
-          {/* Match Actions */}
-          {canScore && <MatchActions match={match} />}
+          {/* Match Actions - For non-tennis or tennis without state */}
+          {canScore && (match.sport !== "tennis" || !match.tennisState) && (
+            <MatchActions match={match} />
+          )}
 
           {/* Match Info */}
           <div className="flex flex-wrap gap-6 p-6 border-t border-border">
