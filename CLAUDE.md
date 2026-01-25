@@ -22,45 +22,45 @@ bun run format
 
 # Filter to specific app/package
 bun run dev --filter=web
-bun run dev --filter=docs
 bun run dev --filter=@repo/convex
 ```
 
-### Convex-specific commands (from packages/convex)
+### Convex Commands (from packages/convex)
 ```bash
 bun run dev          # Start Convex dev server
 bun run logs         # View Convex logs
 npx convex run myFunctions:myQuery '{"arg": "value"}'  # Run a function
 ```
 
+### Mobile App Commands (from apps/mobile)
+```bash
+bun run dev          # Start Expo dev server
+bun run ios          # Run on iOS simulator
+bun run android      # Run on Android emulator
+```
+
 ## Architecture
 
-This is a **Turborepo monorepo** using **Bun** as the package manager.
+**Turborepo monorepo** using **Bun** as the package manager.
 
-### Structure
-- `apps/web` - Next.js 16 app (port 3000)
-- `apps/docs` - Next.js 16 docs site (port 3001)
-- `packages/convex` - Convex serverless backend
+### Apps
+- `apps/web` - Next.js 16 web app (React 19, port 3000)
+- `apps/mobile` - Expo/React Native app (Expo 54, React Native 0.81)
+
+### Packages
+- `packages/convex` - Convex serverless backend (database, functions, real-time)
 - `packages/ui` - Shared React component library (`@repo/ui`)
 - `packages/eslint-config` - Shared ESLint configs
 - `packages/typescript-config` - Shared TypeScript configs
 
-### Key Technologies
-- **Next.js 16** with **React 19**
-- **Convex** for serverless backend (database, functions, real-time)
-- **TypeScript** in strict mode
-- **ESLint 9** with Convex plugin
-
 ### Package Imports
 - UI components: `import { Button } from "@repo/ui/button"`
-- Convex functions use file-based routing: `api.filename.functionName`
+- Convex functions: `api.filename.functionName`
 
-## Convex Guidelines
-
-These patterns are required when working with Convex code in `packages/convex/convex/`:
+## Convex Patterns
 
 ### Function Syntax
-Always use the object syntax with validators:
+Always use object syntax with validators including `returns`:
 ```typescript
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
@@ -76,19 +76,61 @@ export const myFunction = query({
 
 ### Public vs Internal Functions
 - `query`, `mutation`, `action` - Public API, exposed to clients
-- `internalQuery`, `internalMutation`, `internalAction` - Private, only callable by other Convex functions
-- Reference public functions via `api.file.func`, internal via `internal.file.func`
+- `internalQuery`, `internalMutation`, `internalAction` - Only callable by other Convex functions
+- Reference: `api.file.func` (public), `internal.file.func` (internal)
 
 ### Database Queries
-- Do NOT use `.filter()` - use `.withIndex()` with a defined index instead
-- Always define indexes in `convex/schema.ts` with descriptive names (e.g., `by_channel_and_user`)
-- Use `.order("desc")` or `.order("asc")` for ordering
+- **Never use `.filter()`** - use `.withIndex()` with a defined index
+- Define indexes in `convex/schema.ts` with descriptive names (e.g., `by_organization_and_user`)
+- Use `.collect()` for arrays, `.first()` for single results
 
 ### Validators
-- Always include `returns` validator (use `v.null()` for void functions)
+- Always include `returns` validator (use `v.null()` for void)
 - Use `v.id("tableName")` for document IDs, not `v.string()`
-- Use `v.int64()` not `v.bigint()` (deprecated)
 
-### Actions
-- Add `"use node";` at top of files using Node.js modules
-- Actions cannot access `ctx.db` - use `ctx.runQuery`/`ctx.runMutation` instead
+### Authentication
+- Uses `@convex-dev/auth` with Password provider
+- Get user: `const userId = await getAuthUserId(ctx);`
+- Check membership via `organizationMembers` table with roles: `owner`, `admin`, `scorer`
+
+## Data Model
+
+### Core Tables
+- `organizations` - Top-level entities, accessed via slug
+- `organizationMembers` - Links users to orgs with roles
+- `tournaments` - Competitions with format (single/double elimination, round robin)
+- `tournamentParticipants` - Supports individual, doubles, team types
+- `matches` - Game records with sport-specific state
+
+### Sport-Specific State
+Tennis and volleyball have dedicated state objects on matches:
+- `tennisState` - Sets, games, points, tiebreak, serve tracking
+- `volleyballState` - Sets, points, serve tracking
+
+Both include `history` array for undo functionality (last 10 states).
+
+## Web App Patterns
+
+### Route Groups
+- `(app)` - Authenticated routes with Navigation layout
+- `(auth)` - Sign-in/sign-up flows
+
+### Auth Components
+```tsx
+import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
+```
+
+### Convex Hooks
+```tsx
+const data = useQuery(api.file.query, { arg: value });
+const mutate = useMutation(api.file.mutation);
+```
+
+## Mobile App Patterns
+
+### Navigation
+- Uses Expo Router (file-based routing like Next.js)
+- Bottom tabs via `@react-navigation/bottom-tabs`
+
+### Environment
+- Convex URL: `EXPO_PUBLIC_CONVEX_URL`
