@@ -199,9 +199,13 @@ export default function NewTournamentPage({
                     onClick={() => setSport(s.value)}
                     className={`flex-1 py-4 rounded-lg border-2 font-semibold transition-all ${
                       sport === s.value
-                        ? "bg-accent border-accent text-text-inverse shadow-lg shadow-accent/25"
+                        ? "border-accent shadow-lg shadow-accent/25"
                         : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
                     }`}
+                    style={{
+                      backgroundColor: sport === s.value ? "var(--color-accent)" : undefined,
+                      color: sport === s.value ? "#ffffff" : undefined,
+                    }}
                   >
                     <span className="text-2xl block mb-1">{s.icon}</span>
                     {sport === s.value && <span className="mr-1">✓</span>}
@@ -230,9 +234,13 @@ export default function NewTournamentPage({
                       onClick={() => setTennisSetsToWin(2)}
                       className={`flex-1 py-3 rounded-lg border-2 font-semibold transition-all ${
                         tennisSetsToWin === 2
-                          ? "bg-accent border-accent text-text-inverse shadow-lg shadow-accent/25"
+                          ? "border-accent shadow-lg shadow-accent/25"
                           : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
                       }`}
+                      style={{
+                        backgroundColor: tennisSetsToWin === 2 ? "var(--color-accent)" : undefined,
+                        color: tennisSetsToWin === 2 ? "#ffffff" : undefined,
+                      }}
                     >
                       {tennisSetsToWin === 2 && <span className="mr-2">✓</span>}
                       Best of 3
@@ -242,9 +250,13 @@ export default function NewTournamentPage({
                       onClick={() => setTennisSetsToWin(3)}
                       className={`flex-1 py-3 rounded-lg border-2 font-semibold transition-all ${
                         tennisSetsToWin === 3
-                          ? "bg-accent border-accent text-text-inverse shadow-lg shadow-accent/25"
+                          ? "border-accent shadow-lg shadow-accent/25"
                           : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
                       }`}
+                      style={{
+                        backgroundColor: tennisSetsToWin === 3 ? "var(--color-accent)" : undefined,
+                        color: tennisSetsToWin === 3 ? "#ffffff" : undefined,
+                      }}
                     >
                       {tennisSetsToWin === 3 && <span className="mr-2">✓</span>}
                       Best of 5
@@ -263,24 +275,32 @@ export default function NewTournamentPage({
                       onClick={() => setTennisIsAdScoring(true)}
                       className={`flex-1 py-3 rounded-lg border-2 transition-all ${
                         tennisIsAdScoring
-                          ? "bg-accent border-accent text-text-inverse shadow-lg shadow-accent/25"
+                          ? "border-accent shadow-lg shadow-accent/25"
                           : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
                       }`}
+                      style={{
+                        backgroundColor: tennisIsAdScoring ? "var(--color-accent)" : undefined,
+                        color: tennisIsAdScoring ? "#ffffff" : undefined,
+                      }}
                     >
                       <span className="block font-semibold">{tennisIsAdScoring && "✓ "}Ad Scoring</span>
-                      <span className={`block text-xs ${tennisIsAdScoring ? "text-text-inverse/70" : "opacity-70"}`}>Traditional rules</span>
+                      <span className="block text-xs" style={{ opacity: tennisIsAdScoring ? 0.7 : 0.7 }}>Traditional rules</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setTennisIsAdScoring(false)}
                       className={`flex-1 py-3 rounded-lg border-2 transition-all ${
                         !tennisIsAdScoring
-                          ? "bg-accent border-accent text-text-inverse shadow-lg shadow-accent/25"
+                          ? "border-accent shadow-lg shadow-accent/25"
                           : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
                       }`}
+                      style={{
+                        backgroundColor: !tennisIsAdScoring ? "var(--color-accent)" : undefined,
+                        color: !tennisIsAdScoring ? "#ffffff" : undefined,
+                      }}
                     >
                       <span className="block font-semibold">{!tennisIsAdScoring && "✓ "}No-Ad</span>
-                      <span className={`block text-xs ${!tennisIsAdScoring ? "text-text-inverse/70" : "opacity-70"}`}>Deciding point at deuce</span>
+                      <span className="block text-xs" style={{ opacity: 0.7 }}>Deciding point at deuce</span>
                     </button>
                   </div>
                 </div>
@@ -306,9 +326,13 @@ export default function NewTournamentPage({
                       onClick={() => setVolleyballSetsToWin(2)}
                       className={`flex-1 py-3 rounded-lg border-2 font-semibold transition-all ${
                         volleyballSetsToWin === 2
-                          ? "bg-accent border-accent text-text-inverse shadow-lg shadow-accent/25"
+                          ? "border-accent shadow-lg shadow-accent/25"
                           : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
                       }`}
+                      style={{
+                        backgroundColor: volleyballSetsToWin === 2 ? "var(--color-accent)" : undefined,
+                        color: volleyballSetsToWin === 2 ? "#ffffff" : undefined,
+                      }}
                     >
                       {volleyballSetsToWin === 2 && <span className="mr-2">✓</span>}
                       Best of 3
@@ -318,9 +342,13 @@ export default function NewTournamentPage({
                       onClick={() => setVolleyballSetsToWin(3)}
                       className={`flex-1 py-3 rounded-lg border-2 font-semibold transition-all ${
                         volleyballSetsToWin === 3
-                          ? "bg-accent border-accent text-text-inverse shadow-lg shadow-accent/25"
+                          ? "border-accent shadow-lg shadow-accent/25"
                           : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
                       }`}
+                      style={{
+                        backgroundColor: volleyballSetsToWin === 3 ? "var(--color-accent)" : undefined,
+                        color: volleyballSetsToWin === 3 ? "#ffffff" : undefined,
+                      }}
                     >
                       {volleyballSetsToWin === 3 && <span className="mr-2">✓</span>}
                       Best of 5
@@ -339,24 +367,32 @@ export default function NewTournamentPage({
                       onClick={() => setVolleyballPointsPerSet(21)}
                       className={`flex-1 py-3 rounded-lg border-2 transition-all ${
                         volleyballPointsPerSet === 21
-                          ? "bg-accent border-accent text-text-inverse shadow-lg shadow-accent/25"
+                          ? "border-accent shadow-lg shadow-accent/25"
                           : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
                       }`}
+                      style={{
+                        backgroundColor: volleyballPointsPerSet === 21 ? "var(--color-accent)" : undefined,
+                        color: volleyballPointsPerSet === 21 ? "#ffffff" : undefined,
+                      }}
                     >
                       <span className="block font-semibold">{volleyballPointsPerSet === 21 && "✓ "}21 Points</span>
-                      <span className={`block text-xs ${volleyballPointsPerSet === 21 ? "text-text-inverse/70" : "opacity-70"}`}>Beach volleyball</span>
+                      <span className="block text-xs" style={{ opacity: 0.7 }}>Beach volleyball</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setVolleyballPointsPerSet(25)}
                       className={`flex-1 py-3 rounded-lg border-2 transition-all ${
                         volleyballPointsPerSet === 25
-                          ? "bg-accent border-accent text-text-inverse shadow-lg shadow-accent/25"
+                          ? "border-accent shadow-lg shadow-accent/25"
                           : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
                       }`}
+                      style={{
+                        backgroundColor: volleyballPointsPerSet === 25 ? "var(--color-accent)" : undefined,
+                        color: volleyballPointsPerSet === 25 ? "#ffffff" : undefined,
+                      }}
                     >
                       <span className="block font-semibold">{volleyballPointsPerSet === 25 && "✓ "}25 Points</span>
-                      <span className={`block text-xs ${volleyballPointsPerSet === 25 ? "text-text-inverse/70" : "opacity-70"}`}>Indoor standard</span>
+                      <span className="block text-xs" style={{ opacity: 0.7 }}>Indoor standard</span>
                     </button>
                   </div>
                 </div>
@@ -372,9 +408,13 @@ export default function NewTournamentPage({
                       onClick={() => setVolleyballPointsPerDecidingSet(15)}
                       className={`flex-1 py-3 rounded-lg border-2 font-semibold transition-all ${
                         volleyballPointsPerDecidingSet === 15
-                          ? "bg-accent border-accent text-text-inverse shadow-lg shadow-accent/25"
+                          ? "border-accent shadow-lg shadow-accent/25"
                           : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
                       }`}
+                      style={{
+                        backgroundColor: volleyballPointsPerDecidingSet === 15 ? "var(--color-accent)" : undefined,
+                        color: volleyballPointsPerDecidingSet === 15 ? "#ffffff" : undefined,
+                      }}
                     >
                       {volleyballPointsPerDecidingSet === 15 && <span className="mr-2">✓</span>}
                       15 Points
@@ -384,9 +424,13 @@ export default function NewTournamentPage({
                       onClick={() => setVolleyballPointsPerDecidingSet(volleyballPointsPerSet)}
                       className={`flex-1 py-3 rounded-lg border-2 font-semibold transition-all ${
                         volleyballPointsPerDecidingSet === volleyballPointsPerSet
-                          ? "bg-accent border-accent text-text-inverse shadow-lg shadow-accent/25"
+                          ? "border-accent shadow-lg shadow-accent/25"
                           : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
                       }`}
+                      style={{
+                        backgroundColor: volleyballPointsPerDecidingSet === volleyballPointsPerSet ? "var(--color-accent)" : undefined,
+                        color: volleyballPointsPerDecidingSet === volleyballPointsPerSet ? "#ffffff" : undefined,
+                      }}
                     >
                       {volleyballPointsPerDecidingSet === volleyballPointsPerSet && <span className="mr-2">✓</span>}
                       Same as Regular
@@ -412,9 +456,10 @@ export default function NewTournamentPage({
                     onClick={() => setFormat(f.value)}
                     className={`w-full flex items-center gap-3 p-4 rounded-lg border-2 text-left transition-all ${
                       format === f.value
-                        ? "bg-accent border-accent shadow-lg shadow-accent/25"
+                        ? "border-accent shadow-lg shadow-accent/25"
                         : "bg-bg-elevated border-border hover:border-text-muted"
                     }`}
+                    style={{ backgroundColor: format === f.value ? "var(--color-accent)" : undefined }}
                   >
                     <span
                       className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
@@ -427,11 +472,17 @@ export default function NewTournamentPage({
                     </span>
                     <div className="flex flex-col gap-0.5">
                       <span
-                        className={`font-semibold ${format === f.value ? "text-text-inverse" : "text-text-primary"}`}
+                        className="font-semibold"
+                        style={{ color: format === f.value ? "#ffffff" : undefined }}
                       >
                         {f.label}
                       </span>
-                      <span className={`text-xs ${format === f.value ? "text-text-inverse/70" : "text-text-muted"}`}>{f.description}</span>
+                      <span
+                        className="text-xs"
+                        style={{ color: format === f.value ? "rgba(255,255,255,0.7)" : undefined }}
+                      >
+                        {f.description}
+                      </span>
                     </div>
                   </button>
                 ))}
@@ -451,9 +502,10 @@ export default function NewTournamentPage({
                     onClick={() => setParticipantType(p.value)}
                     className={`relative flex flex-col items-center gap-1 p-4 rounded-lg border-2 text-center transition-all ${
                       participantType === p.value
-                        ? "bg-accent border-accent shadow-lg shadow-accent/25"
+                        ? "border-accent shadow-lg shadow-accent/25"
                         : "bg-bg-elevated border-border hover:border-text-muted"
                     }`}
+                    style={{ backgroundColor: participantType === p.value ? "var(--color-accent)" : undefined }}
                   >
                     {participantType === p.value && (
                       <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-text-inverse text-accent text-xs flex items-center justify-center font-bold">
@@ -461,11 +513,17 @@ export default function NewTournamentPage({
                       </span>
                     )}
                     <span
-                      className={`text-base font-semibold ${participantType === p.value ? "text-text-inverse" : "text-text-primary"}`}
+                      className="text-base font-semibold"
+                      style={{ color: participantType === p.value ? "#ffffff" : undefined }}
                     >
                       {p.label}
                     </span>
-                    <span className={`text-xs ${participantType === p.value ? "text-text-inverse/70" : "text-text-muted"}`}>{p.description}</span>
+                    <span
+                      className="text-xs"
+                      style={{ color: participantType === p.value ? "rgba(255,255,255,0.7)" : undefined }}
+                    >
+                      {p.description}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -512,7 +570,7 @@ export default function NewTournamentPage({
 
             {error && (
               <div className="flex items-center gap-2 p-3 bg-red/10 border border-red/30 rounded-lg text-sm text-red">
-                <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center bg-red rounded-full text-text-inverse text-xs font-bold">
+                <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center bg-red rounded-full text-white text-xs font-bold">
                   !
                 </span>
                 {error}
@@ -529,7 +587,8 @@ export default function NewTournamentPage({
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-[2] flex items-center justify-center gap-2 px-4 py-3 bg-accent text-text-inverse font-semibold rounded-lg hover:bg-accent-bright transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-[2] flex items-center justify-center gap-2 px-4 py-3 font-semibold rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ backgroundColor: "var(--color-accent)", color: "#ffffff" }}
               >
                 {loading ? (
                   <span className="w-5 h-5 border-2 border-text-inverse/30 border-t-text-inverse rounded-full animate-spin" />

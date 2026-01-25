@@ -24,6 +24,7 @@
   --color-text-muted: #8a8a8a;
   --color-text-faint: #b0b0b0;
   --color-text-inverse: #ffffff;
+  --color-white: #ffffff;
 
   /* Primary Accent - Warm Terracotta */
   --color-accent: #c45d4a;
@@ -137,6 +138,7 @@
   --color-text-muted: #6b6b73;
   --color-text-faint: #4a4a52;
   --color-text-inverse: #1a1a1f;
+  --color-white: #ffffff;
 
   /* Primary Accent - Brightened Terracotta */
   --color-accent: #d4705f;
