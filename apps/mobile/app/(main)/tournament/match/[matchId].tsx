@@ -218,7 +218,7 @@ export default function MatchScoreScreen() {
   // First server selection state
   const [selectedFirstServer, setSelectedFirstServer] = useState<1 | 2>(1);
 
-  const canStart = match?.status === 'pending' || match?.status === 'scheduled';
+  const canStart = (match?.status === 'pending' || match?.status === 'scheduled') && match?.tournamentStatus === 'active';
 
   // Sport detection
   const isTennis = match?.sport === 'tennis';
@@ -621,6 +621,17 @@ export default function MatchScoreScreen() {
                 {byeWinner?.displayName} advances
               </ThemedText>
             </View>
+          </Animated.View>
+        )}
+
+        {/* Draft Mode Notice */}
+        {!isByeMatch && needsSetup && match.tournamentStatus === 'draft' && match.participant1 && match.participant2 && (
+          <Animated.View entering={FadeInDown.duration(600).delay(200)} style={[styles.draftCard, { backgroundColor: colors.warning + '15', borderColor: colors.warning + '30' }]}>
+            <IconSymbol name="exclamationmark.triangle.fill" size={32} color={colors.warning} />
+            <ThemedText style={[styles.draftTitle, { color: colors.textPrimary }]}>Tournament Not Started</ThemedText>
+            <ThemedText type="muted" style={styles.draftSubtitle}>
+              This tournament is still in draft mode. Start the tournament to begin scoring matches.
+            </ThemedText>
           </Animated.View>
         )}
 
@@ -1208,6 +1219,24 @@ const styles = StyleSheet.create({
   byeAdvancesText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+
+  // Draft Card styles
+  draftCard: {
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    padding: Spacing.xl,
+    marginBottom: Spacing.lg,
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  draftTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  draftSubtitle: {
+    fontSize: 14,
+    textAlign: 'center',
   },
 
   // Setup Card styles
