@@ -97,12 +97,14 @@ function ScoringZone({
   disabled,
   isTop,
   isServing,
+  colors,
 }: {
   playerName: string;
   onPress: () => void;
   disabled: boolean;
   isTop: boolean;
   isServing: boolean;
+  colors: ReturnType<typeof useThemeColors>;
 }) {
   const flash = useSharedValue(0);
 
@@ -122,16 +124,16 @@ function ScoringZone({
     <Pressable
       onPress={disabled ? undefined : handlePress}
       disabled={disabled}
-      style={[styles.scoringZone, isTop ? styles.scoringZoneTop : styles.scoringZoneBottom]}>
+      style={[styles.scoringZone, isTop ? styles.scoringZoneTop : styles.scoringZoneBottom, isTop ? { borderBottomColor: colors.border } : { borderTopColor: colors.border }]}>
       <Animated.View style={[styles.scoringZoneInner, animatedStyle]}>
         <View style={styles.scoringZoneContent}>
           <View style={styles.scoringZoneNameRow}>
             {isServing && <View style={styles.servingIndicatorLarge} />}
-            <ThemedText style={styles.scoringZoneName} numberOfLines={1}>
+            <ThemedText style={[styles.scoringZoneName, { color: colors.textPrimary }]} numberOfLines={1}>
               {playerName}
             </ThemedText>
           </View>
-          <ThemedText style={styles.scoringZoneHint}>Tap to score</ThemedText>
+          <ThemedText style={[styles.scoringZoneHint, { color: colors.textMuted }]}>Tap to score</ThemedText>
         </View>
       </Animated.View>
     </Pressable>
@@ -282,6 +284,7 @@ export default function MatchScoreScreen() {
           disabled={isUpdating}
           isTop={true}
           isServing={serving1 ?? false}
+          colors={colors}
         />
 
         {/* Center Scoreboard */}
@@ -299,7 +302,7 @@ export default function MatchScoreScreen() {
 
           {/* Tennis Scoreboard */}
           {isTennis && match.tennisState && (
-            <View style={styles.fullScoreboard}>
+            <View style={[styles.fullScoreboard, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
               {/* Tiebreak indicator only */}
               {match.tennisState.isTiebreak && (
                 <View style={styles.configRow}>
@@ -312,9 +315,9 @@ export default function MatchScoreScreen() {
               )}
 
               {/* Score Table */}
-              <View style={styles.scoreTable}>
+              <View style={[styles.scoreTable, { backgroundColor: colors.bgSecondary }]}>
                 {/* Player 1 Row */}
-                <View style={styles.scoreRow}>
+                <View style={[styles.scoreRow, { borderBottomColor: colors.border }]}>
                   <View style={styles.playerCell}>
                     <ThemedText style={styles.playerNameFull} numberOfLines={1}>
                       {match.participant1?.displayName || 'P1'}
@@ -382,12 +385,12 @@ export default function MatchScoreScreen() {
 
           {/* Volleyball Scoreboard */}
           {isVolleyball && match.volleyballState && (
-            <View style={styles.fullScoreboard}>
+            <View style={[styles.fullScoreboard, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
 
               {/* Score Table */}
-              <View style={styles.scoreTable}>
+              <View style={[styles.scoreTable, { backgroundColor: colors.bgSecondary }]}>
                 {/* Team 1 Row */}
-                <View style={styles.scoreRow}>
+                <View style={[styles.scoreRow, { borderBottomColor: colors.border }]}>
                   <View style={styles.playerCell}>
                     <ThemedText style={styles.playerNameFull} numberOfLines={1}>
                       {match.participant1?.displayName || 'T1'}
@@ -441,6 +444,7 @@ export default function MatchScoreScreen() {
           disabled={isUpdating}
           isTop={false}
           isServing={serving2 ?? false}
+          colors={colors}
         />
 
         {/* Undo Button - Bottom Left */}
@@ -737,11 +741,9 @@ const styles = StyleSheet.create({
   },
   scoringZoneTop: {
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   scoringZoneBottom: {
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
   },
   scoringZoneInner: {
     flex: 1,
@@ -763,12 +765,10 @@ const styles = StyleSheet.create({
     fontSize: 36,
     lineHeight: 48,
     fontWeight: '700',
-    color: Colors.textPrimary,
     paddingVertical: 4,
   },
   scoringZoneHint: {
     fontSize: 14,
-    color: Colors.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
@@ -846,10 +846,8 @@ const styles = StyleSheet.create({
   },
 
   fullScoreboard: {
-    backgroundColor: Colors.bgCard,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.border,
     padding: Spacing.md,
     ...Shadows.md,
   },
@@ -871,7 +869,6 @@ const styles = StyleSheet.create({
     color: Colors.accent,
   },
   scoreTable: {
-    backgroundColor: Colors.bgSecondary,
     borderRadius: Radius.lg,
     overflow: 'hidden',
   },
@@ -881,7 +878,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   scoreRowLast: {
     borderBottomWidth: 0,
