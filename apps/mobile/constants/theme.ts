@@ -14,15 +14,15 @@ import { Platform } from 'react-native';
 export const Colors = {
   // ============================================
   // Light Theme - Refined Paper
-  // Clean whites, warm shadows, terracotta accent
+  // Warm muted backgrounds, terracotta accent
   // ============================================
   light: {
-    // Backgrounds
-    bgPrimary: '#f8f7f4',
-    bgSecondary: '#ffffff',
-    bgTertiary: '#f3f2ef',
-    bgCard: '#ffffff',
-    bgCardHover: '#fdfcfa',
+    // Backgrounds - Dimmed to match web
+    bgPrimary: '#eeede9',
+    bgSecondary: '#f5f4f1',
+    bgTertiary: '#e8e7e3',
+    bgCard: '#f5f4f1',
+    bgCardHover: '#f0efeb',
 
     // Text
     text: '#1a1a1a',
@@ -38,8 +38,8 @@ export const Colors = {
     accentGlow: 'rgba(196, 93, 74, 0.15)',
 
     // Navigation
-    background: '#f8f7f4',
-    card: '#ffffff',
+    background: '#eeede9',
+    card: '#f5f4f1',
     border: 'rgba(0, 0, 0, 0.08)',
     icon: '#5c5c5c',
     tabIconDefault: '#8a8a8a',
