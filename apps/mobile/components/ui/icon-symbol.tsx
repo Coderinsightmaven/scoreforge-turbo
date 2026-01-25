@@ -23,6 +23,8 @@ const MAPPING = {
   'checkmark.circle.fill': 'check-circle',
   'play.fill': 'play-arrow',
   'trophy.fill': 'emoji-events',
+  'sun.max.fill': 'light-mode',
+  'moon.fill': 'dark-mode',
 } as IconMapping;
 
 /**
