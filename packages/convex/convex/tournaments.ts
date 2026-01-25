@@ -442,12 +442,8 @@ export const listMyTournaments = query({
       processedTournamentIds.add(tournament._id);
     }
 
-    // For owners/admins, also show all tournaments in their orgs
+    // For org members (owner/admin/scorer), show all tournaments in their orgs
     for (const membership of memberships) {
-      // Only owners and admins see all tournaments
-      if (membership.role !== "owner" && membership.role !== "admin") {
-        continue;
-      }
 
       const org = await ctx.db.get("organizations", membership.organizationId);
       if (!org) continue;
