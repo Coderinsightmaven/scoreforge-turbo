@@ -18,7 +18,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const systemColorScheme = useColorScheme();
-  const [localTheme, setLocalTheme] = useState<ThemePreference>("system");
+  const [localTheme, setLocalTheme] = useState<ThemePreference>("light");
   const [hasInitialized, setHasInitialized] = useState(false);
   // Force re-render counter for when system theme changes
   const [, setForceUpdate] = useState(0);
