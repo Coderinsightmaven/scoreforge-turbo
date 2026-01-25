@@ -46,13 +46,8 @@ function needsStackedLayout(name: string): boolean {
 }
 
 // Check if we should show the center scoreboard
-// Hide it if names are very long to give more space
+// Always show scoreboard - stacked names layout provides enough space
 function shouldShowScoreboard(name1: string, name2: string): boolean {
-  const maxLength = Math.max(name1.length, name2.length);
-  // If either name is very long (stacked doubles), hide scoreboard on smaller screens
-  if (needsStackedLayout(name1) || needsStackedLayout(name2)) {
-    return SCREEN_WIDTH >= 414; // Only show on larger phones
-  }
   return true;
 }
 
