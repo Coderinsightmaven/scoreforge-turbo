@@ -27,6 +27,35 @@ const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
 const isLargeScreen = SCREEN_WIDTH >= 768;
 const scale = isLargeScreen ? 1.5 : SCREEN_WIDTH >= 414 ? 1.2 : 1;
 
+// Check if name is a doubles format (contains " / ")
+function isDoublesName(name: string): boolean {
+  return name.includes(' / ');
+}
+
+// Split doubles name into two player names
+function splitDoublesName(name: string): [string, string] {
+  const parts = name.split(' / ');
+  return [parts[0] ?? '', parts[1] ?? ''];
+}
+
+// Determine if name is too long and needs stacking
+// Threshold based on screen width and font size (36px at ~0.5 chars per px)
+function needsStackedLayout(name: string): boolean {
+  const maxCharsPerLine = Math.floor((SCREEN_WIDTH - 80) / 20); // Approximate based on font size 36
+  return name.length > maxCharsPerLine;
+}
+
+// Check if we should show the center scoreboard
+// Hide it if names are very long to give more space
+function shouldShowScoreboard(name1: string, name2: string): boolean {
+  const maxLength = Math.max(name1.length, name2.length);
+  // If either name is very long (stacked doubles), hide scoreboard on smaller screens
+  if (needsStackedLayout(name1) || needsStackedLayout(name2)) {
+    return SCREEN_WIDTH >= 414; // Only show on larger phones
+  }
+  return true;
+}
+
 // Tennis point display helper
 function getTennisPointDisplay(
   points: number[],
@@ -120,6 +149,10 @@ function ScoringZone({
     onPress();
   };
 
+  // Check if we need stacked layout for long doubles names
+  const useStacked = isDoublesName(playerName) && needsStackedLayout(playerName);
+  const [player1, player2] = useStacked ? splitDoublesName(playerName) : ['', ''];
+
   return (
     <Pressable
       onPress={disabled ? undefined : handlePress}
@@ -127,12 +160,29 @@ function ScoringZone({
       style={[styles.scoringZone, isTop ? styles.scoringZoneTop : styles.scoringZoneBottom, isTop ? { borderBottomColor: colors.border } : { borderTopColor: colors.border }]}>
       <Animated.View style={[styles.scoringZoneInner, animatedStyle]}>
         <View style={styles.scoringZoneContent}>
-          <View style={styles.scoringZoneNameRow}>
-            {isServing && <View style={[styles.servingIndicatorLarge, { backgroundColor: colors.success }]} />}
-            <ThemedText style={[styles.scoringZoneName, { color: colors.textPrimary }]} numberOfLines={1}>
-              {playerName}
-            </ThemedText>
-          </View>
+          {useStacked ? (
+            // Stacked layout for long doubles names
+            <View style={styles.scoringZoneNameStacked}>
+              <View style={styles.scoringZoneNameRow}>
+                {isServing && <View style={[styles.servingIndicatorLarge, { backgroundColor: colors.success }]} />}
+                <ThemedText style={[styles.scoringZoneName, { color: colors.textPrimary }]} numberOfLines={1}>
+                  {player1}
+                </ThemedText>
+              </View>
+              <ThemedText style={[styles.scoringZoneSlash, { color: colors.textMuted }]}>/</ThemedText>
+              <ThemedText style={[styles.scoringZoneName, { color: colors.textPrimary }]} numberOfLines={1}>
+                {player2}
+              </ThemedText>
+            </View>
+          ) : (
+            // Single line layout
+            <View style={styles.scoringZoneNameRow}>
+              {isServing && <View style={[styles.servingIndicatorLarge, { backgroundColor: colors.success }]} />}
+              <ThemedText style={[styles.scoringZoneName, { color: colors.textPrimary }]} numberOfLines={1}>
+                {playerName}
+              </ThemedText>
+            </View>
+          )}
           <ThemedText style={[styles.scoringZoneHint, { color: colors.textMuted }]}>Tap to score</ThemedText>
         </View>
       </Animated.View>
@@ -275,11 +325,16 @@ export default function MatchScoreScreen() {
       ? match.tennisState?.servingParticipant === 2
       : match.volleyballState?.servingTeam === 2;
 
+    // Determine if we should show the full scoreboard or just the header
+    const name1 = match.participant1?.displayName || 'Player 1';
+    const name2 = match.participant2?.displayName || 'Player 2';
+    const showScoreboard = shouldShowScoreboard(name1, name2);
+
     return (
       <ThemedView style={styles.container}>
         {/* Player 1 Scoring Zone (Top) */}
         <ScoringZone
-          playerName={match.participant1?.displayName || 'Player 1'}
+          playerName={name1}
           onPress={() => handleScorePoint(1)}
           disabled={isUpdating}
           isTop={true}
@@ -300,8 +355,8 @@ export default function MatchScoreScreen() {
             </View>
           </View>
 
-          {/* Tennis Scoreboard */}
-          {isTennis && match.tennisState && (
+          {/* Tennis Scoreboard - only show if names aren't too long */}
+          {showScoreboard && isTennis && match.tennisState && (
             <View style={[styles.fullScoreboard, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
               {/* Tiebreak indicator only */}
               {match.tennisState.isTiebreak && (
@@ -383,8 +438,8 @@ export default function MatchScoreScreen() {
             </View>
           )}
 
-          {/* Volleyball Scoreboard */}
-          {isVolleyball && match.volleyballState && (
+          {/* Volleyball Scoreboard - only show if names aren't too long */}
+          {showScoreboard && isVolleyball && match.volleyballState && (
             <View style={[styles.fullScoreboard, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
 
               {/* Score Table */}
@@ -439,7 +494,7 @@ export default function MatchScoreScreen() {
 
         {/* Player 2 Scoring Zone (Bottom) */}
         <ScoringZone
-          playerName={match.participant2?.displayName || 'Player 2'}
+          playerName={name2}
           onPress={() => handleScorePoint(2)}
           disabled={isUpdating}
           isTop={false}
@@ -768,6 +823,14 @@ const styles = StyleSheet.create({
     lineHeight: 48,
     fontWeight: '700',
     paddingVertical: 4,
+  },
+  scoringZoneNameStacked: {
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  scoringZoneSlash: {
+    fontSize: 24,
+    fontWeight: '400',
   },
   scoringZoneHint: {
     fontSize: 14,
