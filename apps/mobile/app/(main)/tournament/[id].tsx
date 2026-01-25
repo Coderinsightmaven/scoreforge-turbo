@@ -587,43 +587,80 @@ export default function TournamentDetailScreen() {
                         <ThemedText style={[styles.matchStatusPillTextCompleted, { color: colors.accent }]}>COMPLETED</ThemedText>
                       </View>
                     </View>
-                    <View style={styles.matchParticipants}>
-                      <View style={styles.matchParticipant}>
+                    <View style={styles.completedMatchContent}>
+                      <View style={styles.completedMatchRow}>
                         <ThemedText
                           style={[
-                            styles.matchParticipantName,
+                            styles.completedMatchName,
                             match.winnerId === match.participant1?._id && { color: colors.accent },
                           ]}
                           numberOfLines={1}>
                           {match.participant1?.displayName || 'TBD'}
                         </ThemedText>
-                        <ThemedText
-                          style={[
-                            styles.matchParticipantScore,
-                            match.winnerId === match.participant1?._id && { color: colors.accent },
-                          ]}>
-                          {match.participant1Score}
-                        </ThemedText>
+                        <View style={styles.completedMatchScores}>
+                          {match.tennisState ? (
+                            match.tennisState.sets.map((set: number[], i: number) => (
+                              <View key={i} style={[styles.completedSetScore, { backgroundColor: colors.bgTertiary }]}>
+                                <ThemedText style={[styles.completedSetScoreText, (set[0] ?? 0) > (set[1] ?? 0) && { color: colors.accent }]}>
+                                  {set[0] ?? 0}
+                                </ThemedText>
+                              </View>
+                            ))
+                          ) : match.volleyballState ? (
+                            match.volleyballState.sets.map((set: number[], i: number) => (
+                              <View key={i} style={[styles.completedSetScore, { backgroundColor: colors.bgTertiary }]}>
+                                <ThemedText style={[styles.completedSetScoreText, (set[0] ?? 0) > (set[1] ?? 0) && { color: colors.accent }]}>
+                                  {set[0] ?? 0}
+                                </ThemedText>
+                              </View>
+                            ))
+                          ) : (
+                            <ThemedText
+                              style={[
+                                styles.matchParticipantScore,
+                                match.winnerId === match.participant1?._id && { color: colors.accent },
+                              ]}>
+                              {match.participant1Score}
+                            </ThemedText>
+                          )}
+                        </View>
                       </View>
-                      <ThemedText type="muted" style={styles.matchVs}>
-                        vs
-                      </ThemedText>
-                      <View style={styles.matchParticipant}>
+                      <View style={styles.completedMatchRow}>
                         <ThemedText
                           style={[
-                            styles.matchParticipantName,
+                            styles.completedMatchName,
                             match.winnerId === match.participant2?._id && { color: colors.accent },
                           ]}
                           numberOfLines={1}>
                           {match.participant2?.displayName || 'TBD'}
                         </ThemedText>
-                        <ThemedText
-                          style={[
-                            styles.matchParticipantScore,
-                            match.winnerId === match.participant2?._id && { color: colors.accent },
-                          ]}>
-                          {match.participant2Score}
-                        </ThemedText>
+                        <View style={styles.completedMatchScores}>
+                          {match.tennisState ? (
+                            match.tennisState.sets.map((set: number[], i: number) => (
+                              <View key={i} style={[styles.completedSetScore, { backgroundColor: colors.bgTertiary }]}>
+                                <ThemedText style={[styles.completedSetScoreText, (set[1] ?? 0) > (set[0] ?? 0) && { color: colors.accent }]}>
+                                  {set[1] ?? 0}
+                                </ThemedText>
+                              </View>
+                            ))
+                          ) : match.volleyballState ? (
+                            match.volleyballState.sets.map((set: number[], i: number) => (
+                              <View key={i} style={[styles.completedSetScore, { backgroundColor: colors.bgTertiary }]}>
+                                <ThemedText style={[styles.completedSetScoreText, (set[1] ?? 0) > (set[0] ?? 0) && { color: colors.accent }]}>
+                                  {set[1] ?? 0}
+                                </ThemedText>
+                              </View>
+                            ))
+                          ) : (
+                            <ThemedText
+                              style={[
+                                styles.matchParticipantScore,
+                                match.winnerId === match.participant2?._id && { color: colors.accent },
+                              ]}>
+                              {match.participant2Score}
+                            </ThemedText>
+                          )}
+                        </View>
                       </View>
                     </View>
                   </AnimatedPressable>
@@ -1008,6 +1045,35 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   bracketSetScoreText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  // Completed match styles
+  completedMatchContent: {
+    gap: Spacing.xs,
+  },
+  completedMatchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  completedMatchName: {
+    flex: 1,
+    fontSize: 14,
+  },
+  completedMatchScores: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  completedSetScore: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 4,
+  },
+  completedSetScoreText: {
     fontSize: 14,
     fontWeight: '600',
   },
