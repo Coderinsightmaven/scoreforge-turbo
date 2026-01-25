@@ -180,14 +180,8 @@ function TournamentsTab({
   }
 
   const sportIcons: Record<string, string> = {
-    basketball: "🏀",
-    soccer: "⚽",
     tennis: "🎾",
-    football: "🏈",
-    baseball: "⚾",
     volleyball: "🏐",
-    hockey: "🏒",
-    golf: "⛳",
   };
 
   const statusColors: Record<string, string> = {

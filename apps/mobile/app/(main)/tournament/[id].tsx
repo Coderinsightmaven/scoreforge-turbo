@@ -47,18 +47,8 @@ function AnimatedPressable({
 }
 
 const SPORT_ICONS: Record<string, any> = {
-  basketball: 'basketball.fill',
-  soccer: 'soccerball',
   tennis: 'tennisball.fill',
-  football: 'football.fill',
-  baseball: 'baseball.fill',
   volleyball: 'volleyball.fill',
-  hockey: 'hockey.puck.fill',
-  golf: 'figure.golf',
-  badminton: 'figure.badminton',
-  table_tennis: 'figure.table.tennis',
-  cricket: 'cricket.ball.fill',
-  rugby: 'figure.rugby',
 };
 
 const STATUS_COLORS: Record<string, string> = {

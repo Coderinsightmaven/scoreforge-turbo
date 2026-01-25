@@ -5,7 +5,7 @@ A real-time tournament management platform for organizing competitions, tracking
 ## Features
 
 - **Tournament Formats** - Single elimination, double elimination, and round robin
-- **Multi-Sport Support** - Tennis, volleyball, basketball, soccer, and more
+- **Multi-Sport Support** - Tennis and volleyball with sport-specific scoring
 - **Real-Time Scoring** - Live score updates with undo functionality
 - **Sport-Specific Scoring** - Dedicated interfaces for tennis (sets/games/points) and volleyball (sets/points)
 - **Organization Management** - Role-based access control (owner, admin, scorer)

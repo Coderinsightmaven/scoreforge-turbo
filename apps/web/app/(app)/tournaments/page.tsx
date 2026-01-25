@@ -113,18 +113,8 @@ function OrgTournaments({
   }
 
   const sportIcons: Record<string, string> = {
-    basketball: "🏀",
-    soccer: "⚽",
     tennis: "🎾",
-    football: "🏈",
-    baseball: "⚾",
     volleyball: "🏐",
-    hockey: "🏒",
-    golf: "⛳",
-    badminton: "🏸",
-    table_tennis: "🏓",
-    cricket: "🏏",
-    rugby: "🏉",
   };
 
   const statusStyles: Record<string, string> = {

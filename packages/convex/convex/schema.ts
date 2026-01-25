@@ -49,18 +49,8 @@ export const matchStatus = v.union(
  * Preset sports
  */
 export const presetSports = v.union(
-  v.literal("basketball"),
-  v.literal("soccer"),
   v.literal("tennis"),
-  v.literal("football"),
-  v.literal("baseball"),
-  v.literal("volleyball"),
-  v.literal("hockey"),
-  v.literal("golf"),
-  v.literal("badminton"),
-  v.literal("table_tennis"),
-  v.literal("cricket"),
-  v.literal("rugby")
+  v.literal("volleyball")
 );
 
 /**
