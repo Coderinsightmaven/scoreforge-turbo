@@ -427,11 +427,11 @@ export default function NewTournamentPage({
                     </span>
                     <div className="flex flex-col gap-0.5">
                       <span
-                        className={`font-semibold ${format === f.value ? "text-white" : "text-text-primary"}`}
+                        className={`font-semibold ${format === f.value ? "text-text-inverse" : "text-text-primary"}`}
                       >
                         {f.label}
                       </span>
-                      <span className={`text-xs ${format === f.value ? "text-white/70" : "text-text-muted"}`}>{f.description}</span>
+                      <span className={`text-xs ${format === f.value ? "text-text-inverse/70" : "text-text-muted"}`}>{f.description}</span>
                     </div>
                   </button>
                 ))}
@@ -461,11 +461,11 @@ export default function NewTournamentPage({
                       </span>
                     )}
                     <span
-                      className={`text-base font-semibold ${participantType === p.value ? "text-white" : "text-text-primary"}`}
+                      className={`text-base font-semibold ${participantType === p.value ? "text-text-inverse" : "text-text-primary"}`}
                     >
                       {p.label}
                     </span>
-                    <span className={`text-xs ${participantType === p.value ? "text-white/70" : "text-text-muted"}`}>{p.description}</span>
+                    <span className={`text-xs ${participantType === p.value ? "text-text-inverse/70" : "text-text-muted"}`}>{p.description}</span>
                   </button>
                 ))}
               </div>
@@ -512,7 +512,7 @@ export default function NewTournamentPage({
 
             {error && (
               <div className="flex items-center gap-2 p-3 bg-red/10 border border-red/30 rounded-lg text-sm text-red">
-                <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center bg-red rounded-full text-white text-xs font-bold">
+                <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center bg-red rounded-full text-text-inverse text-xs font-bold">
                   !
                 </span>
                 {error}
