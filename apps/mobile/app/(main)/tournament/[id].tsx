@@ -182,7 +182,7 @@ export default function TournamentDetailScreen() {
 
         {/* Description */}
         {tournament.description && (
-          <Animated.View entering={FadeInDown.duration(600).delay(200)} style={styles.descriptionCard}>
+          <Animated.View entering={FadeInDown.duration(600).delay(200)} style={[styles.descriptionCard, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
             <ThemedText type="muted">{tournament.description}</ThemedText>
           </Animated.View>
         )}
@@ -192,8 +192,8 @@ export default function TournamentDetailScreen() {
           <Animated.View entering={FadeInDown.duration(600).delay(250)} style={styles.section}>
             <View style={styles.sectionHeader}>
               <View style={styles.liveIndicator}>
-                <View style={styles.liveDot} />
-                <ThemedText type="label" style={styles.liveLabel}>
+                <View style={[styles.liveDot, { backgroundColor: colors.success }]} />
+                <ThemedText type="label" style={[styles.liveLabel, { color: colors.success }]}>
                   LIVE MATCHES
                 </ThemedText>
               </View>
@@ -217,25 +217,25 @@ export default function TournamentDetailScreen() {
                 return (
                   <Animated.View key={match._id} entering={FadeInRight.duration(400).delay(index * 30)}>
                     <AnimatedPressable
-                      style={styles.liveMatchCard}
+                      style={[styles.liveMatchCard, { backgroundColor: colors.bgCard, borderColor: colors.success + '50' }]}
                       onPress={() => router.push(`/(main)/tournament/match/${match._id}`)}>
                       {/* Header with round info and live dot */}
-                      <View style={styles.matchCardHeader}>
-                        <ThemedText style={styles.matchCardHeaderText} numberOfLines={1}>
+                      <View style={[styles.matchCardHeader, { backgroundColor: colors.bgTertiary, borderBottomColor: colors.border }]}>
+                        <ThemedText style={[styles.matchCardHeaderText, { color: colors.textMuted }]} numberOfLines={1}>
                           {match.bracket ? `${match.bracket} ` : ''}Round {match.round} • Match {match.matchNumber}
                         </ThemedText>
                         <View style={styles.liveBadge}>
-                          <View style={styles.liveDotSmall} />
+                          <View style={[styles.liveDotSmall, { backgroundColor: colors.success }]} />
                         </View>
                       </View>
 
                       {/* Scoreboard */}
                       <View style={styles.scoreboard}>
                         {/* Player 1 Row */}
-                        <View style={styles.scoreboardRow}>
+                        <View style={[styles.scoreboardRow, { borderBottomColor: colors.border + '50' }]}>
                           <View style={styles.playerInfo}>
-                            {isServing1 && <View style={styles.servingDot} />}
-                            <ThemedText style={styles.playerName} numberOfLines={1}>
+                            {isServing1 && <View style={[styles.servingDot, { backgroundColor: colors.success }]} />}
+                            <ThemedText style={[styles.playerName, { color: colors.textPrimary }]} numberOfLines={1}>
                               {match.participant1?.displayName || 'TBD'}
                             </ThemedText>
                           </View>
@@ -243,19 +243,19 @@ export default function TournamentDetailScreen() {
                             {hasTennis && match.tennisState ? (
                               <>
                                 {match.tennisState.sets.map((set: number[], i: number) => (
-                                  <View key={i} style={styles.setScore}>
-                                    <ThemedText style={styles.setScoreText}>
+                                  <View key={i} style={[styles.setScore, { backgroundColor: colors.bgTertiary }]}>
+                                    <ThemedText style={[styles.setScoreText, { color: colors.textSecondary }]}>
                                       {set[0] ?? 0}
                                     </ThemedText>
                                   </View>
                                 ))}
-                                <View style={[styles.setScore, styles.currentSet]}>
-                                  <ThemedText style={styles.currentSetText}>
+                                <View style={[styles.setScore, styles.currentSet, { backgroundColor: colors.accent + '20', borderColor: colors.accent + '40' }]}>
+                                  <ThemedText style={[styles.currentSetText, { color: colors.accent }]}>
                                     {match.tennisState.currentSetGames[0] ?? 0}
                                   </ThemedText>
                                 </View>
-                                <View style={styles.gameScore}>
-                                  <ThemedText style={styles.gameScoreText}>
+                                <View style={[styles.gameScore, { backgroundColor: colors.success + '15' }]}>
+                                  <ThemedText style={[styles.gameScoreText, { color: colors.success }]}>
                                     {getTennisPointDisplay(
                                       match.tennisState.currentGamePoints,
                                       0,
@@ -268,21 +268,21 @@ export default function TournamentDetailScreen() {
                             ) : hasVolleyball && match.volleyballState ? (
                               <>
                                 {match.volleyballState.sets.map((set: number[], i: number) => (
-                                  <View key={i} style={styles.setScore}>
-                                    <ThemedText style={styles.setScoreText}>
+                                  <View key={i} style={[styles.setScore, { backgroundColor: colors.bgTertiary }]}>
+                                    <ThemedText style={[styles.setScoreText, { color: colors.textSecondary }]}>
                                       {set[0] ?? 0}
                                     </ThemedText>
                                   </View>
                                 ))}
-                                <View style={[styles.setScore, styles.currentSet]}>
-                                  <ThemedText style={styles.currentSetText}>
+                                <View style={[styles.setScore, styles.currentSet, { backgroundColor: colors.accent + '20', borderColor: colors.accent + '40' }]}>
+                                  <ThemedText style={[styles.currentSetText, { color: colors.accent }]}>
                                     {match.volleyballState.currentSetPoints[0] ?? 0}
                                   </ThemedText>
                                 </View>
                               </>
                             ) : (
-                              <View style={styles.simpleScore}>
-                                <ThemedText style={styles.simpleScoreText}>
+                              <View style={[styles.simpleScore, { backgroundColor: colors.accent + '20' }]}>
+                                <ThemedText style={[styles.simpleScoreText, { color: colors.accent }]}>
                                   {match.participant1Score}
                                 </ThemedText>
                               </View>
@@ -293,8 +293,8 @@ export default function TournamentDetailScreen() {
                         {/* Player 2 Row */}
                         <View style={[styles.scoreboardRow, styles.scoreboardRowBottom]}>
                           <View style={styles.playerInfo}>
-                            {isServing2 && <View style={styles.servingDot} />}
-                            <ThemedText style={styles.playerName} numberOfLines={1}>
+                            {isServing2 && <View style={[styles.servingDot, { backgroundColor: colors.success }]} />}
+                            <ThemedText style={[styles.playerName, { color: colors.textPrimary }]} numberOfLines={1}>
                               {match.participant2?.displayName || 'TBD'}
                             </ThemedText>
                           </View>
@@ -302,19 +302,19 @@ export default function TournamentDetailScreen() {
                             {hasTennis && match.tennisState ? (
                               <>
                                 {match.tennisState.sets.map((set: number[], i: number) => (
-                                  <View key={i} style={styles.setScore}>
-                                    <ThemedText style={styles.setScoreText}>
+                                  <View key={i} style={[styles.setScore, { backgroundColor: colors.bgTertiary }]}>
+                                    <ThemedText style={[styles.setScoreText, { color: colors.textSecondary }]}>
                                       {set[1] ?? 0}
                                     </ThemedText>
                                   </View>
                                 ))}
-                                <View style={[styles.setScore, styles.currentSet]}>
-                                  <ThemedText style={styles.currentSetText}>
+                                <View style={[styles.setScore, styles.currentSet, { backgroundColor: colors.accent + '20', borderColor: colors.accent + '40' }]}>
+                                  <ThemedText style={[styles.currentSetText, { color: colors.accent }]}>
                                     {match.tennisState.currentSetGames[1] ?? 0}
                                   </ThemedText>
                                 </View>
-                                <View style={styles.gameScore}>
-                                  <ThemedText style={styles.gameScoreText}>
+                                <View style={[styles.gameScore, { backgroundColor: colors.success + '15' }]}>
+                                  <ThemedText style={[styles.gameScoreText, { color: colors.success }]}>
                                     {getTennisPointDisplay(
                                       match.tennisState.currentGamePoints,
                                       1,
@@ -327,21 +327,21 @@ export default function TournamentDetailScreen() {
                             ) : hasVolleyball && match.volleyballState ? (
                               <>
                                 {match.volleyballState.sets.map((set: number[], i: number) => (
-                                  <View key={i} style={styles.setScore}>
-                                    <ThemedText style={styles.setScoreText}>
+                                  <View key={i} style={[styles.setScore, { backgroundColor: colors.bgTertiary }]}>
+                                    <ThemedText style={[styles.setScoreText, { color: colors.textSecondary }]}>
                                       {set[1] ?? 0}
                                     </ThemedText>
                                   </View>
                                 ))}
-                                <View style={[styles.setScore, styles.currentSet]}>
-                                  <ThemedText style={styles.currentSetText}>
+                                <View style={[styles.setScore, styles.currentSet, { backgroundColor: colors.accent + '20', borderColor: colors.accent + '40' }]}>
+                                  <ThemedText style={[styles.currentSetText, { color: colors.accent }]}>
                                     {match.volleyballState.currentSetPoints[1] ?? 0}
                                   </ThemedText>
                                 </View>
                               </>
                             ) : (
-                              <View style={styles.simpleScore}>
-                                <ThemedText style={styles.simpleScoreText}>
+                              <View style={[styles.simpleScore, { backgroundColor: colors.accent + '20' }]}>
+                                <ThemedText style={[styles.simpleScoreText, { color: colors.accent }]}>
                                   {match.participant2Score}
                                 </ThemedText>
                               </View>
@@ -360,26 +360,26 @@ export default function TournamentDetailScreen() {
         {/* Bracket / Standings Section */}
         {(tournament.status === 'active' || tournament.status === 'completed') && (
           <Animated.View entering={FadeInDown.duration(600).delay(300)} style={styles.section}>
-            <ThemedText type="label" style={styles.sectionLabel}>
+            <ThemedText type="label" style={[styles.sectionLabel, { color: colors.accent }]}>
               {tournament.format === 'round_robin' ? 'STANDINGS' : 'BRACKET'}
             </ThemedText>
 
             {tournament.format === 'round_robin' ? (
               // Round Robin Standings
-              <View style={styles.standingsContainer}>
-                <View style={styles.standingsHeader}>
-                  <ThemedText style={styles.standingsHeaderCell}>Rank</ThemedText>
-                  <ThemedText style={[styles.standingsHeaderCell, styles.standingsName]}>Name</ThemedText>
-                  <ThemedText style={styles.standingsHeaderCell}>W</ThemedText>
-                  <ThemedText style={styles.standingsHeaderCell}>L</ThemedText>
-                  <ThemedText style={styles.standingsHeaderCell}>D</ThemedText>
-                  <ThemedText style={styles.standingsHeaderCell}>Pts</ThemedText>
+              <View style={[styles.standingsContainer, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
+                <View style={[styles.standingsHeader, { backgroundColor: colors.bgTertiary, borderBottomColor: colors.border }]}>
+                  <ThemedText style={[styles.standingsHeaderCell, { color: colors.textMuted }]}>Rank</ThemedText>
+                  <ThemedText style={[styles.standingsHeaderCell, styles.standingsName, { color: colors.textMuted }]}>Name</ThemedText>
+                  <ThemedText style={[styles.standingsHeaderCell, { color: colors.textMuted }]}>W</ThemedText>
+                  <ThemedText style={[styles.standingsHeaderCell, { color: colors.textMuted }]}>L</ThemedText>
+                  <ThemedText style={[styles.standingsHeaderCell, { color: colors.textMuted }]}>D</ThemedText>
+                  <ThemedText style={[styles.standingsHeaderCell, { color: colors.textMuted }]}>Pts</ThemedText>
                 </View>
                 {standings?.map((participant, index) => (
                   <Animated.View
                     key={participant._id}
                     entering={FadeInRight.duration(400).delay(index * 50)}
-                    style={styles.standingsRow}>
+                    style={[styles.standingsRow, { borderBottomColor: colors.border }]}>
                     <ThemedText style={styles.standingsCell}>{index + 1}</ThemedText>
                     <ThemedText style={[styles.standingsCell, styles.standingsName]} numberOfLines={1}>
                       {participant.displayName}
@@ -387,7 +387,7 @@ export default function TournamentDetailScreen() {
                     <ThemedText style={styles.standingsCell}>{participant.wins}</ThemedText>
                     <ThemedText style={styles.standingsCell}>{participant.losses}</ThemedText>
                     <ThemedText style={styles.standingsCell}>{participant.draws}</ThemedText>
-                    <ThemedText style={[styles.standingsCell, styles.standingsPoints]}>
+                    <ThemedText style={[styles.standingsCell, styles.standingsPoints, { color: colors.accent }]}>
                       {participant.points}
                     </ThemedText>
                   </Animated.View>
@@ -419,18 +419,18 @@ export default function TournamentDetailScreen() {
                       ) || {}
                   ).map(([round, roundMatches]) => (
                     <View key={round} style={styles.bracketRound}>
-                      <ThemedText style={styles.roundLabel}>Round {round}</ThemedText>
+                      <ThemedText style={[styles.roundLabel, { color: colors.textMuted }]}>Round {round}</ThemedText>
                       {roundMatches.map((match, index) => (
                         <Animated.View
                           key={match._id}
                           entering={FadeInRight.duration(400).delay(index * 50)}>
                           <Pressable
-                            style={styles.bracketMatch}
+                            style={[styles.bracketMatch, { backgroundColor: colors.bgCard, borderColor: colors.border }]}
                             onPress={() => router.push(`/(main)/tournament/match/${match._id}`)}>
                             <View
                               style={[
                                 styles.bracketParticipant,
-                                match.winnerId === match.participant1?._id && styles.bracketWinner,
+                                match.winnerId === match.participant1?._id && { backgroundColor: colors.accentGlow },
                               ]}>
                               <ThemedText style={styles.bracketName} numberOfLines={1}>
                                 {match.participant1?.displayName || 'TBD'}
@@ -439,11 +439,11 @@ export default function TournamentDetailScreen() {
                                 {match.participant1Score}
                               </ThemedText>
                             </View>
-                            <View style={styles.bracketDivider} />
+                            <View style={[styles.bracketDivider, { backgroundColor: colors.border }]} />
                             <View
                               style={[
                                 styles.bracketParticipant,
-                                match.winnerId === match.participant2?._id && styles.bracketWinner,
+                                match.winnerId === match.participant2?._id && { backgroundColor: colors.accentGlow },
                               ]}>
                               <ThemedText style={styles.bracketName} numberOfLines={1}>
                                 {match.participant2?.displayName || 'TBD'}
@@ -453,8 +453,8 @@ export default function TournamentDetailScreen() {
                               </ThemedText>
                             </View>
                             {match.status !== 'completed' && match.status !== 'bye' && (
-                              <View style={styles.matchStatusBadge}>
-                                <ThemedText style={styles.matchStatusText}>
+                              <View style={[styles.matchStatusBadge, { backgroundColor: colors.success + '20' }]}>
+                                <ThemedText style={[styles.matchStatusText, { color: colors.success }]}>
                                   {match.status === 'live' ? 'LIVE' : match.status.toUpperCase()}
                                 </ThemedText>
                               </View>
@@ -473,7 +473,7 @@ export default function TournamentDetailScreen() {
         {pendingMatches.length > 0 && (
           <Animated.View entering={FadeInDown.duration(600).delay(350)} style={styles.section}>
             <View style={styles.sectionHeader}>
-              <ThemedText type="label" style={styles.sectionLabel}>
+              <ThemedText type="label" style={[styles.sectionLabel, { color: colors.accent }]}>
                 UPCOMING MATCHES
               </ThemedText>
               <ThemedText type="muted">{pendingMatches.length}</ThemedText>
@@ -482,14 +482,14 @@ export default function TournamentDetailScreen() {
               {pendingMatches.slice(0, 5).map((match, index) => (
                 <Animated.View key={match._id} entering={FadeInRight.duration(400).delay(index * 30)}>
                   <AnimatedPressable
-                    style={styles.matchCard}
+                    style={[styles.matchCard, { backgroundColor: colors.bgCard, borderColor: colors.border }]}
                     onPress={() => router.push(`/(main)/tournament/match/${match._id}`)}>
                     <View style={styles.matchHeader}>
                       <ThemedText type="muted" style={styles.matchRound}>
                         {match.bracket ? `${match.bracket} ` : ''}Round {match.round} • Match {match.matchNumber}
                       </ThemedText>
-                      <View style={styles.matchStatusPill}>
-                        <ThemedText style={styles.matchStatusPillText}>
+                      <View style={[styles.matchStatusPill, { backgroundColor: colors.bgTertiary }]}>
+                        <ThemedText style={[styles.matchStatusPillText, { color: colors.textMuted }]}>
                           {match.status.toUpperCase()}
                         </ThemedText>
                       </View>
@@ -525,7 +525,7 @@ export default function TournamentDetailScreen() {
         {completedMatches.length > 0 && (
           <Animated.View entering={FadeInDown.duration(600).delay(400)} style={styles.section}>
             <View style={styles.sectionHeader}>
-              <ThemedText type="label" style={styles.sectionLabel}>
+              <ThemedText type="label" style={[styles.sectionLabel, { color: colors.accent }]}>
                 COMPLETED MATCHES
               </ThemedText>
               <ThemedText type="muted">{completedMatches.length}</ThemedText>
@@ -534,14 +534,14 @@ export default function TournamentDetailScreen() {
               {completedMatches.slice(0, 5).map((match, index) => (
                 <Animated.View key={match._id} entering={FadeInRight.duration(400).delay(index * 30)}>
                   <AnimatedPressable
-                    style={styles.matchCard}
+                    style={[styles.matchCard, { backgroundColor: colors.bgCard, borderColor: colors.border }]}
                     onPress={() => router.push(`/(main)/tournament/match/${match._id}`)}>
                     <View style={styles.matchHeader}>
                       <ThemedText type="muted" style={styles.matchRound}>
                         {match.bracket ? `${match.bracket} ` : ''}Round {match.round} • Match {match.matchNumber}
                       </ThemedText>
-                      <View style={styles.matchStatusPillCompleted}>
-                        <ThemedText style={styles.matchStatusPillTextCompleted}>COMPLETED</ThemedText>
+                      <View style={[styles.matchStatusPillCompleted, { backgroundColor: colors.accentGlow }]}>
+                        <ThemedText style={[styles.matchStatusPillTextCompleted, { color: colors.accent }]}>COMPLETED</ThemedText>
                       </View>
                     </View>
                     <View style={styles.matchParticipants}>
@@ -549,7 +549,7 @@ export default function TournamentDetailScreen() {
                         <ThemedText
                           style={[
                             styles.matchParticipantName,
-                            match.winnerId === match.participant1?._id && styles.winnerName,
+                            match.winnerId === match.participant1?._id && { color: colors.accent },
                           ]}
                           numberOfLines={1}>
                           {match.participant1?.displayName || 'TBD'}
@@ -557,7 +557,7 @@ export default function TournamentDetailScreen() {
                         <ThemedText
                           style={[
                             styles.matchParticipantScore,
-                            match.winnerId === match.participant1?._id && styles.winnerScore,
+                            match.winnerId === match.participant1?._id && { color: colors.accent },
                           ]}>
                           {match.participant1Score}
                         </ThemedText>
@@ -569,7 +569,7 @@ export default function TournamentDetailScreen() {
                         <ThemedText
                           style={[
                             styles.matchParticipantName,
-                            match.winnerId === match.participant2?._id && styles.winnerName,
+                            match.winnerId === match.participant2?._id && { color: colors.accent },
                           ]}
                           numberOfLines={1}>
                           {match.participant2?.displayName || 'TBD'}
@@ -577,7 +577,7 @@ export default function TournamentDetailScreen() {
                         <ThemedText
                           style={[
                             styles.matchParticipantScore,
-                            match.winnerId === match.participant2?._id && styles.winnerScore,
+                            match.winnerId === match.participant2?._id && { color: colors.accent },
                           ]}>
                           {match.participant2Score}
                         </ThemedText>
@@ -598,7 +598,7 @@ export default function TournamentDetailScreen() {
         {/* Empty state for draft */}
         {tournament.status === 'draft' && (
           <Animated.View entering={FadeInDown.duration(600).delay(250)} style={styles.emptyState}>
-            <IconSymbol name="sportscourt" size={48} color={Colors.textMuted} />
+            <IconSymbol name="sportscourt" size={48} color={colors.textMuted} />
             <ThemedText type="muted" style={styles.emptyText}>
               Tournament has not started yet
             </ThemedText>
