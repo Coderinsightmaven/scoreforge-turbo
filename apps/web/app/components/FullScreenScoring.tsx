@@ -390,12 +390,12 @@ export function FullScreenScoring({
         <button
           onClick={handleUndo}
           disabled={isUpdating}
-          className="absolute left-4 bottom-4 flex items-center gap-2 px-4 py-2 bg-bg-card border border-border rounded-xl shadow-md hover:bg-bg-secondary transition-colors disabled:opacity-50"
+          className="absolute left-4 bottom-4 sm:left-6 sm:bottom-6 md:left-8 md:bottom-8 flex items-center gap-2 sm:gap-3 px-4 py-2 sm:px-5 sm:py-3 md:px-6 md:py-4 bg-bg-card border border-border rounded-xl sm:rounded-2xl shadow-md hover:bg-bg-secondary transition-colors disabled:opacity-50"
         >
-          <svg className="w-5 h-5 text-text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
           </svg>
-          <span className="font-semibold text-text-primary">Undo</span>
+          <span className="font-semibold text-text-primary text-sm sm:text-base md:text-lg">Undo</span>
         </button>
       )}
     </div>

@@ -21,7 +21,11 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors, Shadows, Spacing, Radius } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/use-theme-color';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
+
+// Scale factor for larger screens (tablets)
+const isLargeScreen = SCREEN_WIDTH >= 768;
+const scale = isLargeScreen ? 1.5 : SCREEN_WIDTH >= 414 ? 1.2 : 1;
 
 // Tennis point display helper
 function getTennisPointDisplay(
@@ -442,10 +446,22 @@ export default function MatchScoreScreen() {
         {/* Undo Button - Bottom Left */}
         <Pressable
           onPress={handleUndo}
-          style={[styles.cornerUndoButton, { bottom: insets.bottom + Spacing.lg, backgroundColor: colors.bgCard, borderColor: colors.border }]}
+          style={[
+            styles.cornerUndoButton,
+            {
+              bottom: insets.bottom + Spacing.lg * scale,
+              left: Spacing.lg * scale,
+              paddingVertical: Spacing.sm * scale,
+              paddingHorizontal: Spacing.md * scale,
+              borderRadius: Radius.lg * scale,
+              gap: Spacing.xs * scale,
+              backgroundColor: colors.bgCard,
+              borderColor: colors.border,
+            },
+          ]}
           disabled={isUpdating}>
-          <IconSymbol name="arrow.uturn.backward" size={20} color={colors.textPrimary} />
-          <ThemedText style={[styles.cornerUndoText, { color: colors.textPrimary }]}>Undo</ThemedText>
+          <IconSymbol name="arrow.uturn.backward" size={20 * scale} color={colors.textPrimary} />
+          <ThemedText style={[styles.cornerUndoText, { color: colors.textPrimary, fontSize: 14 * scale }]}>Undo</ThemedText>
         </Pressable>
       </ThemedView>
     );
@@ -820,22 +836,13 @@ const styles = StyleSheet.create({
   },
   cornerUndoButton: {
     position: 'absolute',
-    left: Spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
-    backgroundColor: Colors.bgCard,
     borderWidth: 1,
-    borderColor: Colors.border,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: Radius.lg,
     ...Shadows.sm,
   },
   cornerUndoText: {
-    fontSize: 14,
     fontWeight: '600',
-    color: Colors.textPrimary,
   },
 
   fullScoreboard: {
