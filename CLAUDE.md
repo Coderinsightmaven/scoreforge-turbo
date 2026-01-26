@@ -39,6 +39,13 @@ bun run ios          # Run on iOS simulator
 bun run android      # Run on Android emulator
 ```
 
+### Desktop App Commands (from apps/desktop)
+```bash
+bun run dev          # Start Tauri app (frontend + native)
+bun run dev:web      # Start Vite dev server only (frontend)
+bun run build        # Build native app for distribution
+```
+
 ## Architecture
 
 **Turborepo monorepo** using **Bun** as the package manager.
@@ -46,6 +53,7 @@ bun run android      # Run on Android emulator
 ### Apps
 - `apps/web` - Next.js 16 web app (React 19, port 3000)
 - `apps/mobile` - Expo/React Native app (Expo 54, React Native 0.81)
+- `apps/desktop` - Tauri v2 desktop app (React 18, Rust backend, port 1422)
 
 ### Packages
 - `packages/convex` - Convex serverless backend (database, functions, real-time)
@@ -172,3 +180,32 @@ import { Colors } from "@/constants/theme";
 - Uses `next-themes` with `ThemeSyncProvider` for Convex sync
 - Dark theme CSS variables in `globals.css` under `:root.dark`
 - Theme toggle cycles: system → light → dark
+
+## Desktop App (Tauri)
+
+### Architecture
+- **Frontend**: React 18 + Vite + Tailwind CSS
+- **Backend**: Rust with Tauri v2
+- **State Management**: Zustand stores (`useAppStore`, `useScoreboardStore`, `useLiveDataStore`, etc.)
+- **Data Source**: ScoreForge API only (via HTTP polling)
+
+### Key Features
+- Scoreboard designer with drag-and-drop canvas
+- Multi-monitor scoreboard display
+- ScoreForge API integration for live match data
+
+### Tauri Commands
+Rust backend commands are defined in `src-tauri/src/commands/` and exposed via `#[tauri::command]`.
+
+### ScoreForge Integration
+- `src/services/scoreforgeApi.ts` - HTTP client for Convex public API
+- `src/types/scoreforge.ts` - TypeScript types for API responses
+- `src/components/ui/ScoreForgeConnectionDialog.tsx` - Connection wizard UI
+- Transforms ScoreForge `tennisState` to desktop `TennisLiveData` format
+
+### Live Data Flow
+1. User connects via ScoreForgeConnectionDialog (API key + match selection)
+2. `useLiveDataStore.connectToScoreForge()` establishes polling
+3. `scoreforgeApi.getMatch()` fetches data via Convex HTTP API
+4. `scoreforgeApi.transformToTennisLiveData()` converts to display format
+5. Components bind to live data via `useLiveDataStore.activeData`
