@@ -58,7 +58,7 @@ export default function TournamentDetailPage({
     round_robin: "Round Robin",
   };
 
-  const canManage = tournament.myRole === "owner" || tournament.myRole === "admin";
+  const canManage = tournament.myRole === "owner";
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "bracket", label: "Bracket" },
@@ -134,6 +134,9 @@ export default function TournamentDetailPage({
                   </div>
                 )}
               </div>
+
+              {/* Tournament ID for API access */}
+              <TournamentIdDisplay tournamentId={tournament._id} />
             </div>
             {canManage && <TournamentActions tournament={tournament} />}
           </div>
@@ -175,12 +178,43 @@ export default function TournamentDetailPage({
         )}
         {activeTab === "standings" && <StandingsTab tournamentId={id} />}
         {activeTab === "scorers" && (
-          <ScorersTab
-            tournamentId={id}
-            organizationId={tournament.organizationId}
-          />
+          <ScorersTab tournamentId={id} />
         )}
       </main>
+    </div>
+  );
+}
+
+function TournamentIdDisplay({ tournamentId }: { tournamentId: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(tournamentId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="mt-4 flex items-center gap-2">
+      <span className="text-xs text-text-muted">Tournament ID:</span>
+      <code className="px-2 py-1 text-xs font-mono text-text-secondary bg-bg-elevated border border-border rounded">
+        {tournamentId}
+      </code>
+      <button
+        onClick={handleCopy}
+        className="p-1.5 text-text-muted hover:text-accent hover:bg-accent/10 rounded transition-all"
+        title="Copy tournament ID"
+      >
+        {copied ? (
+          <svg className="w-4 h-4 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+          </svg>
+        ) : (
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+          </svg>
+        )}
+      </button>
     </div>
   );
 }
@@ -193,7 +227,6 @@ function TournamentActions({
     status: string;
     participantCount: number;
     myRole: string;
-    organizationSlug: string;
   };
 }) {
   const generateBracket = useMutation(api.tournaments.generateBracket);
@@ -240,7 +273,7 @@ function TournamentActions({
     setDeleting(true);
     try {
       await deleteTournament({ tournamentId: tournament._id as any });
-      window.location.href = `/organizations/${tournament.organizationSlug}`;
+      window.location.href = `/tournaments`;
     } catch (err) {
       console.error(err);
       setDeleting(false);
@@ -853,47 +886,36 @@ function StandingsTab({ tournamentId }: { tournamentId: string }) {
 
 function ScorersTab({
   tournamentId,
-  organizationId,
 }: {
   tournamentId: string;
-  organizationId: string;
 }) {
   const scorers = useQuery(api.tournamentScorers.listScorers, {
     tournamentId: tournamentId as any,
-  });
-  const members = useQuery(api.organizationMembers.listMembers, {
-    organizationId: organizationId as any,
   });
   const assignScorer = useMutation(api.tournamentScorers.assignScorer);
   const removeScorer = useMutation(api.tournamentScorers.removeScorer);
 
   const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  if (!scorers || !members) {
+  if (!scorers) {
     return <TabSkeleton />;
   }
 
-  // Filter members who can be assigned as scorers (not already assigned)
-  const assignedUserIds = new Set(scorers.map((s) => s.userId));
-  const availableMembers = members.filter(
-    (m) => !assignedUserIds.has(m.userId) && m.role === "scorer"
-  );
-
   const handleAssign = async () => {
-    if (!selectedUserId) return;
+    if (!email.trim()) return;
     setLoading(true);
     setError(null);
     try {
       await assignScorer({
         tournamentId: tournamentId as any,
-        userId: selectedUserId as any,
+        email: email.trim(),
       });
       setShowAddModal(false);
-      setSelectedUserId(null);
+      setEmail("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to assign scorer");
     } finally {
@@ -924,8 +946,7 @@ function ScorersTab({
         </h2>
         <button
           onClick={() => setShowAddModal(true)}
-          disabled={availableMembers.length === 0}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-accent bg-accent/10 border border-accent/30 rounded-lg hover:bg-accent hover:text-text-inverse transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-accent bg-accent/10 border border-accent/30 rounded-lg hover:bg-accent hover:text-text-inverse transition-all"
         >
           <span>+</span> Assign Scorer
         </button>
@@ -936,20 +957,14 @@ function ScorersTab({
           <span className="text-5xl text-text-muted mb-4 opacity-50">📋</span>
           <p className="text-text-secondary mb-2">No scorers assigned yet</p>
           <p className="text-sm text-text-muted mb-6">
-            Assign organization members with the &quot;scorer&quot; role to let them score matches in this tournament.
+            Assign users by their email address to let them score matches in this tournament.
           </p>
-          {availableMembers.length > 0 ? (
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="px-4 py-2 text-sm font-semibold text-text-inverse bg-accent rounded-lg hover:bg-accent-bright transition-all"
-            >
-              Assign Scorer
-            </button>
-          ) : (
-            <p className="text-xs text-text-muted">
-              No available scorers in your organization. Invite members with the &quot;scorer&quot; role first.
-            </p>
-          )}
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="px-4 py-2 text-sm font-semibold text-text-inverse bg-accent rounded-lg hover:bg-accent-bright transition-all"
+          >
+            Assign Scorer
+          </button>
         </div>
       ) : (
         <div className="flex flex-col gap-2">
@@ -996,7 +1011,7 @@ function ScorersTab({
               <button
                 onClick={() => {
                   setShowAddModal(false);
-                  setSelectedUserId(null);
+                  setEmail("");
                   setError(null);
                 }}
                 className="text-text-muted hover:text-text-primary transition-colors"
@@ -1014,61 +1029,28 @@ function ScorersTab({
                 </div>
               )}
 
-              {availableMembers.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-text-secondary mb-2">No available scorers</p>
-                  <p className="text-sm text-text-muted">
-                    All organization members with the &quot;scorer&quot; role are already assigned, or there are no members with that role.
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <p className="text-sm text-text-secondary mb-4">
-                    Select a member to assign as a scorer for this tournament:
-                  </p>
-                  <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto">
-                    {availableMembers.map((member) => (
-                      <button
-                        key={member.userId}
-                        type="button"
-                        onClick={() => setSelectedUserId(member.userId)}
-                        className={`w-full flex items-center gap-3 p-4 rounded-lg border text-left transition-all ${
-                          selectedUserId === member.userId
-                            ? "bg-accent/10 border-accent"
-                            : "bg-bg-elevated border-border hover:border-text-muted"
-                        }`}
-                      >
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-accent font-display bg-accent/10">
-                          {(member.user.name || member.user.email || "?").charAt(0).toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <span
-                            className={`block font-medium truncate ${
-                              selectedUserId === member.userId
-                                ? "text-accent"
-                                : "text-text-primary"
-                            }`}
-                          >
-                            {member.user.name || "Unknown"}
-                          </span>
-                          <span className="block text-xs text-text-muted truncate">
-                            {member.user.email}
-                          </span>
-                        </div>
-                        {selectedUserId === member.userId && (
-                          <span className="text-accent">✓</span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
+              <p className="text-sm text-text-secondary mb-4">
+                Enter the email address of a user to assign them as a scorer for this tournament. They must already have an account.
+              </p>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter email address..."
+                className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && email.trim()) {
+                    handleAssign();
+                  }
+                }}
+              />
             </div>
             <div className="flex justify-end gap-3 p-6 border-t border-border">
               <button
                 onClick={() => {
                   setShowAddModal(false);
-                  setSelectedUserId(null);
+                  setEmail("");
                   setError(null);
                 }}
                 className="px-4 py-2 text-sm text-text-secondary bg-bg-elevated border border-border rounded-lg hover:text-text-primary hover:border-text-muted transition-all"
@@ -1077,7 +1059,7 @@ function ScorersTab({
               </button>
               <button
                 onClick={handleAssign}
-                disabled={!selectedUserId || loading}
+                disabled={!email.trim() || loading}
                 className="px-4 py-2 text-sm font-semibold text-text-inverse bg-accent rounded-lg hover:bg-accent-bright transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Assigning..." : "Assign Scorer"}

@@ -57,20 +57,14 @@ export const updateProfile = mutation({
 
 /**
  * Get the user's onboarding state to determine where to redirect them
+ * Now just checks if user has a name set (no org requirement)
  */
 export const getOnboardingState = query({
   args: {},
   returns: v.union(
     v.object({
       hasName: v.boolean(),
-      organizationCount: v.number(),
-      organizations: v.array(
-        v.object({
-          _id: v.id("organizations"),
-          name: v.string(),
-          slug: v.string(),
-        })
-      ),
+      tournamentCount: v.number(),
     }),
     v.null()
   ),
@@ -88,30 +82,29 @@ export const getOnboardingState = query({
     // Check if user has a name set
     const hasName = !!user.name && user.name.trim().length > 0;
 
-    // Get user's organizations
-    const memberships = await ctx.db
-      .query("organizationMembers")
+    // Count user's tournaments (owned + scoring)
+    const ownedTournaments = await ctx.db
+      .query("tournaments")
+      .withIndex("by_created_by", (q) => q.eq("createdBy", userId))
+      .collect();
+
+    const scorerAssignments = await ctx.db
+      .query("tournamentScorers")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
 
-    const organizations = await Promise.all(
-      memberships.map(async (membership) => {
-        const org = await ctx.db.get(membership.organizationId);
-        if (!org) return null;
-        return {
-          _id: org._id,
-          name: org.name,
-          slug: org.slug,
-        };
-      })
-    );
-
-    const validOrganizations = organizations.filter((org) => org !== null);
+    // Get unique tournament count
+    const tournamentIds = new Set<string>();
+    for (const t of ownedTournaments) {
+      tournamentIds.add(t._id);
+    }
+    for (const s of scorerAssignments) {
+      tournamentIds.add(s.tournamentId);
+    }
 
     return {
       hasName,
-      organizationCount: validOrganizations.length,
-      organizations: validOrganizations,
+      tournamentCount: tournamentIds.size,
     };
   },
 });

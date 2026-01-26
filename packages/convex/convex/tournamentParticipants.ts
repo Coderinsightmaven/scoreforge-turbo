@@ -2,6 +2,41 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { participantTypes } from "./schema";
+import type { Id, Doc } from "./_generated/dataModel";
+
+// ============================================
+// Access Control Helpers
+// ============================================
+
+/**
+ * Check if user can manage tournament (owner only)
+ */
+async function canManageTournament(
+  tournament: Doc<"tournaments">,
+  userId: Id<"users">
+): Promise<boolean> {
+  return tournament.createdBy === userId;
+}
+
+/**
+ * Check if user can view tournament (owner or scorer)
+ */
+async function canViewTournament(
+  ctx: { db: any },
+  tournament: Doc<"tournaments">,
+  userId: Id<"users">
+): Promise<boolean> {
+  if (tournament.createdBy === userId) {
+    return true;
+  }
+  const scorer = await ctx.db
+    .query("tournamentScorers")
+    .withIndex("by_tournament_and_user", (q: any) =>
+      q.eq("tournamentId", tournament._id).eq("userId", userId)
+    )
+    .first();
+  return scorer !== null;
+}
 
 // ============================================
 // Helpers
@@ -65,21 +100,15 @@ export const listParticipants = query({
       throw new Error("Tournament not found");
     }
 
-    // Check if user is a member of the organization
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership) {
+    // Check if user has access (owner or scorer)
+    const hasAccess = await canViewTournament(ctx, tournament, userId);
+    if (!hasAccess) {
       throw new Error("Not authorized");
     }
 
     const participants = await ctx.db
       .query("tournamentParticipants")
-      .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
+      .withIndex("by_tournament", (q: any) => q.eq("tournamentId", args.tournamentId))
       .collect();
 
     // Sort by seed (if set) then creation time
@@ -150,15 +179,9 @@ export const getParticipant = query({
       return null;
     }
 
-    // Check if user is a member of the organization
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership) {
+    // Check if user has access (owner or scorer)
+    const hasAccess = await canViewTournament(ctx, tournament, userId);
+    if (!hasAccess) {
       return null;
     }
 
@@ -187,7 +210,7 @@ export const getParticipant = query({
 // ============================================
 
 /**
- * Add a participant to a tournament (admin-only, name-based)
+ * Add a participant to a tournament (owner only)
  * The type is determined by the tournament's participantType
  */
 export const addParticipant = mutation({
@@ -215,16 +238,10 @@ export const addParticipant = mutation({
       throw new Error("Tournament not found");
     }
 
-    // Check if user is admin/owner of the organization
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", authUserId)
-      )
-      .first();
-
-    if (!membership || (membership.role !== "owner" && membership.role !== "admin")) {
-      throw new Error("Not authorized. Only owners and admins can add participants.");
+    // Only owner can add participants
+    const canManage = await canManageTournament(tournament, authUserId);
+    if (!canManage) {
+      throw new Error("Not authorized. Only the tournament owner can add participants.");
     }
 
     // Check tournament status
@@ -235,7 +252,7 @@ export const addParticipant = mutation({
     // Check max participants
     const currentParticipants = await ctx.db
       .query("tournamentParticipants")
-      .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
+      .withIndex("by_tournament", (q: any) => q.eq("tournamentId", args.tournamentId))
       .collect();
 
     if (currentParticipants.length >= tournament.maxParticipants) {
@@ -302,7 +319,7 @@ export const addParticipant = mutation({
 });
 
 /**
- * Update a participant's details (before tournament starts)
+ * Update a participant's details (before tournament starts, owner only)
  */
 export const updateParticipant = mutation({
   args: {
@@ -332,15 +349,9 @@ export const updateParticipant = mutation({
       throw new Error("Tournament not found");
     }
 
-    // Check user's role
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership || (membership.role !== "owner" && membership.role !== "admin")) {
+    // Only owner can update participants
+    const canManage = await canManageTournament(tournament, userId);
+    if (!canManage) {
       throw new Error("Not authorized");
     }
 
@@ -393,7 +404,7 @@ export const updateParticipant = mutation({
 });
 
 /**
- * Remove a participant from a tournament (before start)
+ * Remove a participant from a tournament (before start, owner only)
  */
 export const removeParticipant = mutation({
   args: { participantId: v.id("tournamentParticipants") },
@@ -414,15 +425,9 @@ export const removeParticipant = mutation({
       throw new Error("Tournament not found");
     }
 
-    // Check user's role - only admins/owners can remove participants
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership || (membership.role !== "owner" && membership.role !== "admin")) {
+    // Only owner can remove participants
+    const canManage = await canManageTournament(tournament, userId);
+    if (!canManage) {
       throw new Error("Not authorized to remove participants");
     }
 
@@ -437,7 +442,7 @@ export const removeParticipant = mutation({
 });
 
 /**
- * Update participant seeding (before start, admin/owner only)
+ * Update participant seeding (before start, owner only)
  */
 export const updateSeeding = mutation({
   args: {
@@ -461,18 +466,9 @@ export const updateSeeding = mutation({
       throw new Error("Tournament not found");
     }
 
-    // Check user's role
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (
-      !membership ||
-      (membership.role !== "owner" && membership.role !== "admin")
-    ) {
+    // Only owner can update seeding
+    const canManage = await canManageTournament(tournament, userId);
+    if (!canManage) {
       throw new Error("Not authorized");
     }
 
@@ -487,7 +483,7 @@ export const updateSeeding = mutation({
 });
 
 /**
- * Batch update seeding for multiple participants
+ * Batch update seeding for multiple participants (owner only)
  */
 export const updateSeedingBatch = mutation({
   args: {
@@ -511,18 +507,9 @@ export const updateSeedingBatch = mutation({
       throw new Error("Tournament not found");
     }
 
-    // Check user's role
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (
-      !membership ||
-      (membership.role !== "owner" && membership.role !== "admin")
-    ) {
+    // Only owner can update seeding
+    const canManage = await canManageTournament(tournament, userId);
+    if (!canManage) {
       throw new Error("Not authorized");
     }
 

@@ -19,6 +19,14 @@ import type { Id } from "./_generated/dataModel";
 const participantReturn = v.object({
   id: v.string(),
   displayName: v.string(),
+  type: v.union(v.literal("individual"), v.literal("doubles"), v.literal("team")),
+  // Individual player name
+  playerName: v.optional(v.string()),
+  // Doubles player names
+  player1Name: v.optional(v.string()),
+  player2Name: v.optional(v.string()),
+  // Team name
+  teamName: v.optional(v.string()),
   seed: v.optional(v.number()),
   wins: v.number(),
   losses: v.number(),
@@ -30,6 +38,7 @@ const matchReturn = v.object({
   round: v.number(),
   matchNumber: v.number(),
   bracket: v.optional(v.string()),
+  court: v.optional(v.string()),
   status: matchStatus,
   scores: v.object({
     participant1: v.number(),
@@ -54,6 +63,7 @@ const tournamentReturn = v.object({
   format: tournamentFormats,
   tennisConfig: v.optional(tennisConfig),
   volleyballConfig: v.optional(volleyballConfig),
+  courts: v.optional(v.array(v.string())),
 });
 
 // ============================================
@@ -63,7 +73,7 @@ const tournamentReturn = v.object({
 async function validateApiKeyInternal(
   ctx: { db: any },
   apiKey: string
-): Promise<{ organizationId: Id<"organizations"> } | null> {
+): Promise<{ userId: Id<"users"> } | null> {
   const hashedKey = hashKey(apiKey);
 
   const keyRecord = await ctx.db
@@ -80,7 +90,7 @@ async function validateApiKeyInternal(
   }
 
   return {
-    organizationId: keyRecord.organizationId,
+    userId: keyRecord.userId,
   };
 }
 
@@ -90,7 +100,7 @@ async function validateApiKeyInternal(
 
 /**
  * Get a single match by ID
- * Requires a valid API key for the organization that owns the tournament
+ * Requires a valid API key for the user that owns the tournament
  */
 export const getMatch = query({
   args: {
@@ -133,8 +143,8 @@ export const getMatch = query({
       return { error: "Tournament not found" };
     }
 
-    // Verify the organization owns this tournament
-    if (tournament.organizationId !== keyValidation.organizationId) {
+    // Verify the user owns this tournament
+    if (tournament.createdBy !== keyValidation.userId) {
       return { error: "API key not authorized for this tournament" };
     }
 
@@ -148,6 +158,11 @@ export const getMatch = query({
         participant1 = {
           id: p1._id,
           displayName: p1.displayName,
+          type: p1.type,
+          playerName: p1.playerName,
+          player1Name: p1.player1Name,
+          player2Name: p1.player2Name,
+          teamName: p1.teamName,
           seed: p1.seed,
           wins: p1.wins,
           losses: p1.losses,
@@ -162,6 +177,11 @@ export const getMatch = query({
         participant2 = {
           id: p2._id,
           displayName: p2.displayName,
+          type: p2.type,
+          playerName: p2.playerName,
+          player1Name: p2.player1Name,
+          player2Name: p2.player2Name,
+          teamName: p2.teamName,
           seed: p2.seed,
           wins: p2.wins,
           losses: p2.losses,
@@ -176,6 +196,7 @@ export const getMatch = query({
         round: match.round,
         matchNumber: match.matchNumber,
         bracket: match.bracket,
+        court: match.court,
         status: match.status,
         scores: {
           participant1: match.participant1Score,
@@ -199,6 +220,7 @@ export const getMatch = query({
         format: tournament.format,
         tennisConfig: tournament.tennisConfig,
         volleyballConfig: tournament.volleyballConfig,
+        courts: tournament.courts,
       },
     };
   },
@@ -206,7 +228,7 @@ export const getMatch = query({
 
 /**
  * List matches for a tournament
- * Requires a valid API key for the organization that owns the tournament
+ * Requires a valid API key for the user that owns the tournament
  */
 export const listMatches = query({
   args: {
@@ -214,6 +236,8 @@ export const listMatches = query({
     tournamentId: v.string(),
     status: v.optional(matchStatus),
     round: v.optional(v.number()),
+    court: v.optional(v.string()),
+    sortBy: v.optional(v.union(v.literal("round"), v.literal("court"), v.literal("scheduledTime"))),
   },
   returns: v.union(
     v.object({
@@ -245,8 +269,8 @@ export const listMatches = query({
       return { error: "Tournament not found" };
     }
 
-    // Verify the organization owns this tournament
-    if (tournament.organizationId !== keyValidation.organizationId) {
+    // Verify the user owns this tournament
+    if (tournament.createdBy !== keyValidation.userId) {
       return { error: "API key not authorized for this tournament" };
     }
 
@@ -273,6 +297,11 @@ export const listMatches = query({
         .collect();
     }
 
+    // Filter by court if specified
+    if (args.court !== undefined) {
+      matches = matches.filter((m) => m.court === args.court);
+    }
+
     // Enrich with participant details
     const enrichedMatches = await Promise.all(
       matches.map(async (match) => {
@@ -285,6 +314,11 @@ export const listMatches = query({
             participant1 = {
               id: p1._id,
               displayName: p1.displayName,
+              type: p1.type,
+              playerName: p1.playerName,
+              player1Name: p1.player1Name,
+              player2Name: p1.player2Name,
+              teamName: p1.teamName,
               seed: p1.seed,
               wins: p1.wins,
               losses: p1.losses,
@@ -299,6 +333,11 @@ export const listMatches = query({
             participant2 = {
               id: p2._id,
               displayName: p2.displayName,
+              type: p2.type,
+              playerName: p2.playerName,
+              player1Name: p2.player1Name,
+              player2Name: p2.player2Name,
+              teamName: p2.teamName,
               seed: p2.seed,
               wins: p2.wins,
               losses: p2.losses,
@@ -312,6 +351,7 @@ export const listMatches = query({
           round: match.round,
           matchNumber: match.matchNumber,
           bracket: match.bracket,
+          court: match.court,
           status: match.status,
           scores: {
             participant1: match.participant1Score,
@@ -331,10 +371,31 @@ export const listMatches = query({
       })
     );
 
-    // Sort by round, then match number
+    // Sort matches based on sortBy parameter
+    const sortBy = args.sortBy || "round";
     enrichedMatches.sort((a, b) => {
-      if (a.round !== b.round) return a.round - b.round;
-      return a.matchNumber - b.matchNumber;
+      if (sortBy === "court") {
+        // Sort by court name (nulls last), then by match number
+        if (!a.court && !b.court) return a.matchNumber - b.matchNumber;
+        if (!a.court) return 1;
+        if (!b.court) return -1;
+        const courtCompare = a.court.localeCompare(b.court);
+        if (courtCompare !== 0) return courtCompare;
+        return a.matchNumber - b.matchNumber;
+      } else if (sortBy === "scheduledTime") {
+        // Sort by scheduled time (nulls last), then by match number
+        const aTime = a.timestamps.scheduledTime;
+        const bTime = b.timestamps.scheduledTime;
+        if (!aTime && !bTime) return a.matchNumber - b.matchNumber;
+        if (!aTime) return 1;
+        if (!bTime) return -1;
+        if (aTime !== bTime) return aTime - bTime;
+        return a.matchNumber - b.matchNumber;
+      } else {
+        // Default: sort by round, then match number
+        if (a.round !== b.round) return a.round - b.round;
+        return a.matchNumber - b.matchNumber;
+      }
     });
 
     return {
@@ -346,13 +407,14 @@ export const listMatches = query({
         format: tournament.format,
         tennisConfig: tournament.tennisConfig,
         volleyballConfig: tournament.volleyballConfig,
+        courts: tournament.courts,
       },
     };
   },
 });
 
 /**
- * List all tournaments for the organization
+ * List all tournaments for the user
  * Useful for discovering available tournaments
  */
 export const listTournaments = query({
@@ -399,22 +461,22 @@ export const listTournaments = query({
       return { error: "Invalid or inactive API key" };
     }
 
-    // Query tournaments
+    // Query tournaments owned by this user
     let tournaments;
     if (args.status) {
       tournaments = await ctx.db
         .query("tournaments")
-        .withIndex("by_organization_and_status", (q) =>
+        .withIndex("by_created_by_and_status", (q) =>
           q
-            .eq("organizationId", keyValidation.organizationId)
+            .eq("createdBy", keyValidation.userId)
             .eq("status", args.status!)
         )
         .collect();
     } else {
       tournaments = await ctx.db
         .query("tournaments")
-        .withIndex("by_organization", (q) =>
-          q.eq("organizationId", keyValidation.organizationId)
+        .withIndex("by_created_by", (q) =>
+          q.eq("createdBy", keyValidation.userId)
         )
         .collect();
     }

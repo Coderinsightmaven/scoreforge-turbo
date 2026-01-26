@@ -4,6 +4,7 @@ import { v } from "convex/values";
 
 /**
  * List scorers assigned to a tournament
+ * Only the tournament owner can see the list of scorers
  */
 export const listScorers = query({
   args: { tournamentId: v.id("tournaments") },
@@ -22,20 +23,13 @@ export const listScorers = query({
       return [];
     }
 
-    const tournament = await ctx.db.get("tournaments", args.tournamentId);
+    const tournament = await ctx.db.get(args.tournamentId);
     if (!tournament) {
       return [];
     }
 
-    // Check if user is owner/admin of the organization
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership || (membership.role !== "owner" && membership.role !== "admin")) {
+    // Only the tournament owner can see scorers
+    if (tournament.createdBy !== userId) {
       return [];
     }
 
@@ -46,7 +40,7 @@ export const listScorers = query({
 
     const results = await Promise.all(
       scorers.map(async (scorer) => {
-        const user = await ctx.db.get("users", scorer.userId);
+        const user = await ctx.db.get(scorer.userId);
         return {
           _id: scorer._id,
           userId: scorer.userId,
@@ -62,9 +56,73 @@ export const listScorers = query({
 });
 
 /**
- * Assign a scorer to a tournament (owner/admin only)
+ * Assign a scorer to a tournament (owner only)
+ * Assigns by email - will look up the user or create a pending invitation
  */
 export const assignScorer = mutation({
+  args: {
+    tournamentId: v.id("tournaments"),
+    email: v.string(),
+  },
+  returns: v.id("tournamentScorers"),
+  handler: async (ctx, args) => {
+    const currentUserId = await getAuthUserId(ctx);
+    if (!currentUserId) {
+      throw new Error("Not authenticated");
+    }
+
+    const tournament = await ctx.db.get(args.tournamentId);
+    if (!tournament) {
+      throw new Error("Tournament not found");
+    }
+
+    // Only tournament owner can assign scorers
+    if (tournament.createdBy !== currentUserId) {
+      throw new Error("Not authorized. Only the tournament owner can assign scorers.");
+    }
+
+    // Find user by email
+    const targetUser = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("email"), args.email.toLowerCase().trim()))
+      .first();
+
+    if (!targetUser) {
+      throw new Error("User not found. They must create an account first.");
+    }
+
+    // Cannot assign yourself
+    if (targetUser._id === currentUserId) {
+      throw new Error("You don't need to assign yourself - you already have full access as the owner.");
+    }
+
+    // Check if already assigned
+    const existing = await ctx.db
+      .query("tournamentScorers")
+      .withIndex("by_tournament_and_user", (q) =>
+        q.eq("tournamentId", args.tournamentId).eq("userId", targetUser._id)
+      )
+      .first();
+
+    if (existing) {
+      throw new Error("User is already assigned to this tournament");
+    }
+
+    const scorerId = await ctx.db.insert("tournamentScorers", {
+      tournamentId: args.tournamentId,
+      userId: targetUser._id,
+      assignedBy: currentUserId,
+      assignedAt: Date.now(),
+    });
+
+    return scorerId;
+  },
+});
+
+/**
+ * Assign a scorer by user ID (owner only)
+ */
+export const assignScorerById = mutation({
   args: {
     tournamentId: v.id("tournaments"),
     userId: v.id("users"),
@@ -76,33 +134,25 @@ export const assignScorer = mutation({
       throw new Error("Not authenticated");
     }
 
-    const tournament = await ctx.db.get("tournaments", args.tournamentId);
+    const tournament = await ctx.db.get(args.tournamentId);
     if (!tournament) {
       throw new Error("Tournament not found");
     }
 
-    // Check if current user is owner/admin of the organization
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", currentUserId)
-      )
-      .first();
-
-    if (!membership || (membership.role !== "owner" && membership.role !== "admin")) {
-      throw new Error("Not authorized. Only owners and admins can assign scorers.");
+    // Only tournament owner can assign scorers
+    if (tournament.createdBy !== currentUserId) {
+      throw new Error("Not authorized. Only the tournament owner can assign scorers.");
     }
 
-    // Check if user being assigned is a member of the organization
-    const targetMembership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", args.userId)
-      )
-      .first();
+    // Verify user exists
+    const targetUser = await ctx.db.get(args.userId);
+    if (!targetUser) {
+      throw new Error("User not found");
+    }
 
-    if (!targetMembership) {
-      throw new Error("User must be a member of the organization");
+    // Cannot assign yourself
+    if (args.userId === currentUserId) {
+      throw new Error("You don't need to assign yourself - you already have full access as the owner.");
     }
 
     // Check if already assigned
@@ -129,7 +179,7 @@ export const assignScorer = mutation({
 });
 
 /**
- * Remove a scorer from a tournament (owner/admin only)
+ * Remove a scorer from a tournament (owner only)
  */
 export const removeScorer = mutation({
   args: {
@@ -143,21 +193,14 @@ export const removeScorer = mutation({
       throw new Error("Not authenticated");
     }
 
-    const tournament = await ctx.db.get("tournaments", args.tournamentId);
+    const tournament = await ctx.db.get(args.tournamentId);
     if (!tournament) {
       throw new Error("Tournament not found");
     }
 
-    // Check if current user is owner/admin of the organization
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", currentUserId)
-      )
-      .first();
-
-    if (!membership || (membership.role !== "owner" && membership.role !== "admin")) {
-      throw new Error("Not authorized. Only owners and admins can remove scorers.");
+    // Only tournament owner can remove scorers
+    if (tournament.createdBy !== currentUserId) {
+      throw new Error("Not authorized. Only the tournament owner can remove scorers.");
     }
 
     // Find the assignment

@@ -49,10 +49,10 @@ function hashKey(key: string): string {
 // ============================================
 
 /**
- * List all API keys for an organization (shows prefix only, not full key)
+ * List all API keys for the current user (shows prefix only, not full key)
  */
 export const listApiKeys = query({
-  args: { organizationId: v.id("organizations") },
+  args: {},
   returns: v.array(
     v.object({
       _id: v.id("apiKeys"),
@@ -63,32 +63,15 @@ export const listApiKeys = query({
       isActive: v.boolean(),
     })
   ),
-  handler: async (ctx, args) => {
+  handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
       return [];
     }
 
-    // Check user's role (only admin/owner can view API keys)
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", args.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (
-      !membership ||
-      (membership.role !== "owner" && membership.role !== "admin")
-    ) {
-      return [];
-    }
-
     const apiKeys = await ctx.db
       .query("apiKeys")
-      .withIndex("by_organization", (q) =>
-        q.eq("organizationId", args.organizationId)
-      )
+      .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
 
     return apiKeys.map((key) => ({
@@ -107,12 +90,11 @@ export const listApiKeys = query({
 // ============================================
 
 /**
- * Generate a new API key for an organization (admin/owner only)
+ * Generate a new API key for the current user
  * Returns the full key - this is the only time it will be visible
  */
 export const generateApiKey = mutation({
   args: {
-    organizationId: v.id("organizations"),
     name: v.string(),
   },
   returns: v.object({
@@ -126,38 +108,16 @@ export const generateApiKey = mutation({
       throw new Error("Not authenticated");
     }
 
-    // Check user's role (only admin/owner can create API keys)
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", args.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (
-      !membership ||
-      (membership.role !== "owner" && membership.role !== "admin")
-    ) {
-      throw new Error("Not authorized. Only owners and admins can create API keys.");
-    }
-
-    // Check organization exists
-    const organization = await ctx.db.get("organizations", args.organizationId);
-    if (!organization) {
-      throw new Error("Organization not found");
-    }
-
     // Generate the key
     const { fullKey, prefix } = generateKey();
     const hashedKey = hashKey(fullKey);
 
     // Store the key
     const keyId = await ctx.db.insert("apiKeys", {
-      organizationId: args.organizationId,
+      userId,
       key: hashedKey,
       keyPrefix: prefix,
       name: args.name,
-      createdBy: userId,
       createdAt: Date.now(),
       isActive: true,
     });
@@ -171,7 +131,7 @@ export const generateApiKey = mutation({
 });
 
 /**
- * Revoke (deactivate) an API key (admin/owner only)
+ * Revoke (deactivate) an API key (owner only)
  */
 export const revokeApiKey = mutation({
   args: { keyId: v.id("apiKeys") },
@@ -182,27 +142,17 @@ export const revokeApiKey = mutation({
       throw new Error("Not authenticated");
     }
 
-    const apiKey = await ctx.db.get("apiKeys", args.keyId);
+    const apiKey = await ctx.db.get(args.keyId);
     if (!apiKey) {
       throw new Error("API key not found");
     }
 
-    // Check user's role (only admin/owner can revoke API keys)
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", apiKey.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (
-      !membership ||
-      (membership.role !== "owner" && membership.role !== "admin")
-    ) {
-      throw new Error("Not authorized. Only owners and admins can revoke API keys.");
+    // Only the owner can revoke their API keys
+    if (apiKey.userId !== userId) {
+      throw new Error("Not authorized. You can only revoke your own API keys.");
     }
 
-    await ctx.db.patch("apiKeys", args.keyId, {
+    await ctx.db.patch(args.keyId, {
       isActive: false,
     });
 
@@ -222,24 +172,17 @@ export const deleteApiKey = mutation({
       throw new Error("Not authenticated");
     }
 
-    const apiKey = await ctx.db.get("apiKeys", args.keyId);
+    const apiKey = await ctx.db.get(args.keyId);
     if (!apiKey) {
       throw new Error("API key not found");
     }
 
-    // Check user's role (only owner can delete API keys)
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", apiKey.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership || membership.role !== "owner") {
-      throw new Error("Only the owner can delete API keys.");
+    // Only the owner can delete their API keys
+    if (apiKey.userId !== userId) {
+      throw new Error("Not authorized. You can only delete your own API keys.");
     }
 
-    await ctx.db.delete("apiKeys", args.keyId);
+    await ctx.db.delete(args.keyId);
 
     return null;
   },
@@ -250,14 +193,14 @@ export const deleteApiKey = mutation({
 // ============================================
 
 /**
- * Validate an API key and return the organization ID if valid
+ * Validate an API key and return the user ID if valid
  * This is exported for use by publicApi.ts
  * Note: lastUsedAt is not updated here since queries have read-only db access
  */
 export async function validateApiKey(
   ctx: { db: any },
   apiKey: string
-): Promise<{ organizationId: string } | null> {
+): Promise<{ userId: string } | null> {
   const hashedKey = hashKey(apiKey);
 
   const keyRecord = await ctx.db
@@ -274,7 +217,7 @@ export async function validateApiKey(
   }
 
   return {
-    organizationId: keyRecord.organizationId,
+    userId: keyRecord.userId,
   };
 }
 

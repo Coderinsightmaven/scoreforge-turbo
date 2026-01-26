@@ -28,7 +28,6 @@ export default function MatchDetailPage({
 
   const canScore =
     match.myRole === "owner" ||
-    match.myRole === "admin" ||
     match.myRole === "scorer";
 
   // Check if this is a bye match (only one participant)
@@ -251,7 +250,7 @@ export default function MatchDetailPage({
             <CourtInfo
               matchId={match._id}
               court={match.court}
-              canEdit={(match.myRole === "owner" || match.myRole === "admin") && match.status !== "completed" && match.status !== "bye"}
+              canEdit={match.myRole === "owner" && match.status !== "completed" && match.status !== "bye"}
               availableCourts={match.availableCourts}
             />
             {match.startedAt && (

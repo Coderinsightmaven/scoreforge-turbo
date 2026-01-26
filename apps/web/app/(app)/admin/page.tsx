@@ -178,7 +178,7 @@ function UsersSection() {
                   Joined
                 </th>
                 <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-wide text-text-muted">
-                  Organizations
+                  Tournaments
                 </th>
                 <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-wide text-text-muted">
                   Status
@@ -270,7 +270,7 @@ function UsersSection() {
                     </td>
                     <td className="px-6 py-4">
                       <p className="text-sm text-text-secondary">
-                        {user.organizationCount}
+                        {user.tournamentCount}
                       </p>
                     </td>
                     <td className="px-6 py-4">
@@ -549,7 +549,7 @@ function SettingsSection() {
   const settings = useQuery(api.siteAdmin.getSystemSettings);
   const updateSettings = useMutation(api.siteAdmin.updateSystemSettings);
 
-  const [maxOrgs, setMaxOrgs] = useState(5);
+  const [maxTournaments, setMaxTournaments] = useState(50);
   const [allowRegistration, setAllowRegistration] = useState(true);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [maintenanceMessage, setMaintenanceMessage] = useState("");
@@ -559,7 +559,7 @@ function SettingsSection() {
 
   useEffect(() => {
     if (settings) {
-      setMaxOrgs(settings.maxOrganizationsPerUser);
+      setMaxTournaments(settings.maxTournamentsPerUser);
       setAllowRegistration(settings.allowPublicRegistration);
       setMaintenanceMode(settings.maintenanceMode);
       setMaintenanceMessage(settings.maintenanceMessage || "");
@@ -574,7 +574,7 @@ function SettingsSection() {
 
     try {
       await updateSettings({
-        maxOrganizationsPerUser: maxOrgs,
+        maxTournamentsPerUser: maxTournaments,
         allowPublicRegistration: allowRegistration,
         maintenanceMode,
         maintenanceMessage: maintenanceMessage.trim() || undefined,
@@ -619,24 +619,24 @@ function SettingsSection() {
         </div>
 
         <div className="p-6 space-y-8">
-          {/* Max Organizations */}
+          {/* Max Tournaments */}
           <div className="flex flex-col gap-2">
             <label
-              htmlFor="maxOrgs"
+              htmlFor="maxTournaments"
               className="text-sm font-medium text-text-secondary"
             >
-              Max Organizations per User
+              Max Tournaments per User
             </label>
             <p className="text-xs text-text-muted">
-              Limit how many organizations a single user can create
+              Limit how many tournaments a single user can create
             </p>
             <input
-              id="maxOrgs"
+              id="maxTournaments"
               type="number"
               min={1}
-              max={100}
-              value={maxOrgs}
-              onChange={(e) => setMaxOrgs(parseInt(e.target.value) || 1)}
+              max={500}
+              value={maxTournaments}
+              onChange={(e) => setMaxTournaments(parseInt(e.target.value) || 1)}
               className="max-w-[120px] px-4 py-3 text-base text-text-primary bg-bg-elevated border border-border rounded-lg focus:outline-none focus:border-accent focus:bg-bg-secondary transition-all"
             />
           </div>

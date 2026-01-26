@@ -52,7 +52,7 @@ export default function LandingPage() {
       </AuthLoading>
 
       <Authenticated>
-        <RedirectToCreateOrganization />
+        <RedirectToDashboard />
       </Authenticated>
 
       <Unauthenticated>
@@ -77,11 +77,11 @@ function LoadingScreen() {
   );
 }
 
-function RedirectToCreateOrganization() {
+function RedirectToDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    router.push("/organizations/new");
+    router.push("/dashboard");
   }, [router]);
 
   return <LoadingScreen />;

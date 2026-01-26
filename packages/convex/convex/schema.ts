@@ -3,18 +3,6 @@ import { authTables } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 
 /**
- * Organization roles:
- * - owner: Full control, can delete organization, manage all members
- * - admin: Can manage members (except owner), manage tournaments
- * - scorer: Can update scores and manage matches
- */
-export const organizationRoles = v.union(
-  v.literal("owner"),
-  v.literal("admin"),
-  v.literal("scorer")
-);
-
-/**
  * Tournament formats
  */
 export const tournamentFormats = v.union(
@@ -61,13 +49,6 @@ export const participantTypes = v.union(
   v.literal("doubles")
 );
 
-/**
- * Team member roles
- */
-export const teamMemberRoles = v.union(
-  v.literal("captain"),
-  v.literal("player")
-);
 
 /**
  * Tennis tournament configuration (set at tournament level)
@@ -191,16 +172,15 @@ export default defineSchema({
 
   // API keys for external access to public endpoints
   apiKeys: defineTable({
-    organizationId: v.id("organizations"),
+    userId: v.id("users"), // Owner of the API key
     key: v.string(), // Hashed API key
     keyPrefix: v.string(), // First 8 chars for identification (e.g., "sf_abc123")
     name: v.string(), // User-friendly name for the key
-    createdBy: v.id("users"),
     createdAt: v.number(),
     lastUsedAt: v.optional(v.number()),
     isActive: v.boolean(),
   })
-    .index("by_organization", ["organizationId"])
+    .index("by_user", ["userId"])
     .index("by_key", ["key"]),
 
   // Site-wide administrators (separate from org roles)
@@ -213,7 +193,9 @@ export default defineSchema({
   // Global system settings (single document with key="global")
   systemSettings: defineTable({
     key: v.literal("global"),
-    maxOrganizationsPerUser: v.number(),
+    // Support both old and new field names during migration
+    maxTournamentsPerUser: v.optional(v.number()),
+    maxOrganizationsPerUser: v.optional(v.number()), // Legacy field name
     allowPublicRegistration: v.boolean(),
     maintenanceMode: v.boolean(),
     maintenanceMessage: v.optional(v.string()),
@@ -221,54 +203,9 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_key", ["key"]),
 
-  // Organizations table
-  organizations: defineTable({
-    name: v.string(),
-    slug: v.string(),
-    description: v.optional(v.string()),
-    image: v.optional(v.string()),
-    createdBy: v.id("users"),
-  })
-    .index("by_slug", ["slug"])
-    .index("by_created_by", ["createdBy"]),
-
-  // Organization memberships - links users to organizations with roles
-  organizationMembers: defineTable({
-    organizationId: v.id("organizations"),
-    userId: v.id("users"),
-    role: organizationRoles,
-    invitedBy: v.optional(v.id("users")),
-    joinedAt: v.number(),
-  })
-    .index("by_organization", ["organizationId"])
-    .index("by_user", ["userId"])
-    .index("by_organization_and_user", ["organizationId", "userId"])
-    .index("by_organization_and_role", ["organizationId", "role"]),
-
-  // Teams - groups of players within an organization
-  teams: defineTable({
-    organizationId: v.id("organizations"),
-    name: v.string(),
-    captainUserId: v.id("users"),
-    image: v.optional(v.string()),
-  })
-    .index("by_organization", ["organizationId"])
-    .index("by_captain", ["captainUserId"]),
-
-  // Team members - links users to teams
-  teamMembers: defineTable({
-    teamId: v.id("teams"),
-    userId: v.id("users"),
-    role: teamMemberRoles,
-    joinedAt: v.number(),
-  })
-    .index("by_team", ["teamId"])
-    .index("by_user", ["userId"])
-    .index("by_team_and_user", ["teamId", "userId"]),
-
-  // Tournaments - competitions within an organization
+  // Tournaments - competitions owned by users
   tournaments: defineTable({
-    organizationId: v.id("organizations"),
+    createdBy: v.id("users"), // Owner of the tournament
     name: v.string(),
     description: v.optional(v.string()),
     sport: presetSports,
@@ -293,10 +230,9 @@ export default defineSchema({
     volleyballConfig: v.optional(volleyballConfig),
     // Available courts for this tournament
     courts: v.optional(v.array(v.string())),
-    createdBy: v.id("users"),
   })
-    .index("by_organization", ["organizationId"])
-    .index("by_organization_and_status", ["organizationId", "status"])
+    .index("by_created_by", ["createdBy"])
+    .index("by_created_by_and_status", ["createdBy", "status"])
     .index("by_status", ["status"])
     .index("by_sport", ["sport"]),
 

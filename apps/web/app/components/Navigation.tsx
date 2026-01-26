@@ -48,11 +48,7 @@ export function Navigation() {
     return pathname.startsWith(path) && path !== "/dashboard";
   };
 
-  const navLinks = [
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/organizations", label: "Organizations" },
-    { href: "/tournaments", label: "Tournaments" },
-  ];
+  const navLinks: { href: string; label: string }[] = [];
 
   const initials = user?.name
     ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
@@ -85,21 +81,23 @@ export function Navigation() {
 
           {/* Center Nav - Desktop */}
           <Authenticated>
-            <div className="hidden lg:flex items-center bg-bg-secondary rounded-full p-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${
-                    isActive(link.href)
-                      ? "bg-bg-primary text-text-primary shadow-sm"
-                      : "text-text-secondary hover:text-text-primary"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
+            {navLinks.length > 0 && (
+              <div className="hidden lg:flex items-center bg-bg-secondary rounded-full p-1">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${
+                      isActive(link.href)
+                        ? "bg-bg-primary text-text-primary shadow-sm"
+                        : "text-text-secondary hover:text-text-primary"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            )}
           </Authenticated>
 
           {/* Right Section */}
@@ -201,18 +199,20 @@ export function Navigation() {
               </div>
 
               {/* Mobile menu button */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden flex items-center justify-center w-9 h-9 rounded-full text-text-secondary hover:text-text-primary hover:bg-bg-secondary transition-all"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  {mobileMenuOpen ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                  )}
-                </svg>
-              </button>
+              {navLinks.length > 0 && (
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="lg:hidden flex items-center justify-center w-9 h-9 rounded-full text-text-secondary hover:text-text-primary hover:bg-bg-secondary transition-all"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    {mobileMenuOpen ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    )}
+                  </svg>
+                </button>
+              )}
             </Authenticated>
           </div>
         </div>
@@ -220,7 +220,7 @@ export function Navigation() {
 
       {/* Mobile Menu */}
       <Authenticated>
-        {mobileMenuOpen && (
+        {navLinks.length > 0 && mobileMenuOpen && (
           <>
             <div
               className="fixed inset-0 z-[900] bg-black/20 backdrop-blur-sm lg:hidden animate-fadeIn"

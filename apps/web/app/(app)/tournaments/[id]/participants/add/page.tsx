@@ -59,7 +59,7 @@ export default function AddParticipantPage({
     return <NotFound />;
   }
 
-  const canManage = tournament.myRole === "owner" || tournament.myRole === "admin";
+  const canManage = tournament.myRole === "owner";
   if (!canManage) {
     return <NotAuthorized tournamentId={tournamentId} />;
   }

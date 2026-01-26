@@ -2,6 +2,53 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { volleyballState } from "./schema";
+import type { Id, Doc } from "./_generated/dataModel";
+
+// ============================================
+// Access Control Helpers
+// ============================================
+
+/**
+ * Check if user can score tournament matches (owner or assigned scorer)
+ */
+async function canScoreTournament(
+  ctx: { db: any },
+  tournament: Doc<"tournaments">,
+  userId: Id<"users">
+): Promise<boolean> {
+  // Owner can always score
+  if (tournament.createdBy === userId) {
+    return true;
+  }
+  // Check if user is assigned as a scorer
+  const scorer = await ctx.db
+    .query("tournamentScorers")
+    .withIndex("by_tournament_and_user", (q: any) =>
+      q.eq("tournamentId", tournament._id).eq("userId", userId)
+    )
+    .first();
+  return scorer !== null;
+}
+
+/**
+ * Get user's role for a tournament
+ */
+async function getTournamentRole(
+  ctx: { db: any },
+  tournament: Doc<"tournaments">,
+  userId: Id<"users">
+): Promise<"owner" | "scorer" | null> {
+  if (tournament.createdBy === userId) {
+    return "owner";
+  }
+  const scorer = await ctx.db
+    .query("tournamentScorers")
+    .withIndex("by_tournament_and_user", (q: any) =>
+      q.eq("tournamentId", tournament._id).eq("userId", userId)
+    )
+    .first();
+  return scorer ? "scorer" : null;
+}
 
 // ============================================
 // Volleyball Scoring Logic Helpers
@@ -143,7 +190,6 @@ export const getVolleyballMatch = query({
       volleyballState: v.optional(volleyballState),
       myRole: v.union(
         v.literal("owner"),
-        v.literal("admin"),
         v.literal("scorer")
       ),
       sport: v.string(),
@@ -166,15 +212,9 @@ export const getVolleyballMatch = query({
       return null;
     }
 
-    // Check if user is a member of the organization
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership) {
+    // Check if user has access (owner or scorer)
+    const role = await getTournamentRole(ctx, tournament, userId);
+    if (!role) {
       return null;
     }
 
@@ -216,7 +256,7 @@ export const getVolleyballMatch = query({
       winnerId: match.winnerId,
       status: match.status,
       volleyballState: match.volleyballState,
-      myRole: membership.role,
+      myRole: role,
       sport: tournament.sport,
     };
   },
@@ -257,15 +297,9 @@ export const initVolleyballMatch = mutation({
       throw new Error("Tournament must be started before matches can begin");
     }
 
-    // Check user's role
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership) {
+    // Check user's access (owner or scorer can init matches)
+    const hasAccess = await canScoreTournament(ctx, tournament, userId);
+    if (!hasAccess) {
       throw new Error("Not authorized");
     }
 
@@ -329,15 +363,9 @@ export const scoreVolleyballPoint = mutation({
       throw new Error("Tournament not found");
     }
 
-    // Check user's role
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership) {
+    // Check user's access (owner or scorer can score)
+    const hasAccess = await canScoreTournament(ctx, tournament, userId);
+    if (!hasAccess) {
       throw new Error("Not authorized");
     }
 
@@ -487,14 +515,9 @@ export const setVolleyballServer = mutation({
       throw new Error("Tournament not found");
     }
 
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership) {
+    // Check user's access (owner or scorer can change server)
+    const hasAccess = await canScoreTournament(ctx, tournament, userId);
+    if (!hasAccess) {
       throw new Error("Not authorized");
     }
 
@@ -543,16 +566,9 @@ export const adjustVolleyballScore = mutation({
       throw new Error("Tournament not found");
     }
 
-    // Only admins/owners can adjust scores
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership || (membership.role !== "owner" && membership.role !== "admin")) {
-      throw new Error("Not authorized - only admins can adjust scores");
+    // Only owner can adjust scores
+    if (tournament.createdBy !== userId) {
+      throw new Error("Not authorized - only the tournament owner can adjust scores");
     }
 
     if (!match.volleyballState) {
@@ -606,15 +622,9 @@ export const undoVolleyballPoint = mutation({
       throw new Error("Tournament not found");
     }
 
-    // Check user's role
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership) {
+    // Check user's access (owner or scorer can undo)
+    const hasAccess = await canScoreTournament(ctx, tournament, userId);
+    if (!hasAccess) {
       throw new Error("Not authorized");
     }
 

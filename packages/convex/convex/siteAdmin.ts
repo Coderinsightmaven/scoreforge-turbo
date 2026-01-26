@@ -54,7 +54,7 @@ export const listUsers = query({
         name: v.optional(v.string()),
         email: v.optional(v.string()),
         isSiteAdmin: v.boolean(),
-        organizationCount: v.number(),
+        tournamentCount: v.number(),
       })
     ),
     nextCursor: v.union(v.string(), v.null()),
@@ -106,13 +106,15 @@ export const listUsers = query({
         ? paginatedUsers[paginatedUsers.length - 1]?._id ?? null
         : null;
 
-    // Enrich with admin status and org count
+    // Enrich with admin status and tournament count
     const enrichedUsers = await Promise.all(
       paginatedUsers.map(async (user) => {
         const isAdmin = await isSiteAdmin(ctx, user._id);
-        const memberships = await ctx.db
-          .query("organizationMembers")
-          .withIndex("by_user", (q) => q.eq("userId", user._id))
+
+        // Count tournaments user owns
+        const ownedTournaments = await ctx.db
+          .query("tournaments")
+          .withIndex("by_created_by", (q) => q.eq("createdBy", user._id))
           .collect();
 
         return {
@@ -121,7 +123,7 @@ export const listUsers = query({
           name: user.name,
           email: user.email,
           isSiteAdmin: isAdmin,
-          organizationCount: memberships.length,
+          tournamentCount: ownedTournaments.length,
         };
       })
     );
@@ -134,7 +136,7 @@ export const listUsers = query({
 });
 
 /**
- * Get detailed user info including organization memberships
+ * Get detailed user info including tournaments
  */
 export const getUser = query({
   args: {
@@ -147,12 +149,11 @@ export const getUser = query({
       name: v.optional(v.string()),
       email: v.optional(v.string()),
       isSiteAdmin: v.boolean(),
-      organizations: v.array(
+      tournaments: v.array(
         v.object({
-          _id: v.id("organizations"),
+          _id: v.id("tournaments"),
           name: v.string(),
-          slug: v.string(),
-          role: v.string(),
+          status: v.string(),
         })
       ),
     }),
@@ -177,25 +178,11 @@ export const getUser = query({
 
     const isAdmin = await isSiteAdmin(ctx, user._id);
 
-    // Get organization memberships
-    const memberships = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
+    // Get tournaments user owns
+    const tournaments = await ctx.db
+      .query("tournaments")
+      .withIndex("by_created_by", (q) => q.eq("createdBy", user._id))
       .collect();
-
-    const organizations = await Promise.all(
-      memberships.map(async (membership) => {
-        // eslint-disable-next-line @convex-dev/explicit-table-ids -- organizationId is typed as Id<"organizations">
-        const org = await ctx.db.get(membership.organizationId);
-        if (!org) return null;
-        return {
-          _id: org._id,
-          name: org.name,
-          slug: org.slug,
-          role: membership.role,
-        };
-      })
-    );
 
     return {
       _id: user._id,
@@ -203,7 +190,11 @@ export const getUser = query({
       name: user.name,
       email: user.email,
       isSiteAdmin: isAdmin,
-      organizations: organizations.filter((o) => o !== null),
+      tournaments: tournaments.map((t) => ({
+        _id: t._id,
+        name: t.name,
+        status: t.status,
+      })),
     };
   },
 });
@@ -269,7 +260,7 @@ export const getSystemSettings = query({
   args: {},
   returns: v.union(
     v.object({
-      maxOrganizationsPerUser: v.number(),
+      maxTournamentsPerUser: v.number(),
       allowPublicRegistration: v.boolean(),
       maintenanceMode: v.boolean(),
       maintenanceMessage: v.optional(v.string()),
@@ -297,8 +288,11 @@ export const getSystemSettings = query({
       return null;
     }
 
+    // Handle both old and new field names
+    const maxTournamentsPerUser = settings.maxTournamentsPerUser ?? settings.maxOrganizationsPerUser ?? 50;
+
     return {
-      maxOrganizationsPerUser: settings.maxOrganizationsPerUser,
+      maxTournamentsPerUser,
       allowPublicRegistration: settings.allowPublicRegistration,
       maintenanceMode: settings.maintenanceMode,
       maintenanceMessage: settings.maintenanceMessage,
@@ -439,7 +433,7 @@ export const updateUserAsAdmin = mutation({
  */
 export const updateSystemSettings = mutation({
   args: {
-    maxOrganizationsPerUser: v.optional(v.number()),
+    maxTournamentsPerUser: v.optional(v.number()),
     allowPublicRegistration: v.optional(v.boolean()),
     maintenanceMode: v.optional(v.boolean()),
     maintenanceMessage: v.optional(v.string()),
@@ -463,7 +457,7 @@ export const updateSystemSettings = mutation({
 
     if (existing) {
       const updates: {
-        maxOrganizationsPerUser?: number;
+        maxTournamentsPerUser?: number;
         allowPublicRegistration?: boolean;
         maintenanceMode?: boolean;
         maintenanceMessage?: string;
@@ -474,8 +468,8 @@ export const updateSystemSettings = mutation({
         updatedAt: Date.now(),
       };
 
-      if (args.maxOrganizationsPerUser !== undefined) {
-        updates.maxOrganizationsPerUser = args.maxOrganizationsPerUser;
+      if (args.maxTournamentsPerUser !== undefined) {
+        updates.maxTournamentsPerUser = args.maxTournamentsPerUser;
       }
       if (args.allowPublicRegistration !== undefined) {
         updates.allowPublicRegistration = args.allowPublicRegistration;
@@ -493,7 +487,7 @@ export const updateSystemSettings = mutation({
       // Create default settings if none exist
       await ctx.db.insert("systemSettings", {
         key: "global",
-        maxOrganizationsPerUser: args.maxOrganizationsPerUser ?? 5,
+        maxTournamentsPerUser: args.maxTournamentsPerUser ?? 50,
         allowPublicRegistration: args.allowPublicRegistration ?? true,
         maintenanceMode: args.maintenanceMode ?? false,
         maintenanceMessage: args.maintenanceMessage,
@@ -502,6 +496,56 @@ export const updateSystemSettings = mutation({
       });
     }
 
+    return null;
+  },
+});
+
+/**
+ * Migrate systemSettings from maxOrganizationsPerUser to maxTournamentsPerUser
+ * Run via: npx convex run siteAdmin:migrateSystemSettings
+ */
+export const migrateSystemSettings = internalMutation({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    const settings = await ctx.db
+      .query("systemSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+
+    if (!settings) {
+      console.log("No systemSettings found, nothing to migrate");
+      return null;
+    }
+
+    // Cast to any to handle legacy field
+    const legacySettings = settings as any;
+
+    console.log("Current settings:", JSON.stringify(legacySettings));
+
+    // Check if already migrated (has new field with a value)
+    if (legacySettings.maxTournamentsPerUser !== undefined && legacySettings.maxTournamentsPerUser !== null) {
+      console.log("Already migrated, maxTournamentsPerUser =", legacySettings.maxTournamentsPerUser);
+      return null;
+    }
+
+    // Get the old value
+    const oldValue = legacySettings.maxOrganizationsPerUser ?? 50;
+
+    // Delete the old document and create a new one with the correct field
+    // eslint-disable-next-line @convex-dev/explicit-table-ids -- settings._id is typed
+    await ctx.db.delete(legacySettings._id);
+    await ctx.db.insert("systemSettings", {
+      key: "global",
+      maxTournamentsPerUser: oldValue,
+      allowPublicRegistration: legacySettings.allowPublicRegistration,
+      maintenanceMode: legacySettings.maintenanceMode,
+      maintenanceMessage: legacySettings.maintenanceMessage,
+      updatedBy: legacySettings.updatedBy,
+      updatedAt: Date.now(),
+    });
+
+    console.log(`Migrated systemSettings: maxOrganizationsPerUser (${oldValue}) -> maxTournamentsPerUser`);
     return null;
   },
 });
@@ -540,7 +584,7 @@ export const initializeFirstAdmin = internalMutation({
     // Also create default system settings
     await ctx.db.insert("systemSettings", {
       key: "global",
-      maxOrganizationsPerUser: 5,
+      maxTournamentsPerUser: 50,
       allowPublicRegistration: true,
       maintenanceMode: false,
       updatedBy: args.userId,

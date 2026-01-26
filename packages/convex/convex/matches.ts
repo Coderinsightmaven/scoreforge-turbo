@@ -2,6 +2,53 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { matchStatus, tennisState, tennisConfig, volleyballState, volleyballConfig } from "./schema";
+import type { Id, Doc } from "./_generated/dataModel";
+
+// ============================================
+// Access Control Helpers
+// ============================================
+
+/**
+ * Check if user can score tournament matches (owner or assigned scorer)
+ */
+async function canScoreTournament(
+  ctx: { db: any },
+  tournament: Doc<"tournaments">,
+  userId: Id<"users">
+): Promise<boolean> {
+  // Owner can always score
+  if (tournament.createdBy === userId) {
+    return true;
+  }
+  // Check if user is assigned as a scorer
+  const scorer = await ctx.db
+    .query("tournamentScorers")
+    .withIndex("by_tournament_and_user", (q: any) =>
+      q.eq("tournamentId", tournament._id).eq("userId", userId)
+    )
+    .first();
+  return scorer !== null;
+}
+
+/**
+ * Get user's role for a tournament
+ */
+async function getTournamentRole(
+  ctx: { db: any },
+  tournament: Doc<"tournaments">,
+  userId: Id<"users">
+): Promise<"owner" | "scorer" | null> {
+  if (tournament.createdBy === userId) {
+    return "owner";
+  }
+  const scorer = await ctx.db
+    .query("tournamentScorers")
+    .withIndex("by_tournament_and_user", (q: any) =>
+      q.eq("tournamentId", tournament._id).eq("userId", userId)
+    )
+    .first();
+  return scorer ? "scorer" : null;
+}
 
 // ============================================
 // Queries
@@ -57,20 +104,14 @@ export const listMatches = query({
       throw new Error("Not authenticated");
     }
 
-    const tournament = await ctx.db.get("tournaments", args.tournamentId);
+    const tournament = await ctx.db.get(args.tournamentId);
     if (!tournament) {
       throw new Error("Tournament not found");
     }
 
-    // Check if user is a member of the organization
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership) {
+    // Check if user has access (owner or scorer)
+    const hasAccess = await canScoreTournament(ctx, tournament, userId);
+    if (!hasAccess) {
       throw new Error("Not authorized");
     }
 
@@ -79,39 +120,39 @@ export const listMatches = query({
     if (args.round !== undefined) {
       matches = await ctx.db
         .query("matches")
-        .withIndex("by_tournament_and_round", (q) =>
+        .withIndex("by_tournament_and_round", (q: any) =>
           q.eq("tournamentId", args.tournamentId).eq("round", args.round!)
         )
         .collect();
     } else if (args.status !== undefined) {
       matches = await ctx.db
         .query("matches")
-        .withIndex("by_tournament_and_status", (q) =>
+        .withIndex("by_tournament_and_status", (q: any) =>
           q.eq("tournamentId", args.tournamentId).eq("status", args.status!)
         )
         .collect();
     } else if (args.bracket !== undefined) {
       matches = await ctx.db
         .query("matches")
-        .withIndex("by_tournament_and_bracket", (q) =>
+        .withIndex("by_tournament_and_bracket", (q: any) =>
           q.eq("tournamentId", args.tournamentId).eq("bracket", args.bracket)
         )
         .collect();
     } else {
       matches = await ctx.db
         .query("matches")
-        .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
+        .withIndex("by_tournament", (q: any) => q.eq("tournamentId", args.tournamentId))
         .collect();
     }
 
     // Enrich with participant details
     const enriched = await Promise.all(
-      matches.map(async (match) => {
+      matches.map(async (match: Doc<"matches">) => {
         let participant1 = undefined;
         let participant2 = undefined;
 
         if (match.participant1Id) {
-          const p1 = await ctx.db.get("tournamentParticipants", match.participant1Id);
+          const p1 = await ctx.db.get(match.participant1Id);
           if (p1) {
             participant1 = {
               _id: p1._id,
@@ -122,7 +163,7 @@ export const listMatches = query({
         }
 
         if (match.participant2Id) {
-          const p2 = await ctx.db.get("tournamentParticipants", match.participant2Id);
+          const p2 = await ctx.db.get(match.participant2Id);
           if (p2) {
             participant2 = {
               _id: p2._id,
@@ -207,7 +248,6 @@ export const getMatch = query({
       nextMatchId: v.optional(v.id("matches")),
       myRole: v.union(
         v.literal("owner"),
-        v.literal("admin"),
         v.literal("scorer")
       ),
       sport: v.string(),
@@ -231,25 +271,19 @@ export const getMatch = query({
       return null;
     }
 
-    const match = await ctx.db.get("matches", args.matchId);
+    const match = await ctx.db.get(args.matchId);
     if (!match) {
       return null;
     }
 
-    const tournament = await ctx.db.get("tournaments", match.tournamentId);
+    const tournament = await ctx.db.get(match.tournamentId);
     if (!tournament) {
       return null;
     }
 
-    // Check if user is a member of the organization
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership) {
+    // Check if user has access (owner or scorer)
+    const role = await getTournamentRole(ctx, tournament, userId);
+    if (!role) {
       return null;
     }
 
@@ -258,7 +292,7 @@ export const getMatch = query({
     let participant2 = undefined;
 
     if (match.participant1Id) {
-      const p1 = await ctx.db.get("tournamentParticipants", match.participant1Id);
+      const p1 = await ctx.db.get(match.participant1Id);
       if (p1) {
         participant1 = {
           _id: p1._id,
@@ -271,7 +305,7 @@ export const getMatch = query({
     }
 
     if (match.participant2Id) {
-      const p2 = await ctx.db.get("tournamentParticipants", match.participant2Id);
+      const p2 = await ctx.db.get(match.participant2Id);
       if (p2) {
         participant2 = {
           _id: p2._id,
@@ -301,7 +335,7 @@ export const getMatch = query({
       startedAt: match.startedAt,
       completedAt: match.completedAt,
       nextMatchId: match.nextMatchId,
-      myRole: membership.role,
+      myRole: role,
       sport: tournament.sport,
       tournamentStatus: tournament.status,
       tennisState: match.tennisState,
@@ -314,9 +348,7 @@ export const getMatch = query({
 });
 
 /**
- * Get live matches from tournaments the user is assigned to score
- * - Owners/admins see all live matches in their orgs
- * - Scorers only see live matches from tournaments they're assigned to
+ * Get live matches from tournaments the user owns or is assigned to score
  */
 export const listMyLiveMatches = query({
   args: {},
@@ -360,20 +392,18 @@ export const listMyLiveMatches = query({
     // Get tournaments user is explicitly assigned to as scorer
     const scorerAssignments = await ctx.db
       .query("tournamentScorers")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", (q: any) => q.eq("userId", userId))
       .collect();
 
-    const assignedTournamentIds = new Set(scorerAssignments.map((a) => a.tournamentId));
+    const assignedTournamentIds = new Set(scorerAssignments.map((a: Doc<"tournamentScorers">) => a.tournamentId));
 
-    // Get all organizations the user is a member of
-    const memberships = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+    // Get tournaments the user owns that are active
+    const ownedTournaments = await ctx.db
+      .query("tournaments")
+      .withIndex("by_created_by_and_status", (q: any) =>
+        q.eq("createdBy", userId).eq("status", "active")
+      )
       .collect();
-
-    if (memberships.length === 0 && assignedTournamentIds.size === 0) {
-      return [];
-    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const results: any[] = [];
@@ -384,7 +414,7 @@ export const listMyLiveMatches = query({
     const getLiveMatchesFromTournament = async (tournament: any) => {
       const liveMatches = await ctx.db
         .query("matches")
-        .withIndex("by_tournament_and_status", (q) =>
+        .withIndex("by_tournament_and_status", (q: any) =>
           q.eq("tournamentId", tournament._id).eq("status", "live")
         )
         .collect();
@@ -394,7 +424,7 @@ export const listMyLiveMatches = query({
         let participant2 = undefined;
 
         if (match.participant1Id) {
-          const p1 = await ctx.db.get("tournamentParticipants", match.participant1Id);
+          const p1 = await ctx.db.get(match.participant1Id);
           if (p1) {
             participant1 = {
               _id: p1._id,
@@ -404,7 +434,7 @@ export const listMyLiveMatches = query({
         }
 
         if (match.participant2Id) {
-          const p2 = await ctx.db.get("tournamentParticipants", match.participant2Id);
+          const p2 = await ctx.db.get(match.participant2Id);
           if (p2) {
             participant2 = {
               _id: p2._id,
@@ -435,36 +465,21 @@ export const listMyLiveMatches = query({
       }
     };
 
-    // First, process tournaments user is assigned to as scorer
-    for (const assignment of scorerAssignments) {
-      const tournament = await ctx.db.get("tournaments", assignment.tournamentId);
-      if (!tournament || tournament.status !== "active") continue;
-
+    // First, process tournaments user owns
+    for (const tournament of ownedTournaments) {
       await getLiveMatchesFromTournament(tournament);
       processedTournamentIds.add(tournament._id);
     }
 
-    // For owners/admins, also show live matches from all tournaments in their orgs
-    for (const membership of memberships) {
-      // Only owners and admins see all tournaments
-      if (membership.role !== "owner" && membership.role !== "admin") {
-        continue;
-      }
+    // Then, process tournaments user is assigned to as scorer
+    for (const assignment of scorerAssignments) {
+      if (processedTournamentIds.has(assignment.tournamentId)) continue;
 
-      const tournaments = await ctx.db
-        .query("tournaments")
-        .withIndex("by_organization_and_status", (q) =>
-          q.eq("organizationId", membership.organizationId).eq("status", "active")
-        )
-        .collect();
+      const tournament = await ctx.db.get(assignment.tournamentId);
+      if (!tournament || tournament.status !== "active") continue;
 
-      for (const tournament of tournaments) {
-        // Skip if already processed
-        if (processedTournamentIds.has(tournament._id)) continue;
-
-        await getLiveMatchesFromTournament(tournament);
-        processedTournamentIds.add(tournament._id);
-      }
+      await getLiveMatchesFromTournament(tournament);
+      processedTournamentIds.add(tournament._id);
     }
 
     // Sort by startedAt (most recent first)
@@ -479,7 +494,7 @@ export const listMyLiveMatches = query({
 // ============================================
 
 /**
- * Update match scores (scorer/admin/owner)
+ * Update match scores (scorer/owner)
  */
 export const updateScore = mutation({
   args: {
@@ -494,25 +509,19 @@ export const updateScore = mutation({
       throw new Error("Not authenticated");
     }
 
-    const match = await ctx.db.get("matches", args.matchId);
+    const match = await ctx.db.get(args.matchId);
     if (!match) {
       throw new Error("Match not found");
     }
 
-    const tournament = await ctx.db.get("tournaments", match.tournamentId);
+    const tournament = await ctx.db.get(match.tournamentId);
     if (!tournament) {
       throw new Error("Tournament not found");
     }
 
-    // Check user's role (all roles can update scores)
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership) {
+    // Check user's access (owner or scorer can update scores)
+    const hasAccess = await canScoreTournament(ctx, tournament, userId);
+    if (!hasAccess) {
       throw new Error("Not authorized");
     }
 
@@ -521,7 +530,7 @@ export const updateScore = mutation({
       throw new Error("Cannot update score for this match");
     }
 
-    await ctx.db.patch("matches", args.matchId, {
+    await ctx.db.patch(args.matchId, {
       participant1Score: args.participant1Score,
       participant2Score: args.participant2Score,
     });
@@ -542,12 +551,12 @@ export const startMatch = mutation({
       throw new Error("Not authenticated");
     }
 
-    const match = await ctx.db.get("matches", args.matchId);
+    const match = await ctx.db.get(args.matchId);
     if (!match) {
       throw new Error("Match not found");
     }
 
-    const tournament = await ctx.db.get("tournaments", match.tournamentId);
+    const tournament = await ctx.db.get(match.tournamentId);
     if (!tournament) {
       throw new Error("Tournament not found");
     }
@@ -557,15 +566,9 @@ export const startMatch = mutation({
       throw new Error("Tournament must be started before matches can begin");
     }
 
-    // Check user's role (all roles can start matches)
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership) {
+    // Check user's access (owner or scorer can start matches)
+    const hasAccess = await canScoreTournament(ctx, tournament, userId);
+    if (!hasAccess) {
       throw new Error("Not authorized");
     }
 
@@ -579,7 +582,7 @@ export const startMatch = mutation({
       throw new Error("Both participants must be assigned before starting");
     }
 
-    await ctx.db.patch("matches", args.matchId, {
+    await ctx.db.patch(args.matchId, {
       status: "live",
       startedAt: Date.now(),
     });
@@ -603,25 +606,19 @@ export const completeMatch = mutation({
       throw new Error("Not authenticated");
     }
 
-    const match = await ctx.db.get("matches", args.matchId);
+    const match = await ctx.db.get(args.matchId);
     if (!match) {
       throw new Error("Match not found");
     }
 
-    const tournament = await ctx.db.get("tournaments", match.tournamentId);
+    const tournament = await ctx.db.get(match.tournamentId);
     if (!tournament) {
       throw new Error("Tournament not found");
     }
 
-    // Check user's role (all roles can complete matches)
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership) {
+    // Check user's access (owner or scorer can complete matches)
+    const hasAccess = await canScoreTournament(ctx, tournament, userId);
+    if (!hasAccess) {
       throw new Error("Not authorized");
     }
 
@@ -652,7 +649,7 @@ export const completeMatch = mutation({
     }
 
     // Update match
-    await ctx.db.patch("matches", args.matchId, {
+    await ctx.db.patch(args.matchId, {
       status: "completed",
       winnerId,
       completedAt: Date.now(),
@@ -660,11 +657,11 @@ export const completeMatch = mutation({
 
     // Update participant stats
     if (match.participant1Id) {
-      const p1 = await ctx.db.get("tournamentParticipants", match.participant1Id);
+      const p1 = await ctx.db.get(match.participant1Id);
       if (p1) {
         const isWinner = winnerId === match.participant1Id;
         const isDraw = !winnerId;
-        await ctx.db.patch("tournamentParticipants", match.participant1Id, {
+        await ctx.db.patch(match.participant1Id, {
           wins: p1.wins + (isWinner ? 1 : 0),
           losses: p1.losses + (!isWinner && !isDraw ? 1 : 0),
           draws: p1.draws + (isDraw ? 1 : 0),
@@ -675,11 +672,11 @@ export const completeMatch = mutation({
     }
 
     if (match.participant2Id) {
-      const p2 = await ctx.db.get("tournamentParticipants", match.participant2Id);
+      const p2 = await ctx.db.get(match.participant2Id);
       if (p2) {
         const isWinner = winnerId === match.participant2Id;
         const isDraw = !winnerId;
-        await ctx.db.patch("tournamentParticipants", match.participant2Id, {
+        await ctx.db.patch(match.participant2Id, {
           wins: p2.wins + (isWinner ? 1 : 0),
           losses: p2.losses + (!isWinner && !isDraw ? 1 : 0),
           draws: p2.draws + (isDraw ? 1 : 0),
@@ -691,15 +688,15 @@ export const completeMatch = mutation({
 
     // Advance winner to next match (for elimination brackets)
     if (winnerId && match.nextMatchId) {
-      const nextMatch = await ctx.db.get("matches", match.nextMatchId);
+      const nextMatch = await ctx.db.get(match.nextMatchId);
       if (nextMatch) {
         const slot = match.nextMatchSlot;
         if (slot === 1) {
-          await ctx.db.patch("matches", match.nextMatchId, {
+          await ctx.db.patch(match.nextMatchId, {
             participant1Id: winnerId,
           });
         } else if (slot === 2) {
-          await ctx.db.patch("matches", match.nextMatchId, {
+          await ctx.db.patch(match.nextMatchId, {
             participant2Id: winnerId,
           });
         }
@@ -708,15 +705,15 @@ export const completeMatch = mutation({
 
     // Send loser to losers bracket (for double elimination)
     if (loserId && match.loserNextMatchId) {
-      const loserNextMatch = await ctx.db.get("matches", match.loserNextMatchId);
+      const loserNextMatch = await ctx.db.get(match.loserNextMatchId);
       if (loserNextMatch) {
         const slot = match.loserNextMatchSlot;
         if (slot === 1) {
-          await ctx.db.patch("matches", match.loserNextMatchId, {
+          await ctx.db.patch(match.loserNextMatchId, {
             participant1Id: loserId,
           });
         } else if (slot === 2) {
-          await ctx.db.patch("matches", match.loserNextMatchId, {
+          await ctx.db.patch(match.loserNextMatchId, {
             participant2Id: loserId,
           });
         }
@@ -726,21 +723,21 @@ export const completeMatch = mutation({
     // Check if tournament is complete
     const remainingMatches = await ctx.db
       .query("matches")
-      .withIndex("by_tournament_and_status", (q) =>
+      .withIndex("by_tournament_and_status", (q: any) =>
         q.eq("tournamentId", match.tournamentId).eq("status", "pending")
       )
       .first();
 
     const liveMatches = await ctx.db
       .query("matches")
-      .withIndex("by_tournament_and_status", (q) =>
+      .withIndex("by_tournament_and_status", (q: any) =>
         q.eq("tournamentId", match.tournamentId).eq("status", "live")
       )
       .first();
 
     if (!remainingMatches && !liveMatches) {
       // All matches completed
-      await ctx.db.patch("tournaments", match.tournamentId, {
+      await ctx.db.patch(match.tournamentId, {
         status: "completed",
         endDate: Date.now(),
       });
@@ -751,7 +748,7 @@ export const completeMatch = mutation({
 });
 
 /**
- * Schedule a match
+ * Schedule a match (owner only)
  */
 export const scheduleMatch = mutation({
   args: {
@@ -766,28 +763,18 @@ export const scheduleMatch = mutation({
       throw new Error("Not authenticated");
     }
 
-    const match = await ctx.db.get("matches", args.matchId);
+    const match = await ctx.db.get(args.matchId);
     if (!match) {
       throw new Error("Match not found");
     }
 
-    const tournament = await ctx.db.get("tournaments", match.tournamentId);
+    const tournament = await ctx.db.get(match.tournamentId);
     if (!tournament) {
       throw new Error("Tournament not found");
     }
 
-    // Check user's role (only admin/owner can schedule)
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (
-      !membership ||
-      (membership.role !== "owner" && membership.role !== "admin")
-    ) {
+    // Only owner can schedule matches
+    if (tournament.createdBy !== userId) {
       throw new Error("Not authorized");
     }
 
@@ -796,7 +783,7 @@ export const scheduleMatch = mutation({
       throw new Error("Match cannot be scheduled");
     }
 
-    await ctx.db.patch("matches", args.matchId, {
+    await ctx.db.patch(args.matchId, {
       status: "scheduled",
       scheduledTime: args.scheduledTime,
       court: args.court,
@@ -807,7 +794,7 @@ export const scheduleMatch = mutation({
 });
 
 /**
- * Update match court assignment (admin/owner only)
+ * Update match court assignment (owner only)
  */
 export const updateMatchCourt = mutation({
   args: {
@@ -821,28 +808,18 @@ export const updateMatchCourt = mutation({
       throw new Error("Not authenticated");
     }
 
-    const match = await ctx.db.get("matches", args.matchId);
+    const match = await ctx.db.get(args.matchId);
     if (!match) {
       throw new Error("Match not found");
     }
 
-    const tournament = await ctx.db.get("tournaments", match.tournamentId);
+    const tournament = await ctx.db.get(match.tournamentId);
     if (!tournament) {
       throw new Error("Tournament not found");
     }
 
-    // Check user's role (only admin/owner can update court)
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_and_user", (q) =>
-        q.eq("organizationId", tournament.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (
-      !membership ||
-      (membership.role !== "owner" && membership.role !== "admin")
-    ) {
+    // Only owner can update court
+    if (tournament.createdBy !== userId) {
       throw new Error("Not authorized");
     }
 
@@ -851,7 +828,7 @@ export const updateMatchCourt = mutation({
       throw new Error("Cannot update court for this match");
     }
 
-    await ctx.db.patch("matches", args.matchId, {
+    await ctx.db.patch(args.matchId, {
       court: args.court,
     });
 

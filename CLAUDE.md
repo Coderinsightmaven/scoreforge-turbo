@@ -79,7 +79,7 @@ export const myFunction = query({
 
 ### Database Queries
 - **Never use `.filter()`** - use `.withIndex()` with a defined index
-- Define indexes in `convex/schema.ts` with descriptive names (e.g., `by_organization_and_user`)
+- Define indexes in `convex/schema.ts` with descriptive names (e.g., `by_tournament_and_user`)
 - Use `.collect()` for arrays, `.first()` for single results
 
 ### Validators
@@ -89,16 +89,16 @@ export const myFunction = query({
 ### Authentication
 - Uses `@convex-dev/auth` with Password provider
 - Get user: `const userId = await getAuthUserId(ctx);`
-- Check membership via `organizationMembers` table with roles: `owner`, `admin`, `scorer`
+- Tournaments are owned by `createdBy` user; scorers can be assigned via `tournamentScorers` table
 
 ## Data Model
 
 ### Core Tables
-- `organizations` - Top-level entities, accessed via slug
-- `organizationMembers` - Links users to orgs with roles
-- `tournaments` - Competitions with format (single/double elimination, round robin)
+- `tournaments` - Competitions owned by `createdBy` user, with format (single/double elimination, round robin)
+- `tournamentScorers` - Users assigned to score matches in a tournament (not the owner)
 - `tournamentParticipants` - Supports individual, doubles, team types
 - `matches` - Game records with sport-specific state
+- `apiKeys` - User-owned API keys for public API access
 
 ### Sport-Specific State
 Tennis and volleyball have dedicated state objects on matches:
