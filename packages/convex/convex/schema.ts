@@ -203,6 +203,24 @@ export default defineSchema({
     .index("by_organization", ["organizationId"])
     .index("by_key", ["key"]),
 
+  // Site-wide administrators (separate from org roles)
+  siteAdmins: defineTable({
+    userId: v.id("users"),
+    grantedBy: v.optional(v.id("users")), // Optional for bootstrap admin
+    grantedAt: v.number(),
+  }).index("by_user", ["userId"]),
+
+  // Global system settings (single document with key="global")
+  systemSettings: defineTable({
+    key: v.literal("global"),
+    maxOrganizationsPerUser: v.number(),
+    allowPublicRegistration: v.boolean(),
+    maintenanceMode: v.boolean(),
+    maintenanceMessage: v.optional(v.string()),
+    updatedBy: v.id("users"),
+    updatedAt: v.number(),
+  }).index("by_key", ["key"]),
+
   // Organizations table
   organizations: defineTable({
     name: v.string(),

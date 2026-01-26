@@ -14,6 +14,7 @@ export function Navigation() {
   const { signOut } = useAuthActions();
   const user = useQuery(api.users.currentUser);
   const tournaments = useQuery(api.tournaments.listMyTournaments, {});
+  const isSiteAdmin = useQuery(api.siteAdmin.checkIsSiteAdmin);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -173,6 +174,18 @@ export function Navigation() {
                         </svg>
                         Settings
                       </Link>
+                      {isSiteAdmin && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-text-secondary rounded-lg hover:text-accent hover:bg-accent/5 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                          </svg>
+                          Site Admin
+                        </Link>
+                      )}
                       <button
                         onClick={() => { setProfileOpen(false); signOut(); }}
                         className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-text-secondary text-left rounded-lg hover:text-error hover:bg-error-pale transition-colors"
