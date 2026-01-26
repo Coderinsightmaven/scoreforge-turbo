@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
 import { useLiveDataStore } from '../../stores/useLiveDataStore';
 import { ScoreForgeConnectionDialog } from './ScoreForgeConnectionDialog';
+import { cn } from '../../utils/cn';
 
-/**
- * ScoreForge connection button that shows connection status and opens the connection dialog.
- */
 export const ScoreForgeConnectionButton: React.FC = () => {
   const [showDialog, setShowDialog] = useState(false);
   const { connections } = useLiveDataStore();
 
-  // Check if there's an active ScoreForge connection
   const activeConnection = connections.find(
     (c) => c.provider === 'scoreforge' && c.isActive
   );
@@ -20,13 +17,27 @@ export const ScoreForgeConnectionButton: React.FC = () => {
     <>
       <button
         onClick={() => setShowDialog(true)}
-        className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 ${
+        className={cn(
+          'inline-flex items-center gap-2',
+          'px-3 py-2 rounded-lg',
+          'text-sm font-medium',
+          'transition-all duration-fast',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
           isConnected
-            ? 'bg-green-600 hover:bg-green-700 text-white'
-            : 'bg-blue-600 hover:bg-blue-700 text-white'
-        }`}
+            ? [
+                'bg-success text-white',
+                'hover:bg-success-dark',
+                'focus-visible:ring-success',
+              ]
+            : [
+                'bg-indigo-600 text-white',
+                'hover:bg-indigo-700',
+                'focus-visible:ring-indigo-500',
+              ]
+        )}
         title={isConnected ? 'ScoreForge Connected' : 'Connect to ScoreForge'}
       >
+        {/* Lightning bolt icon */}
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
@@ -35,10 +46,24 @@ export const ScoreForgeConnectionButton: React.FC = () => {
             d="M13 10V3L4 14h7v7l9-11h-7z"
           />
         </svg>
-        <span>{isConnected ? 'ScoreForge Connected' : 'ScoreForge'}</span>
+
+        <span className="hidden sm:inline">
+          {isConnected ? 'Connected' : 'Connect'}
+        </span>
+
+        {/* Status indicator dot */}
+        {isConnected && (
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+          </span>
+        )}
       </button>
 
-      <ScoreForgeConnectionDialog isOpen={showDialog} onClose={() => setShowDialog(false)} />
+      <ScoreForgeConnectionDialog
+        isOpen={showDialog}
+        onClose={() => setShowDialog(false)}
+      />
     </>
   );
 };

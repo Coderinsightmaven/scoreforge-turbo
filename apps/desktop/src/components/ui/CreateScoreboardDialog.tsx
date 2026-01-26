@@ -1,5 +1,8 @@
-// src/components/ui/CreateScoreboardDialog.tsx
 import React, { useState } from 'react';
+import { Dialog, DialogHeader, DialogContent, DialogFooter } from './Dialog';
+import { Button } from './button';
+import { Input } from './input';
+import { cn } from '../../utils/cn';
 
 interface CreateScoreboardDialogProps {
   isOpen: boolean;
@@ -7,24 +10,38 @@ interface CreateScoreboardDialogProps {
   onCreateScoreboard: (name: string, width: number, height: number) => void;
 }
 
+interface PresetSize {
+  name: string;
+  label: string;
+  width: number;
+  height: number;
+  aspect?: string;
+}
+
+const presetSizes: PresetSize[] = [
+  { name: 'small', label: 'Small', width: 512, height: 256, aspect: '2:1' },
+  { name: 'medium', label: 'Medium', width: 896, height: 512, aspect: '7:4' },
+  { name: 'large', label: 'Large', width: 1024, height: 896, aspect: '8:7' },
+  { name: 'hd', label: 'HD Ready', width: 1280, height: 720, aspect: '16:9' },
+  { name: 'fullhd', label: 'Full HD', width: 1920, height: 1080, aspect: '16:9' },
+  { name: '4:3', label: 'Standard', width: 800, height: 600, aspect: '4:3' },
+];
+
 export const CreateScoreboardDialog: React.FC<CreateScoreboardDialogProps> = ({
   isOpen,
   onClose,
   onCreateScoreboard,
 }) => {
   const [name, setName] = useState('New Scoreboard');
-  const [width, setWidth] = useState(800);
-  const [height, setHeight] = useState(600);
+  const [width, setWidth] = useState(1280);
+  const [height, setHeight] = useState(720);
+  const [selectedPreset, setSelectedPreset] = useState<string>('hd');
 
-  const presetSizes = [
-    { name: '512x256 (Small)', width: 512, height: 256 },
-    { name: '896x512 (Medium)', width: 896, height: 512 },
-    { name: '1024x896 (Large)', width: 1024, height: 896 },
-    { name: '800x600 (4:3)', width: 800, height: 600 },
-    { name: '1920x1080 (Full HD)', width: 1920, height: 1080 },
-    { name: '1366x768 (HD)', width: 1366, height: 768 },
-    { name: '1280x720 (HD Ready)', width: 1280, height: 720 },
-  ];
+  const handlePresetSelect = (preset: PresetSize) => {
+    setWidth(preset.width);
+    setHeight(preset.height);
+    setSelectedPreset(preset.name);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,130 +51,140 @@ export const CreateScoreboardDialog: React.FC<CreateScoreboardDialogProps> = ({
     }
   };
 
-  const handlePresetSelect = (preset: typeof presetSizes[0]) => {
-    setWidth(preset.width);
-    setHeight(preset.height);
+  const handleCustomDimensions = () => {
+    setSelectedPreset('custom');
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md mx-4">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Create New Scoreboard
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-          >
-            ✕
-          </button>
-        </div>
+    <Dialog isOpen={isOpen} onClose={onClose} size="md">
+      <DialogHeader onClose={onClose}>Create New Scoreboard</DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Scoreboard Name */}
-          <div>
-            <label className="form-label">Scoreboard Name</label>
-            <input
-              type="text"
+      <form onSubmit={handleSubmit}>
+        <DialogContent>
+          <div className="space-y-6">
+            {/* Name input */}
+            <Input
+              label="Scoreboard Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md 
-                         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                         focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Enter scoreboard name"
               required
             />
-          </div>
 
-          {/* Canvas Size Presets */}
-          <div>
-            <label className="form-label">Canvas Size Presets</label>
-            <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto">
-              {presetSizes.map((preset) => (
+            {/* Preset sizes */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                Canvas Size
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {presetSizes.map((preset) => (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    onClick={() => handlePresetSelect(preset)}
+                    className={cn(
+                      'flex flex-col items-center p-3 rounded-lg border-2 transition-all',
+                      'hover:border-indigo-300 dark:hover:border-indigo-600',
+                      selectedPreset === preset.name
+                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 dark:border-indigo-500'
+                        : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800'
+                    )}
+                  >
+                    {/* Preview box */}
+                    <div
+                      className={cn(
+                        'w-12 h-8 rounded mb-2 border',
+                        selectedPreset === preset.name
+                          ? 'bg-indigo-200 border-indigo-300 dark:bg-indigo-800 dark:border-indigo-600'
+                          : 'bg-gray-200 border-gray-300 dark:bg-gray-700 dark:border-gray-600'
+                      )}
+                      style={{
+                        aspectRatio: `${preset.width} / ${preset.height}`,
+                        height: 'auto',
+                        maxHeight: '32px',
+                      }}
+                    />
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {preset.label}
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {preset.width} x {preset.height}
+                    </span>
+                    {preset.aspect && (
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                        {preset.aspect}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom dimensions */}
+            <div className="pt-2">
+              <div className="flex items-center gap-2 mb-3">
                 <button
-                  key={preset.name}
                   type="button"
-                  onClick={() => handlePresetSelect(preset)}
-                  className={`text-left px-3 py-2 text-sm rounded-md border transition-colors
-                    ${width === preset.width && height === preset.height
-                      ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300'
-                      : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
-                    }`}
+                  onClick={handleCustomDimensions}
+                  className={cn(
+                    'text-sm font-medium transition-colors',
+                    selectedPreset === 'custom'
+                      ? 'text-indigo-600 dark:text-indigo-400'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  )}
                 >
-                  {preset.name}
+                  Custom dimensions
                 </button>
-              ))}
+                {selectedPreset !== 'custom' && (
+                  <span className="text-xs text-gray-400 dark:text-gray-500">
+                    (click to customize)
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Width (px)"
+                  type="number"
+                  value={width}
+                  onChange={(e) => {
+                    setWidth(parseInt(e.target.value) || 0);
+                    setSelectedPreset('custom');
+                  }}
+                  min={100}
+                  max={7680}
+                  required
+                />
+                <Input
+                  label="Height (px)"
+                  type="number"
+                  value={height}
+                  onChange={(e) => {
+                    setHeight(parseInt(e.target.value) || 0);
+                    setSelectedPreset('custom');
+                  }}
+                  min={100}
+                  max={4320}
+                  required
+                />
+              </div>
+
+              {/* Aspect ratio info */}
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                Aspect ratio:{' '}
+                {width && height ? (width / height).toFixed(2) : '--'}
+              </p>
             </div>
           </div>
+        </DialogContent>
 
-          {/* Custom Dimensions */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="form-label">Width (px)</label>
-              <input
-                type="number"
-                value={width}
-                onChange={(e) => setWidth(parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md 
-                           bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                           focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                min="100"
-                max="7680"
-                required
-              />
-            </div>
-            <div>
-              <label className="form-label">Height (px)</label>
-              <input
-                type="number"
-                value={height}
-                onChange={(e) => setHeight(parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md 
-                           bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                           focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                min="100"
-                max="4320"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Aspect Ratio Info */}
-          <div className="text-xs text-gray-500 dark:text-gray-400">
-            Aspect Ratio: {width && height ? (width / height).toFixed(2) : '—'} 
-            {width === 1920 && height === 1080 && ' (16:9)'}
-            {width === 1366 && height === 768 && ' (16:9)'}
-            {width === 1280 && height === 720 && ' (16:9)'}
-            {width === 2560 && height === 1440 && ' (16:9)'}
-            {width === 3840 && height === 2160 && ' (16:9)'}
-            {width === 800 && height === 600 && ' (4:3)'}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 
-                         bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
-                         rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 
-                         border border-transparent rounded-md hover:bg-blue-700 
-                         focus:ring-2 focus:ring-blue-500 transition-colors"
-            >
-              Create Scoreboard
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <DialogFooter>
+          <Button type="button" variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit">Create Scoreboard</Button>
+        </DialogFooter>
+      </form>
+    </Dialog>
   );
-}; 
+};

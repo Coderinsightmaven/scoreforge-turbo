@@ -1,5 +1,7 @@
-// src/components/ui/SaveScoreboardDialog.tsx
 import React, { useState, useEffect } from 'react';
+import { Dialog, DialogHeader, DialogContent, DialogFooter } from './Dialog';
+import { Button } from './button';
+import { Input } from './input';
 
 interface SaveScoreboardDialogProps {
   isOpen: boolean;
@@ -16,7 +18,6 @@ export const SaveScoreboardDialog: React.FC<SaveScoreboardDialogProps> = ({
 }) => {
   const [name, setName] = useState(currentName);
 
-  // Update the name when currentName changes
   useEffect(() => {
     setName(currentName);
   }, [currentName]);
@@ -29,94 +30,74 @@ export const SaveScoreboardDialog: React.FC<SaveScoreboardDialogProps> = ({
     }
   };
 
-  const handleKeepCurrentName = () => {
+  const handleQuickSave = () => {
     onSave(currentName);
     onClose();
   };
 
-  if (!isOpen) return null;
+  const isNameChanged = name.trim() !== currentName;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md mx-4">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Save Scoreboard
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-          >
-            ✕
-          </button>
-        </div>
+    <Dialog isOpen={isOpen} onClose={onClose} size="sm">
+      <DialogHeader onClose={onClose}>Save Scoreboard</DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Current Name Info */}
-          <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              Current name: <span className="font-medium text-gray-900 dark:text-white">{currentName}</span>
+      <form onSubmit={handleSubmit}>
+        <DialogContent>
+          <div className="space-y-4">
+            {/* Current name info */}
+            <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                Current name
+              </div>
+              <div className="font-medium text-gray-900 dark:text-gray-100">
+                {currentName}
+              </div>
             </div>
-          </div>
 
-          {/* New Name Input */}
-          <div>
-            <label className="form-label">Scoreboard Name</label>
-            <input
-              type="text"
+            {/* New name input */}
+            <Input
+              label="Save as"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md
-                         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                         focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Enter scoreboard name"
+              hint={
+                isNameChanged
+                  ? 'This will save as a new scoreboard'
+                  : 'Change the name to save as a copy'
+              }
               required
             />
           </div>
+        </DialogContent>
 
-          {/* Save Options */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md">
-            <div className="text-sm text-blue-800 dark:text-blue-200 mb-2">
-              💡 Save Options:
-            </div>
-            <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-              <li>• Enter a new name to save as a different scoreboard</li>
-              <li>• Keep the current name to overwrite the existing one</li>
-              <li>• Scoreboards are saved locally on your device</li>
-            </ul>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-3 pt-4">
-            <button
+        <DialogFooter className="flex-col sm:flex-row">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onClose}
+            className="w-full sm:w-auto"
+          >
+            Cancel
+          </Button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button
               type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300
-                         bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600
-                         rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              variant="outline"
+              onClick={handleQuickSave}
+              className="flex-1 sm:flex-none"
             >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleKeepCurrentName}
-              className="px-4 py-2 text-sm font-medium text-green-700 dark:text-green-300
-                         bg-green-100 dark:bg-green-900/20 border border-green-300 dark:border-green-600
-                         rounded-md hover:bg-green-200 dark:hover:bg-green-800/30 transition-colors"
-            >
-              Keep Current Name
-            </button>
-            <button
+              Quick Save
+            </Button>
+            <Button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600
-                         border border-transparent rounded-md hover:bg-blue-700
-                         focus:ring-2 focus:ring-blue-500 transition-colors"
+              disabled={!name.trim()}
+              className="flex-1 sm:flex-none"
             >
-              Save with New Name
-            </button>
+              {isNameChanged ? 'Save as New' : 'Save'}
+            </Button>
           </div>
-        </form>
-      </div>
-    </div>
+        </DialogFooter>
+      </form>
+    </Dialog>
   );
 };

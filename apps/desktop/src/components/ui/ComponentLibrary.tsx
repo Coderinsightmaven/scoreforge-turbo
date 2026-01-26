@@ -1,304 +1,316 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ComponentType } from '../../types/scoreboard';
+import { cn } from '../../utils/cn';
+import { Icons } from './IconButton';
 
 interface ComponentLibraryProps {
-  /**
-   * Callback function called when a component type is selected.
-   * Receives the component type and default position.
-   */
   onAddComponent: (type: ComponentType, position: { x: number; y: number }) => void;
 }
 
-/**
- * ComponentLibrary displays all available component types in a sidebar.
- * Users can click on any component type to add it to the canvas.
- * 
- * Component categories:
- * - Static components (Background, Logo, Text, Video)
- * - Tennis Live Data components (player names, scores, etc.)
- * - Individual Set Score components (for each set and player)
- * - Individual Set components (combined set scores)
- */
+interface ComponentCategory {
+  id: string;
+  label: string;
+  components: ComponentItem[];
+}
+
+interface ComponentItem {
+  type: ComponentType;
+  label: string;
+  description: string;
+  icon?: React.ReactNode;
+}
+
+const categories: ComponentCategory[] = [
+  {
+    id: 'static',
+    label: 'Static',
+    components: [
+      { type: ComponentType.BACKGROUND, label: 'Background', description: 'Full-size background image' },
+      { type: ComponentType.LOGO, label: 'Logo', description: 'Scalable logo image' },
+      { type: ComponentType.TEXT, label: 'Text', description: 'Static text overlay' },
+      { type: ComponentType.VIDEO, label: 'Video', description: 'Video player' },
+    ],
+  },
+  {
+    id: 'tennis-live',
+    label: 'Tennis Live Data',
+    components: [
+      { type: ComponentType.TENNIS_PLAYER_NAME, label: 'Player Name', description: 'Live player name' },
+      { type: ComponentType.TENNIS_DOUBLES_PLAYER_NAME, label: 'Doubles Names', description: 'Team format names' },
+      { type: ComponentType.TENNIS_TEAM_NAMES, label: 'Team Names', description: 'Match team names' },
+      { type: ComponentType.TENNIS_ADAPTIVE_TEAM_DISPLAY, label: 'Adaptive Display', description: 'Auto-format teams' },
+      { type: ComponentType.TENNIS_GAME_SCORE, label: 'Game Score', description: 'Current game points' },
+      { type: ComponentType.TENNIS_SET_SCORE, label: 'Set Score', description: 'Games in current set' },
+      { type: ComponentType.TENNIS_MATCH_SCORE, label: 'Match Score', description: 'Sets won' },
+      { type: ComponentType.TENNIS_DETAILED_SET_SCORE, label: 'Detailed Set', description: 'Per-set score' },
+      { type: ComponentType.TENNIS_SERVING_INDICATOR, label: 'Serve Indicator', description: 'Who is serving' },
+    ],
+  },
+  {
+    id: 'set-scores',
+    label: 'Individual Set Scores',
+    components: [
+      { type: ComponentType.PLAYER1_SET1, label: 'P1 Set 1', description: 'Player 1 - Set 1' },
+      { type: ComponentType.PLAYER2_SET1, label: 'P2 Set 1', description: 'Player 2 - Set 1' },
+      { type: ComponentType.PLAYER1_SET2, label: 'P1 Set 2', description: 'Player 1 - Set 2' },
+      { type: ComponentType.PLAYER2_SET2, label: 'P2 Set 2', description: 'Player 2 - Set 2' },
+      { type: ComponentType.PLAYER1_SET3, label: 'P1 Set 3', description: 'Player 1 - Set 3' },
+      { type: ComponentType.PLAYER2_SET3, label: 'P2 Set 3', description: 'Player 2 - Set 3' },
+      { type: ComponentType.PLAYER1_SET4, label: 'P1 Set 4', description: 'Player 1 - Set 4' },
+      { type: ComponentType.PLAYER2_SET4, label: 'P2 Set 4', description: 'Player 2 - Set 4' },
+      { type: ComponentType.PLAYER1_SET5, label: 'P1 Set 5', description: 'Player 1 - Set 5' },
+      { type: ComponentType.PLAYER2_SET5, label: 'P2 Set 5', description: 'Player 2 - Set 5' },
+    ],
+  },
+  {
+    id: 'combined-sets',
+    label: 'Combined Set Scores',
+    components: [
+      { type: ComponentType.TENNIS_SET_1, label: 'Set 1', description: 'Combined set 1 score' },
+      { type: ComponentType.TENNIS_SET_2, label: 'Set 2', description: 'Combined set 2 score' },
+      { type: ComponentType.TENNIS_SET_3, label: 'Set 3', description: 'Combined set 3 score' },
+      { type: ComponentType.TENNIS_SET_4, label: 'Set 4', description: 'Combined set 4 score' },
+      { type: ComponentType.TENNIS_SET_5, label: 'Set 5', description: 'Combined set 5 score' },
+    ],
+  },
+];
+
 export const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onAddComponent }) => {
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+    new Set(['static', 'tennis-live'])
+  );
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+      }
+      return next;
+    });
+  };
+
+  const filteredCategories = searchQuery
+    ? categories
+        .map((cat) => ({
+          ...cat,
+          components: cat.components.filter(
+            (comp) =>
+              comp.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              comp.description.toLowerCase().includes(searchQuery.toLowerCase())
+          ),
+        }))
+        .filter((cat) => cat.components.length > 0)
+    : categories;
+
   return (
-    <div className="w-64 bg-gray-100 border-r border-gray-200 p-4 flex flex-col">
-      <h3 className="font-medium mb-4 flex-shrink-0">Components</h3>
-      <div className="space-y-2 overflow-y-auto flex-1 scrollbar-thin">
-        {/* Static Components */}
-        <button
-          onClick={() => onAddComponent(ComponentType.BACKGROUND, { x: 100, y: 100 })}
-          className="w-full text-left p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-        >
-          <div className="font-medium">BACKGROUND</div>
-          <div className="text-sm text-gray-600">
-            Add a background image (behind all components)
-          </div>
-        </button>
-        <button
-          onClick={() => onAddComponent(ComponentType.LOGO, { x: 100, y: 100 })}
-          className="w-full text-left p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-        >
-          <div className="font-medium">LOGO</div>
-          <div className="text-sm text-gray-600">
-            Add a logo image (scalable and resizable)
-          </div>
-        </button>
-        <button
-          onClick={() => onAddComponent(ComponentType.TEXT, { x: 100, y: 100 })}
-          className="w-full text-left p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-        >
-          <div className="font-medium">TEXT</div>
-          <div className="text-sm text-gray-600">
-            Add a text overlay
-          </div>
-        </button>
-        <button
-          onClick={() => onAddComponent(ComponentType.VIDEO, { x: 100, y: 100 })}
-          className="w-full text-left p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-        >
-          <div className="font-medium">VIDEO</div>
-          <div className="text-sm text-gray-600">
-            Add a video player component
-          </div>
-        </button>
-        
-        {/* Tennis Live Data Components */}
-        <div className="pt-4 border-t border-gray-300">
-          <h4 className="font-medium mb-2 text-sm text-gray-700">Tennis Live Data</h4>
-          <button
-            onClick={() => onAddComponent(ComponentType.TENNIS_PLAYER_NAME, { x: 100, y: 100 })}
-            className="w-full text-left p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors mb-2"
-          >
-            <div className="font-medium text-sm">PLAYER NAME</div>
-            <div className="text-xs text-gray-600">
-              Live player name display
-            </div>
-          </button>
-          <button
-            onClick={() => onAddComponent(ComponentType.TENNIS_DOUBLES_PLAYER_NAME, { x: 100, y: 100 })}
-            className="w-full text-left p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors mb-2"
-          >
-            <div className="font-medium text-sm">DOUBLES PLAYER NAME</div>
-            <div className="text-xs text-gray-600">
-              Live doubles team display (Lastname / Lastname)
-            </div>
-          </button>
-          <button
-            onClick={() => onAddComponent(ComponentType.TENNIS_TEAM_NAMES, { x: 100, y: 100 })}
-            className="w-full text-left p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors mb-2"
-          >
-            <div className="font-medium text-sm">TEAM NAMES</div>
-            <div className="text-xs text-gray-600">
-              Team names from websocket data (e.g., "Georgia vs Cal")
-            </div>
-          </button>
-          <button
-            onClick={() => onAddComponent(ComponentType.TENNIS_ADAPTIVE_TEAM_DISPLAY, { x: 100, y: 100 })}
-            className="w-full text-left p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors mb-2"
-          >
-            <div className="font-medium text-sm">ADAPTIVE TEAM DISPLAY</div>
-            <div className="text-xs text-gray-600">
-              School names for doubles, school names - last names for singles
-            </div>
-          </button>
-          <button
-            onClick={() => onAddComponent(ComponentType.TENNIS_GAME_SCORE, { x: 100, y: 100 })}
-            className="w-full text-left p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors mb-2"
-          >
-            <div className="font-medium text-sm">GAME SCORE</div>
-            <div className="text-xs text-gray-600">
-              Live game points (0, 15, 30, 40)
-            </div>
-          </button>
-          <button
-            onClick={() => onAddComponent(ComponentType.TENNIS_SET_SCORE, { x: 100, y: 100 })}
-            className="w-full text-left p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors mb-2"
-          >
-            <div className="font-medium text-sm">SET SCORE</div>
-            <div className="text-xs text-gray-600">
-              Live set score (games won)
-            </div>
-          </button>
-          <button
-            onClick={() => onAddComponent(ComponentType.TENNIS_MATCH_SCORE, { x: 100, y: 100 })}
-            className="w-full text-left p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors mb-2"
-          >
-            <div className="font-medium text-sm">MATCH SCORE</div>
-            <div className="text-xs text-gray-600">
-              Live match score (sets won)
-            </div>
-          </button>
-          <button
-            onClick={() => onAddComponent(ComponentType.TENNIS_DETAILED_SET_SCORE, { x: 100, y: 100 })}
-            className="w-full text-left p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-          >
-            <div className="font-medium text-sm">DETAILED SET SCORE</div>
-            <div className="text-xs text-gray-600">
-              Individual set score for specific player and set
-            </div>
-          </button>
-          <button
-            onClick={() => onAddComponent(ComponentType.TENNIS_SERVING_INDICATOR, { x: 100, y: 100 })}
-            className="w-full text-left p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-          >
-            <div className="font-medium text-sm">SERVING INDICATOR</div>
-            <div className="text-xs text-gray-600">
-              Shows which player is serving
-            </div>
-          </button>
+    <div
+      className={cn(
+        'w-56 flex flex-col',
+        'bg-white dark:bg-gray-900',
+        'border-r border-gray-200 dark:border-gray-800'
+      )}
+    >
+      {/* Header */}
+      <div className="px-3 py-3 border-b border-gray-200 dark:border-gray-800">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          Components
+        </h3>
+
+        {/* Search */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={cn(
+              'w-full h-8 px-3 pr-8 text-sm rounded-md',
+              'bg-gray-50 dark:bg-gray-800',
+              'border border-gray-200 dark:border-gray-700',
+              'text-gray-900 dark:text-gray-100',
+              'placeholder:text-gray-400 dark:placeholder:text-gray-500',
+              'focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500',
+              'transition-colors'
+            )}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              <span className="w-4 h-4 block">
+                <Icons.Close />
+              </span>
+            </button>
+          )}
         </div>
+      </div>
 
-        {/* Individual Set Score Components */}
-        <div className="pt-4 border-t border-gray-300">
-          <h4 className="font-medium mb-2 text-sm text-gray-700">Individual Set Scores</h4>
+      {/* Categories */}
+      <div className="flex-1 overflow-y-auto scrollbar-thin py-2">
+        {filteredCategories.map((category) => (
+          <div key={category.id} className="mb-1">
+            {/* Category header */}
+            <button
+              onClick={() => toggleCategory(category.id)}
+              className={cn(
+                'w-full flex items-center justify-between',
+                'px-3 py-2',
+                'text-xs font-semibold uppercase tracking-wide',
+                'text-gray-500 dark:text-gray-400',
+                'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                'transition-colors'
+              )}
+            >
+              <span>{category.label}</span>
+              <span
+                className={cn(
+                  'w-4 h-4 transition-transform',
+                  expandedCategories.has(category.id) && 'rotate-90'
+                )}
+              >
+                <Icons.ChevronRight />
+              </span>
+            </button>
 
-          {/* Set 1 Components */}
-          <div className="mb-3">
-            <div className="text-xs font-medium text-gray-600 mb-1">Set 1 Scores</div>
-            <button
-              onClick={() => onAddComponent(ComponentType.PLAYER1_SET1, { x: 100, y: 100 })}
-              className="w-full text-left p-2 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors mb-1"
-            >
-              <div className="font-medium text-xs">PLAYER 1 SET 1</div>
-              <div className="text-xs text-gray-500">Player 1's games in set 1</div>
-            </button>
-            <button
-              onClick={() => onAddComponent(ComponentType.PLAYER2_SET1, { x: 100, y: 100 })}
-              className="w-full text-left p-2 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-            >
-              <div className="font-medium text-xs">PLAYER 2 SET 1</div>
-              <div className="text-xs text-gray-500">Player 2's games in set 1</div>
-            </button>
+            {/* Category components */}
+            {(expandedCategories.has(category.id) || searchQuery) && (
+              <div className="px-2 pb-1">
+                {category.components.map((component) => (
+                  <button
+                    key={component.type}
+                    onClick={() => onAddComponent(component.type, { x: 100, y: 100 })}
+                    className={cn(
+                      'w-full flex items-start gap-2',
+                      'px-2 py-2 mb-0.5 rounded-md',
+                      'text-left',
+                      'hover:bg-gray-100 dark:hover:bg-gray-800',
+                      'active:bg-gray-200 dark:active:bg-gray-700',
+                      'transition-colors',
+                      'group'
+                    )}
+                  >
+                    {/* Icon placeholder */}
+                    <div
+                      className={cn(
+                        'w-8 h-8 rounded flex-shrink-0',
+                        'flex items-center justify-center',
+                        'bg-gray-100 dark:bg-gray-800',
+                        'text-gray-500 dark:text-gray-400',
+                        'group-hover:bg-indigo-100 group-hover:text-indigo-600',
+                        'dark:group-hover:bg-indigo-900/30 dark:group-hover:text-indigo-400',
+                        'transition-colors'
+                      )}
+                    >
+                      <ComponentIcon type={component.type} />
+                    </div>
+
+                    {/* Label + Description */}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                        {component.label}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {component.description}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+        ))}
 
-          {/* Set 2 Components */}
-          <div className="mb-3">
-            <div className="text-xs font-medium text-gray-600 mb-1">Set 2 Scores</div>
-            <button
-              onClick={() => onAddComponent(ComponentType.PLAYER1_SET2, { x: 100, y: 100 })}
-              className="w-full text-left p-2 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors mb-1"
-            >
-              <div className="font-medium text-xs">PLAYER 1 SET 2</div>
-              <div className="text-xs text-gray-500">Player 1's games in set 2</div>
-            </button>
-            <button
-              onClick={() => onAddComponent(ComponentType.PLAYER2_SET2, { x: 100, y: 100 })}
-              className="w-full text-left p-2 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-            >
-              <div className="font-medium text-xs">PLAYER 2 SET 2</div>
-              <div className="text-xs text-gray-500">Player 2's games in set 2</div>
-            </button>
+        {filteredCategories.length === 0 && (
+          <div className="px-3 py-6 text-center">
+            <p className="text-sm text-gray-400 dark:text-gray-500">
+              No components found
+            </p>
           </div>
-
-          {/* Set 3 Components */}
-          <div className="mb-3">
-            <div className="text-xs font-medium text-gray-600 mb-1">Set 3 Scores</div>
-            <button
-              onClick={() => onAddComponent(ComponentType.PLAYER1_SET3, { x: 100, y: 100 })}
-              className="w-full text-left p-2 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors mb-1"
-            >
-              <div className="font-medium text-xs">PLAYER 1 SET 3</div>
-              <div className="text-xs text-gray-500">Player 1's games in set 3</div>
-            </button>
-            <button
-              onClick={() => onAddComponent(ComponentType.PLAYER2_SET3, { x: 100, y: 100 })}
-              className="w-full text-left p-2 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-            >
-              <div className="font-medium text-xs">PLAYER 2 SET 3</div>
-              <div className="text-xs text-gray-500">Player 2's games in set 3</div>
-            </button>
-          </div>
-
-          {/* Set 4 Components */}
-          <div className="mb-3">
-            <div className="text-xs font-medium text-gray-600 mb-1">Set 4 Scores</div>
-            <button
-              onClick={() => onAddComponent(ComponentType.PLAYER1_SET4, { x: 100, y: 100 })}
-              className="w-full text-left p-2 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors mb-1"
-            >
-              <div className="font-medium text-xs">PLAYER 1 SET 4</div>
-              <div className="text-xs text-gray-500">Player 1's games in set 4</div>
-            </button>
-            <button
-              onClick={() => onAddComponent(ComponentType.PLAYER2_SET4, { x: 100, y: 100 })}
-              className="w-full text-left p-2 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-            >
-              <div className="font-medium text-xs">PLAYER 2 SET 4</div>
-              <div className="text-xs text-gray-500">Player 2's games in set 4</div>
-            </button>
-          </div>
-
-          {/* Set 5 Components */}
-          <div className="mb-3">
-            <div className="text-xs font-medium text-gray-600 mb-1">Set 5 Scores</div>
-            <button
-              onClick={() => onAddComponent(ComponentType.PLAYER1_SET5, { x: 100, y: 100 })}
-              className="w-full text-left p-2 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors mb-1"
-            >
-              <div className="font-medium text-xs">PLAYER 1 SET 5</div>
-              <div className="text-xs text-gray-500">Player 1's games in set 5</div>
-            </button>
-            <button
-              onClick={() => onAddComponent(ComponentType.PLAYER2_SET5, { x: 100, y: 100 })}
-              className="w-full text-left p-2 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-            >
-              <div className="font-medium text-xs">PLAYER 2 SET 5</div>
-              <div className="text-xs text-gray-500">Player 2's games in set 5</div>
-            </button>
-          </div>
-        </div>
-
-        {/* Individual Set Components */}
-        <div className="pt-4 border-t border-gray-300">
-          <h4 className="font-medium mb-2 text-sm text-gray-700">Individual Sets</h4>
-
-          <button
-            onClick={() => onAddComponent(ComponentType.TENNIS_SET_1, { x: 100, y: 100 })}
-            className="w-full text-left p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors mb-2"
-          >
-            <div className="font-medium text-sm">SET 1 SCORE</div>
-            <div className="text-xs text-gray-600">
-              Combined score for set 1 (e.g., "6-4")
-            </div>
-          </button>
-          <button
-            onClick={() => onAddComponent(ComponentType.TENNIS_SET_2, { x: 100, y: 100 })}
-            className="w-full text-left p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors mb-2"
-          >
-            <div className="font-medium text-sm">SET 2 SCORE</div>
-            <div className="text-xs text-gray-600">
-              Combined score for set 2 (e.g., "4-6")
-            </div>
-          </button>
-          <button
-            onClick={() => onAddComponent(ComponentType.TENNIS_SET_3, { x: 100, y: 100 })}
-            className="w-full text-left p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors mb-2"
-          >
-            <div className="font-medium text-sm">SET 3 SCORE</div>
-            <div className="text-xs text-gray-600">
-              Combined score for set 3 (e.g., "6-3")
-            </div>
-          </button>
-          <button
-            onClick={() => onAddComponent(ComponentType.TENNIS_SET_4, { x: 100, y: 100 })}
-            className="w-full text-left p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors mb-2"
-          >
-            <div className="font-medium text-sm">SET 4 SCORE</div>
-            <div className="text-xs text-gray-600">
-              Combined score for set 4
-            </div>
-          </button>
-          <button
-            onClick={() => onAddComponent(ComponentType.TENNIS_SET_5, { x: 100, y: 100 })}
-            className="w-full text-left p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-          >
-            <div className="font-medium text-sm">SET 5 SCORE</div>
-            <div className="text-xs text-gray-600">
-              Combined score for set 5
-            </div>
-          </button>
-        </div>
+        )}
       </div>
     </div>
   );
+};
+
+// Simple icon component for different component types
+const ComponentIcon: React.FC<{ type: ComponentType }> = ({ type }) => {
+  const iconClass = 'w-4 h-4';
+
+  switch (type) {
+    case ComponentType.BACKGROUND:
+      return (
+        <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      );
+    case ComponentType.LOGO:
+      return (
+        <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+        </svg>
+      );
+    case ComponentType.TEXT:
+      return (
+        <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+      );
+    case ComponentType.VIDEO:
+      return (
+        <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+      );
+    case ComponentType.TENNIS_PLAYER_NAME:
+    case ComponentType.TENNIS_DOUBLES_PLAYER_NAME:
+    case ComponentType.TENNIS_TEAM_NAMES:
+    case ComponentType.TENNIS_ADAPTIVE_TEAM_DISPLAY:
+      return (
+        <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      );
+    case ComponentType.TENNIS_GAME_SCORE:
+    case ComponentType.TENNIS_SET_SCORE:
+    case ComponentType.TENNIS_MATCH_SCORE:
+    case ComponentType.TENNIS_DETAILED_SET_SCORE:
+    case ComponentType.PLAYER1_SET1:
+    case ComponentType.PLAYER2_SET1:
+    case ComponentType.PLAYER1_SET2:
+    case ComponentType.PLAYER2_SET2:
+    case ComponentType.PLAYER1_SET3:
+    case ComponentType.PLAYER2_SET3:
+    case ComponentType.PLAYER1_SET4:
+    case ComponentType.PLAYER2_SET4:
+    case ComponentType.PLAYER1_SET5:
+    case ComponentType.PLAYER2_SET5:
+    case ComponentType.TENNIS_SET_1:
+    case ComponentType.TENNIS_SET_2:
+    case ComponentType.TENNIS_SET_3:
+    case ComponentType.TENNIS_SET_4:
+    case ComponentType.TENNIS_SET_5:
+      return (
+        <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+      );
+    case ComponentType.TENNIS_SERVING_INDICATOR:
+      return (
+        <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <circle cx="12" cy="12" r="8" strokeWidth={2} />
+          <path strokeLinecap="round" strokeWidth={2} d="M8 12c0-2 1.5-3.5 4-3.5s4 1.5 4 3.5-1.5 3.5-4 3.5-4-1.5-4-3.5" />
+        </svg>
+      );
+    default:
+      return (
+        <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+        </svg>
+      );
+  }
 };
