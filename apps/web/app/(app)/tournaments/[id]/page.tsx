@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@repo/convex";
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -139,7 +139,7 @@ export default function TournamentDetailPage({
               {/* Tournament ID for API access */}
               <TournamentIdDisplay tournamentId={tournament._id} />
             </div>
-            {canManage && <TournamentActions tournament={{...tournament, format: tournament.format}} />}
+            {canManage && <TournamentActions tournament={{...tournament, format: tournament.format, sport: tournament.sport}} />}
           </div>
         </div>
       </header>
@@ -229,16 +229,54 @@ function TournamentActions({
     participantCount: number;
     myRole: string;
     format: string;
+    sport: string;
   };
 }) {
   const generateBracket = useMutation(api.tournaments.generateBracket);
   const startTournament = useMutation(api.tournaments.startTournament);
   const cancelTournament = useMutation(api.tournaments.cancelTournament);
   const deleteTournament = useMutation(api.tournaments.deleteTournament);
+  const generateMatchScoresCSV = useAction(api.reports.generateMatchScoresCSV);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [showBlankBracketModal, setShowBlankBracketModal] = useState(false);
+
+  // Check if we can show the download button
+  const exportInfo = useQuery(api.reports.hasCompletedTennisMatches, {
+    tournamentId: tournament._id as any,
+  });
+
+  const handleDownloadScores = async () => {
+    setDownloading(true);
+    try {
+      const result = await generateMatchScoresCSV({
+        tournamentId: tournament._id as any,
+      });
+
+      if (result.matchCount === 0) {
+        alert("No completed matches to export.");
+        return;
+      }
+
+      // Create and trigger download
+      const blob = new Blob([result.csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = result.filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : "Failed to download scores");
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const handleGenerateBracket = async () => {
     setGenerating(true);
@@ -333,6 +371,20 @@ function TournamentActions({
             className="px-4 py-2 text-xs font-semibold tracking-wide text-red bg-red/10 border border-red/20 rounded-lg hover:bg-red hover:text-white transition-all disabled:opacity-50"
           >
             {deleting ? "Deleting..." : "Delete"}
+          </button>
+        )}
+        {/* Download Scores Button - only for tennis with completed matches */}
+        {exportInfo?.isTennis && exportInfo?.hasMatches && (
+          <button
+            onClick={handleDownloadScores}
+            disabled={downloading}
+            className="px-4 py-2 text-xs font-semibold tracking-wide text-text-secondary bg-bg-elevated border border-border rounded-lg hover:text-text-primary hover:border-text-muted transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+            title={`Download scores for ${exportInfo.matchCount} completed match${exportInfo.matchCount !== 1 ? "es" : ""}`}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            {downloading ? "Downloading..." : "Download Scores"}
           </button>
         )}
       </div>
