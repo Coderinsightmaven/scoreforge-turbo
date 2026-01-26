@@ -133,12 +133,23 @@ External API access via `publicApi.ts` for integrations:
 - Supports filtering by status, round, court
 - Supports sorting by round, court, scheduledTime
 
+## Reports
+
+CSV export functionality via `reports.ts`:
+- `getTournamentMatchScores` - Query completed tennis matches with set scores
+- `generateMatchScoresCSV` - Action to generate downloadable CSV
+- Tennis-only (volleyball not supported)
+- Download button appears on tournament page for tennis tournaments with completed matches
+
 ## Web App Patterns
 
 ### Route Groups
 - `(app)` - Authenticated routes with Navigation layout
 - `(auth)` - Sign-in/sign-up flows
 - Components live in `apps/web/app/components/`
+
+### Special Routes
+- `/brackets/quick` - Standalone printable bracket generator (no database, client-side only)
 
 ### Auth Components
 ```tsx
