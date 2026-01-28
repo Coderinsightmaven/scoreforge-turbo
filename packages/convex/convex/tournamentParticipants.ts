@@ -43,6 +43,33 @@ async function canViewTournament(
 // ============================================
 
 /**
+ * Capitalize a proper name correctly (e.g., "john smith" -> "John Smith")
+ * Handles hyphenated names (Mary-Jane) and apostrophe names (O'Brien)
+ */
+function capitalizeProperName(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map(word => {
+      // Handle hyphenated names (e.g., "mary-jane" -> "Mary-Jane")
+      if (word.includes('-')) {
+        return word.split('-').map(part =>
+          part.charAt(0).toUpperCase() + part.slice(1)
+        ).join('-');
+      }
+      // Handle apostrophe names (e.g., "o'brien" -> "O'Brien")
+      if (word.includes("'")) {
+        return word.split("'").map(part =>
+          part.charAt(0).toUpperCase() + part.slice(1)
+        ).join("'");
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+}
+
+/**
  * Format a full name to abbreviated format (e.g., "Joe Berry" -> "J. Berry")
  */
 function formatNameAbbreviated(fullName: string): string {
@@ -310,7 +337,7 @@ export const addParticipant = mutation({
         if (!args.playerName?.trim()) {
           throw new Error("Player name is required for individual tournaments");
         }
-        displayName = args.playerName.trim();
+        displayName = capitalizeProperName(args.playerName);
         participantData.playerName = displayName;
         break;
 
@@ -318,8 +345,8 @@ export const addParticipant = mutation({
         if (!args.player1Name?.trim() || !args.player2Name?.trim()) {
           throw new Error("Both player names are required for doubles tournaments");
         }
-        const p1 = args.player1Name.trim();
-        const p2 = args.player2Name.trim();
+        const p1 = capitalizeProperName(args.player1Name);
+        const p2 = capitalizeProperName(args.player2Name);
         displayName = formatDoublesDisplayName(p1, p2);
         participantData.player1Name = p1;
         participantData.player2Name = p2;
@@ -329,7 +356,7 @@ export const addParticipant = mutation({
         if (!args.teamName?.trim()) {
           throw new Error("Team name is required for team tournaments");
         }
-        displayName = args.teamName.trim();
+        displayName = capitalizeProperName(args.teamName);
         participantData.teamName = displayName;
         break;
 
@@ -410,14 +437,14 @@ export const updateParticipant = mutation({
     switch (participant.type) {
       case "individual":
         if (args.playerName?.trim()) {
-          updates.playerName = args.playerName.trim();
+          updates.playerName = capitalizeProperName(args.playerName);
           updates.displayName = updates.playerName;
         }
         break;
 
       case "doubles":
-        const updatedP1 = args.player1Name?.trim() || participant.player1Name;
-        const updatedP2 = args.player2Name?.trim() || participant.player2Name;
+        const updatedP1 = args.player1Name?.trim() ? capitalizeProperName(args.player1Name) : participant.player1Name;
+        const updatedP2 = args.player2Name?.trim() ? capitalizeProperName(args.player2Name) : participant.player2Name;
         if (args.player1Name !== undefined || args.player2Name !== undefined) {
           updates.player1Name = updatedP1;
           updates.player2Name = updatedP2;
@@ -427,7 +454,7 @@ export const updateParticipant = mutation({
 
       case "team":
         if (args.teamName?.trim()) {
-          updates.teamName = args.teamName.trim();
+          updates.teamName = capitalizeProperName(args.teamName);
           updates.displayName = updates.teamName;
         }
         break;
@@ -616,7 +643,7 @@ export const updatePlaceholderName = mutation({
       player2Name?: string;
       teamName?: string;
     } = {
-      displayName: args.displayName.trim(),
+      displayName: capitalizeProperName(args.displayName),
       isPlaceholder: false, // Mark as no longer a placeholder
     };
 
@@ -624,26 +651,26 @@ export const updatePlaceholderName = mutation({
     switch (participant.type) {
       case "individual":
         if (args.playerName?.trim()) {
-          updates.playerName = args.playerName.trim();
+          updates.playerName = capitalizeProperName(args.playerName);
         } else {
-          updates.playerName = args.displayName.trim();
+          updates.playerName = capitalizeProperName(args.displayName);
         }
         break;
 
       case "doubles":
         if (args.player1Name?.trim()) {
-          updates.player1Name = args.player1Name.trim();
+          updates.player1Name = capitalizeProperName(args.player1Name);
         }
         if (args.player2Name?.trim()) {
-          updates.player2Name = args.player2Name.trim();
+          updates.player2Name = capitalizeProperName(args.player2Name);
         }
         break;
 
       case "team":
         if (args.teamName?.trim()) {
-          updates.teamName = args.teamName.trim();
+          updates.teamName = capitalizeProperName(args.teamName);
         } else {
-          updates.teamName = args.displayName.trim();
+          updates.teamName = capitalizeProperName(args.displayName);
         }
         break;
     }
