@@ -149,25 +149,18 @@ pub async fn create_scoreboard_window(
         })).map_err(|e| e.to_string())?;
         
         // Small delay to ensure positioning takes effect
-        std::thread::sleep(std::time::Duration::from_millis(200));
-        
-        println!("  Window positioned, setting fullscreen...");
+        std::thread::sleep(std::time::Duration::from_millis(100));
+
+        println!("  Window positioned");
     } else {
         println!("  Warning: No target monitor found for ID {}", monitor_id);
     }
-    
-    // Show the window first in windowed mode on the target monitor
+
+    // Show the window in windowed mode (user can toggle fullscreen manually)
     window.show().map_err(|e| e.to_string())?;
-    
-    // Additional delay to ensure window is fully positioned and shown
-    std::thread::sleep(std::time::Duration::from_millis(300));
-    
-    // Now set fullscreen - this will make it fullscreen on the monitor where it's positioned
-    println!("  Setting fullscreen...");
-    window.set_fullscreen(true).map_err(|e| e.to_string())?;
-    
-    println!("  Scoreboard window created and shown in fullscreen");
-    
+
+    println!("  Scoreboard window created and shown in windowed mode");
+
     Ok(())
 }
 
