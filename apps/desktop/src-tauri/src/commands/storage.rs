@@ -28,31 +28,48 @@ pub async fn save_scoreboard(
 ) -> Result<String, String> {
     let app_data_dir = app.path().app_data_dir()
         .map_err(|e| e.to_string())?;
-    
+
     let scoreboards_dir = app_data_dir.join("scoreboards");
-    
+
     // Create directory if it doesn't exist
     if !scoreboards_dir.exists() {
         fs::create_dir_all(&scoreboards_dir).map_err(|e| e.to_string())?;
     }
-    
+
     let filename = format!("{}.json", sanitize_filename(&name));
     let file_path = scoreboards_dir.join(&filename);
-    
+
+    // Check if a scoreboard with this name already exists
+    // If so, preserve the original ID and created_at timestamp
+    let (id, created_at) = if file_path.exists() {
+        // Try to read the existing scoreboard to preserve its ID and created_at
+        match fs::read_to_string(&file_path) {
+            Ok(existing_json) => {
+                match serde_json::from_str::<ScoreboardConfig>(&existing_json) {
+                    Ok(existing_config) => (existing_config.id, existing_config.created_at),
+                    Err(_) => (uuid::Uuid::new_v4().to_string(), chrono::Utc::now().to_rfc3339()),
+                }
+            }
+            Err(_) => (uuid::Uuid::new_v4().to_string(), chrono::Utc::now().to_rfc3339()),
+        }
+    } else {
+        (uuid::Uuid::new_v4().to_string(), chrono::Utc::now().to_rfc3339())
+    };
+
     let config = ScoreboardConfig {
-        id: uuid::Uuid::new_v4().to_string(),
+        id,
         name: name.clone(),
         filename: filename.clone(), // Store the actual filename used
         data,
-        created_at: chrono::Utc::now().to_rfc3339(),
+        created_at,
         updated_at: chrono::Utc::now().to_rfc3339(),
     };
-    
+
     let json_data = serde_json::to_string_pretty(&config)
         .map_err(|e| e.to_string())?;
-    
+
     fs::write(&file_path, json_data).map_err(|e| e.to_string())?;
-    
+
     Ok(filename)
 }
 
