@@ -114,45 +114,26 @@ pub async fn create_scoreboard_window(
         println!("🎾 [RUST] No scoreboard data provided for window: {}", window_id);
     }
 
-    // Create window in windowed mode first, then move to target monitor and set fullscreen
+    // Create window at position 0,0 and set fullscreen
+    println!("  Creating scoreboard window at position (0, 0) with fullscreen");
+
     let window = WebviewWindowBuilder::new(
         &app,
         window_id.clone(),
         WebviewUrl::App("scoreboard.html".into()),
     )
     .title("Scoreboard Display")
-    .resizable(false) // Disable resizing for fullscreen scoreboard
-    .decorations(false) // Remove window decorations
-    .always_on_top(true) // Keep on top
-    .visible(false) // Start hidden, then show after positioning
-    .skip_taskbar(true) // Hide from taskbar/dock
-    .fullscreen(false) // Start in windowed mode, then set fullscreen after positioning
-    .inner_size(width as f64, height as f64) // Set initial size
+    .position(0.0, 0.0) // Position at top-left of screen
+    .inner_size(width as f64, height as f64)
+    .resizable(false)
+    .decorations(false)
+    .always_on_top(true)
+    .skip_taskbar(true)
+    .fullscreen(true) // Start in fullscreen
     .build()
     .map_err(|e| e.to_string())?;
 
-    // Position the window at 0,0 (top-left of screen)
-    println!("  Positioning window at: (0, 0)");
-
-    window.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
-        x: 0,
-        y: 0
-    })).map_err(|e| e.to_string())?;
-
-    // Small delay to ensure positioning takes effect
-    std::thread::sleep(std::time::Duration::from_millis(100));
-
-    // Show the window first
-    window.show().map_err(|e| e.to_string())?;
-
-    // Additional delay to ensure window is fully shown
-    std::thread::sleep(std::time::Duration::from_millis(200));
-
-    // Set fullscreen
-    println!("  Setting fullscreen...");
-    window.set_fullscreen(true).map_err(|e| e.to_string())?;
-
-    println!("  Scoreboard window created and shown in fullscreen at (0, 0)");
+    println!("  Scoreboard window created in fullscreen at (0, 0)");
 
     Ok(())
 }
