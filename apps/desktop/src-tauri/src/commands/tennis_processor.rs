@@ -35,13 +35,17 @@ pub struct RawTennisData {
     pub score: Option<RawScoreData>,
     pub sets: Option<HashMap<String, RawSetData>>,
     pub serving_player: Option<i32>,
-    pub servingPlayer: Option<i32>,
+    #[serde(rename = "servingPlayer")]
+    pub serving_player_camel: Option<i32>,
     pub current_set: Option<i32>,
-    pub currentSet: Option<i32>,
+    #[serde(rename = "currentSet")]
+    pub current_set_camel: Option<i32>,
     pub is_tiebreak: Option<bool>,
-    pub isTiebreak: Option<bool>,
+    #[serde(rename = "isTiebreak")]
+    pub is_tiebreak_camel: Option<bool>,
     pub match_status: Option<String>,
-    pub matchStatus: Option<String>,
+    #[serde(rename = "matchStatus")]
+    pub match_status_camel: Option<String>,
 }
 
 /// Raw player/team data structure.
@@ -58,17 +62,23 @@ pub struct RawPlayerData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RawScoreData {
     pub player1_sets: Option<i32>,
-    pub player1Sets: Option<i32>,
+    #[serde(rename = "player1Sets")]
+    pub player1_sets_camel: Option<i32>,
     pub player2_sets: Option<i32>,
-    pub player2Sets: Option<i32>,
+    #[serde(rename = "player2Sets")]
+    pub player2_sets_camel: Option<i32>,
     pub player1_games: Option<i32>,
-    pub player1Games: Option<i32>,
+    #[serde(rename = "player1Games")]
+    pub player1_games_camel: Option<i32>,
     pub player2_games: Option<i32>,
-    pub player2Games: Option<i32>,
+    #[serde(rename = "player2Games")]
+    pub player2_games_camel: Option<i32>,
     pub player1_points: Option<String>,
-    pub player1Points: Option<String>,
+    #[serde(rename = "player1Points")]
+    pub player1_points_camel: Option<String>,
     pub player2_points: Option<String>,
-    pub player2Points: Option<String>,
+    #[serde(rename = "player2Points")]
+    pub player2_points_camel: Option<String>,
 }
 
 /// Raw set data structure.
@@ -94,11 +104,15 @@ pub struct ProcessedTennisMatch {
     pub current_set: i32,
     pub is_tiebreak: bool,
     pub match_status: String,
-    // Legacy properties for compatibility
-    pub servingPlayer: i32,
-    pub currentSet: i32,
-    pub isTiebreak: bool,
-    pub matchStatus: String,
+    // Legacy properties for compatibility (serialized as camelCase)
+    #[serde(rename = "servingPlayer")]
+    pub serving_player_legacy: i32,
+    #[serde(rename = "currentSet")]
+    pub current_set_legacy: i32,
+    #[serde(rename = "isTiebreak")]
+    pub is_tiebreak_legacy: bool,
+    #[serde(rename = "matchStatus")]
+    pub match_status_legacy: String,
 }
 
 /// Processed player data with guaranteed name field.
@@ -122,13 +136,19 @@ pub struct ProcessedScoreData {
     pub player2_games: i32,
     pub player1_points: String,
     pub player2_points: String,
-    // Legacy property names for compatibility
-    pub player1Sets: i32,
-    pub player2Sets: i32,
-    pub player1Games: i32,
-    pub player2Games: i32,
-    pub player1Points: String,
-    pub player2Points: String,
+    // Legacy property names for compatibility (serialized as camelCase)
+    #[serde(rename = "player1Sets")]
+    pub player1_sets_legacy: i32,
+    #[serde(rename = "player2Sets")]
+    pub player2_sets_legacy: i32,
+    #[serde(rename = "player1Games")]
+    pub player1_games_legacy: i32,
+    #[serde(rename = "player2Games")]
+    pub player2_games_legacy: i32,
+    #[serde(rename = "player1Points")]
+    pub player1_points_legacy: String,
+    #[serde(rename = "player2Points")]
+    pub player2_points_legacy: String,
 }
 
 /// Processed set data with guaranteed values.
@@ -188,12 +208,12 @@ impl TennisDataProcessor {
 
         // Extract serving and match state information
         let serving_player = Self::normalize_serving_player(
-            raw_data.serving_player.or(raw_data.servingPlayer)
+            raw_data.serving_player.or(raw_data.serving_player_camel)
         );
-        let current_set = raw_data.current_set.or(raw_data.currentSet).unwrap_or(1);
-        let is_tiebreak = raw_data.is_tiebreak.or(raw_data.isTiebreak).unwrap_or(false);
+        let current_set = raw_data.current_set.or(raw_data.current_set_camel).unwrap_or(1);
+        let is_tiebreak = raw_data.is_tiebreak.or(raw_data.is_tiebreak_camel).unwrap_or(false);
         let match_status = raw_data.match_status
-            .or(raw_data.matchStatus)
+            .or(raw_data.match_status_camel)
             .unwrap_or_else(|| "in_progress".to_string());
 
         Ok(ProcessedTennisMatch {
@@ -206,11 +226,11 @@ impl TennisDataProcessor {
             current_set,
             is_tiebreak,
             match_status: match_status.clone(),
-            // Legacy properties
-            servingPlayer: serving_player,
-            currentSet: current_set,
-            isTiebreak: is_tiebreak,
-            matchStatus: match_status,
+            // Legacy properties (for frontend compatibility)
+            serving_player_legacy: serving_player,
+            current_set_legacy: current_set,
+            is_tiebreak_legacy: is_tiebreak,
+            match_status_legacy: match_status,
         })
     }
 
@@ -250,34 +270,34 @@ impl TennisDataProcessor {
     fn process_score_data(raw_score: Option<RawScoreData>) -> ProcessedScoreData {
         let default_score = RawScoreData {
             player1_sets: Some(0),
-            player1Sets: Some(0),
+            player1_sets_camel: Some(0),
             player2_sets: Some(0),
-            player2Sets: Some(0),
+            player2_sets_camel: Some(0),
             player1_games: Some(0),
-            player1Games: Some(0),
+            player1_games_camel: Some(0),
             player2_games: Some(0),
-            player2Games: Some(0),
+            player2_games_camel: Some(0),
             player1_points: Some("0".to_string()),
-            player1Points: Some("0".to_string()),
+            player1_points_camel: Some("0".to_string()),
             player2_points: Some("0".to_string()),
-            player2Points: Some("0".to_string()),
+            player2_points_camel: Some("0".to_string()),
         };
 
         let score = raw_score.unwrap_or(default_score);
 
-        let player1_sets = score.player1_sets.or(score.player1Sets).unwrap_or(0);
-        let player2_sets = score.player2_sets.or(score.player2Sets).unwrap_or(0);
-        let player1_games = score.player1_games.or(score.player1Games).unwrap_or(0);
-        let player2_games = score.player2_games.or(score.player2Games).unwrap_or(0);
+        let player1_sets = score.player1_sets.or(score.player1_sets_camel).unwrap_or(0);
+        let player2_sets = score.player2_sets.or(score.player2_sets_camel).unwrap_or(0);
+        let player1_games = score.player1_games.or(score.player1_games_camel).unwrap_or(0);
+        let player2_games = score.player2_games.or(score.player2_games_camel).unwrap_or(0);
         let player1_points = Self::normalize_points(
             score.player1_points.as_ref()
-                .or(score.player1Points.as_ref())
+                .or(score.player1_points_camel.as_ref())
                 .map(|s| s.as_str())
                 .unwrap_or("0")
         );
         let player2_points = Self::normalize_points(
             score.player2_points.as_ref()
-                .or(score.player2Points.as_ref())
+                .or(score.player2_points_camel.as_ref())
                 .map(|s| s.as_str())
                 .unwrap_or("0")
         );
@@ -289,13 +309,13 @@ impl TennisDataProcessor {
             player2_games,
             player1_points: player1_points.clone(),
             player2_points: player2_points.clone(),
-            // Legacy properties
-            player1Sets: player1_sets,
-            player2Sets: player2_sets,
-            player1Games: player1_games,
-            player2Games: player2_games,
-            player1Points: player1_points,
-            player2Points: player2_points,
+            // Legacy properties (for frontend compatibility)
+            player1_sets_legacy: player1_sets,
+            player2_sets_legacy: player2_sets,
+            player1_games_legacy: player1_games,
+            player2_games_legacy: player2_games,
+            player1_points_legacy: player1_points,
+            player2_points_legacy: player2_points,
         }
     }
 
