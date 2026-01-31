@@ -131,31 +131,28 @@ pub async fn create_scoreboard_window(
     .build()
     .map_err(|e| e.to_string())?;
 
-    // Position the window at the specified offset (absolute screen position)
-    // offset_x and offset_y default to 0, placing window at top-left of screen
-    let final_x = offset_x;
-    let final_y = offset_y;
-
-    println!("  Positioning window at: ({}, {})", final_x, final_y);
+    // Position the window at 0,0 (top-left of screen)
+    println!("  Positioning window at: (0, 0)");
 
     window.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
-        x: final_x,
-        y: final_y
+        x: 0,
+        y: 0
     })).map_err(|e| e.to_string())?;
 
     // Small delay to ensure positioning takes effect
     std::thread::sleep(std::time::Duration::from_millis(100));
 
-    println!("  Window positioned");
-
-    if target_monitor.is_none() {
-        println!("  Note: No target monitor found for ID {}, but window positioned at absolute coordinates", monitor_id);
-    }
-
-    // Show the window in windowed mode (user can toggle fullscreen manually)
+    // Show the window first
     window.show().map_err(|e| e.to_string())?;
 
-    println!("  Scoreboard window created and shown in windowed mode");
+    // Additional delay to ensure window is fully shown
+    std::thread::sleep(std::time::Duration::from_millis(200));
+
+    // Set fullscreen
+    println!("  Setting fullscreen...");
+    window.set_fullscreen(true).map_err(|e| e.to_string())?;
+
+    println!("  Scoreboard window created and shown in fullscreen at (0, 0)");
 
     Ok(())
 }
