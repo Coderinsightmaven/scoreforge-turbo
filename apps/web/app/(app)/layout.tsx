@@ -9,7 +9,7 @@ export default function AppLayout({
   children,
 }: {
   children: React.ReactNode;
-}) {
+}): React.ReactNode {
   return (
     <div className="min-h-screen bg-bg-primary">
       <Navigation />

@@ -4,7 +4,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { useState } from "react";
 import Link from "next/link";
 
-export default function SignInPage() {
+export default function SignInPage(): React.ReactNode {
   const { signIn } = useAuthActions();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);

@@ -169,7 +169,7 @@ export function FullScreenScoring({
   tennisState,
   volleyballState,
   canScore,
-}: Props) {
+}: Props): React.ReactNode {
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Mutations
@@ -420,7 +420,7 @@ export function FirstServerSetup({
     pointsPerDecidingSet: number;
   };
   matchStatus?: string;
-}) {
+}): React.ReactNode {
   const [selectedServer, setSelectedServer] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
 
@@ -581,7 +581,7 @@ export function MatchCompleteScreen({
   sport: "tennis" | "volleyball";
   tennisState?: TennisState;
   volleyballState?: VolleyballState;
-}) {
+}): React.ReactNode {
   const isTennis = sport === "tennis";
 
   return (

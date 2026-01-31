@@ -8,7 +8,7 @@ import { useState } from "react";
 
 type StatusFilter = "all" | "active" | "draft" | "completed" | "cancelled";
 
-export default function DashboardPage() {
+export default function DashboardPage(): React.ReactNode {
   const user = useQuery(api.users.currentUser);
   const tournaments = useQuery(api.tournaments.listMyTournaments, {});
   const createStatus = useQuery(api.tournaments.canCreateTournament, {});

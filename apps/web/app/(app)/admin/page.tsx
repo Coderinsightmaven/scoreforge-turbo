@@ -9,7 +9,7 @@ import { Id } from "@repo/convex/dataModel";
 
 type Tab = "users" | "admins" | "settings";
 
-export default function AdminPage() {
+export default function AdminPage(): React.ReactNode {
   const isSiteAdmin = useQuery(api.siteAdmin.checkIsSiteAdmin);
   const [activeTab, setActiveTab] = useState<Tab>("users");
 

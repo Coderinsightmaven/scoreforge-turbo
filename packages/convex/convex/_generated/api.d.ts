@@ -13,7 +13,6 @@ import type * as auth from "../auth.js";
 import type * as http from "../http.js";
 import type * as lib_bracketGenerator from "../lib/bracketGenerator.js";
 import type * as matches from "../matches.js";
-import type * as myFunctions from "../myFunctions.js";
 import type * as publicApi from "../publicApi.js";
 import type * as reports from "../reports.js";
 import type * as siteAdmin from "../siteAdmin.js";
@@ -37,7 +36,6 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   "lib/bracketGenerator": typeof lib_bracketGenerator;
   matches: typeof matches;
-  myFunctions: typeof myFunctions;
   publicApi: typeof publicApi;
   reports: typeof reports;
   siteAdmin: typeof siteAdmin;

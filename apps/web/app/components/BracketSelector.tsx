@@ -26,7 +26,7 @@ export function BracketSelector({
   onSelectBracket,
   showManageButton,
   onManageBrackets,
-}: BracketSelectorProps) {
+}: BracketSelectorProps): React.ReactNode {
   const brackets = useQuery(api.tournamentBrackets.listBrackets, {
     tournamentId: tournamentId as any,
   });

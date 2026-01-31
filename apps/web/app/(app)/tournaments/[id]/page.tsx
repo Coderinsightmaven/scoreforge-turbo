@@ -19,7 +19,7 @@ export default function TournamentDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
-}) {
+}): React.ReactNode {
   const { id } = use(params);
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");

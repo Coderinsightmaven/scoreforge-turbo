@@ -1,4 +1,4 @@
-import { query } from "./_generated/server";
+import { query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import {
   matchStatus,
@@ -11,6 +11,10 @@ import {
 } from "./schema";
 import { hashKey } from "./apiKeys";
 import type { Id } from "./_generated/dataModel";
+
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute window
+const MAX_REQUESTS_PER_WINDOW = 100; // 100 requests per minute per API key
 
 // ============================================
 // Types for return values
@@ -73,8 +77,8 @@ const tournamentReturn = v.object({
 async function validateApiKeyInternal(
   ctx: { db: any },
   apiKey: string
-): Promise<{ userId: Id<"users"> } | null> {
-  const hashedKey = hashKey(apiKey);
+): Promise<{ userId: Id<"users">; keyId: Id<"apiKeys"> } | null> {
+  const hashedKey = await hashKey(apiKey);
 
   const keyRecord = await ctx.db
     .query("apiKeys")
@@ -91,8 +95,102 @@ async function validateApiKeyInternal(
 
   return {
     userId: keyRecord.userId,
+    keyId: keyRecord._id,
   };
 }
+
+/**
+ * Check if an API key has exceeded its rate limit
+ * Returns true if the request should be allowed, false if rate limited
+ */
+async function checkRateLimit(
+  ctx: { db: any },
+  keyId: Id<"apiKeys">
+): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
+  const now = Date.now();
+  const windowStart = now - RATE_LIMIT_WINDOW_MS;
+
+  const rateLimit = await ctx.db
+    .query("apiRateLimits")
+    .withIndex("by_api_key", (q: any) => q.eq("apiKeyId", keyId))
+    .first();
+
+  if (!rateLimit) {
+    // No rate limit record - this is the first request
+    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - 1, resetAt: now + RATE_LIMIT_WINDOW_MS };
+  }
+
+  // Check if the window has expired
+  if (rateLimit.windowStart < windowStart) {
+    // Window expired, request is allowed
+    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - 1, resetAt: now + RATE_LIMIT_WINDOW_MS };
+  }
+
+  // Window is still active, check the count
+  if (rateLimit.requestCount >= MAX_REQUESTS_PER_WINDOW) {
+    return {
+      allowed: false,
+      remaining: 0,
+      resetAt: rateLimit.windowStart + RATE_LIMIT_WINDOW_MS
+    };
+  }
+
+  return {
+    allowed: true,
+    remaining: MAX_REQUESTS_PER_WINDOW - rateLimit.requestCount - 1,
+    resetAt: rateLimit.windowStart + RATE_LIMIT_WINDOW_MS
+  };
+}
+
+/**
+ * Internal mutation to track API usage for rate limiting
+ * Called after successful API requests
+ */
+export const _trackApiUsage = internalMutation({
+  args: {
+    keyId: v.id("apiKeys"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const windowStart = now - RATE_LIMIT_WINDOW_MS;
+
+    const rateLimit = await ctx.db
+      .query("apiRateLimits")
+      .withIndex("by_api_key", (q) => q.eq("apiKeyId", args.keyId))
+      .first();
+
+    if (!rateLimit) {
+      // Create new rate limit record
+      await ctx.db.insert("apiRateLimits", {
+        apiKeyId: args.keyId,
+        windowStart: now,
+        requestCount: 1,
+      });
+    } else if (rateLimit.windowStart < windowStart) {
+      // Window expired, reset the counter
+      // eslint-disable-next-line @convex-dev/explicit-table-ids -- rateLimit._id is typed as Id<"apiRateLimits">
+      await ctx.db.patch(rateLimit._id, {
+        windowStart: now,
+        requestCount: 1,
+      });
+    } else {
+      // Increment the counter
+      // eslint-disable-next-line @convex-dev/explicit-table-ids -- rateLimit._id is typed as Id<"apiRateLimits">
+      await ctx.db.patch(rateLimit._id, {
+        requestCount: rateLimit.requestCount + 1,
+      });
+    }
+
+    // Also update lastUsedAt on the API key
+    // eslint-disable-next-line @convex-dev/explicit-table-ids -- keyId is typed as Id<"apiKeys">
+    await ctx.db.patch(args.keyId, {
+      lastUsedAt: now,
+    });
+
+    return null;
+  },
+});
 
 // ============================================
 // Public API Queries
@@ -121,6 +219,12 @@ export const getMatch = query({
     const keyValidation = await validateApiKeyInternal(ctx, args.apiKey);
     if (!keyValidation) {
       return { error: "Invalid or inactive API key" };
+    }
+
+    // Check rate limit
+    const rateLimit = await checkRateLimit(ctx, keyValidation.keyId);
+    if (!rateLimit.allowed) {
+      return { error: `Rate limit exceeded. Try again after ${new Date(rateLimit.resetAt).toISOString()}` };
     }
 
     // Parse match ID
@@ -254,6 +358,12 @@ export const listMatches = query({
     const keyValidation = await validateApiKeyInternal(ctx, args.apiKey);
     if (!keyValidation) {
       return { error: "Invalid or inactive API key" };
+    }
+
+    // Check rate limit
+    const rateLimit = await checkRateLimit(ctx, keyValidation.keyId);
+    if (!rateLimit.allowed) {
+      return { error: `Rate limit exceeded. Try again after ${new Date(rateLimit.resetAt).toISOString()}` };
     }
 
     // Parse tournament ID
@@ -486,6 +596,12 @@ export const listTournaments = query({
       return { error: "Invalid or inactive API key" };
     }
 
+    // Check rate limit
+    const rateLimit = await checkRateLimit(ctx, keyValidation.keyId);
+    if (!rateLimit.allowed) {
+      return { error: `Rate limit exceeded. Try again after ${new Date(rateLimit.resetAt).toISOString()}` };
+    }
+
     // Query tournaments owned by this user
     let tournaments;
     if (args.status) {
@@ -569,6 +685,12 @@ export const listBrackets = query({
     const keyValidation = await validateApiKeyInternal(ctx, args.apiKey);
     if (!keyValidation) {
       return { error: "Invalid or inactive API key" };
+    }
+
+    // Check rate limit
+    const rateLimit = await checkRateLimit(ctx, keyValidation.keyId);
+    if (!rateLimit.allowed) {
+      return { error: `Rate limit exceeded. Try again after ${new Date(rateLimit.resetAt).toISOString()}` };
     }
 
     // Parse tournament ID

@@ -46,7 +46,7 @@ export function EditableBracket({
   tournamentId,
   canEdit,
   onParticipantUpdate,
-}: EditableBracketProps) {
+}: EditableBracketProps): React.ReactNode {
   const updatePlaceholderName = useMutation(api.tournamentParticipants.updatePlaceholderName);
   const [editingSlot, setEditingSlot] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -262,7 +262,7 @@ export function PrintableBracket({
   matches: Match[];
   format: string;
   title?: string;
-}) {
+}): React.ReactNode {
   // Group matches by round
   const rounds = matches.reduce(
     (acc, match) => {

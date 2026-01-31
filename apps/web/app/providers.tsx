@@ -8,7 +8,7 @@ import { ThemeSyncProvider } from "./components/ThemeSyncProvider";
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({ children }: { children: ReactNode }): ReactNode {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <ConvexAuthProvider client={convex}>

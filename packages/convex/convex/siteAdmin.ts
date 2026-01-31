@@ -514,18 +514,14 @@ export const migrateSystemSettings = internalMutation({
       .first();
 
     if (!settings) {
-      console.log("No systemSettings found, nothing to migrate");
       return null;
     }
 
     // Cast to any to handle legacy field
     const legacySettings = settings as any;
 
-    console.log("Current settings:", JSON.stringify(legacySettings));
-
     // Check if already migrated (has new field with a value)
     if (legacySettings.maxTournamentsPerUser !== undefined && legacySettings.maxTournamentsPerUser !== null) {
-      console.log("Already migrated, maxTournamentsPerUser =", legacySettings.maxTournamentsPerUser);
       return null;
     }
 
@@ -545,7 +541,6 @@ export const migrateSystemSettings = internalMutation({
       updatedAt: Date.now(),
     });
 
-    console.log(`Migrated systemSettings: maxOrganizationsPerUser (${oldValue}) -> maxTournamentsPerUser`);
     return null;
   },
 });

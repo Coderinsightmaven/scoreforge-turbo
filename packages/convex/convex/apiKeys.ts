@@ -28,20 +28,23 @@ function generateKey(): { fullKey: string; prefix: string } {
 }
 
 /**
- * Simple hash function for API keys
- * In production, use a proper cryptographic hash
+ * Cryptographically secure hash function for API keys using SHA-256
+ * Uses the Web Crypto API available in Convex runtime
  */
-function hashKey(key: string): string {
-  let hash = 0;
-  for (let i = 0; i < key.length; i++) {
-    const char = key.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  // Convert to hex and pad
-  const hashStr = Math.abs(hash).toString(16).padStart(8, "0");
-  // Add the key length as additional entropy
-  return `${hashStr}_${key.length}_${key.slice(-4)}`;
+async function hashKeyAsync(key: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(key);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * Synchronous wrapper that returns the hash
+ * Note: This function is async internally but Convex handlers can await it
+ */
+function hashKey(key: string): Promise<string> {
+  return hashKeyAsync(key);
 }
 
 // ============================================
@@ -110,7 +113,7 @@ export const generateApiKey = mutation({
 
     // Generate the key
     const { fullKey, prefix } = generateKey();
-    const hashedKey = hashKey(fullKey);
+    const hashedKey = await hashKey(fullKey);
 
     // Store the key
     const keyId = await ctx.db.insert("apiKeys", {
@@ -201,7 +204,7 @@ export async function validateApiKey(
   ctx: { db: any },
   apiKey: string
 ): Promise<{ userId: string } | null> {
-  const hashedKey = hashKey(apiKey);
+  const hashedKey = await hashKey(apiKey);
 
   const keyRecord = await ctx.db
     .query("apiKeys")

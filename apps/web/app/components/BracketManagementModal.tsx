@@ -15,7 +15,7 @@ type ParticipantType = "individual" | "doubles" | "team";
 export function BracketManagementModal({
   tournamentId,
   onClose,
-}: BracketManagementModalProps) {
+}: BracketManagementModalProps): React.ReactNode {
   const [isCreating, setIsCreating] = useState(false);
   const [newBracketName, setNewBracketName] = useState("");
   const [newBracketFormat, setNewBracketFormat] = useState<TournamentFormat | "">("");

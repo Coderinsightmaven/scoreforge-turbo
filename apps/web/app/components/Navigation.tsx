@@ -9,7 +9,7 @@ import { api } from "@repo/convex";
 import { useState, useEffect, useRef } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 
-export function Navigation() {
+export function Navigation(): React.ReactNode {
   const pathname = usePathname();
   const { signOut } = useAuthActions();
   const user = useQuery(api.users.currentUser);

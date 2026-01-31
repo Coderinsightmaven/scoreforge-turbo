@@ -192,6 +192,13 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_key", ["key"]),
 
+  // Rate limiting for public API
+  apiRateLimits: defineTable({
+    apiKeyId: v.id("apiKeys"),
+    windowStart: v.number(), // Start of the current rate limit window (timestamp)
+    requestCount: v.number(), // Number of requests in this window
+  }).index("by_api_key", ["apiKeyId"]),
+
   // Site-wide administrators (separate from org roles)
   siteAdmins: defineTable({
     userId: v.id("users"),

@@ -10,7 +10,7 @@ type Sport = "tennis" | "volleyball";
 type Format = "single_elimination" | "double_elimination" | "round_robin";
 type ParticipantType = "individual" | "doubles" | "team";
 
-export default function NewTournamentPage() {
+export default function NewTournamentPage(): React.ReactNode {
   const router = useRouter();
   const createTournament = useMutation(api.tournaments.createTournament);
 

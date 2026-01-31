@@ -114,7 +114,7 @@ export function TennisScoreboard({
   tennisState,
   canScore,
   status,
-}: Props) {
+}: Props): React.ReactNode {
   const scorePoint = useMutation(api.tennis.scoreTennisPoint);
   const setServer = useMutation(api.tennis.setTennisServer);
   const [loading, setLoading] = useState(false);
@@ -408,7 +408,7 @@ export function TennisMatchSetup({
     setsToWin: number;
   };
   tournamentStatus?: string;
-}) {
+}): React.ReactNode {
   const initTennisMatch = useMutation(api.tennis.initTennisMatch);
   const startMatch = useMutation(api.matches.startMatch);
   const [firstServer, setFirstServer] = useState(1);

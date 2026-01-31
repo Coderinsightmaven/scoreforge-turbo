@@ -9,7 +9,7 @@ export function Skeleton({
 }: {
   className?: string;
   children?: ReactNode;
-}) {
+}): ReactNode {
   return (
     <div
       className={`relative overflow-hidden bg-bg-elevated rounded animate-pulse ${className}`}
@@ -27,7 +27,7 @@ export function SkeletonText({
 }: {
   lines?: number;
   className?: string;
-}) {
+}): ReactNode {
   return (
     <div className={`space-y-2 ${className}`}>
       {Array.from({ length: lines }).map((_, i) => (
@@ -47,7 +47,7 @@ export function SkeletonAvatar({
 }: {
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
-}) {
+}): ReactNode {
   const sizeClasses = {
     sm: "w-8 h-8",
     md: "w-10 h-10",
@@ -65,7 +65,7 @@ export function SkeletonCard({
 }: {
   className?: string;
   children?: ReactNode;
-}) {
+}): ReactNode {
   return (
     <div className={`bg-bg-card border border-border rounded-xl p-4 ${className}`}>
       {children || (
@@ -80,7 +80,7 @@ export function SkeletonCard({
 }
 
 // Skeleton for stat cards
-export function SkeletonStatCard({ className = "" }: { className?: string }) {
+export function SkeletonStatCard({ className = "" }: { className?: string }): ReactNode {
   return (
     <div className={`bg-bg-card border border-border rounded-xl p-4 ${className}`}>
       <div className="flex items-center gap-3 mb-3">
@@ -93,7 +93,7 @@ export function SkeletonStatCard({ className = "" }: { className?: string }) {
 }
 
 // Skeleton for list items
-export function SkeletonListItem({ className = "" }: { className?: string }) {
+export function SkeletonListItem({ className = "" }: { className?: string }): ReactNode {
   return (
     <div className={`flex items-center gap-4 p-4 ${className}`}>
       <SkeletonAvatar size="md" />
@@ -115,7 +115,7 @@ export function SkeletonTable({
   rows?: number;
   cols?: number;
   className?: string;
-}) {
+}): ReactNode {
   return (
     <div className={`bg-bg-card border border-border rounded-xl overflow-hidden ${className}`}>
       {/* Header */}
@@ -143,7 +143,7 @@ export function SkeletonTable({
 }
 
 // Skeleton for tournament brackets
-export function SkeletonBracket({ className = "" }: { className?: string }) {
+export function SkeletonBracket({ className = "" }: { className?: string }): ReactNode {
   return (
     <div className={`flex gap-8 overflow-x-auto p-4 ${className}`}>
       {[4, 2, 1].map((count, roundIndex) => (
@@ -173,7 +173,7 @@ export function SkeletonBracket({ className = "" }: { className?: string }) {
 }
 
 // Skeleton for match scoreboard
-export function SkeletonScoreboard({ className = "" }: { className?: string }) {
+export function SkeletonScoreboard({ className = "" }: { className?: string }): ReactNode {
   return (
     <div className={`flex items-center justify-center gap-4 p-8 ${className}`}>
       {/* Team 1 */}
@@ -209,7 +209,7 @@ export function SkeletonPageHeader({
   withBackButton?: boolean;
   withActions?: boolean;
   className?: string;
-}) {
+}): ReactNode {
   return (
     <div className={`${className}`}>
       {withBackButton && <Skeleton className="h-5 w-24 mb-4" />}
@@ -235,7 +235,7 @@ export function SkeletonTabs({
 }: {
   count?: number;
   className?: string;
-}) {
+}): ReactNode {
   return (
     <div className={`flex gap-2 ${className}`}>
       {Array.from({ length: count }).map((_, i) => (
@@ -252,7 +252,7 @@ export function SkeletonForm({
 }: {
   fields?: number;
   className?: string;
-}) {
+}): ReactNode {
   return (
     <div className={`space-y-6 ${className}`}>
       {Array.from({ length: fields }).map((_, i) => (

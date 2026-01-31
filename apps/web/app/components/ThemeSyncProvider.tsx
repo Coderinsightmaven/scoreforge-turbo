@@ -10,7 +10,7 @@ import { useEffect, useRef } from "react";
  * - On mount, loads the saved theme from Convex and applies it
  * - When theme changes locally, saves it to Convex
  */
-export function ThemeSyncProvider({ children }: { children: React.ReactNode }) {
+export function ThemeSyncProvider({ children }: { children: React.ReactNode }): React.ReactNode {
   const { theme, setTheme } = useTheme();
   const savedTheme = useQuery(api.users.getThemePreference);
   const setThemeMutation = useMutation(api.users.setThemePreference);

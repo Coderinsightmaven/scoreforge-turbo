@@ -44,7 +44,7 @@ const features = [
   },
 ];
 
-export default function LandingPage() {
+export default function LandingPage(): React.ReactNode {
   return (
     <div className="min-h-screen bg-bg-primary text-text-primary">
       <AuthLoading>

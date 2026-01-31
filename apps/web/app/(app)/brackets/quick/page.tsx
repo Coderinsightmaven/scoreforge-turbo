@@ -11,7 +11,7 @@ import {
 
 type BracketFormat = "single_elimination" | "double_elimination";
 
-export default function QuickBracketPage() {
+export default function QuickBracketPage(): React.ReactNode {
   const [size, setSize] = useState<number>(8);
   const [format, setFormat] = useState<BracketFormat>("single_elimination");
   const [matches, setMatches] = useState<BlankMatch[] | null>(null);

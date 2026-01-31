@@ -31,7 +31,7 @@ export default function AddParticipantPage({
   params,
 }: {
   params: Promise<{ id: string }>;
-}) {
+}): React.ReactNode {
   const { id: tournamentId } = use(params);
   const router = useRouter();
 

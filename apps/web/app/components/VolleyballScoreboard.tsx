@@ -51,7 +51,7 @@ export function VolleyballScoreboard({
   volleyballState,
   canScore,
   status,
-}: Props) {
+}: Props): React.ReactNode {
   const scorePoint = useMutation(api.volleyball.scoreVolleyballPoint);
   const setServer = useMutation(api.volleyball.setVolleyballServer);
   const adjustScore = useMutation(api.volleyball.adjustVolleyballScore);
@@ -366,7 +366,7 @@ export function VolleyballMatchSetup({
     minLeadToWin: number;
   };
   tournamentStatus?: string;
-}) {
+}): React.ReactNode {
   const initVolleyballMatch = useMutation(api.volleyball.initVolleyballMatch);
   const startMatch = useMutation(api.matches.startMatch);
   const [firstServer, setFirstServer] = useState(1);

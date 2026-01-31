@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Skeleton, SkeletonForm } from "@/app/components/Skeleton";
 
-export default function SettingsPage() {
+export default function SettingsPage(): React.ReactNode {
   const user = useQuery(api.users.currentUser);
   const updateProfile = useMutation(api.users.updateProfile);
   const { signOut } = useAuthActions();

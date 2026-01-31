@@ -14,7 +14,7 @@ export default function MatchDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
-}) {
+}): React.ReactNode {
   const { id } = use(params);
   const match = useQuery(api.matches.getMatch, { matchId: id as any });
 

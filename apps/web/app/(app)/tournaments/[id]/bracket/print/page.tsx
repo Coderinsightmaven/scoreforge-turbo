@@ -10,7 +10,7 @@ export default function PrintBracketPage({
   params,
 }: {
   params: Promise<{ id: string }>;
-}) {
+}): React.ReactNode {
   const { id } = use(params);
   const searchParams = useSearchParams();
   const bracketIdParam = searchParams.get("bracketId");
