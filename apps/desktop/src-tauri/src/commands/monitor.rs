@@ -243,7 +243,10 @@ pub async fn toggle_scoreboard_fullscreen(app: AppHandle, window_id: String) -> 
                         && current_pos.y >= pos.y
                         && current_pos.y < pos.y + size.height as i32
                 })
-                .map(|m| m.position())
+                .map(|m| {
+                    let pos = m.position();
+                    tauri::PhysicalPosition { x: pos.x, y: pos.y }
+                })
                 .unwrap_or_else(|| tauri::PhysicalPosition { x: 0, y: 0 });
 
             // Exiting fullscreen - reset position to monitor's origin
