@@ -224,13 +224,35 @@ pub async fn toggle_scoreboard_fullscreen(app: AppHandle, window_id: String) -> 
         let is_fullscreen = window.is_fullscreen().map_err(|e| e.to_string())?;
 
         if is_fullscreen {
-            // Exiting fullscreen - reset position to 0,0
+            // Get current window position before exiting fullscreen to determine which monitor it's on
+            let current_pos = window.outer_position().map_err(|e| e.to_string())?;
+
+            // Find which monitor the window is currently on
+            let monitors: Vec<_> = app.available_monitors()
+                .map_err(|e| e.to_string())?
+                .into_iter()
+                .collect();
+
+            // Find the monitor that contains the current window position
+            let target_monitor_pos = monitors.iter()
+                .find(|m| {
+                    let pos = m.position();
+                    let size = m.size();
+                    current_pos.x >= pos.x
+                        && current_pos.x < pos.x + size.width as i32
+                        && current_pos.y >= pos.y
+                        && current_pos.y < pos.y + size.height as i32
+                })
+                .map(|m| m.position())
+                .unwrap_or_else(|| tauri::PhysicalPosition { x: 0, y: 0 });
+
+            // Exiting fullscreen - reset position to monitor's origin
             window.set_fullscreen(false).map_err(|e| e.to_string())?;
             // Small delay to let fullscreen transition complete
             std::thread::sleep(std::time::Duration::from_millis(100));
             window.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
-                x: 0,
-                y: 0
+                x: target_monitor_pos.x,
+                y: target_monitor_pos.y
             })).map_err(|e| e.to_string())?;
         } else {
             // Entering fullscreen
