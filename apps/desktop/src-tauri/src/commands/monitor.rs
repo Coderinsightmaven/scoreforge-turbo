@@ -114,26 +114,42 @@ pub async fn create_scoreboard_window(
         println!("🎾 [RUST] No scoreboard data provided for window: {}", window_id);
     }
 
-    // Create window at position 0,0 and set fullscreen
-    println!("  Creating scoreboard window at position (0, 0) with fullscreen");
-
+    // Create window in windowed mode first, then position and set fullscreen
     let window = WebviewWindowBuilder::new(
         &app,
         window_id.clone(),
         WebviewUrl::App("scoreboard.html".into()),
     )
     .title("Scoreboard Display")
-    .position(0.0, 0.0) // Position at top-left of screen
-    .inner_size(width as f64, height as f64)
     .resizable(false)
     .decorations(false)
     .always_on_top(true)
+    .visible(false)
     .skip_taskbar(true)
-    .fullscreen(true) // Start in fullscreen
+    .fullscreen(false)
+    .inner_size(width as f64, height as f64)
     .build()
     .map_err(|e| e.to_string())?;
 
-    println!("  Scoreboard window created in fullscreen at (0, 0)");
+    // Position the window at 0,0
+    println!("  Positioning window at: (0, 0)");
+    window.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
+        x: 0,
+        y: 0
+    })).map_err(|e| e.to_string())?;
+
+    std::thread::sleep(std::time::Duration::from_millis(100));
+
+    // Show the window
+    window.show().map_err(|e| e.to_string())?;
+
+    std::thread::sleep(std::time::Duration::from_millis(200));
+
+    // Set fullscreen
+    println!("  Setting fullscreen...");
+    window.set_fullscreen(true).map_err(|e| e.to_string())?;
+
+    println!("  Scoreboard window created and shown in fullscreen at (0, 0)");
 
     Ok(())
 }
