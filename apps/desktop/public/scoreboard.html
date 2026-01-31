@@ -1805,7 +1805,72 @@
                 startScoreForgeSubscription();
             });
 
+            // Listen for background swap events
+            await listen('update-scoreboard-background', async (event) => {
+                console.log('🖼️ [SCOREBOARD] Received background swap event:', event.payload);
+
+                const { imageId } = event.payload;
+
+                if (!imageId) {
+                    console.log('🖼️ [SCOREBOARD] Invalid background swap event - missing imageId');
+                    return;
+                }
+
+                await updateBackgroundImage(imageId);
+            });
+
             console.log('🎾 [SCOREBOARD] Match change listener set up');
+            console.log('🖼️ [SCOREBOARD] Background swap listener set up');
+        }
+
+        // Update the background image on a running scoreboard
+        async function updateBackgroundImage(newImageId) {
+            const container = document.getElementById('scoreboardContainer');
+            if (!container) return;
+
+            // Find all background components
+            const backgroundElements = container.querySelectorAll('.image-component');
+
+            for (const element of backgroundElements) {
+                // Check if this is a background component by checking z-index (backgrounds have z-index 0)
+                if (element.style.zIndex === '0' || element.style.zIndex === 0) {
+                    try {
+                        if (window.__TAURI__ && window.__TAURI__.core) {
+                            const { invoke } = window.__TAURI__.core;
+                            const imageData = await invoke('get_image_data', {
+                                imageId: newImageId
+                            });
+
+                            // Find existing img or create new one
+                            let img = element.querySelector('img');
+                            if (!img) {
+                                img = document.createElement('img');
+                                img.style.width = '100%';
+                                img.style.height = '100%';
+                                img.style.objectFit = 'cover';
+                                element.innerHTML = '';
+                                element.appendChild(img);
+                            }
+
+                            img.src = imageData;
+                            img.alt = 'Background Image';
+
+                            console.log('🖼️ [SCOREBOARD] Background image updated to:', newImageId);
+                        }
+                    } catch (error) {
+                        console.error('🖼️ [SCOREBOARD] Failed to update background image:', error);
+                    }
+                }
+            }
+
+            // Also update the scoreboardData so it persists
+            if (scoreboardData && scoreboardData.components) {
+                for (const component of scoreboardData.components) {
+                    if (component.type === 'background') {
+                        component.data.imageId = newImageId;
+                    }
+                }
+            }
         }
 
         // Set up match change listener when Tauri is available

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppStore } from '../../stores/useAppStore';
 import { useLiveDataStore } from '../../stores/useLiveDataStore';
+import { useImageStore } from '../../stores/useImageStore';
 import { ScoreboardInstance } from '../../types/scoreboard';
 import { TauriAPI, TauriScoreboardConfig } from '../../lib/tauri';
 import { scoreforgeApi } from '../../services/scoreforgeApi';
@@ -912,10 +913,16 @@ const ScoreboardInstanceCard: React.FC<ScoreboardInstanceCardProps> = ({
   scoreForgeConfig,
   onMatchChange,
 }) => {
+  const { images } = useImageStore();
   const [offsetX, setOffsetX] = useState(instance.position.offsetX);
   const [offsetY, setOffsetY] = useState(instance.position.offsetY);
   const [width, setWidth] = useState(instance.size.width);
   const [height, setHeight] = useState(instance.size.height);
+
+  // Background swap state
+  const [showBackgroundSwap, setShowBackgroundSwap] = useState(false);
+  const [selectedBackgroundId, setSelectedBackgroundId] = useState('');
+  const [isSwappingBackground, setIsSwappingBackground] = useState(false);
 
   // Match change state
   const [showMatchChange, setShowMatchChange] = useState(false);
@@ -1118,6 +1125,84 @@ const ScoreboardInstanceCard: React.FC<ScoreboardInstanceCardProps> = ({
       <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
         Final Position: ({instance.position.x + instance.position.offsetX}, {instance.position.y + instance.position.offsetY}) |
         Size: {instance.size.width}x{instance.size.height}
+      </div>
+
+      {/* Background Swap Section */}
+      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-2">
+          <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Background Image
+          </h5>
+          <button
+            onClick={() => setShowBackgroundSwap(!showBackgroundSwap)}
+            className="text-xs text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
+          >
+            {showBackgroundSwap ? 'Cancel' : 'Swap Background'}
+          </button>
+        </div>
+
+        {showBackgroundSwap && (
+          <div className="space-y-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-md">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Select New Background
+              </label>
+              {images.length === 0 ? (
+                <p className="text-xs text-gray-500">No images available. Upload images in the designer first.</p>
+              ) : (
+                <select
+                  value={selectedBackgroundId}
+                  onChange={(e) => setSelectedBackgroundId(e.target.value)}
+                  className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="">Select image...</option>
+                  {images.map((img) => (
+                    <option key={img.id} value={img.id}>
+                      {img.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            {selectedBackgroundId && (
+              <div className="flex items-center gap-2">
+                {(() => {
+                  const selectedImg = images.find(img => img.id === selectedBackgroundId);
+                  return selectedImg ? (
+                    <img
+                      src={selectedImg.thumbnail}
+                      alt={selectedImg.name}
+                      className="w-16 h-12 object-cover rounded border border-gray-300 dark:border-gray-600"
+                    />
+                  ) : null;
+                })()}
+                <button
+                  onClick={async () => {
+                    setIsSwappingBackground(true);
+                    try {
+                      const { emitTo } = await import('@tauri-apps/api/event');
+                      await emitTo(instance.windowId, 'update-scoreboard-background', {
+                        imageId: selectedBackgroundId,
+                      });
+                      console.log(`🖼️ [MSM] Emitted background swap to window ${instance.windowId}`);
+                      setShowBackgroundSwap(false);
+                      setSelectedBackgroundId('');
+                    } catch (error) {
+                      console.error('Failed to swap background:', error);
+                    } finally {
+                      setIsSwappingBackground(false);
+                    }
+                  }}
+                  disabled={isSwappingBackground}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white text-sm font-medium py-1.5 px-3 rounded transition-colors"
+                >
+                  {isSwappingBackground ? 'Applying...' : 'Apply Background'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Match Change Section */}
