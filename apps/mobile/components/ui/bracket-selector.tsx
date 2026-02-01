@@ -1,6 +1,8 @@
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useState, useEffect } from 'react';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   FadeIn,
+  FadeOut,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -10,10 +12,10 @@ import Animated, {
 import { useQuery } from 'convex/react';
 import { api } from '@repo/convex';
 import type { Id } from '@repo/convex/dataModel';
-import { useEffect } from 'react';
 
 import { ThemedText } from '@/components/themed-text';
-import { Spacing, Radius } from '@/constants/theme';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Spacing, Radius, Shadows } from '@/constants/theme';
 import { useThemeColors } from '@/hooks/use-theme-color';
 
 type BracketStatus = 'draft' | 'active' | 'completed';
@@ -66,6 +68,7 @@ export function BracketSelector({
   onSelectBracket,
 }: BracketSelectorProps) {
   const colors = useThemeColors();
+  const [isOpen, setIsOpen] = useState(false);
 
   const brackets = useQuery(api.tournamentBrackets.listBrackets, {
     tournamentId,
@@ -73,8 +76,7 @@ export function BracketSelector({
 
   if (brackets === undefined) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.bgSecondary, borderBottomColor: colors.border }]}>
-        <View style={[styles.skeleton, { backgroundColor: colors.bgTertiary }]} />
+      <View style={[styles.container, { borderBottomColor: colors.border }]}>
         <View style={[styles.skeleton, { backgroundColor: colors.bgTertiary }]} />
       </View>
     );
@@ -85,115 +87,207 @@ export function BracketSelector({
     return null;
   }
 
+  const selectedBracket = selectedBracketId
+    ? brackets.find((b) => b._id === selectedBracketId)
+    : null;
+
+  const displayText = selectedBracket ? selectedBracket.name : 'All Brackets';
+
+  const handleSelect = (bracketId: Id<'tournamentBrackets'> | null) => {
+    onSelectBracket(bracketId);
+    setIsOpen(false);
+  };
+
   return (
-    <Animated.View
-      entering={FadeIn.duration(300)}
-      style={[styles.container, { backgroundColor: colors.bgSecondary, borderBottomColor: colors.border }]}
-    >
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* All Brackets option */}
+    <>
+      {/* Dropdown Trigger */}
+      <View style={[styles.container, { borderBottomColor: colors.border }]}>
         <Pressable
-          onPress={() => onSelectBracket(null)}
+          onPress={() => setIsOpen(true)}
           style={[
-            styles.tab,
-            selectedBracketId === null
-              ? { backgroundColor: colors.accentGlow, borderColor: colors.accent + '50' }
-              : { backgroundColor: colors.bgCard, borderColor: colors.border },
+            styles.dropdownTrigger,
+            { backgroundColor: colors.bgCard, borderColor: colors.border },
           ]}
         >
-          <ThemedText
-            style={[
-              styles.tabText,
-              { color: selectedBracketId === null ? colors.accent : colors.textSecondary },
-            ]}
-          >
-            All Brackets
-          </ThemedText>
-          <ThemedText style={[styles.tabCount, { color: colors.textMuted }]}>
-            ({brackets.length})
-          </ThemedText>
+          <View style={styles.triggerContent}>
+            {selectedBracket && (
+              <StatusIndicator status={selectedBracket.status} colors={colors} />
+            )}
+            <ThemedText style={[styles.triggerText, { color: colors.textPrimary }]}>
+              {displayText}
+            </ThemedText>
+            {selectedBracket && (
+              <ThemedText style={[styles.participantCount, { color: colors.textMuted }]}>
+                ({selectedBracket.participantCount})
+              </ThemedText>
+            )}
+          </View>
+          <IconSymbol
+            name="chevron.down"
+            size={16}
+            color={colors.textMuted}
+          />
         </Pressable>
+      </View>
 
-        {/* Divider */}
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-        {/* Individual bracket tabs */}
-        {brackets.map((bracket) => (
-          <Pressable
-            key={bracket._id}
-            onPress={() => onSelectBracket(bracket._id)}
+      {/* Dropdown Modal */}
+      <Modal
+        visible={isOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsOpen(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setIsOpen(false)}
+        >
+          <Animated.View
+            entering={FadeIn.duration(150)}
+            exiting={FadeOut.duration(100)}
             style={[
-              styles.tab,
-              selectedBracketId === bracket._id
-                ? { backgroundColor: colors.accentGlow, borderColor: colors.accent + '50' }
-                : { backgroundColor: colors.bgCard, borderColor: colors.border },
+              styles.dropdownMenu,
+              {
+                backgroundColor: colors.bgCard,
+                borderColor: colors.border,
+                ...Shadows.md,
+              },
             ]}
           >
-            <StatusIndicator status={bracket.status} colors={colors} />
-            <ThemedText
+            {/* All Brackets Option */}
+            <Pressable
+              onPress={() => handleSelect(null)}
               style={[
-                styles.tabText,
-                { color: selectedBracketId === bracket._id ? colors.accent : colors.textSecondary },
+                styles.menuItem,
+                selectedBracketId === null && { backgroundColor: colors.accentGlow },
+                { borderBottomColor: colors.border },
               ]}
-              numberOfLines={1}
             >
-              {bracket.name}
-            </ThemedText>
-            <ThemedText style={[styles.tabCount, { color: colors.textMuted }]}>
-              ({bracket.participantCount})
-            </ThemedText>
-          </Pressable>
-        ))}
-      </ScrollView>
-    </Animated.View>
+              <ThemedText
+                style={[
+                  styles.menuItemText,
+                  { color: selectedBracketId === null ? colors.accent : colors.textPrimary },
+                ]}
+              >
+                All Brackets
+              </ThemedText>
+              <ThemedText style={[styles.menuItemCount, { color: colors.textMuted }]}>
+                {brackets.length} brackets
+              </ThemedText>
+              {selectedBracketId === null && (
+                <IconSymbol name="checkmark" size={16} color={colors.accent} />
+              )}
+            </Pressable>
+
+            {/* Individual Brackets */}
+            {brackets.map((bracket, index) => (
+              <Pressable
+                key={bracket._id}
+                onPress={() => handleSelect(bracket._id)}
+                style={[
+                  styles.menuItem,
+                  selectedBracketId === bracket._id && { backgroundColor: colors.accentGlow },
+                  index < brackets.length - 1 && { borderBottomColor: colors.border, borderBottomWidth: 1 },
+                ]}
+              >
+                <View style={styles.menuItemLeft}>
+                  <StatusIndicator status={bracket.status} colors={colors} />
+                  <ThemedText
+                    style={[
+                      styles.menuItemText,
+                      { color: selectedBracketId === bracket._id ? colors.accent : colors.textPrimary },
+                    ]}
+                  >
+                    {bracket.name}
+                  </ThemedText>
+                </View>
+                <View style={styles.menuItemRight}>
+                  <ThemedText style={[styles.menuItemCount, { color: colors.textMuted }]}>
+                    {bracket.participantCount} participants
+                  </ThemedText>
+                  {selectedBracketId === bracket._id && (
+                    <IconSymbol name="checkmark" size={16} color={colors.accent} />
+                  )}
+                </View>
+              </Pressable>
+            ))}
+          </Animated.View>
+        </Pressable>
+      </Modal>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    borderBottomWidth: 1,
-    paddingVertical: Spacing.sm,
-  },
-  scrollContent: {
     paddingHorizontal: Spacing.lg,
-    gap: Spacing.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
   },
   skeleton: {
-    height: 32,
-    width: 80,
+    height: 40,
     borderRadius: Radius.md,
-    marginHorizontal: Spacing.lg,
   },
-  tab: {
+  dropdownTrigger: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    justifyContent: 'space-between',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.md,
     borderWidth: 1,
   },
-  tabText: {
-    fontSize: 13,
+  triggerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  triggerText: {
+    fontSize: 14,
     fontWeight: '500',
   },
-  tabCount: {
-    fontSize: 11,
+  participantCount: {
+    fontSize: 12,
   },
   statusDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
   },
-  divider: {
-    width: 1,
-    height: 24,
-    marginHorizontal: Spacing.xs,
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.lg,
+  },
+  dropdownMenu: {
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+  },
+  menuItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  menuItemRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  menuItemText: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  menuItemCount: {
+    fontSize: 12,
   },
 });
