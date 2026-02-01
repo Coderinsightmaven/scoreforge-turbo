@@ -103,18 +103,19 @@ export const listMatches = query({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
-      throw new Error("Not authenticated");
+      return [];
     }
 
     const tournament = await ctx.db.get(args.tournamentId);
     if (!tournament) {
-      throw new Error("Tournament not found");
+      // Return empty array if tournament doesn't exist (e.g., deleted)
+      return [];
     }
 
     // Check if user has access (owner or scorer)
     const hasAccess = await canScoreTournament(ctx, tournament, userId);
     if (!hasAccess) {
-      throw new Error("Not authorized");
+      return [];
     }
 
     // Query matches with appropriate index

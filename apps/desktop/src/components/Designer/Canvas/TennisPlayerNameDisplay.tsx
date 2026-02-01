@@ -17,6 +17,16 @@ export const TennisPlayerNameDisplay: React.FC<TennisPlayerNameDisplayProps> = (
   componentData,
   fallbackText,
 }) => {
+  // Helper to format name as "F. LastName"
+  const formatDoublesName = (fullName: string | undefined): string => {
+    if (!fullName || typeof fullName !== 'string') return '';
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0]; // Just last name
+    const firstName = parts[0];
+    const lastName = parts.slice(1).join(' ');
+    return `${firstName.charAt(0)}. ${lastName}`;
+  };
+
   const getDisplayValue = (): React.ReactNode => {
     if (!tennisMatch) {
       return fallbackText || getDefaultText();
@@ -29,12 +39,31 @@ export const TennisPlayerNameDisplay: React.FC<TennisPlayerNameDisplayProps> = (
           : tennisMatch.player1?.name || 'Player 1';
 
       case ComponentType.TENNIS_DOUBLES_PLAYER_NAME:
-        // For doubles, use the TeamNames component to display team names from side notes
-        const teamNumber = (componentData.playerNumber === 1 || componentData.playerNumber === 2) ? 1 : 2;
+        // For doubles, show both player names for a team
+        // 1 = Team 1 (both players), 2 = Team 2 (both players)
+        const teamSelection = componentData.playerNumber || 1;
+        const separator = componentData.separator || ' / ';
+
+        if (tennisMatch.doublesPlayers) {
+          if (teamSelection === 1) {
+            const p1 = formatDoublesName(tennisMatch.doublesPlayers.team1?.player1?.name);
+            const p2 = formatDoublesName(tennisMatch.doublesPlayers.team1?.player2?.name);
+            if (p1 && p2) return `${p1}${separator}${p2}`;
+            if (p1) return p1;
+            if (p2) return p2;
+          } else if (teamSelection === 2) {
+            const p1 = formatDoublesName(tennisMatch.doublesPlayers.team2?.player1?.name);
+            const p2 = formatDoublesName(tennisMatch.doublesPlayers.team2?.player2?.name);
+            if (p1 && p2) return `${p1}${separator}${p2}`;
+            if (p1) return p1;
+            if (p2) return p2;
+          }
+        }
+        // Fallback to team name if doublesPlayers not available
         return (
           <TeamNames
             tennisMatch={tennisMatch}
-            teamSelection={teamNumber}
+            teamSelection={teamSelection}
             fallbackText={fallbackText || getDefaultText()}
           />
         );
@@ -69,10 +98,10 @@ export const TennisPlayerNameDisplay: React.FC<TennisPlayerNameDisplayProps> = (
       case ComponentType.TENNIS_PLAYER_NAME:
         return `Player ${componentData.playerNumber || 1}`;
       case ComponentType.TENNIS_DOUBLES_PLAYER_NAME:
-        const playerNum = componentData.playerNumber || 1;
-        if (playerNum === 1 || playerNum === 2) return 'Smith / Johnson';
-        if (playerNum === 3 || playerNum === 4) return 'Williams / Brown';
-        return 'Smith / Johnson';
+        const doublesTeam = componentData.playerNumber || 1;
+        if (doublesTeam === 1) return 'J. Smith / M. Johnson';
+        if (doublesTeam === 2) return 'A. Williams / K. Brown';
+        return 'J. Smith / M. Johnson';
       case ComponentType.TENNIS_TEAM_NAMES:
         const teamSelection = componentData.teamSelection || 0;
         if (teamSelection === 1) return 'Team 1';

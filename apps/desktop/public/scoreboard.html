@@ -378,6 +378,7 @@
                     } else if (component.type === 'video') {
                         await renderVideoComponent(component);
                     } else if (component.type === 'tennis_player_name' ||
+                               component.type === 'tennis_doubles_player_name' ||
                                component.type === 'tennis_team_names' ||
                                component.type === 'tennis_adaptive_team_display' ||
                                component.type === 'tennis_game_score' ||
@@ -695,6 +696,52 @@
                         // Format: "First Last" for singles, "F. LastName1 / F. LastName2" for doubles
                         newValue = playerNumber === 1 ? (match.player1?.name || 'Player 1') : (match.player2?.name || 'Player 2');
                         break;
+                    case 'tennis_doubles_player_name':
+                        // Maps to: match.doublesPlayers.team1/team2.player1.name + player2.name
+                        // Format: "F. LastName1 / F. LastName2" for each doubles team
+                        const separator = component.getAttribute('data-separator') || ' / ';
+
+                        // Helper to format name as "F. LastName"
+                        const formatDoublesName = (fullName) => {
+                            if (!fullName || typeof fullName !== 'string') return '';
+                            const parts = fullName.trim().split(/\s+/);
+                            if (parts.length === 1) return parts[0]; // Just last name
+                            const firstName = parts[0];
+                            const lastName = parts.slice(1).join(' ');
+                            return `${firstName.charAt(0)}. ${lastName}`;
+                        };
+
+                        if (match.doublesPlayers) {
+                            if (playerNumber === 1) {
+                                const p1 = formatDoublesName(match.doublesPlayers.team1?.player1?.name);
+                                const p2 = formatDoublesName(match.doublesPlayers.team1?.player2?.name);
+                                if (p1 && p2) {
+                                    newValue = `${p1}${separator}${p2}`;
+                                } else if (p1) {
+                                    newValue = p1;
+                                } else if (p2) {
+                                    newValue = p2;
+                                } else {
+                                    newValue = match.team1Name || 'Team 1';
+                                }
+                            } else {
+                                const p1 = formatDoublesName(match.doublesPlayers.team2?.player1?.name);
+                                const p2 = formatDoublesName(match.doublesPlayers.team2?.player2?.name);
+                                if (p1 && p2) {
+                                    newValue = `${p1}${separator}${p2}`;
+                                } else if (p1) {
+                                    newValue = p1;
+                                } else if (p2) {
+                                    newValue = p2;
+                                } else {
+                                    newValue = match.team2Name || 'Team 2';
+                                }
+                            }
+                        } else {
+                            // Fallback to team names if doublesPlayers not available
+                            newValue = playerNumber === 1 ? (match.team1Name || 'Team 1') : (match.team2Name || 'Team 2');
+                        }
+                        break;
                     case 'tennis_team_names':
                         // Maps to: match.team1Name / match.team2Name
                         // Format: Team names from the match data
@@ -986,6 +1033,9 @@
                 switch (componentType) {
                     case 'tennis_player_name':
                         defaultValue = `Player ${playerNumber}`;
+                        break;
+                    case 'tennis_doubles_player_name':
+                        defaultValue = playerNumber === 1 ? 'J. Smith / M. Johnson' : 'A. Williams / K. Brown';
                         break;
                     case 'tennis_team_names':
                         const teamSelection = parseInt(component.getAttribute('data-team-selection')) || 0;
@@ -1697,6 +1747,11 @@
                 element.setAttribute('data-team-selection', component.data.teamSelection || 0);
             }
 
+            // Set data-separator for tennis_doubles_player_name components
+            if (component.type === 'tennis_doubles_player_name') {
+                element.setAttribute('data-separator', component.data.separator || ' / ');
+            }
+
             // Auto-scaling disabled - use font size from designer
             // The designer's font size will be used as-is
 
@@ -1707,6 +1762,8 @@
             switch (componentType) {
                 case 'tennis_player_name':
                     return `Player ${playerNumber || 1}`;
+                case 'tennis_doubles_player_name':
+                    return playerNumber === 1 ? 'J. Smith / M. Johnson' : 'A. Williams / K. Brown';
                 case 'tennis_game_score':
                     return '0';
                 case 'tennis_set_score':

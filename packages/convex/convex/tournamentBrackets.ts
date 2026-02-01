@@ -84,12 +84,13 @@ export const listBrackets = query({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
-      throw new Error("Not authenticated");
+      return [];
     }
 
     const hasAccess = await canViewTournament(ctx, args.tournamentId, userId);
     if (!hasAccess) {
-      throw new Error("Not authorized");
+      // Return empty array if tournament doesn't exist or user doesn't have access
+      return [];
     }
 
     const brackets = await ctx.db
@@ -220,69 +221,72 @@ export const getBracket = query({
  */
 export const getBracketMatches = query({
   args: { bracketId: v.id("tournamentBrackets") },
-  returns: v.object({
-    format: tournamentFormats,
-    sport: v.string(),
-    matches: v.array(
-      v.object({
-        _id: v.id("matches"),
-        round: v.number(),
-        matchNumber: v.number(),
-        bracketType: v.optional(v.string()),
-        bracketPosition: v.optional(v.number()),
-        participant1: v.optional(
-          v.object({
-            _id: v.id("tournamentParticipants"),
-            displayName: v.string(),
-            seed: v.optional(v.number()),
-            isPlaceholder: v.optional(v.boolean()),
-          })
-        ),
-        participant2: v.optional(
-          v.object({
-            _id: v.id("tournamentParticipants"),
-            displayName: v.string(),
-            seed: v.optional(v.number()),
-            isPlaceholder: v.optional(v.boolean()),
-          })
-        ),
-        participant1Score: v.number(),
-        participant2Score: v.number(),
-        winnerId: v.optional(v.id("tournamentParticipants")),
-        status: v.union(
-          v.literal("pending"),
-          v.literal("scheduled"),
-          v.literal("live"),
-          v.literal("completed"),
-          v.literal("bye")
-        ),
-        scheduledTime: v.optional(v.number()),
-        court: v.optional(v.string()),
-        nextMatchId: v.optional(v.id("matches")),
-        tennisState: v.optional(tennisState),
-        volleyballState: v.optional(volleyballState),
-      })
-    ),
-  }),
+  returns: v.union(
+    v.object({
+      format: tournamentFormats,
+      sport: v.string(),
+      matches: v.array(
+        v.object({
+          _id: v.id("matches"),
+          round: v.number(),
+          matchNumber: v.number(),
+          bracketType: v.optional(v.string()),
+          bracketPosition: v.optional(v.number()),
+          participant1: v.optional(
+            v.object({
+              _id: v.id("tournamentParticipants"),
+              displayName: v.string(),
+              seed: v.optional(v.number()),
+              isPlaceholder: v.optional(v.boolean()),
+            })
+          ),
+          participant2: v.optional(
+            v.object({
+              _id: v.id("tournamentParticipants"),
+              displayName: v.string(),
+              seed: v.optional(v.number()),
+              isPlaceholder: v.optional(v.boolean()),
+            })
+          ),
+          participant1Score: v.number(),
+          participant2Score: v.number(),
+          winnerId: v.optional(v.id("tournamentParticipants")),
+          status: v.union(
+            v.literal("pending"),
+            v.literal("scheduled"),
+            v.literal("live"),
+            v.literal("completed"),
+            v.literal("bye")
+          ),
+          scheduledTime: v.optional(v.number()),
+          court: v.optional(v.string()),
+          nextMatchId: v.optional(v.id("matches")),
+          tennisState: v.optional(tennisState),
+          volleyballState: v.optional(volleyballState),
+        })
+      ),
+    }),
+    v.null()
+  ),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
-      throw new Error("Not authenticated");
+      return null;
     }
 
     const bracket = await ctx.db.get(args.bracketId);
     if (!bracket) {
-      throw new Error("Bracket not found");
+      return null;
     }
 
     const hasAccess = await canViewTournament(ctx, bracket.tournamentId, userId);
     if (!hasAccess) {
-      throw new Error("Not authorized");
+      return null;
     }
 
     const tournament = await ctx.db.get(bracket.tournamentId);
     if (!tournament) {
-      throw new Error("Tournament not found");
+      return null;
     }
 
     // Get all matches for this bracket

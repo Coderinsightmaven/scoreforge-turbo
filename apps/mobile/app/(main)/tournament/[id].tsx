@@ -70,11 +70,32 @@ export default function TournamentDetailScreen() {
     !selectedBracketId ? { tournamentId } : 'skip'
   );
 
-  if (!tournament) {
+  // Loading state
+  if (tournament === undefined) {
     return (
       <ThemedView style={styles.container}>
         <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.xl }]}>
           <ThemedText type="muted">Loading tournament...</ThemedText>
+        </View>
+      </ThemedView>
+    );
+  }
+
+  // Tournament not found or deleted
+  if (tournament === null) {
+    return (
+      <ThemedView style={styles.container}>
+        <View style={[styles.loadingContainer, { paddingTop: insets.top + Spacing.xl }]}>
+          <IconSymbol name="exclamationmark.triangle" size={48} color={colors.textMuted} />
+          <ThemedText type="muted" style={{ marginTop: Spacing.md, textAlign: 'center' }}>
+            Tournament not found
+          </ThemedText>
+          <Pressable
+            onPress={() => router.back()}
+            style={[styles.backButton, { backgroundColor: colors.bgCard, borderColor: colors.border, marginTop: Spacing.lg }]}
+          >
+            <ThemedText style={{ color: colors.textPrimary }}>Go Back</ThemedText>
+          </Pressable>
         </View>
       </ThemedView>
     );
@@ -258,7 +279,15 @@ export default function TournamentDetailScreen() {
             </ThemedText>
           </View>
           <ThemedText type="muted">
-            {tournament.participantCount}/{tournament.maxParticipants} participants
+            {(() => {
+              const selectedBracket = selectedBracketId
+                ? brackets?.find((b) => b._id === selectedBracketId)
+                : brackets?.[0];
+              if (selectedBracket) {
+                return `${selectedBracket.participantCount} participants`;
+              }
+              return `${tournament.participantCount} participants`;
+            })()}
           </ThemedText>
         </Animated.View>
 

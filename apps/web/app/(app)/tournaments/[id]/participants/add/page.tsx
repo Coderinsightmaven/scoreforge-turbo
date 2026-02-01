@@ -2,8 +2,8 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@repo/convex";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { use } from "react";
 
@@ -34,6 +34,8 @@ export default function AddParticipantPage({
 }): React.ReactNode {
   const { id: tournamentId } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const bracketIdFromUrl = searchParams.get("bracketId");
 
   const tournament = useQuery(api.tournaments.getTournament, {
     tournamentId: tournamentId as any,
@@ -49,8 +51,20 @@ export default function AddParticipantPage({
   const [error, setError] = useState<string | null>(null);
 
   // Form state for different participant types
-  // If brackets exist, default to first bracket
   const [selectedBracketId, setSelectedBracketId] = useState<string>("");
+  const [initialBracketSet, setInitialBracketSet] = useState(false);
+
+  // Set initial bracket from URL or default to first bracket
+  useEffect(() => {
+    if (brackets && brackets.length > 0 && !initialBracketSet) {
+      if (bracketIdFromUrl && brackets.some(b => b._id === bracketIdFromUrl)) {
+        setSelectedBracketId(bracketIdFromUrl);
+      } else {
+        setSelectedBracketId(brackets[0]._id);
+      }
+      setInitialBracketSet(true);
+    }
+  }, [brackets, bracketIdFromUrl, initialBracketSet]);
   const [playerName, setPlayerName] = useState("");
   const [player1Name, setPlayer1Name] = useState("");
   const [player2Name, setPlayer2Name] = useState("");
@@ -89,7 +103,10 @@ export default function AddParticipantPage({
 
       const seedValue = seed ? parseInt(seed, 10) : undefined;
 
-      if (tournament.participantType === "individual") {
+      // Get the effective participant type for the selected bracket
+      const bracketParticipantType = brackets?.find(b => b._id === selectedBracketId)?.participantType || tournament.participantType;
+
+      if (bracketParticipantType === "individual") {
         if (!playerName.trim()) {
           setError("Please enter a player name");
           setLoading(false);
@@ -105,7 +122,7 @@ export default function AddParticipantPage({
             seed: names.length === 1 ? seedValue : undefined, // Only use seed for single participant
           });
         }
-      } else if (tournament.participantType === "doubles") {
+      } else if (bracketParticipantType === "doubles") {
         if (!player1Name.trim() || !player2Name.trim()) {
           setError("Please enter both player names");
           setLoading(false);
@@ -130,7 +147,7 @@ export default function AddParticipantPage({
             seed: players1.length === 1 ? seedValue : undefined,
           });
         }
-      } else if (tournament.participantType === "team") {
+      } else if (bracketParticipantType === "team") {
         if (!teamName.trim()) {
           setError("Please enter a team name");
           setLoading(false);
@@ -158,6 +175,9 @@ export default function AddParticipantPage({
   // Get selected bracket info (tournaments always have at least one bracket)
   const selectedBracket = brackets?.find(b => b._id === selectedBracketId);
 
+  // Use bracket's participant type if set, otherwise fall back to tournament's
+  const effectiveParticipantType = selectedBracket?.participantType || tournament.participantType;
+
   // Calculate participant count and max based on selected bracket
   const currentParticipantCount = selectedBracket?.participantCount ?? 0;
   const maxParticipants = selectedBracket?.maxParticipants;
@@ -168,7 +188,7 @@ export default function AddParticipantPage({
     : false;
 
   const getFormTitle = () => {
-    switch (tournament.participantType) {
+    switch (effectiveParticipantType) {
       case "individual":
         return "Register an individual player";
       case "doubles":
@@ -186,7 +206,7 @@ export default function AddParticipantPage({
       return false;
     }
 
-    switch (tournament.participantType) {
+    switch (effectiveParticipantType) {
       case "individual":
         return playerName.trim().length > 0;
       case "doubles":
@@ -271,21 +291,40 @@ export default function AddParticipantPage({
                 <select
                   id="bracketId"
                   value={selectedBracketId}
-                  onChange={(e) => setSelectedBracketId(e.target.value)}
+                  onChange={(e) => {
+                    const newBracketId = e.target.value;
+                    const newBracket = brackets?.find(b => b._id === newBracketId);
+                    const newParticipantType = newBracket?.participantType || tournament.participantType;
+                    const oldParticipantType = effectiveParticipantType;
+
+                    // Clear form fields if participant type changes
+                    if (newParticipantType !== oldParticipantType) {
+                      setPlayerName("");
+                      setPlayer1Name("");
+                      setPlayer2Name("");
+                      setTeamName("");
+                      setSeed("");
+                    }
+                    setSelectedBracketId(newBracketId);
+                  }}
                   className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-lg text-text-primary focus:outline-none focus:border-accent transition-colors"
                   required
                 >
                   <option value="">Select a bracket</option>
-                  {brackets?.map((bracket) => (
-                    <option key={bracket._id} value={bracket._id}>
-                      {bracket.name} ({bracket.participantCount}{bracket.maxParticipants ? ` / ${bracket.maxParticipants}` : ""} participants)
-                    </option>
-                  ))}
+                  {brackets?.map((bracket) => {
+                    const bracketType = bracket.participantType || tournament.participantType;
+                    const typeLabel = bracketType === "individual" ? "Singles" : bracketType === "doubles" ? "Doubles" : "Teams";
+                    return (
+                      <option key={bracket._id} value={bracket._id}>
+                        {bracket.name} - {typeLabel} ({bracket.participantCount}{bracket.maxParticipants ? ` / ${bracket.maxParticipants}` : ""})
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
               {/* Individual: Single Player Name */}
-              {tournament.participantType === "individual" && (
+              {effectiveParticipantType === "individual" && (
                 <div className="space-y-2">
                   <label
                     htmlFor="playerName"
@@ -311,7 +350,7 @@ export default function AddParticipantPage({
               )}
 
               {/* Doubles: Two Player Names */}
-              {tournament.participantType === "doubles" && (
+              {effectiveParticipantType === "doubles" && (
                 <>
                   <div className="space-y-2">
                     <label
@@ -367,7 +406,7 @@ export default function AddParticipantPage({
               )}
 
               {/* Team: Team Name */}
-              {tournament.participantType === "team" && (
+              {effectiveParticipantType === "team" && (
                 <div className="space-y-2">
                   <label
                     htmlFor="teamName"

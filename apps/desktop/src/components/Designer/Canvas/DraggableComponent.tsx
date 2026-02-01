@@ -54,16 +54,15 @@ export const DraggableComponent: React.FC<DraggableComponentProps> = ({
   const { selectedComponents, isResizing } = useCanvasStore();
   const isSelected = selectedComponents.has(component.id);
 
-  // Get live tennis data for tennis components
-  const tennisMatch = component.type.startsWith('tennis_') || component.type.startsWith('player')
-    ? (() => {
-        const state = useLiveDataStore.getState();
-        const activeConnection = state.connections.find(
-          (conn) => conn.provider === 'scoreforge' && conn.isActive
-        );
-        return activeConnection ? state.getLiveData(activeConnection.id) ?? null : null;
-      })()
-    : null;
+  // Get live tennis data for tennis components - use proper selector for reactive updates
+  const isTennisComponent = component.type.startsWith('tennis_') || component.type.startsWith('player');
+  const tennisMatch = useLiveDataStore((state) => {
+    if (!isTennisComponent) return null;
+    const activeConnection = state.connections.find(
+      (conn) => conn.provider === 'scoreforge' && conn.isActive
+    );
+    return activeConnection ? state.activeData[activeConnection.id] ?? null : null;
+  });
 
   const {
     attributes,

@@ -273,6 +273,7 @@ function TournamentActions({
   const [deleting, setDeleting] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [showBlankBracketModal, setShowBlankBracketModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Check if we can show the download button
   const exportInfo = useQuery(api.reports.hasCompletedTennisMatches, {
@@ -311,10 +312,18 @@ function TournamentActions({
 
   const handleGenerateBracket = async () => {
     setGenerating(true);
+    setErrorMessage(null);
     try {
       await generateBracket({ tournamentId: tournament._id as any });
     } catch (err) {
       console.error(err);
+      const message = err instanceof Error ? err.message : "Failed to generate bracket";
+      // Make the error message more user-friendly
+      if (message.includes("Need at least 2 participants")) {
+        setErrorMessage("Each bracket needs at least 2 participants to generate matches. Please add participants to your brackets first, or generate matches for each bracket individually from the Bracket tab.");
+      } else {
+        setErrorMessage(message);
+      }
     }
     setGenerating(false);
   };
@@ -419,6 +428,37 @@ function TournamentActions({
           </button>
         )}
       </div>
+
+      {/* Error Modal */}
+      {errorMessage && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setErrorMessage(null)}
+          />
+          <div className="relative bg-bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-fadeIn">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-14 h-14 mx-auto bg-red/10 rounded-full mb-4">
+                <svg className="w-7 h-7 text-red" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-text-primary text-center mb-2">
+                Unable to Generate Bracket
+              </h3>
+              <p className="text-sm text-text-secondary text-center mb-6">
+                {errorMessage}
+              </p>
+              <button
+                onClick={() => setErrorMessage(null)}
+                className="w-full px-4 py-3 bg-accent text-text-inverse font-semibold rounded-lg hover:bg-accent-bright transition-all"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Blank Bracket Modal */}
       {showBlankBracketModal && (
@@ -730,6 +770,7 @@ function BracketTab({
   canManage: boolean;
 }) {
   const [generating, setGenerating] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const generateBracketMatches = useMutation(api.tournamentBrackets.generateBracketMatches);
   const generateTournamentBracket = useMutation(api.tournaments.generateBracket);
 
@@ -753,6 +794,7 @@ function BracketTab({
 
   const handleGenerateMatches = async () => {
     setGenerating(true);
+    setErrorMessage(null);
     try {
       if (bracketId) {
         await generateBracketMatches({ bracketId: bracketId as any });
@@ -761,7 +803,13 @@ function BracketTab({
       }
     } catch (err) {
       console.error(err);
-      alert(err instanceof Error ? err.message : "Failed to generate matches");
+      const message = err instanceof Error ? err.message : "Failed to generate matches";
+      // Make the error message more user-friendly
+      if (message.includes("Need at least 2 participants")) {
+        setErrorMessage("This bracket needs at least 2 participants to generate matches. Please add more participants first.");
+      } else {
+        setErrorMessage(message);
+      }
     }
     setGenerating(false);
   };
@@ -796,6 +844,35 @@ function BracketTab({
               >
                 {generating ? "Generating..." : "Generate Matches"}
               </button>
+            )}
+            {errorMessage && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div
+                  className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                  onClick={() => setErrorMessage(null)}
+                />
+                <div className="relative bg-bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-fadeIn">
+                  <div className="p-6">
+                    <div className="flex items-center justify-center w-14 h-14 mx-auto bg-red/10 rounded-full mb-4">
+                      <svg className="w-7 h-7 text-red" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-text-primary text-center mb-2">
+                      Unable to Generate Matches
+                    </h3>
+                    <p className="text-sm text-text-secondary text-center mb-6">
+                      {errorMessage}
+                    </p>
+                    <button
+                      onClick={() => setErrorMessage(null)}
+                      className="w-full px-4 py-3 bg-accent text-text-inverse font-semibold rounded-lg hover:bg-accent-bright transition-all"
+                    >
+                      Got it
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
           </>
         ) : (
@@ -1242,7 +1319,7 @@ function ParticipantsTab({
         </h2>
         {canAdd && (
           <Link
-            href={`/tournaments/${tournamentId}/participants/add`}
+            href={`/tournaments/${tournamentId}/participants/add${bracketId ? `?bracketId=${bracketId}` : ''}`}
             className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-accent bg-accent/10 border border-accent/30 rounded-lg hover:bg-accent hover:text-text-inverse transition-all"
           >
             <span>+</span> Add Participant
@@ -1256,7 +1333,7 @@ function ParticipantsTab({
           <p className="text-text-secondary mb-6">No participants yet</p>
           {canAdd && (
             <Link
-              href={`/tournaments/${tournamentId}/participants/add`}
+              href={`/tournaments/${tournamentId}/participants/add${bracketId ? `?bracketId=${bracketId}` : ''}`}
               className="px-4 py-2 text-sm font-semibold text-text-inverse bg-accent rounded-lg hover:bg-accent-bright transition-all"
             >
               Add Participant

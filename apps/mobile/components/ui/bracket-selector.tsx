@@ -99,9 +99,9 @@ export function BracketSelector({
 
   const selectedBracket = selectedBracketId
     ? brackets.find((b) => b._id === selectedBracketId)
-    : null;
+    : brackets[0];
 
-  const displayText = selectedBracket ? selectedBracket.name : 'All Brackets';
+  const displayText = selectedBracket?.name ?? 'Select Bracket';
 
   const handleSelect = (bracketId: Id<'tournamentBrackets'> | null) => {
     onSelectBracket(bracketId);
@@ -120,9 +120,7 @@ export function BracketSelector({
           ]}
         >
           <View style={styles.triggerContent}>
-            {selectedBracket && (
-              <StatusIndicator status={selectedBracket.status} colors={colors} />
-            )}
+            {selectedBracket && <StatusIndicator status={selectedBracket.status} colors={colors} />}
             <ThemedText style={[styles.triggerText, { color: colors.textPrimary }]}>
               {displayText}
             </ThemedText>
@@ -163,31 +161,6 @@ export function BracketSelector({
               },
             ]}
           >
-            {/* All Brackets Option */}
-            <Pressable
-              onPress={() => handleSelect(null)}
-              style={[
-                styles.menuItem,
-                selectedBracketId === null && { backgroundColor: colors.accentGlow },
-                { borderBottomColor: colors.border },
-              ]}
-            >
-              <ThemedText
-                style={[
-                  styles.menuItemText,
-                  { color: selectedBracketId === null ? colors.accent : colors.textPrimary },
-                ]}
-              >
-                All Brackets
-              </ThemedText>
-              <ThemedText style={[styles.menuItemCount, { color: colors.textMuted }]}>
-                {brackets.length} brackets
-              </ThemedText>
-              {selectedBracketId === null && (
-                <IconSymbol name="checkmark" size={16} color={colors.accent} />
-              )}
-            </Pressable>
-
             {/* Individual Brackets */}
             {brackets.map((bracket, index) => (
               <Pressable
