@@ -391,9 +391,9 @@ export const createBracket = mutation({
       throw new Error("Tournament not found");
     }
 
-    // Only allow creating brackets in draft tournaments
-    if (tournament.status !== "draft") {
-      throw new Error("Can only create brackets for draft tournaments");
+    // Only allow creating brackets in draft or active tournaments
+    if (tournament.status !== "draft" && tournament.status !== "active") {
+      throw new Error("Cannot create brackets for completed or cancelled tournaments");
     }
 
     // Get highest displayOrder

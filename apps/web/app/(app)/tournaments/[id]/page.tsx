@@ -144,7 +144,7 @@ export default function TournamentDetailPage({
           tournamentId={id}
           selectedBracketId={selectedBracketId}
           onSelectBracket={setSelectedBracketId}
-          showManageButton={canManage && tournament.status === "draft"}
+          showManageButton={canManage && (tournament.status === "draft" || tournament.status === "active")}
           onManageBrackets={() => setShowBracketManagement(true)}
         />
       )}
