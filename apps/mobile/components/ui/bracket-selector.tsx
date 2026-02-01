@@ -77,7 +77,17 @@ export function BracketSelector({
   if (brackets === undefined) {
     return (
       <View style={[styles.container, { borderBottomColor: colors.border }]}>
-        <View style={[styles.skeleton, { backgroundColor: colors.bgTertiary }]} />
+        <View
+          style={[
+            styles.dropdownTrigger,
+            { backgroundColor: colors.bgCard, borderColor: colors.border },
+          ]}
+        >
+          <View style={styles.triggerContent}>
+            <View style={[styles.skeletonText, { backgroundColor: colors.bgTertiary }]} />
+          </View>
+          <View style={[styles.skeletonIcon, { backgroundColor: colors.bgTertiary }]} />
+        </View>
       </View>
     );
   }
@@ -223,9 +233,15 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
   },
-  skeleton: {
-    height: 40,
-    borderRadius: Radius.md,
+  skeletonText: {
+    height: 16,
+    width: 100,
+    borderRadius: Radius.sm,
+  },
+  skeletonIcon: {
+    height: 16,
+    width: 16,
+    borderRadius: Radius.sm,
   },
   dropdownTrigger: {
     flexDirection: 'row',
