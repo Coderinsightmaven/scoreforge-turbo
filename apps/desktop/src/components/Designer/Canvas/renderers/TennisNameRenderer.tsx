@@ -6,8 +6,40 @@
  */
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { ComponentType, TennisLiveData } from '../../../../types/scoreboard';
-import { TennisPlayerNameDisplay } from '../TennisPlayerNameDisplay';
 import { getDefaultTennisText, getAlignmentClasses } from '../../../../utils/tennisDefaults';
+
+// Global registry to track font sizes across all name components
+// This allows us to sync all name components to use the same (smallest) font size
+const fontSizeRegistry: Map<string, { baseFontSize: number; neededFontSize: number }> = new Map();
+let syncTimeout: ReturnType<typeof setTimeout> | null = null;
+const fontSizeListeners: Set<() => void> = new Set();
+
+function registerFontSize(componentId: string, baseFontSize: number, neededFontSize: number) {
+  fontSizeRegistry.set(componentId, { baseFontSize, neededFontSize });
+
+  // Debounce the sync to batch updates
+  if (syncTimeout) clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(() => {
+    fontSizeListeners.forEach(listener => listener());
+  }, 50);
+}
+
+function unregisterFontSize(componentId: string) {
+  fontSizeRegistry.delete(componentId);
+}
+
+function getMinFontSize(): number {
+  if (fontSizeRegistry.size === 0) return 16;
+
+  let minFontSize = Infinity;
+  fontSizeRegistry.forEach(({ neededFontSize }) => {
+    if (neededFontSize < minFontSize) {
+      minFontSize = neededFontSize;
+    }
+  });
+
+  return minFontSize === Infinity ? 16 : minFontSize;
+}
 
 interface TennisNameRendererProps {
   componentType: ComponentType;
@@ -123,7 +155,7 @@ export const TennisNameRenderer: React.FC<TennisNameRendererProps> = ({
   tennisMatch,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scaledFontSize, setScaledFontSize] = useState(componentStyle.fontSize || 16);
+  const [syncedFontSize, setSyncedFontSize] = useState(componentStyle.fontSize || 16);
   const { justify, textAlign: textAlignClass } = getAlignmentClasses(componentStyle.textAlign);
   const fallbackText = componentData.text || getDefaultTennisText(componentType, componentData);
   const baseFontSize = componentStyle.fontSize || 16;
@@ -131,17 +163,17 @@ export const TennisNameRenderer: React.FC<TennisNameRendererProps> = ({
   // Calculate display text
   const displayText = getDisplayText(componentType, componentData, tennisMatch, fallbackText);
 
-  // Auto-scale font to fit container
-  const calculateScaledFont = useCallback(() => {
+  // Calculate the font size needed for this component and register it
+  const calculateAndRegister = useCallback(() => {
     const container = containerRef.current;
     if (!container || !displayText) {
-      setScaledFontSize(baseFontSize);
+      registerFontSize(componentId, baseFontSize, baseFontSize);
       return;
     }
 
     const containerWidth = container.offsetWidth;
     if (containerWidth === 0) {
-      setScaledFontSize(baseFontSize);
+      registerFontSize(componentId, baseFontSize, baseFontSize);
       return;
     }
 
@@ -164,20 +196,36 @@ export const TennisNameRenderer: React.FC<TennisNameRendererProps> = ({
     const paddingRight = parseFloat(style.paddingRight) || 0;
     const availableWidth = containerWidth - paddingLeft - paddingRight - 4;
 
-    // Calculate scale factor if text is too wide
+    // Calculate the font size needed for this component
+    let neededFontSize = baseFontSize;
     if (textWidth > availableWidth && textWidth > 0) {
       const scaleFactor = availableWidth / textWidth;
-      const newFontSize = Math.max(baseFontSize * scaleFactor, 10); // Minimum 10px
-      setScaledFontSize(newFontSize);
-    } else {
-      setScaledFontSize(baseFontSize);
+      neededFontSize = Math.max(baseFontSize * scaleFactor, 10);
     }
-  }, [displayText, baseFontSize, componentStyle.fontWeight]);
+
+    // Register this component's font size requirement
+    registerFontSize(componentId, baseFontSize, neededFontSize);
+  }, [componentId, displayText, baseFontSize, componentStyle.fontWeight]);
+
+  // Sync handler to get the minimum font size across all components
+  const handleSync = useCallback(() => {
+    const minSize = getMinFontSize();
+    setSyncedFontSize(minSize);
+  }, []);
+
+  // Register for sync updates
+  useEffect(() => {
+    fontSizeListeners.add(handleSync);
+    return () => {
+      fontSizeListeners.delete(handleSync);
+      unregisterFontSize(componentId);
+    };
+  }, [componentId, handleSync]);
 
   // Recalculate on mount and when dependencies change
   useEffect(() => {
-    calculateScaledFont();
-  }, [calculateScaledFont]);
+    calculateAndRegister();
+  }, [calculateAndRegister]);
 
   // Also recalculate when container might resize
   useEffect(() => {
@@ -185,19 +233,19 @@ export const TennisNameRenderer: React.FC<TennisNameRendererProps> = ({
     if (!container) return;
 
     const resizeObserver = new ResizeObserver(() => {
-      calculateScaledFont();
+      calculateAndRegister();
     });
 
     resizeObserver.observe(container);
     return () => resizeObserver.disconnect();
-  }, [calculateScaledFont]);
+  }, [calculateAndRegister]);
 
   return (
     <div
       ref={containerRef}
       className={`w-full h-full flex items-center ${justify} ${textAlignClass} px-2 relative score-change-base tennis-component`}
       style={{
-        fontSize: `${scaledFontSize}px`,
+        fontSize: `${syncedFontSize}px`,
         color: componentStyle.textColor || '#ffffff',
         fontWeight: componentStyle.fontWeight || 'bold',
         overflow: 'hidden',

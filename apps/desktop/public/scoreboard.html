@@ -1029,7 +1029,7 @@
 
         /**
          * Auto-scales tennis name components to fit their container width.
-         * Only applies to player name and doubles name components.
+         * All name components use the same (smallest) font size for visual consistency.
          */
         function autoScaleNameComponents() {
             const nameComponents = document.querySelectorAll(
@@ -1039,13 +1039,16 @@
                 '[data-component-type="tennis_adaptive_team_display"]'
             );
 
+            if (nameComponents.length === 0) return;
+
+            // First pass: Calculate the minimum font size needed across all components
+            let minFontSize = Infinity;
+            let baseFontSize = 16;
+
             nameComponents.forEach(component => {
                 const containerWidth = component.offsetWidth;
-                const containerHeight = component.offsetHeight;
+                if (containerWidth === 0) return;
 
-                if (containerWidth === 0 || containerHeight === 0) return;
-
-                // Get the original font size from the element's style
                 const computedStyle = window.getComputedStyle(component);
                 const originalFontSize = parseFloat(computedStyle.fontSize);
 
@@ -1054,7 +1057,7 @@
                     component.dataset.originalFontSize = originalFontSize;
                 }
 
-                const baseFontSize = parseFloat(component.dataset.originalFontSize);
+                baseFontSize = parseFloat(component.dataset.originalFontSize);
 
                 // Create a temporary span to measure text width
                 const measureSpan = document.createElement('span');
@@ -1073,17 +1076,29 @@
                 // Calculate the available width (accounting for padding)
                 const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
                 const paddingRight = parseFloat(computedStyle.paddingRight) || 0;
-                const availableWidth = containerWidth - paddingLeft - paddingRight - 4; // 4px buffer
+                const availableWidth = containerWidth - paddingLeft - paddingRight - 4;
 
-                // Calculate scale factor if text is too wide
+                // Calculate the font size needed for this component
+                let neededFontSize = baseFontSize;
                 if (textWidth > availableWidth && textWidth > 0) {
                     const scaleFactor = availableWidth / textWidth;
-                    const newFontSize = Math.max(baseFontSize * scaleFactor, 10); // Minimum 10px
-                    component.style.fontSize = newFontSize + 'px';
-                } else {
-                    // Reset to original font size if text fits
-                    component.style.fontSize = baseFontSize + 'px';
+                    neededFontSize = Math.max(baseFontSize * scaleFactor, 10);
                 }
+
+                // Track the minimum font size needed
+                if (neededFontSize < minFontSize) {
+                    minFontSize = neededFontSize;
+                }
+            });
+
+            // If no valid measurements, use base font size
+            if (minFontSize === Infinity) {
+                minFontSize = baseFontSize;
+            }
+
+            // Second pass: Apply the minimum font size to all name components
+            nameComponents.forEach(component => {
+                component.style.fontSize = minFontSize + 'px';
             });
         }
 
