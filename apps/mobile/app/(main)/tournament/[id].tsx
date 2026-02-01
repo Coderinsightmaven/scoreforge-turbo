@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, {
   FadeInDown,
@@ -52,6 +52,13 @@ export default function TournamentDetailScreen() {
 
   const tournament = useQuery(api.tournaments.getTournament, { tournamentId });
   const brackets = useQuery(api.tournamentBrackets.listBrackets, { tournamentId });
+
+  // Set default bracket to first one when brackets load
+  useEffect(() => {
+    if (brackets && brackets.length > 0 && selectedBracketId === null) {
+      setSelectedBracketId(brackets[0]._id);
+    }
+  }, [brackets, selectedBracketId]);
 
   // Get bracket-specific matches when a bracket is selected
   const bracketMatches = useQuery(
