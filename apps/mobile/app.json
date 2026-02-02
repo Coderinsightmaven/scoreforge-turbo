@@ -1,51 +1,38 @@
 {
   "expo": {
-    "name": "ScoreForge",
-    "slug": "scoreforge",
+    "name": "mobile",
+    "slug": "mobile",
     "version": "1.0.0",
-    "orientation": "default",
-    "icon": "./assets/images/logo.png",
-    "scheme": "scoreforge",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+
+    "experiments": {
+      "tsconfigPaths": true
+    },
+
+    "plugins": [],
+
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+
+    "userInterfaceStyle": "light",
+
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true,
-      "backgroundColor": "#0a0a0c",
-      "bundleIdentifier": "com.scoreforge.mobile"
+      "supportsTablet": true
     },
     "android": {
-      "package": "com.scoreforge.mobile",
       "adaptiveIcon": {
-        "backgroundColor": "#0a0a0c",
-        "foregroundImage": "./assets/images/logo.png"
-      },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "navigationBar": {
-        "backgroundColor": "#111115",
-        "barStyle": "light-content"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
       }
-    },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/images/logo.png",
-      "backgroundColor": "#0a0a0c"
-    },
-    "plugins": [
-      "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/logo.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#0a0a0c"
-        }
-      ]
-    ],
-    "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
     }
   }
 }
