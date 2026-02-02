@@ -1,57 +1,105 @@
 import { useAuthActions } from '@convex-dev/auth/react';
 import { useQuery } from 'convex/react';
 import { api } from '@repo/convex';
+import { useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Id } from '@repo/convex/dataModel';
+
+import { TournamentsScreen } from './TournamentsScreen';
+import { TournamentDetailScreen } from './TournamentDetailScreen';
+import { MatchDetailScreen } from './MatchDetailScreen';
+import { TennisScoringScreen } from './TennisScoringScreen';
+import { VolleyballScoringScreen } from './VolleyballScoringScreen';
+
+type Screen =
+  | { type: 'tournaments' }
+  | { type: 'tournament'; tournamentId: Id<'tournaments'> }
+  | { type: 'match'; matchId: Id<'matches'> }
+  | { type: 'scoring'; matchId: Id<'matches'>; sport: 'tennis' | 'volleyball' };
 
 export function HomeScreen() {
   const { signOut } = useAuthActions();
   const user = useQuery(api.users.currentUser);
+  const [screen, setScreen] = useState<Screen>({ type: 'tournaments' });
 
+  if (user === undefined) {
+    return (
+      <View className="flex-1 items-center justify-center bg-gray-50">
+        <ActivityIndicator size="large" color="#f59e0b" />
+      </View>
+    );
+  }
+
+  // Render the appropriate screen based on navigation state
+  if (screen.type === 'tournament') {
+    return (
+      <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+        <TournamentDetailScreen
+          tournamentId={screen.tournamentId}
+          onBack={() => setScreen({ type: 'tournaments' })}
+          onSelectMatch={(matchId) => setScreen({ type: 'match', matchId })}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  if (screen.type === 'match') {
+    return (
+      <MatchDetailScreen
+        matchId={screen.matchId}
+        onBack={() => {
+          // Go back to tournament if we came from there
+          setScreen({ type: 'tournaments' });
+        }}
+        onStartScoring={(matchId, sport) => setScreen({ type: 'scoring', matchId, sport })}
+      />
+    );
+  }
+
+  if (screen.type === 'scoring') {
+    if (screen.sport === 'tennis') {
+      return (
+        <TennisScoringScreen
+          matchId={screen.matchId}
+          onBack={() => setScreen({ type: 'match', matchId: screen.matchId })}
+        />
+      );
+    }
+    return (
+      <VolleyballScoringScreen
+        matchId={screen.matchId}
+        onBack={() => setScreen({ type: 'match', matchId: screen.matchId })}
+      />
+    );
+  }
+
+  // Default: Tournaments list with header
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <View className="flex-1 px-6 py-8">
-        {/* Header */}
-        <View className="mb-8 flex-row items-center justify-between">
-          <View>
-            <Text className="text-2xl font-bold text-gray-900">
-              Welcome back{user?.name ? `, ${user.name.split(' ')[0]}` : ''}
-            </Text>
-            <Text className="mt-1 text-gray-500">ScoreForge Mobile</Text>
-          </View>
-          <View className="h-12 w-12 items-center justify-center rounded-full bg-amber-500">
+    <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+      {/* Header */}
+      <View className="flex-row items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
+        <View>
+          <Text className="text-xl font-bold text-gray-900">
+            {user?.name ? `Hi, ${user.name.split(' ')[0]}` : 'Tournaments'}
+          </Text>
+          <Text className="text-sm text-gray-500">ScoreForge Mobile</Text>
+        </View>
+        <View className="flex-row items-center">
+          <TouchableOpacity
+            className="h-10 w-10 items-center justify-center rounded-full bg-amber-500"
+            onPress={() => signOut()}>
             <Text className="text-lg font-bold text-white">
               {user?.name?.[0]?.toUpperCase() ?? '?'}
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
-
-        {/* Content */}
-        <View className="flex-1 items-center justify-center">
-          {user === undefined ? (
-            <ActivityIndicator size="large" color="#f59e0b" />
-          ) : (
-            <View className="items-center">
-              <View className="mb-4 h-20 w-20 items-center justify-center rounded-2xl bg-gray-100">
-                <Text className="text-4xl">🎾</Text>
-              </View>
-              <Text className="mb-2 text-lg font-semibold text-gray-900">
-                {"You're signed in!"}
-              </Text>
-              <Text className="px-8 text-center text-gray-500">
-                The mobile app is under development. More features coming soon.
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Sign Out Button */}
-        <TouchableOpacity
-          className="items-center rounded-xl bg-gray-100 py-4"
-          onPress={() => signOut()}>
-          <Text className="font-semibold text-gray-700">Sign out</Text>
-        </TouchableOpacity>
       </View>
+
+      {/* Tournaments List */}
+      <TournamentsScreen
+        onSelectTournament={(tournamentId) => setScreen({ type: 'tournament', tournamentId })}
+      />
     </SafeAreaView>
   );
 }
