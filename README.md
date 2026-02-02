@@ -20,7 +20,7 @@ A real-time tournament management platform for organizing competitions, tracking
 ## Tech Stack
 
 - **Frontend** - Next.js 16, React 19, Tailwind CSS
-- **Mobile** - Expo 54, React Native
+- **Mobile** - Expo 54, React Native, NativeWind
 - **Desktop** - Tauri v2, React 18, Rust
 - **Backend** - Convex (serverless database, functions, real-time sync)
 - **Monorepo** - Turborepo with Bun
