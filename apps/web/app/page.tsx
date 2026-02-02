@@ -5,48 +5,9 @@ import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-const features = [
-  {
-    title: "Tournament Brackets",
-    description: "Single elimination, double elimination, and round robin formats with intelligent seeding.",
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-      </svg>
-    ),
-  },
-  {
-    title: "Real-Time Scoring",
-    description: "Live score updates across all devices. Perfect for courtside scorekeeping.",
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-      </svg>
-    ),
-  },
-  {
-    title: "Team Management",
-    description: "Organize players, track performance, and manage rosters across seasons.",
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-      </svg>
-    ),
-  },
-  {
-    title: "Multi-Sport Support",
-    description: "Tennis, volleyball, basketball, and more with sport-specific scoring rules.",
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
-      </svg>
-    ),
-  },
-];
-
 export default function LandingPage(): React.ReactNode {
   return (
-    <div className="min-h-screen bg-bg-primary text-text-primary">
+    <div className="min-h-screen bg-bg-page">
       <AuthLoading>
         <LoadingScreen />
       </AuthLoading>
@@ -64,15 +25,8 @@ export default function LandingPage(): React.ReactNode {
 
 function LoadingScreen() {
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-bg-primary z-50">
-      <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center mb-4">
-        <svg className="w-5 h-5 text-accent animate-pulse" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M13 3L4 14h7v7l9-11h-7V3z" />
-        </svg>
-      </div>
-      <div className="font-display text-xl font-semibold tracking-tight text-text-primary">
-        ScoreForge
-      </div>
+    <div className="fixed inset-0 flex items-center justify-center bg-bg-page">
+      <div className="w-10 h-10 border-3 border-brand/30 border-t-brand rounded-full animate-spin" />
     </div>
   );
 }
@@ -89,109 +43,175 @@ function RedirectToDashboard() {
 
 function LandingContent() {
   return (
-    <>
+    <div>
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-bg-primary/80 backdrop-blur-xl border-b border-border/50">
-        <div className="flex items-center justify-between h-16 px-6 max-w-[1200px] mx-auto">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center">
-              <svg className="w-4 h-4 text-accent" viewBox="0 0 24 24" fill="currentColor">
+      <nav className="sticky top-0 z-50 bg-bg-page/95 backdrop-blur border-b border-border">
+        <div className="container flex items-center justify-between h-16">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-brand rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M13 3L4 14h7v7l9-11h-7V3z" />
               </svg>
             </div>
-            <span className="font-display text-lg font-semibold tracking-tight">ScoreForge</span>
+            <span className="text-lg font-semibold text-text-primary">ScoreForge</span>
           </Link>
+
           <div className="flex items-center gap-4">
             <Link
               href="/sign-in"
-              className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
+              className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
             >
               Sign in
             </Link>
-            <Link
-              href="/sign-up"
-              className="px-4 py-2 text-sm font-semibold text-text-inverse bg-accent rounded-lg hover:bg-accent-bright transition-colors"
-            >
-              Get started
+            <Link href="/sign-up" className="btn-primary !py-2.5 !px-5 !min-h-0">
+              Get Started Free
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center pt-16 px-6">
-        {/* Gradient orbs */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-accent/8 blur-[120px] rounded-full" />
-          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-purple/5 blur-[100px] rounded-full" />
-        </div>
-
-        <div className="relative z-10 text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-bg-card border border-border rounded-full text-sm text-text-secondary mb-8">
-            <span className="w-1.5 h-1.5 bg-success rounded-full animate-pulse" />
-            <span>Live tournament platform</span>
+      {/* Hero Section */}
+      <section className="py-20 md:py-28">
+        <div className="container">
+          <div className="max-w-2xl mx-auto text-center">
+            <h1 className="text-hero text-text-primary mb-6 animate-slideUp">
+              Run tournaments with ease
+            </h1>
+            <p className="text-body-lg text-text-secondary mb-10 animate-slideUp delay-1">
+              Create brackets, track scores in real-time, and manage your competitions — all in one simple place. Perfect for tennis and volleyball.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slideUp delay-2">
+              <Link href="/sign-up" className="btn-primary">
+                Start Your Tournament
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+                </svg>
+              </Link>
+              <Link href="/brackets/quick" className="btn-secondary">
+                Try Bracket Generator
+              </Link>
+            </div>
           </div>
+        </div>
+      </section>
 
-          <h1 className="font-display text-5xl sm:text-6xl md:text-7xl font-semibold tracking-tight leading-[1.1] mb-6">
-            <span className="text-text-primary">Organize tournaments</span>
-            <br />
-            <span className="gradient-text">with precision</span>
-          </h1>
-
-          <p className="text-lg text-text-secondary max-w-xl mx-auto mb-10 leading-relaxed">
-            The modern platform for managing sports tournaments. Create brackets,
-            track scores in real-time, and keep your competitions running smoothly.
+      {/* How It Works */}
+      <section className="py-16 bg-bg-secondary">
+        <div className="container">
+          <h2 className="text-title text-text-primary text-center mb-4">
+            How it works
+          </h2>
+          <p className="text-body text-text-secondary text-center mb-12 max-w-lg mx-auto">
+            Get your tournament running in three simple steps
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/sign-up"
-              className="inline-flex items-center gap-2 px-6 py-3.5 text-base font-semibold text-text-inverse bg-accent rounded-xl hover:bg-accent-bright transition-all duration-200"
-            >
-              Start for free
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
-            </Link>
-            <a
-              href="#features"
-              className="px-6 py-3.5 text-base font-medium text-text-secondary hover:text-text-primary transition-colors"
-            >
-              Learn more
-            </a>
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            {[
+              {
+                step: "1",
+                title: "Create your tournament",
+                description: "Choose your sport, set the format, and add your players. It only takes a minute.",
+              },
+              {
+                step: "2",
+                title: "Generate brackets",
+                description: "We automatically create your bracket with proper seeding and bye handling.",
+              },
+              {
+                step: "3",
+                title: "Score matches live",
+                description: "Tap to score points. Winners advance automatically. Everyone stays updated.",
+              },
+            ].map((item, i) => (
+              <div key={item.step} className="text-center animate-slideUp" style={{ animationDelay: `${i * 100}ms` }}>
+                <div className="w-12 h-12 rounded-full bg-brand text-white text-xl font-bold flex items-center justify-center mx-auto mb-4">
+                  {item.step}
+                </div>
+                <h3 className="text-heading text-text-primary mb-2">{item.title}</h3>
+                <p className="text-body text-text-secondary">{item.description}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section id="features" className="py-24 px-6">
-        <div className="max-w-[1000px] mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-sm font-medium text-accent mb-3">Features</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-text-primary mb-4">
-              Everything you need
-            </h2>
-            <p className="text-text-secondary max-w-md mx-auto">
-              Powerful tools for tournament organizers, coaches, and sports enthusiasts.
-            </p>
-          </div>
+      <section className="py-20">
+        <div className="container">
+          <h2 className="text-title text-text-primary text-center mb-4">
+            Everything you need
+          </h2>
+          <p className="text-body text-text-secondary text-center mb-12 max-w-lg mx-auto">
+            Simple tools that just work, so you can focus on running your event
+          </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {features.map((feature, index) => (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {[
+              {
+                icon: (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                  </svg>
+                ),
+                title: "Multiple formats",
+                description: "Single elimination, double elimination, or round robin — pick what works for you.",
+              },
+              {
+                icon: (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                  </svg>
+                ),
+                title: "Live scoring",
+                description: "Score matches as they happen. Made a mistake? Just hit undo.",
+              },
+              {
+                icon: (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                  </svg>
+                ),
+                title: "Invite helpers",
+                description: "Let others help score matches. You stay in control of your tournament.",
+              },
+              {
+                icon: (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                  </svg>
+                ),
+                title: "Works on any device",
+                description: "Use your phone, tablet, or computer. Everything syncs automatically.",
+              },
+              {
+                icon: (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                  </svg>
+                ),
+                title: "Tennis & volleyball",
+                description: "Proper scoring rules for each sport, including tiebreaks and set points.",
+              },
+              {
+                icon: (
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                  </svg>
+                ),
+                title: "Export results",
+                description: "Download your match results as a spreadsheet when you're done.",
+              },
+            ].map((feature, i) => (
               <div
                 key={feature.title}
-                className="group p-6 bg-bg-card border border-border rounded-2xl hover:border-border-accent transition-all duration-300 animate-fadeInUp"
-                style={{ animationDelay: `${index * 0.1}s` }}
+                className="card card-hover animate-slideUp"
+                style={{ animationDelay: `${i * 50}ms` }}
               >
-                <div className="w-10 h-10 flex items-center justify-center text-accent bg-accent/10 rounded-xl mb-4">
+                <div className="w-12 h-12 rounded-xl bg-brand-light flex items-center justify-center text-brand mb-4">
                   {feature.icon}
                 </div>
-                <h3 className="font-display text-lg font-medium text-text-primary mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-sm text-text-secondary leading-relaxed">
-                  {feature.description}
-                </p>
+                <h3 className="text-heading text-text-primary mb-2">{feature.title}</h3>
+                <p className="text-body text-text-secondary">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -199,42 +219,43 @@ function LandingContent() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 px-6">
-        <div className="relative max-w-2xl mx-auto text-center p-12 bg-bg-card border border-border rounded-3xl overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[150px] bg-accent/10 blur-[80px] rounded-full" />
-          <h2 className="relative font-display text-3xl font-semibold text-text-primary mb-4">
-            Ready to get started?
-          </h2>
-          <p className="relative text-text-secondary mb-8 max-w-md mx-auto">
-            Join organizers running successful tournaments on ScoreForge.
-          </p>
-          <Link
-            href="/sign-up"
-            className="relative inline-flex items-center gap-2 px-6 py-3 text-base font-semibold text-text-inverse bg-accent rounded-xl hover:bg-accent-bright transition-all"
-          >
-            Create free account
-          </Link>
+      <section className="py-20 bg-bg-secondary">
+        <div className="container">
+          <div className="max-w-xl mx-auto text-center">
+            <h2 className="text-title text-text-primary mb-4">
+              Ready to get started?
+            </h2>
+            <p className="text-body-lg text-text-secondary mb-8">
+              Create your first tournament in less than a minute. It's free.
+            </p>
+            <Link href="/sign-up" className="btn-primary">
+              Create Your Tournament
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+              </svg>
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 border-t border-border">
-        <div className="max-w-[1000px] mx-auto">
+      <footer className="py-8 border-t border-border">
+        <div className="container">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-accent/10 flex items-center justify-center">
-                <svg className="w-3 h-3 text-accent" viewBox="0 0 24 24" fill="currentColor">
+              <div className="w-7 h-7 bg-brand rounded-md flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M13 3L4 14h7v7l9-11h-7V3z" />
                 </svg>
               </div>
-              <span className="font-display text-sm font-medium">ScoreForge</span>
+              <span className="font-semibold text-text-primary">ScoreForge</span>
             </div>
-            <p className="text-sm text-text-muted">
-              &copy; {new Date().getFullYear()} ScoreForge. All rights reserved.
+            <p className="text-small text-text-muted">
+              © {new Date().getFullYear()} ScoreForge. All rights reserved.
             </p>
           </div>
         </div>
       </footer>
-    </>
+    </div>
   );
 }

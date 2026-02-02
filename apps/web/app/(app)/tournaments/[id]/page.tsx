@@ -51,7 +51,7 @@ export default function TournamentDetailPage({
   };
 
   const statusStyles: Record<string, string> = {
-    draft: "text-text-muted bg-bg-elevated",
+    draft: "text-text-muted bg-bg-secondary",
     active: "text-success bg-success/10",
     completed: "text-gold bg-gold/10",
     cancelled: "text-error bg-error/10",
@@ -79,16 +79,12 @@ export default function TournamentDetailPage({
 
   return (
     <div className="min-h-screen">
-      {/* Hero Header */}
-      <header className="relative py-12 px-6 bg-bg-secondary overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-[100px] left-[30%] w-[600px] h-[400px] bg-[radial-gradient(ellipse_at_center,var(--accent-glow)_0%,transparent_60%)] opacity-30" />
-          <div className="absolute inset-0 grid-bg opacity-50" />
-        </div>
-        <div className="relative max-w-[var(--content-max)] mx-auto animate-fadeIn">
+      {/* Header */}
+      <header className="py-10 px-6 border-b border-border">
+        <div className="max-w-[var(--content-max)] mx-auto animate-fadeIn">
           <Link
             href="/tournaments"
-            className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-accent transition-colors mb-6"
+            className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-brand transition-colors mb-6"
           >
             <span>←</span> Tournaments
           </Link>
@@ -110,7 +106,7 @@ export default function TournamentDetailPage({
                   {formatLabels[tournament.format] || tournament.format}
                 </span>
               </div>
-              <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-text-primary mb-2">
+              <h1 className="text-title text-text-primary mb-2">
                 {tournament.name}
               </h1>
               {tournament.description && (
@@ -120,7 +116,7 @@ export default function TournamentDetailPage({
               )}
               {tournament.startDate && (
                 <div className="flex items-baseline gap-1">
-                  <span className="font-display text-2xl font-bold text-accent">
+                  <span className="text-heading text-brand">
                     {new Date(tournament.startDate).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -158,7 +154,7 @@ export default function TournamentDetailPage({
               onClick={() => setActiveTab(tab.id)}
               className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium -mb-px border-b-2 transition-colors ${
                 activeTab === tab.id
-                  ? "text-text-primary border-accent"
+                  ? "text-text-primary border-brand"
                   : "text-text-secondary border-transparent hover:text-text-primary"
               }`}
             >
@@ -228,12 +224,12 @@ function TournamentIdDisplay({ tournamentId }: { tournamentId: string }) {
   return (
     <div className="mt-4 flex items-center gap-2">
       <span className="text-xs text-text-muted">Tournament ID:</span>
-      <code className="px-2 py-1 text-xs font-mono text-text-secondary bg-bg-elevated border border-border rounded">
+      <code className="px-2 py-1 text-xs font-mono text-text-secondary bg-bg-secondary border border-border rounded">
         {tournamentId}
       </code>
       <button
         onClick={handleCopy}
-        className="p-1.5 text-text-muted hover:text-accent hover:bg-accent/10 rounded transition-all"
+        className="p-1.5 text-text-muted hover:text-brand hover:bg-brand/10 rounded transition-all"
         title="Copy tournament ID"
       >
         {copied ? (
@@ -407,7 +403,7 @@ function TournamentActions({
           <button
             onClick={handleGenerateBracket}
             disabled={generating}
-            className="px-4 py-2 text-xs font-semibold tracking-wide text-text-secondary bg-bg-elevated border border-border rounded-lg hover:text-text-primary hover:border-text-muted transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-secondary text-xs"
           >
             {generating ? "..." : "Generate Bracket"}
           </button>
@@ -415,7 +411,7 @@ function TournamentActions({
         {tournament.status === "draft" && supportsBlankBracket && (
           <button
             onClick={() => setShowBlankBracketModal(true)}
-            className="px-4 py-2 text-xs font-semibold tracking-wide text-accent bg-accent/10 border border-accent/30 rounded-lg hover:bg-accent hover:text-text-inverse transition-all"
+            className="px-4 py-2 text-xs font-semibold tracking-wide text-brand bg-brand/10 border border-brand/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
           >
             Blank Bracket
           </button>
@@ -424,7 +420,7 @@ function TournamentActions({
           <button
             onClick={handleStart}
             disabled={loading || tournament.participantCount < 2}
-            className="px-4 py-2 text-xs font-semibold tracking-wide text-text-inverse bg-accent rounded-lg hover:bg-accent-bright transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary text-xs"
           >
             {loading ? "..." : "Start Tournament"}
           </button>
@@ -454,7 +450,7 @@ function TournamentActions({
           <button
             onClick={handleDownloadScores}
             disabled={downloading}
-            className="px-4 py-2 text-xs font-semibold tracking-wide text-text-secondary bg-bg-elevated border border-border rounded-lg hover:text-text-primary hover:border-text-muted transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+            className="btn-secondary text-xs flex items-center gap-1.5"
             title={`Download scores for ${exportInfo.matchCount} completed match${exportInfo.matchCount !== 1 ? "es" : ""}`}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -468,7 +464,7 @@ function TournamentActions({
           <button
             onClick={handleDownloadLogs}
             disabled={downloadingLogs}
-            className="px-4 py-2 text-xs font-semibold tracking-wide text-text-secondary bg-bg-elevated border border-border rounded-lg hover:text-text-primary hover:border-text-muted transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+            className="btn-secondary text-xs flex items-center gap-1.5"
             title={`Download ${logsInfo.logCount} scoring log${logsInfo.logCount !== 1 ? "s" : ""}`}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -501,7 +497,7 @@ function TournamentActions({
               </p>
               <button
                 onClick={() => setErrorMessage(null)}
-                className="w-full px-4 py-3 bg-accent text-text-inverse font-semibold rounded-lg hover:bg-accent-bright transition-all"
+                className="btn-primary w-full"
               >
                 Got it
               </button>
@@ -608,7 +604,7 @@ function BlankBracketModal({
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
       <div className="w-full max-w-2xl max-h-[90vh] bg-bg-card border border-border rounded-2xl shadow-2xl animate-scaleIn flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
-          <h3 className="font-display text-lg font-medium text-text-primary">
+          <h3 className="text-heading text-text-primary">
             Generate Blank Bracket
           </h3>
           <button
@@ -638,7 +634,7 @@ function BlankBracketModal({
                 // Remove assignments for seeds beyond new size
                 setSeedAssignments(seedAssignments.filter(a => a.seed <= newSize));
               }}
-              className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
+              className="input"
             >
               <option value={4} disabled={realParticipants.length > 4}>4 participants</option>
               <option value={8} disabled={realParticipants.length > 8}>8 participants</option>
@@ -662,7 +658,7 @@ function BlankBracketModal({
                     {unassignedParticipants.map(p => (
                       <div
                         key={p._id}
-                        className="px-3 py-1.5 text-sm bg-accent/10 text-accent border border-accent/30 rounded-lg"
+                        className="px-3 py-1.5 text-sm bg-brand/10 text-brand border border-brand/30 rounded-lg"
                       >
                         {p.displayName}
                       </div>
@@ -692,8 +688,8 @@ function BlankBracketModal({
                     key={seed}
                     className={`relative p-3 border rounded-lg transition-all ${
                       assigned
-                        ? "bg-accent/10 border-accent/30"
-                        : "bg-bg-elevated border-border hover:border-accent/30"
+                        ? "bg-brand/10 border-brand/30"
+                        : "bg-bg-secondary border-border hover:border-brand/30"
                     }`}
                   >
                     <div className="text-xs font-medium text-text-muted mb-1">
@@ -752,14 +748,14 @@ function BlankBracketModal({
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm text-text-secondary bg-bg-elevated border border-border rounded-lg hover:text-text-primary hover:border-text-muted transition-all"
+              className="btn-secondary"
             >
               Cancel
             </button>
             <button
               onClick={handleGenerate}
               disabled={generatingBlank}
-              className="px-4 py-2 text-sm font-semibold text-text-inverse bg-accent rounded-lg hover:bg-accent-bright transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary"
             >
               {generatingBlank ? "Generating..." : "Generate Bracket"}
             </button>
@@ -888,7 +884,7 @@ function BracketTab({
               <button
                 onClick={handleGenerateMatches}
                 disabled={generating}
-                className="mt-4 px-4 py-2 bg-accent text-text-inverse rounded-lg font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
+                className="btn-primary mt-4"
               >
                 {generating ? "Generating..." : "Generate Matches"}
               </button>
@@ -914,7 +910,7 @@ function BracketTab({
                     </p>
                     <button
                       onClick={() => setErrorMessage(null)}
-                      className="w-full px-4 py-3 bg-accent text-text-inverse font-semibold rounded-lg hover:bg-accent-bright transition-all"
+                      className="btn-primary w-full"
                     >
                       Got it
                     </button>
@@ -955,7 +951,7 @@ function BracketTab({
           <div className="flex gap-2">
             <Link
               href={`/tournaments/${tournamentId}/bracket/print${bracketId ? `?bracketId=${bracketId}` : ""}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-secondary bg-bg-elevated border border-border rounded-lg hover:text-text-primary hover:border-text-muted transition-all no-print"
+              className="btn-secondary text-xs no-print"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" />
@@ -1016,7 +1012,7 @@ function BracketTab({
       <div className="flex justify-end mb-4 no-print">
         <Link
           href={`/tournaments/${tournamentId}/bracket/print${bracketId ? `?bracketId=${bracketId}` : ""}`}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-secondary bg-bg-elevated border border-border rounded-lg hover:text-text-primary hover:border-text-muted transition-all"
+          className="btn-secondary text-xs"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" />
@@ -1048,14 +1044,14 @@ function BracketTab({
                     <>
                       {/* Court badge - top-left */}
                       {match.court && (
-                        <div className="absolute top-1 left-1 px-1.5 py-0.5 text-[9px] font-medium text-accent bg-accent/10 rounded z-10">
+                        <div className="absolute top-1 left-1 px-1.5 py-0.5 text-[9px] font-medium text-brand bg-brand/10 rounded z-10">
                           {match.court}
                         </div>
                       )}
                       <div
                         className={`flex items-center gap-2 px-3 py-2 border-b border-border ${
                           match.winnerId === match.participant1?._id
-                            ? "bg-accent/10"
+                            ? "bg-brand/10"
                             : ""
                         } ${match.court ? "pt-5" : ""}`}
                       >
@@ -1065,16 +1061,16 @@ function BracketTab({
                         <span
                           className={`flex-1 text-sm font-medium truncate ${
                             match.winnerId === match.participant1?._id
-                              ? "text-accent"
+                              ? "text-brand"
                               : isByeMatch && match.participant1
-                                ? "text-accent"
+                                ? "text-brand"
                                 : "text-text-primary"
                           }`}
                         >
                           {match.participant1?.displayName || (isByeMatch ? "BYE" : "TBD")}
                         </span>
                         {!isByeMatch && (
-                          <span className="font-display text-sm font-bold text-text-primary min-w-[40px] text-right tracking-wider">
+                          <span className="text-sm font-bold text-text-primary min-w-[40px] text-right tracking-wider">
                             {getScoreDisplay(match, 0)}
                           </span>
                         )}
@@ -1087,7 +1083,7 @@ function BracketTab({
                       <div
                         className={`flex items-center gap-2 px-3 py-2 ${
                           match.winnerId === match.participant2?._id
-                            ? "bg-accent/10"
+                            ? "bg-brand/10"
                             : ""
                         }`}
                       >
@@ -1097,16 +1093,16 @@ function BracketTab({
                         <span
                           className={`flex-1 text-sm font-medium truncate ${
                             match.winnerId === match.participant2?._id
-                              ? "text-accent"
+                              ? "text-brand"
                               : isByeMatch && match.participant2
-                                ? "text-accent"
+                                ? "text-brand"
                                 : "text-text-primary"
                           }`}
                         >
                           {match.participant2?.displayName || (isByeMatch ? "BYE" : "TBD")}
                         </span>
                         {!isByeMatch && (
-                          <span className="font-display text-sm font-bold text-text-primary min-w-[40px] text-right tracking-wider">
+                          <span className="text-sm font-bold text-text-primary min-w-[40px] text-right tracking-wider">
                             {getScoreDisplay(match, 1)}
                           </span>
                         )}
@@ -1132,7 +1128,7 @@ function BracketTab({
                       <Link
                         key={match._id}
                         href={`/matches/${match._id}`}
-                        className={`relative flex flex-col bg-bg-card border rounded-lg overflow-hidden transition-all hover:border-accent/30 hover:-translate-y-0.5 ${
+                        className={`relative flex flex-col bg-bg-card border rounded-lg overflow-hidden transition-all hover:border-brand/30 hover:-translate-y-0.5 ${
                           match.status === "live"
                             ? "border-success shadow-[0_0_20px_var(--success-glow)]"
                             : match.status === "completed"
@@ -1182,7 +1178,15 @@ function MatchesTab({
     return <TabSkeleton />;
   }
 
-  if (matches.length === 0) {
+  // Filter out TBD matches (missing participants)
+  const readyMatches = matches.filter((match) => {
+    // Keep bye matches
+    if (match.status === "bye") return true;
+    // Filter out matches with missing participants
+    return match.participant1 && match.participant2;
+  });
+
+  if (readyMatches.length === 0) {
     return (
       <div className="flex flex-col items-center py-16 text-center bg-bg-secondary border border-dashed border-border rounded-2xl">
         <div className="w-14 h-14 flex items-center justify-center bg-bg-card rounded-2xl mb-4">
@@ -1191,14 +1195,14 @@ function MatchesTab({
           </svg>
         </div>
         <p className="text-text-secondary">
-          Matches will appear when the tournament starts
+          Matches will appear when participants are assigned
         </p>
       </div>
     );
   }
 
   const statusOrder = ["live", "scheduled", "pending", "completed", "bye"];
-  const sortedMatches = [...matches].sort((a, b) => {
+  const sortedMatches = [...readyMatches].sort((a, b) => {
     const aOrder = statusOrder.indexOf(a.status);
     const bOrder = statusOrder.indexOf(b.status);
     if (aOrder !== bOrder) return aOrder - bOrder;
@@ -1207,11 +1211,11 @@ function MatchesTab({
   });
 
   const matchStatusStyles: Record<string, string> = {
-    pending: "text-text-muted bg-bg-elevated",
+    pending: "text-text-muted bg-bg-secondary",
     scheduled: "text-info bg-info/10",
     live: "text-success bg-success/10",
     completed: "text-gold bg-gold/10",
-    bye: "text-text-muted bg-bg-elevated",
+    bye: "text-text-muted bg-bg-secondary",
   };
 
   // Allow clicking matches in draft mode to set court
@@ -1231,7 +1235,7 @@ function MatchesTab({
                   Match {match.matchNumber}
                 </span>
                 {match.court && (
-                  <span className="text-xs text-accent">
+                  <span className="text-xs text-brand">
                     @ {match.court}
                   </span>
                 )}
@@ -1251,11 +1255,11 @@ function MatchesTab({
                   }`}
                 >
                   <span
-                    className={`font-medium ${match.winnerId === match.participant1?._id ? "text-accent" : "text-text-primary"}`}
+                    className={`font-medium ${match.winnerId === match.participant1?._id ? "text-brand" : "text-text-primary"}`}
                   >
                     {match.participant1?.displayName || "TBD"}
                   </span>
-                  <span className="font-display text-base font-bold text-text-primary">
+                  <span className="text-base font-bold text-text-primary">
                     {match.participant1Score}
                   </span>
                 </div>
@@ -1263,11 +1267,11 @@ function MatchesTab({
                   vs
                 </span>
                 <div className="flex-1 flex items-center justify-end gap-2">
-                  <span className="font-display text-base font-bold text-text-primary">
+                  <span className="text-base font-bold text-text-primary">
                     {match.participant2Score}
                   </span>
                   <span
-                    className={`font-medium ${match.winnerId === match.participant2?._id ? "text-accent" : "text-text-primary"}`}
+                    className={`font-medium ${match.winnerId === match.participant2?._id ? "text-brand" : "text-text-primary"}`}
                   >
                     {match.participant2?.displayName || "TBD"}
                   </span>
@@ -1291,7 +1295,7 @@ function MatchesTab({
               <Link
                 key={match._id}
                 href={`/matches/${match._id}`}
-                className="flex flex-col p-4 bg-bg-card border border-border rounded-xl hover:bg-bg-card-hover hover:border-accent/30 transition-all animate-fadeInUp"
+                className="flex flex-col p-4 bg-bg-card border border-border rounded-xl hover:bg-bg-card-hover hover:border-brand/30 transition-all animate-fadeInUp"
                 style={{ animationDelay: `${index * 0.03}s` }}
               >
                 {content}
@@ -1360,13 +1364,13 @@ function ParticipantsTab({
   return (
     <div className="animate-fadeIn">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-display text-lg font-medium text-text-primary">
+        <h2 className="text-heading text-text-primary">
           Participants ({participants.length})
         </h2>
         {canAdd && (
           <Link
             href={`/tournaments/${tournamentId}/participants/add${bracketId ? `?bracketId=${bracketId}` : ''}`}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-accent bg-accent/10 border border-accent/30 rounded-lg hover:bg-accent hover:text-text-inverse transition-all"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-brand bg-brand/10 border border-brand/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
           >
             <span>+</span> Add Participant
           </Link>
@@ -1380,7 +1384,7 @@ function ParticipantsTab({
           {canAdd && (
             <Link
               href={`/tournaments/${tournamentId}/participants/add${bracketId ? `?bracketId=${bracketId}` : ''}`}
-              className="px-4 py-2 text-sm font-semibold text-text-inverse bg-accent rounded-lg hover:bg-accent-bright transition-all"
+              className="btn-primary"
             >
               Add Participant
             </Link>
@@ -1395,7 +1399,7 @@ function ParticipantsTab({
                 className="flex items-center gap-4 p-4 bg-bg-card border border-border rounded-xl animate-fadeInUp"
                 style={{ animationDelay: `${index * 0.03}s` }}
               >
-                <div className="w-8 h-8 flex items-center justify-center font-display text-sm font-bold text-accent bg-accent/10 rounded-lg flex-shrink-0">
+                <div className="w-8 h-8 flex items-center justify-center text-sm font-bold text-brand bg-brand/10 rounded-lg flex-shrink-0">
                   {participant.seed || "-"}
                 </div>
                 <div className="flex-1">
@@ -1442,7 +1446,7 @@ function StandingsTab({
   return (
     <div className="animate-fadeIn">
       <div className="bg-bg-card border border-border rounded-xl overflow-hidden">
-        <div className="grid grid-cols-[40px_1fr_40px_40px_40px_50px_60px] gap-2 p-4 text-xs font-semibold tracking-wide uppercase text-text-muted bg-bg-elevated border-b border-border">
+        <div className="grid grid-cols-[40px_1fr_40px_40px_40px_50px_60px] gap-2 p-4 text-xs font-semibold tracking-wide uppercase text-text-muted bg-bg-secondary border-b border-border">
           <span className="text-center">#</span>
           <span>Participant</span>
           <span className="text-center">W</span>
@@ -1458,7 +1462,7 @@ function StandingsTab({
             style={{ animationDelay: `${index * 0.03}s` }}
           >
             <span
-              className={`text-center font-display font-bold ${
+              className={`text-center font-bold ${
                 index === 0
                   ? "text-gold"
                   : index === 1
@@ -1474,7 +1478,7 @@ function StandingsTab({
             <span className="text-center text-success">{participant.wins}</span>
             <span className="text-center text-red">{participant.losses}</span>
             <span className="text-center text-text-muted">{participant.draws}</span>
-            <span className="text-center font-display font-bold text-accent">
+            <span className="text-center font-bold text-brand">
               {participant.points}
             </span>
             <span
@@ -1553,12 +1557,12 @@ function ScorersTab({
   return (
     <div className="animate-fadeIn">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-display text-lg font-medium text-text-primary">
+        <h2 className="text-heading text-text-primary">
           Assigned scorers ({scorers.length})
         </h2>
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-accent bg-accent/10 border border-accent/30 rounded-lg hover:bg-accent hover:text-text-inverse transition-all"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-brand bg-brand/10 border border-brand/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
         >
           <span>+</span> Assign Scorer
         </button>
@@ -1573,7 +1577,7 @@ function ScorersTab({
           </p>
           <button
             onClick={() => setShowAddModal(true)}
-            className="px-4 py-2 text-sm font-semibold text-text-inverse bg-accent rounded-lg hover:bg-accent-bright transition-all"
+            className="btn-primary"
           >
             Assign Scorer
           </button>
@@ -1586,7 +1590,7 @@ function ScorersTab({
               className="flex items-center gap-4 p-4 bg-bg-card border border-border rounded-xl animate-fadeInUp"
               style={{ animationDelay: `${index * 0.03}s` }}
             >
-              <div className="w-10 h-10 flex items-center justify-center font-display text-sm font-bold text-accent bg-accent/10 rounded-full flex-shrink-0">
+              <div className="w-10 h-10 flex items-center justify-center text-sm font-bold text-brand bg-brand/10 rounded-full flex-shrink-0">
                 {(scorer.userName || scorer.userEmail || "?").charAt(0).toUpperCase()}
               </div>
               <div className="flex-1">
@@ -1617,7 +1621,7 @@ function ScorersTab({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="w-full max-w-lg bg-bg-card border border-border rounded-2xl shadow-2xl animate-scaleIn">
             <div className="flex items-center justify-between p-6 border-b border-border">
-              <h3 className="font-display text-lg font-medium text-text-primary">
+              <h3 className="text-heading text-text-primary">
                 Assign scorer
               </h3>
               <button
@@ -1649,7 +1653,7 @@ function ScorersTab({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter email address..."
-                className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
+                className="input"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && email.trim()) {
@@ -1665,14 +1669,14 @@ function ScorersTab({
                   setEmail("");
                   setError(null);
                 }}
-                className="px-4 py-2 text-sm text-text-secondary bg-bg-elevated border border-border rounded-lg hover:text-text-primary hover:border-text-muted transition-all"
+                className="btn-secondary"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAssign}
                 disabled={!email.trim() || loading}
-                className="px-4 py-2 text-sm font-semibold text-text-inverse bg-accent rounded-lg hover:bg-accent-bright transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-primary"
               >
                 {loading ? "Assigning..." : "Assign Scorer"}
               </button>
@@ -1687,12 +1691,8 @@ function ScorersTab({
 function LoadingSkeleton() {
   return (
     <div className="min-h-screen">
-      <header className="relative py-12 px-6 bg-bg-secondary overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-[100px] left-[30%] w-[600px] h-[400px] bg-[radial-gradient(ellipse_at_center,var(--accent-glow)_0%,transparent_60%)] opacity-30" />
-          <div className="absolute inset-0 grid-bg opacity-50" />
-        </div>
-        <div className="relative max-w-[var(--content-max)] mx-auto">
+      <header className="py-10 px-6 border-b border-border">
+        <div className="max-w-[var(--content-max)] mx-auto">
           <Skeleton className="w-28 h-5 mb-6" />
           <div className="flex flex-col md:flex-row md:items-start gap-6">
             <Skeleton className="w-[100px] h-[100px] rounded-2xl flex-shrink-0" />
@@ -1745,7 +1745,7 @@ function NotFound() {
           <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
         </svg>
       </div>
-      <h1 className="font-display text-3xl font-bold text-text-primary mb-3">
+      <h1 className="text-title text-text-primary mb-3">
         Tournament Not Found
       </h1>
       <p className="text-text-secondary mb-8">
@@ -1753,7 +1753,7 @@ function NotFound() {
       </p>
       <Link
         href="/tournaments"
-        className="text-accent hover:text-accent-bright transition-colors"
+        className="text-brand hover:text-brand-hover transition-colors"
       >
         ← Back to Tournaments
       </Link>

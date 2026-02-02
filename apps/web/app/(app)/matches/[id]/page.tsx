@@ -88,16 +88,10 @@ export default function MatchDetailPage({
 
   return (
     <div className="min-h-screen flex items-start justify-center px-6 py-12">
-      {/* Background */}
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-accent/10 blur-[120px] rounded-full" />
-        <div className="absolute inset-0 grid-bg opacity-50" />
-      </div>
-
       <div className="w-full max-w-2xl">
         <Link
           href={`/tournaments/${match.tournamentId}`}
-          className="inline-flex items-center gap-2 text-text-secondary hover:text-accent transition-colors mb-8"
+          className="inline-flex items-center gap-2 text-text-secondary hover:text-brand transition-colors mb-8"
         >
           <span>←</span> Back to Tournament
         </Link>
@@ -106,7 +100,7 @@ export default function MatchDetailPage({
           {/* Match Header */}
           <div className="flex items-center justify-between p-6 bg-bg-secondary border-b border-border">
             <div className="flex items-center gap-3">
-              <span className="font-display text-sm font-semibold tracking-wide text-text-muted">
+              <span className="text-sm font-semibold tracking-wide text-text-muted">
                 Round {match.round}
               </span>
               <span className="text-text-muted">|</span>
@@ -116,7 +110,7 @@ export default function MatchDetailPage({
               {match.court && (
                 <>
                   <span className="text-text-muted">|</span>
-                  <span className="text-sm text-accent">
+                  <span className="text-sm text-brand">
                     {match.court}
                   </span>
                 </>
@@ -131,7 +125,7 @@ export default function MatchDetailPage({
               <div className="mb-6">
                 <span className="text-6xl">🎫</span>
               </div>
-              <h2 className="font-display text-2xl font-bold text-text-primary mb-2">
+              <h2 className="text-heading text-text-primary mb-2">
                 Bye Match
               </h2>
               <p className="text-text-secondary mb-6">
@@ -213,7 +207,7 @@ export default function MatchDetailPage({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                 </svg>
               </div>
-              <h3 className="font-display text-lg font-semibold text-text-primary mb-2">Tournament Not Started</h3>
+              <h3 className="text-heading text-text-primary mb-2">Tournament Not Started</h3>
               <p className="text-text-secondary text-sm">
                 This tournament is still in draft mode. Start the tournament to begin scoring matches.
               </p>
@@ -282,7 +276,7 @@ export default function MatchDetailPage({
           </div>
 
           {/* Accent bar */}
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-gold to-accent" />
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-brand" />
         </div>
       </div>
     </div>
@@ -291,14 +285,14 @@ export default function MatchDetailPage({
 
 function MatchStatusBadge({ status }: { status: string }) {
   const statusConfig: Record<string, { label: string; className: string; pulse: boolean }> = {
-    pending: { label: "Pending", className: "text-text-muted bg-bg-elevated", pulse: false },
+    pending: { label: "Pending", className: "text-text-muted bg-bg-secondary", pulse: false },
     scheduled: { label: "Scheduled", className: "text-info bg-info/10", pulse: false },
     live: { label: "Live", className: "text-success bg-success/10", pulse: true },
     completed: { label: "Completed", className: "text-gold bg-gold/10", pulse: false },
-    bye: { label: "Bye", className: "text-text-muted bg-bg-elevated", pulse: false },
+    bye: { label: "Bye", className: "text-text-muted bg-bg-secondary", pulse: false },
   };
 
-  const config = statusConfig[status] ?? { label: "Pending", className: "text-text-muted bg-bg-elevated", pulse: false };
+  const config = statusConfig[status] ?? { label: "Pending", className: "text-text-muted bg-bg-secondary", pulse: false };
 
   return (
     <span
@@ -372,17 +366,17 @@ function Scoreboard({
       <div
         className={`flex-1 flex flex-col items-center gap-4 p-6 rounded-xl border transition-all ${
           match.winnerId === match.participant1?._id
-            ? "bg-accent/10 border-accent"
+            ? "bg-brand/10 border-brand"
             : "bg-bg-secondary border-border"
         }`}
       >
         <div className="text-center">
           {match.participant1?.seed && (
-            <span className="block text-xs font-semibold text-accent mb-1">
+            <span className="block text-xs font-semibold text-brand mb-1">
               #{match.participant1.seed}
             </span>
           )}
-          <span className="block font-display text-xl font-bold text-text-primary mb-1">
+          <span className="block text-xl font-bold text-text-primary mb-1">
             {match.participant1?.displayName || "TBD"}
           </span>
           {match.participant1 && (
@@ -396,14 +390,14 @@ function Scoreboard({
             <button
               onClick={() => handleScoreChange(1, -1)}
               disabled={saving || p1Score === 0}
-              className="w-10 h-10 flex items-center justify-center text-xl font-bold text-text-secondary bg-bg-elevated border border-border rounded-lg hover:bg-bg-card hover:text-text-primary transition-all disabled:opacity-30"
+              className="w-10 h-10 flex items-center justify-center text-xl font-bold text-text-secondary bg-bg-secondary border border-border rounded-lg hover:bg-bg-card hover:text-text-primary transition-all disabled:opacity-30"
             >
               −
             </button>
           )}
           <span
-            className={`font-display text-5xl font-bold ${
-              p1Score > p2Score ? "text-accent" : "text-text-primary"
+            className={`text-5xl font-bold ${
+              p1Score > p2Score ? "text-brand" : "text-text-primary"
             }`}
           >
             {p1Score}
@@ -412,7 +406,7 @@ function Scoreboard({
             <button
               onClick={() => handleScoreChange(1, 1)}
               disabled={saving}
-              className="w-10 h-10 flex items-center justify-center text-xl font-bold text-text-secondary bg-bg-elevated border border-border rounded-lg hover:bg-accent hover:text-text-inverse transition-all"
+              className="w-10 h-10 flex items-center justify-center text-xl font-bold text-text-secondary bg-bg-secondary border border-border rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
             >
               +
             </button>
@@ -422,7 +416,7 @@ function Scoreboard({
 
       {/* VS */}
       <div className="flex flex-col items-center gap-2 flex-shrink-0">
-        <span className="font-display text-2xl font-bold text-text-muted">VS</span>
+        <span className="text-2xl font-bold text-text-muted">VS</span>
         {match.status === "live" && (
           <span className="px-2 py-1 text-[10px] font-bold tracking-wider text-white bg-success rounded animate-pulse">
             LIVE
@@ -434,17 +428,17 @@ function Scoreboard({
       <div
         className={`flex-1 flex flex-col items-center gap-4 p-6 rounded-xl border transition-all ${
           match.winnerId === match.participant2?._id
-            ? "bg-accent/10 border-accent"
+            ? "bg-brand/10 border-brand"
             : "bg-bg-secondary border-border"
         }`}
       >
         <div className="text-center">
           {match.participant2?.seed && (
-            <span className="block text-xs font-semibold text-accent mb-1">
+            <span className="block text-xs font-semibold text-brand mb-1">
               #{match.participant2.seed}
             </span>
           )}
-          <span className="block font-display text-xl font-bold text-text-primary mb-1">
+          <span className="block text-xl font-bold text-text-primary mb-1">
             {match.participant2?.displayName || "TBD"}
           </span>
           {match.participant2 && (
@@ -458,14 +452,14 @@ function Scoreboard({
             <button
               onClick={() => handleScoreChange(2, -1)}
               disabled={saving || p2Score === 0}
-              className="w-10 h-10 flex items-center justify-center text-xl font-bold text-text-secondary bg-bg-elevated border border-border rounded-lg hover:bg-bg-card hover:text-text-primary transition-all disabled:opacity-30"
+              className="w-10 h-10 flex items-center justify-center text-xl font-bold text-text-secondary bg-bg-secondary border border-border rounded-lg hover:bg-bg-card hover:text-text-primary transition-all disabled:opacity-30"
             >
               −
             </button>
           )}
           <span
-            className={`font-display text-5xl font-bold ${
-              p2Score > p1Score ? "text-accent" : "text-text-primary"
+            className={`text-5xl font-bold ${
+              p2Score > p1Score ? "text-brand" : "text-text-primary"
             }`}
           >
             {p2Score}
@@ -474,7 +468,7 @@ function Scoreboard({
             <button
               onClick={() => handleScoreChange(2, 1)}
               disabled={saving}
-              className="w-10 h-10 flex items-center justify-center text-xl font-bold text-text-secondary bg-bg-elevated border border-border rounded-lg hover:bg-accent hover:text-text-inverse transition-all"
+              className="w-10 h-10 flex items-center justify-center text-xl font-bold text-text-secondary bg-bg-secondary border border-border rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
             >
               +
             </button>
@@ -550,7 +544,7 @@ function MatchActions({
         <button
           onClick={handleComplete}
           disabled={loading}
-          className="px-6 py-3 font-semibold text-text-inverse bg-accent rounded-lg hover:bg-accent-bright transition-all disabled:opacity-50"
+          className="btn-primary px-6 py-3"
         >
           {loading ? "Completing..." : "Complete Match"}
         </button>
@@ -579,28 +573,28 @@ function MatchPreview({
       {/* Participant 1 */}
       <div className="flex-1 flex flex-col items-center gap-2 p-6 rounded-xl bg-bg-secondary border border-border">
         {participant1?.seed && (
-          <span className="text-xs font-semibold text-accent">
+          <span className="text-xs font-semibold text-brand">
             #{participant1.seed}
           </span>
         )}
-        <span className="font-display text-xl font-bold text-text-primary text-center">
+        <span className="text-xl font-bold text-text-primary text-center">
           {participant1?.displayName || "TBD"}
         </span>
       </div>
 
       {/* VS */}
       <div className="flex-shrink-0">
-        <span className="font-display text-2xl font-bold text-text-muted">VS</span>
+        <span className="text-2xl font-bold text-text-muted">VS</span>
       </div>
 
       {/* Participant 2 */}
       <div className="flex-1 flex flex-col items-center gap-2 p-6 rounded-xl bg-bg-secondary border border-border">
         {participant2?.seed && (
-          <span className="text-xs font-semibold text-accent">
+          <span className="text-xs font-semibold text-brand">
             #{participant2.seed}
           </span>
         )}
-        <span className="font-display text-xl font-bold text-text-primary text-center">
+        <span className="text-xl font-bold text-text-primary text-center">
           {participant2?.displayName || "TBD"}
         </span>
       </div>
@@ -658,7 +652,7 @@ function InlineFirstServerSetup({
   return (
     <div className="p-6 border-t border-border">
       <div className="text-center mb-4">
-        <h3 className="font-display text-lg font-bold text-text-primary mb-1">
+        <h3 className="text-heading text-text-primary mb-1">
           Match Setup
         </h3>
         <p className="text-sm text-text-secondary">
@@ -670,20 +664,20 @@ function InlineFirstServerSetup({
       <div className="flex justify-center gap-3 mb-6">
         {isTennis && tennisConfig && (
           <>
-            <span className="px-3 py-1 text-xs font-semibold text-accent bg-accent/10 rounded-full">
+            <span className="px-3 py-1 text-xs font-semibold text-brand bg-brand/10 rounded-full">
               Best of {tennisConfig.setsToWin * 2 - 1}
             </span>
-            <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-elevated rounded-full">
+            <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-secondary rounded-full">
               {tennisConfig.isAdScoring ? "Ad Scoring" : "No-Ad"}
             </span>
           </>
         )}
         {!isTennis && volleyballConfig && (
           <>
-            <span className="px-3 py-1 text-xs font-semibold text-accent bg-accent/10 rounded-full">
+            <span className="px-3 py-1 text-xs font-semibold text-brand bg-brand/10 rounded-full">
               Best of {volleyballConfig.setsToWin * 2 - 1}
             </span>
-            <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-elevated rounded-full">
+            <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-secondary rounded-full">
               Sets to {volleyballConfig.pointsPerSet}
             </span>
           </>
@@ -705,7 +699,7 @@ function InlineFirstServerSetup({
             }`}
           >
             <div className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold ${
-              selectedServer === 1 ? "bg-success/20 text-success" : "bg-bg-elevated text-text-secondary"
+              selectedServer === 1 ? "bg-success/20 text-success" : "bg-bg-secondary text-text-secondary"
             }`}>
               {participant1Name.charAt(0).toUpperCase()}
             </div>
@@ -728,7 +722,7 @@ function InlineFirstServerSetup({
             }`}
           >
             <div className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold ${
-              selectedServer === 2 ? "bg-success/20 text-success" : "bg-bg-elevated text-text-secondary"
+              selectedServer === 2 ? "bg-success/20 text-success" : "bg-bg-secondary text-text-secondary"
             }`}>
               {participant2Name.charAt(0).toUpperCase()}
             </div>
@@ -809,8 +803,8 @@ function CourtInfo({
                 disabled={saving}
                 className={`px-2 py-1 text-xs rounded border transition-all ${
                   courtValue === c
-                    ? "border-accent bg-accent text-white font-semibold"
-                    : "border-border bg-bg-elevated text-text-secondary hover:border-text-muted"
+                    ? "border-brand bg-brand text-white font-semibold"
+                    : "border-border bg-bg-secondary text-text-secondary hover:border-text-muted"
                 }`}
               >
                 {c}
@@ -822,8 +816,8 @@ function CourtInfo({
               disabled={saving}
               className={`px-2 py-1 text-xs rounded border transition-all ${
                 courtValue === ""
-                  ? "border-accent bg-accent text-white font-semibold"
-                  : "border-border bg-bg-elevated text-text-secondary hover:border-text-muted"
+                  ? "border-brand bg-brand text-white font-semibold"
+                  : "border-border bg-bg-secondary text-text-secondary hover:border-text-muted"
               }`}
             >
               None
@@ -842,13 +836,13 @@ function CourtInfo({
               value={courtValue}
               onChange={(e) => setCourtValue(e.target.value)}
               placeholder="e.g. Court 1"
-              className="w-32 px-2 py-1 text-sm bg-bg-elevated border border-border rounded focus:border-accent focus:outline-none text-text-primary"
+              className="w-32 px-2 py-1 text-sm bg-bg-secondary border border-border rounded focus:border-brand focus:outline-none text-text-primary"
               autoFocus
             />
             <button
               onClick={() => handleSave()}
               disabled={saving}
-              className="px-2 py-1 text-xs font-medium text-text-inverse bg-accent rounded hover:bg-accent-bright transition-colors disabled:opacity-50"
+              className="px-2 py-1 text-xs font-medium text-text-inverse bg-brand rounded hover:bg-brand-hover transition-colors disabled:opacity-50"
             >
               {saving ? "..." : "Save"}
             </button>
@@ -876,7 +870,7 @@ function CourtInfo({
         {canEdit && (
           <button
             onClick={() => setIsEditing(true)}
-            className="text-xs text-accent hover:text-accent-bright transition-colors"
+            className="text-xs text-brand hover:text-brand-hover transition-colors"
           >
             Edit
           </button>
@@ -889,10 +883,6 @@ function CourtInfo({
 function LoadingSkeleton() {
   return (
     <div className="min-h-screen flex items-start justify-center px-6 py-12">
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-accent/10 blur-[120px] rounded-full" />
-        <div className="absolute inset-0 grid-bg opacity-50" />
-      </div>
       <div className="w-full max-w-2xl">
         <Skeleton className="w-40 h-5 mb-8" />
         <div className="relative bg-bg-card border border-border rounded-2xl overflow-hidden">
@@ -927,7 +917,7 @@ function LoadingSkeleton() {
           </div>
 
           {/* Accent bar */}
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-gold to-accent" />
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-brand" />
         </div>
       </div>
     </div>
@@ -942,7 +932,7 @@ function NotFound() {
           <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
         </svg>
       </div>
-      <h1 className="font-display text-3xl font-bold text-text-primary mb-3">
+      <h1 className="text-title text-text-primary mb-3">
         Match Not Found
       </h1>
       <p className="text-text-secondary mb-8">
@@ -950,7 +940,7 @@ function NotFound() {
       </p>
       <Link
         href="/tournaments"
-        className="text-accent hover:text-accent-bright transition-colors"
+        className="text-brand hover:text-brand-hover transition-colors"
       >
         ← Back to Tournaments
       </Link>

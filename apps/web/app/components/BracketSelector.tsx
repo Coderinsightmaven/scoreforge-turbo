@@ -16,7 +16,7 @@ type Bracket = {
 type BracketSelectorProps = {
   tournamentId: string;
   selectedBracketId: string | null;
-  onSelectBracket: (bracketId: string | null) => void;
+  onSelectBracket: (bracketId: string) => void;
   showManageButton?: boolean;
   onManageBrackets?: () => void;
 };
@@ -46,6 +46,14 @@ export function BracketSelector({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Auto-select first bracket if none selected
+  useEffect(() => {
+    const firstBracket = brackets?.[0];
+    if (firstBracket && !selectedBracketId) {
+      onSelectBracket(firstBracket._id);
+    }
+  }, [brackets, selectedBracketId, onSelectBracket]);
+
   if (brackets === undefined) {
     return (
       <div className="bg-bg-secondary border-b border-border">
@@ -65,7 +73,7 @@ export function BracketSelector({
             <span className="text-sm text-text-muted">No brackets configured</span>
             <button
               onClick={onManageBrackets}
-              className="px-3 py-1.5 text-xs font-medium text-accent bg-accent/10 border border-accent/30 rounded-lg hover:bg-accent hover:text-text-inverse transition-all"
+              className="px-3 py-1.5 text-xs font-medium text-brand bg-brand/10 border border-brand/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
             >
               Add Brackets
             </button>
@@ -76,9 +84,15 @@ export function BracketSelector({
     return null;
   }
 
+  // Find the selected bracket, or use the first one as fallback
   const selectedBracket = selectedBracketId
     ? brackets.find((b: Bracket) => b._id === selectedBracketId)
-    : null;
+    : brackets[0];
+
+  // Don't show selector if only one bracket exists
+  if (brackets.length === 1 && !showManageButton) {
+    return null;
+  }
 
   const statusIndicator = (status: Bracket["status"]) => {
     switch (status) {
@@ -93,7 +107,7 @@ export function BracketSelector({
     }
   };
 
-  const handleSelect = (bracketId: string | null) => {
+  const handleSelect = (bracketId: string) => {
     onSelectBracket(bracketId);
     setIsOpen(false);
   };
@@ -108,7 +122,7 @@ export function BracketSelector({
           className="flex items-center gap-2 px-4 py-2.5 bg-bg-card border border-border rounded-lg hover:border-text-muted transition-all min-w-[200px]"
         >
           <div className="flex items-center gap-2 flex-1">
-            {selectedBracket ? (
+            {selectedBracket && (
               <>
                 {statusIndicator(selectedBracket.status)}
                 <span className="text-sm font-medium text-text-primary">
@@ -116,15 +130,6 @@ export function BracketSelector({
                 </span>
                 <span className="text-xs text-text-muted">
                   ({selectedBracket.participantCount})
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="text-sm font-medium text-text-primary">
-                  All Brackets
-                </span>
-                <span className="text-xs text-text-muted">
-                  ({brackets.length})
                 </span>
               </>
             )}
@@ -143,39 +148,15 @@ export function BracketSelector({
         {/* Dropdown Menu */}
         {isOpen && (
           <div className="absolute top-full left-0 mt-1 w-full min-w-[280px] bg-bg-card border border-border rounded-lg shadow-xl z-[9999] overflow-hidden">
-            {/* All Brackets option */}
-            <button
-              onClick={() => handleSelect(null)}
-              className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
-                selectedBracketId === null
-                  ? "bg-accent/10 text-accent"
-                  : "hover:bg-bg-elevated text-text-primary"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">All Brackets</span>
-                <span className="text-xs text-text-muted">
-                  {brackets.length} brackets
-                </span>
-              </div>
-              {selectedBracketId === null && (
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              )}
-            </button>
-
-            <div className="border-t border-border" />
-
-            {/* Individual brackets */}
+            {/* Brackets list */}
             {brackets.map((bracket: Bracket, index: number) => (
               <button
                 key={bracket._id}
                 onClick={() => handleSelect(bracket._id)}
                 className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
                   selectedBracketId === bracket._id
-                    ? "bg-accent/10 text-accent"
-                    : "hover:bg-bg-elevated text-text-primary"
+                    ? "bg-brand/10 text-brand"
+                    : "hover:bg-bg-secondary text-text-primary"
                 } ${index < brackets.length - 1 ? "border-b border-border/50" : ""}`}
               >
                 <div className="flex items-center gap-2">

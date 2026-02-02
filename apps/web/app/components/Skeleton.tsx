@@ -12,7 +12,7 @@ export function Skeleton({
 }): ReactNode {
   return (
     <div
-      className={`relative overflow-hidden bg-bg-elevated rounded animate-pulse ${className}`}
+      className={`relative overflow-hidden bg-bg-secondary rounded animate-pulse ${className}`}
     >
       {children}
       <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-black/5 to-transparent animate-shimmer" />

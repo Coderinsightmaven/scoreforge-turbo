@@ -18,7 +18,7 @@ export default function AppLayout({
         <div className="flex items-center justify-center min-h-screen bg-bg-primary">
           <div className="flex flex-col items-center gap-4 animate-fadeIn">
             <img src="/logo.png" alt="ScoreForge" className="w-16 h-16 object-contain animate-pulse" />
-            <div className="font-display text-xl font-semibold tracking-tight text-text-primary">
+            <div className="text-xl font-semibold tracking-tight text-text-primary">
               ScoreForge
             </div>
           </div>

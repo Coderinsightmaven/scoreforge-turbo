@@ -181,7 +181,7 @@ export function BracketManagementModal({
                         ? "text-success bg-success/10"
                         : bracket.status === "completed"
                           ? "text-gold bg-gold/10"
-                          : "text-text-muted bg-bg-elevated"
+                          : "text-text-muted bg-bg-secondary"
                     }`}
                   >
                     {bracket.status}
@@ -219,7 +219,7 @@ export function BracketManagementModal({
                     value={newBracketName}
                     onChange={(e) => setNewBracketName(e.target.value)}
                     placeholder="e.g., Men's Singles"
-                    className="w-full px-3 py-2 bg-bg-card border border-border rounded-lg focus:outline-none focus:border-accent"
+                    className="w-full px-3 py-2 bg-bg-card border border-border rounded-lg focus:outline-none focus:border-brand"
                   />
                 </div>
 
@@ -230,7 +230,7 @@ export function BracketManagementModal({
                   <select
                     value={newBracketFormat}
                     onChange={(e) => setNewBracketFormat(e.target.value as TournamentFormat | "")}
-                    className="w-full px-3 py-2 bg-bg-card border border-border rounded-lg focus:outline-none focus:border-accent"
+                    className="w-full px-3 py-2 bg-bg-card border border-border rounded-lg focus:outline-none focus:border-brand"
                   >
                     <option value="">Use tournament default</option>
                     <option value="single_elimination">Single Elimination</option>
@@ -246,7 +246,7 @@ export function BracketManagementModal({
                   <select
                     value={newBracketParticipantType}
                     onChange={(e) => setNewBracketParticipantType(e.target.value as ParticipantType | "")}
-                    className="w-full px-3 py-2 bg-bg-card border border-border rounded-lg focus:outline-none focus:border-accent"
+                    className="w-full px-3 py-2 bg-bg-card border border-border rounded-lg focus:outline-none focus:border-brand"
                   >
                     <option value="">Use tournament default</option>
                     <option value="individual">Individual</option>
@@ -265,7 +265,7 @@ export function BracketManagementModal({
                     value={newBracketMaxParticipants}
                     onChange={(e) => setNewBracketMaxParticipants(e.target.value)}
                     placeholder="e.g., 8, 16, 32"
-                    className="w-full px-3 py-2 bg-bg-card border border-border rounded-lg focus:outline-none focus:border-accent"
+                    className="w-full px-3 py-2 bg-bg-card border border-border rounded-lg focus:outline-none focus:border-brand"
                   />
                   <span className="block text-xs text-text-muted mt-1">
                     Leave empty for unlimited participants
@@ -277,7 +277,7 @@ export function BracketManagementModal({
                 <button
                   onClick={handleCreateBracket}
                   disabled={!newBracketName.trim() || isSubmitting}
-                  className="flex-1 px-4 py-2 bg-accent text-text-inverse rounded-lg font-medium hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-brand text-text-inverse rounded-lg font-medium hover:bg-brand/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? "Creating..." : "Create Bracket"}
                 </button>
@@ -289,7 +289,7 @@ export function BracketManagementModal({
                     setNewBracketParticipantType("");
                     setNewBracketMaxParticipants("");
                   }}
-                  className="px-4 py-2 bg-bg-elevated border border-border rounded-lg font-medium hover:bg-bg-card transition-colors"
+                  className="px-4 py-2 bg-bg-secondary border border-border rounded-lg font-medium hover:bg-bg-card transition-colors"
                 >
                   Cancel
                 </button>
@@ -298,7 +298,7 @@ export function BracketManagementModal({
           ) : (
             <button
               onClick={() => setIsCreating(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-border rounded-lg text-text-secondary hover:text-accent hover:border-accent transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-border rounded-lg text-text-secondary hover:text-brand hover:border-brand transition-colors"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -312,7 +312,7 @@ export function BracketManagementModal({
         <div className="p-6 border-t border-border">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 bg-bg-elevated border border-border rounded-lg font-medium hover:bg-bg-card transition-colors"
+            className="w-full px-4 py-2 bg-bg-secondary border border-border rounded-lg font-medium hover:bg-bg-card transition-colors"
           >
             Done
           </button>

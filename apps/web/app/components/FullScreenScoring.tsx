@@ -123,7 +123,7 @@ function ScoringZone({
       className={`
         flex-1 flex items-center justify-center relative overflow-hidden transition-all
         ${isLeft ? "border-r border-border" : "border-l border-border"}
-        ${disabled ? "cursor-default" : "cursor-pointer hover:bg-accent/5 active:bg-accent/10"}
+        ${disabled ? "cursor-default" : "cursor-pointer hover:bg-brand/5 active:bg-brand/10"}
       `}
     >
       {/* Flash overlay */}
@@ -138,17 +138,17 @@ function ScoringZone({
         {isDoubles ? (
           // Stacked layout for doubles names
           <div className="flex flex-col items-center gap-1">
-            <span className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-text-primary">
+            <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-text-primary">
               {player1}
             </span>
             <span className="text-2xl text-text-muted">/</span>
-            <span className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-text-primary">
+            <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-text-primary">
               {player2}
             </span>
           </div>
         ) : (
           // Single line layout for singles/teams
-          <span className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-text-primary">
+          <span className="text-4xl sm:text-5xl md:text-6xl font-bold text-text-primary">
             {playerName}
           </span>
         )}
@@ -275,7 +275,7 @@ export function FullScreenScoring({
                     <div className="w-[18px] flex items-center justify-center">
                       {serving1 && <span className="w-3 h-3 bg-success rounded-full" />}
                     </div>
-                    <span className="font-display text-6xl font-bold text-accent min-w-[60px] text-center">
+                    <span className="text-6xl font-bold text-brand min-w-[60px] text-center">
                       {getTennisPointDisplay(
                         tennisState.isTiebreak ? tennisState.tiebreakPoints : tennisState.currentGamePoints,
                         0,
@@ -288,7 +288,7 @@ export function FullScreenScoring({
 
                 {/* Divider with current games */}
                 <div className="px-4 py-2 bg-bg-tertiary rounded-lg">
-                  <span className="font-display text-xl font-bold text-text-primary">
+                  <span className="text-xl font-bold text-text-primary">
                     {tennisState.currentSetGames[0]} - {tennisState.currentSetGames[1]}
                   </span>
                 </div>
@@ -299,7 +299,7 @@ export function FullScreenScoring({
                     <div className="w-[18px] flex items-center justify-center">
                       {serving2 && <span className="w-3 h-3 bg-success rounded-full" />}
                     </div>
-                    <span className="font-display text-6xl font-bold text-accent min-w-[60px] text-center">
+                    <span className="text-6xl font-bold text-brand min-w-[60px] text-center">
                       {getTennisPointDisplay(
                         tennisState.isTiebreak ? tennisState.tiebreakPoints : tennisState.currentGamePoints,
                         1,
@@ -331,7 +331,7 @@ export function FullScreenScoring({
                     <div className="w-[18px] flex items-center justify-center">
                       {serving1 && <span className="w-3 h-3 bg-success rounded-full" />}
                     </div>
-                    <span className="font-display text-6xl font-bold text-accent min-w-[60px] text-center">
+                    <span className="text-6xl font-bold text-brand min-w-[60px] text-center">
                       {volleyballState.currentSetPoints[0]}
                     </span>
                   </div>
@@ -339,7 +339,7 @@ export function FullScreenScoring({
 
                 {/* Divider with set count */}
                 <div className="px-4 py-2 bg-bg-tertiary rounded-lg">
-                  <span className="font-display text-xl font-bold text-text-primary">
+                  <span className="text-xl font-bold text-text-primary">
                     Set {volleyballState.sets.length + 1}
                   </span>
                 </div>
@@ -350,7 +350,7 @@ export function FullScreenScoring({
                     <div className="w-[18px] flex items-center justify-center">
                       {serving2 && <span className="w-3 h-3 bg-success rounded-full" />}
                     </div>
-                    <span className="font-display text-6xl font-bold text-accent min-w-[60px] text-center">
+                    <span className="text-6xl font-bold text-brand min-w-[60px] text-center">
                       {volleyballState.currentSetPoints[1]}
                     </span>
                   </div>
@@ -459,7 +459,7 @@ export function FirstServerSetup({
 
       <div className="max-w-md w-full bg-bg-card border border-border rounded-2xl p-8">
         <div className="text-center mb-6">
-          <h2 className="font-display text-2xl font-bold text-text-primary mb-2">
+          <h2 className="text-2xl font-bold text-text-primary mb-2">
             Select First Server
           </h2>
           <p className="text-sm text-text-secondary">
@@ -470,20 +470,20 @@ export function FirstServerSetup({
         {/* Config Badges */}
         {isTennis && tennisConfig && (
           <div className="flex justify-center gap-3 mb-6">
-            <span className="px-3 py-1 text-xs font-semibold text-accent bg-accent/10 rounded-full">
+            <span className="px-3 py-1 text-xs font-semibold text-brand bg-brand/10 rounded-full">
               Best of {tennisConfig.setsToWin * 2 - 1}
             </span>
-            <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-elevated rounded-full">
+            <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-secondary rounded-full">
               {tennisConfig.isAdScoring ? "Ad Scoring" : "No-Ad"}
             </span>
           </div>
         )}
         {!isTennis && volleyballConfig && (
           <div className="flex justify-center gap-3 mb-6">
-            <span className="px-3 py-1 text-xs font-semibold text-accent bg-accent/10 rounded-full">
+            <span className="px-3 py-1 text-xs font-semibold text-brand bg-brand/10 rounded-full">
               Best of {volleyballConfig.setsToWin * 2 - 1}
             </span>
-            <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-elevated rounded-full">
+            <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-secondary rounded-full">
               Sets to {volleyballConfig.pointsPerSet}
             </span>
           </div>
@@ -583,13 +583,13 @@ export function MatchCompleteScreen({
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-bg-primary z-50 p-6">
-      <div className="max-w-md w-full bg-bg-card border border-border-accent rounded-2xl p-8">
+      <div className="max-w-md w-full bg-bg-card border border-brand rounded-2xl p-8">
         {/* Winner Banner */}
         <div className="flex items-center justify-center gap-3 mb-6">
-          <svg className="w-10 h-10 text-accent" fill="currentColor" viewBox="0 0 24 24">
+          <svg className="w-10 h-10 text-brand" fill="currentColor" viewBox="0 0 24 24">
             <path fillRule="evenodd" d="M5.166 2.621v.858c-1.035.148-2.059.33-3.071.543a.75.75 0 00-.584.859 6.753 6.753 0 006.138 5.6 6.73 6.73 0 002.743 1.346A6.707 6.707 0 019.279 15H8.54c-1.036 0-1.875.84-1.875 1.875V19.5h-.75a2.25 2.25 0 00-2.25 2.25c0 .414.336.75.75.75h15.19a.75.75 0 00.75-.75 2.25 2.25 0 00-2.25-2.25h-.75v-2.625c0-1.036-.84-1.875-1.875-1.875h-.739a6.706 6.706 0 00-1.112-3.173 6.73 6.73 0 002.743-1.347 6.753 6.753 0 006.139-5.6.75.75 0 00-.585-.858 47.077 47.077 0 00-3.07-.543V2.62a.75.75 0 00-.658-.744 49.22 49.22 0 00-6.093-.377c-2.063 0-4.096.128-6.093.377a.75.75 0 00-.657.744zm0 2.629c0 1.196.312 2.32.857 3.294A5.266 5.266 0 013.16 5.337a45.6 45.6 0 012.006-.343v.256zm13.5 0v-.256c.674.1 1.343.214 2.006.343a5.265 5.265 0 01-2.863 3.207 6.72 6.72 0 00.857-3.294z" clipRule="evenodd" />
           </svg>
-          <span className="font-display text-2xl font-bold text-accent">
+          <span className="text-2xl font-bold text-brand">
             {winnerName} Wins!
           </span>
         </div>
@@ -601,14 +601,14 @@ export function MatchCompleteScreen({
             <span className="flex-1 font-semibold text-text-primary truncate">{participant1Name}</span>
             {isTennis && tennisState?.sets.map((set, idx) => (
               <div key={idx} className="w-10 text-center">
-                <span className={`font-display text-lg font-bold ${(set[0] ?? 0) > (set[1] ?? 0) ? "text-accent" : "text-text-muted"}`}>
+                <span className={`text-lg font-bold ${(set[0] ?? 0) > (set[1] ?? 0) ? "text-brand" : "text-text-muted"}`}>
                   {set[0]}
                 </span>
               </div>
             ))}
             {!isTennis && volleyballState?.sets.map((set, idx) => (
               <div key={idx} className="w-10 text-center">
-                <span className={`font-display text-lg font-bold ${(set[0] ?? 0) > (set[1] ?? 0) ? "text-accent" : "text-text-muted"}`}>
+                <span className={`text-lg font-bold ${(set[0] ?? 0) > (set[1] ?? 0) ? "text-brand" : "text-text-muted"}`}>
                   {set[0]}
                 </span>
               </div>
@@ -619,14 +619,14 @@ export function MatchCompleteScreen({
             <span className="flex-1 font-semibold text-text-primary truncate">{participant2Name}</span>
             {isTennis && tennisState?.sets.map((set, idx) => (
               <div key={idx} className="w-10 text-center">
-                <span className={`font-display text-lg font-bold ${(set[1] ?? 0) > (set[0] ?? 0) ? "text-accent" : "text-text-muted"}`}>
+                <span className={`text-lg font-bold ${(set[1] ?? 0) > (set[0] ?? 0) ? "text-brand" : "text-text-muted"}`}>
                   {set[1]}
                 </span>
               </div>
             ))}
             {!isTennis && volleyballState?.sets.map((set, idx) => (
               <div key={idx} className="w-10 text-center">
-                <span className={`font-display text-lg font-bold ${(set[1] ?? 0) > (set[0] ?? 0) ? "text-accent" : "text-text-muted"}`}>
+                <span className={`text-lg font-bold ${(set[1] ?? 0) > (set[0] ?? 0) ? "text-brand" : "text-text-muted"}`}>
                   {set[1]}
                 </span>
               </div>
@@ -637,7 +637,7 @@ export function MatchCompleteScreen({
         {/* Back to Tournament Button */}
         <Link
           href={`/tournaments/${tournamentId}`}
-          className="block w-full py-4 text-center font-semibold text-text-inverse bg-accent rounded-xl hover:bg-accent-bright transition-all"
+          className="block w-full py-4 text-center font-semibold text-text-inverse bg-brand rounded-xl hover:bg-brand-hover transition-all"
         >
           Back to Tournament
         </Link>

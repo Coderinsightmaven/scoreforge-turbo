@@ -148,7 +148,7 @@ export function EditableBracket({
             onBlur={handleSave}
             placeholder="Enter name..."
             disabled={saving}
-            className="flex-1 text-sm font-medium bg-bg-elevated border border-accent/30 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-accent"
+            className="flex-1 text-sm font-medium bg-bg-secondary border border-brand/30 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>
       );
@@ -159,9 +159,9 @@ export function EditableBracket({
         onClick={() => canEdit && isPlaceholder && handleSlotClick(participant)}
         className={`flex items-center gap-2 px-3 py-2 ${
           slotNumber === 1 ? "border-b border-border" : ""
-        } ${isWinner ? "bg-accent/10" : ""} ${
+        } ${isWinner ? "bg-brand/10" : ""} ${
           canEdit && isPlaceholder
-            ? "cursor-pointer hover:bg-accent/5 transition-colors"
+            ? "cursor-pointer hover:bg-brand/5 transition-colors"
             : ""
         }`}
       >
@@ -171,7 +171,7 @@ export function EditableBracket({
         <span
           className={`flex-1 text-sm font-medium truncate ${
             isWinner
-              ? "text-accent"
+              ? "text-brand"
               : isPlaceholder
                 ? "text-text-muted italic"
                 : "text-text-primary"
@@ -179,7 +179,7 @@ export function EditableBracket({
         >
           {participant.displayName}
           {canEdit && isPlaceholder && (
-            <span className="ml-2 text-xs text-accent opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="ml-2 text-xs text-brand opacity-0 group-hover:opacity-100 transition-opacity">
               (click to edit)
             </span>
           )}
@@ -227,7 +227,7 @@ export function EditableBracket({
                       }`}
                     >
                       {match.court && (
-                        <div className="absolute top-1 left-1 px-1.5 py-0.5 text-[9px] font-medium text-accent bg-accent/10 rounded z-10 print:hidden">
+                        <div className="absolute top-1 left-1 px-1.5 py-0.5 text-[9px] font-medium text-brand bg-brand/10 rounded z-10 print:hidden">
                           {match.court}
                         </div>
                       )}
@@ -315,7 +315,7 @@ export function PrintableBracket({
   return (
     <div className="bracket-print-container bg-white p-8">
       {title && (
-        <h1 className="text-2xl font-display font-bold text-center mb-8 print:text-xl">
+        <h1 className="text-2xl font-bold text-center mb-8 print:text-xl">
           {title}
         </h1>
       )}

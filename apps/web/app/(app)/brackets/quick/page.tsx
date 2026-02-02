@@ -133,7 +133,7 @@ export default function QuickBracketPage(): React.ReactNode {
             onKeyDown={handleKeyDown}
             onBlur={handleSave}
             placeholder="Enter name..."
-            className="flex-1 text-sm font-medium bg-bg-elevated border border-accent/30 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-accent"
+            className="flex-1 text-sm font-medium bg-bg-secondary border border-brand/30 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>
       );
@@ -142,7 +142,7 @@ export default function QuickBracketPage(): React.ReactNode {
     return (
       <div
         onClick={() => handleSlotClick(participant)}
-        className={`flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-accent/5 transition-colors print:hover:bg-transparent print:cursor-default ${
+        className={`flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-brand/5 transition-colors print:hover:bg-transparent print:cursor-default ${
           slotNumber === 1 ? "border-b border-border print:border-gray-300" : ""
         }`}
       >
@@ -165,19 +165,15 @@ export default function QuickBracketPage(): React.ReactNode {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="relative py-8 px-6 bg-bg-secondary overflow-hidden no-print">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-[100px] left-[30%] w-[600px] h-[400px] bg-[radial-gradient(ellipse_at_center,var(--accent-glow)_0%,transparent_60%)] opacity-30" />
-          <div className="absolute inset-0 grid-bg opacity-50" />
-        </div>
-        <div className="relative max-w-[var(--content-max)] mx-auto animate-fadeIn">
+      <header className="py-8 px-6 border-b border-border no-print">
+        <div className="max-w-[var(--content-max)] mx-auto animate-fadeIn">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-accent transition-colors mb-4"
+            className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-brand transition-colors mb-4"
           >
             <span>&larr;</span> Dashboard
           </Link>
-          <h1 className="font-display text-3xl font-semibold tracking-tight text-text-primary mb-2">
+          <h1 className="text-title text-text-primary mb-2">
             Quick Bracket Generator
           </h1>
           <p className="text-text-secondary max-w-xl">
@@ -192,7 +188,7 @@ export default function QuickBracketPage(): React.ReactNode {
           // Configuration Form
           <div className="max-w-md mx-auto animate-fadeIn">
             <div className="bg-bg-card border border-border rounded-2xl p-6 shadow-card">
-              <h2 className="font-display text-lg font-medium text-text-primary mb-6">
+              <h2 className="text-heading text-text-primary mb-6">
                 Configure Bracket
               </h2>
 
@@ -206,7 +202,7 @@ export default function QuickBracketPage(): React.ReactNode {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Tournament Bracket"
-                    className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
+                    className="w-full px-4 py-3 input"
                   />
                 </div>
 
@@ -217,7 +213,7 @@ export default function QuickBracketPage(): React.ReactNode {
                   <select
                     value={size}
                     onChange={(e) => setSize(Number(e.target.value))}
-                    className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
+                    className="w-full px-4 py-3 input"
                   >
                     <option value={4}>4 participants</option>
                     <option value={8}>8 participants</option>
@@ -234,7 +230,7 @@ export default function QuickBracketPage(): React.ReactNode {
                   <select
                     value={format}
                     onChange={(e) => setFormat(e.target.value as BracketFormat)}
-                    className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-all"
+                    className="w-full px-4 py-3 input"
                   >
                     <option value="single_elimination">
                       Single Elimination
@@ -247,7 +243,7 @@ export default function QuickBracketPage(): React.ReactNode {
 
                 <button
                   onClick={handleGenerate}
-                  className="w-full px-4 py-3 text-sm font-semibold text-text-inverse bg-accent rounded-xl hover:bg-accent-bright transition-all mt-4"
+                  className="w-full px-4 py-3 btn-primary mt-4"
                 >
                   Generate Bracket
                 </button>
@@ -264,7 +260,7 @@ export default function QuickBracketPage(): React.ReactNode {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="font-display text-xl font-semibold text-text-primary bg-transparent border-b border-transparent hover:border-border focus:border-accent focus:outline-none transition-all px-1"
+                  className="text-xl font-semibold text-text-primary bg-transparent border-b border-transparent hover:border-border focus:border-brand focus:outline-none transition-all px-1"
                 />
                 <p className="text-sm text-text-muted mt-1">
                   Click on slots to fill in participant names
@@ -273,13 +269,13 @@ export default function QuickBracketPage(): React.ReactNode {
               <div className="flex gap-2">
                 <button
                   onClick={handleReset}
-                  className="px-4 py-2 text-xs font-medium text-text-secondary bg-bg-elevated border border-border rounded-lg hover:text-text-primary hover:border-text-muted transition-all"
+                  className="px-4 py-2 text-xs font-medium text-text-secondary bg-bg-secondary border border-border rounded-lg hover:text-text-primary hover:border-text-muted transition-all"
                 >
                   Start Over
                 </button>
                 <button
                   onClick={handlePrint}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-text-inverse bg-accent rounded-lg hover:bg-accent-bright transition-all"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 btn-primary text-xs"
                 >
                   <svg
                     className="w-4 h-4"

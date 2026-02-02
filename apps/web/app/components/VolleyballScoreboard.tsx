@@ -113,10 +113,10 @@ export function VolleyballScoreboard({
     <div className="p-6 space-y-6">
       {/* Match Format Badge */}
       <div className="flex justify-center gap-2">
-        <span className="px-3 py-1 text-xs font-semibold text-accent bg-accent/10 rounded-full">
+        <span className="px-3 py-1 text-xs font-semibold text-brand bg-brand/10 rounded-full">
           Best of {volleyballState.setsToWin * 2 - 1}
         </span>
-        <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-elevated rounded-full">
+        <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-secondary rounded-full">
           First to {targetPoints}
         </span>
         {isDeciding && !volleyballState.isMatchComplete && (
@@ -129,7 +129,7 @@ export function VolleyballScoreboard({
       {/* Main Scoreboard */}
       <div className="bg-bg-secondary rounded-xl overflow-hidden border border-border">
         {/* Header Row */}
-        <div className="grid grid-cols-[1fr_repeat(5,48px)_80px] gap-1 p-2 bg-bg-elevated text-xs font-semibold text-text-muted">
+        <div className="grid grid-cols-[1fr_repeat(5,48px)_80px] gap-1 p-2 bg-bg-secondary text-xs font-semibold text-text-muted">
           <div className="px-3">Team</div>
           {volleyballState.sets.map((_, idx) => (
             <div key={idx} className="text-center">
@@ -137,7 +137,7 @@ export function VolleyballScoreboard({
             </div>
           ))}
           {volleyballState.sets.length < volleyballState.setsToWin * 2 - 1 && (
-            <div className="text-center text-accent">
+            <div className="text-center text-brand">
               Set {volleyballState.sets.length + 1}
             </div>
           )}
@@ -156,7 +156,7 @@ export function VolleyballScoreboard({
         <div
           className={`grid grid-cols-[1fr_repeat(5,48px)_80px] gap-1 p-2 items-center border-b border-border ${
             volleyballState.isMatchComplete && p1SetsWon > p2SetsWon
-              ? "bg-accent/10"
+              ? "bg-brand/10"
               : ""
           }`}
         >
@@ -166,15 +166,15 @@ export function VolleyballScoreboard({
             )}
             <span className="font-semibold text-text-primary truncate">{p1Name}</span>
             {participant1?.seed && (
-              <span className="text-xs text-accent">#{participant1.seed}</span>
+              <span className="text-xs text-brand">#{participant1.seed}</span>
             )}
           </div>
           {/* Completed Sets */}
           {volleyballState.sets.map((set, idx) => (
             <div
               key={idx}
-              className={`text-center font-display text-lg font-bold ${
-                (set[0] ?? 0) > (set[1] ?? 0) ? "text-accent" : "text-text-primary"
+              className={`text-center text-lg font-bold ${
+                (set[0] ?? 0) > (set[1] ?? 0) ? "text-brand" : "text-text-primary"
               }`}
             >
               {set[0] ?? 0}
@@ -182,7 +182,7 @@ export function VolleyballScoreboard({
           ))}
           {/* Current Set */}
           {volleyballState.sets.length < volleyballState.setsToWin * 2 - 1 && (
-            <div className="text-center font-display text-lg font-bold text-accent">
+            <div className="text-center text-lg font-bold text-brand">
               -
             </div>
           )}
@@ -195,7 +195,7 @@ export function VolleyballScoreboard({
             </div>
           ))}
           {/* Current Points */}
-          <div className="text-center font-display text-2xl font-bold text-accent">
+          <div className="text-center text-2xl font-bold text-brand">
             {volleyballState.currentSetPoints[0]}
           </div>
         </div>
@@ -204,7 +204,7 @@ export function VolleyballScoreboard({
         <div
           className={`grid grid-cols-[1fr_repeat(5,48px)_80px] gap-1 p-2 items-center ${
             volleyballState.isMatchComplete && p2SetsWon > p1SetsWon
-              ? "bg-accent/10"
+              ? "bg-brand/10"
               : ""
           }`}
         >
@@ -214,15 +214,15 @@ export function VolleyballScoreboard({
             )}
             <span className="font-semibold text-text-primary truncate">{p2Name}</span>
             {participant2?.seed && (
-              <span className="text-xs text-accent">#{participant2.seed}</span>
+              <span className="text-xs text-brand">#{participant2.seed}</span>
             )}
           </div>
           {/* Completed Sets */}
           {volleyballState.sets.map((set, idx) => (
             <div
               key={idx}
-              className={`text-center font-display text-lg font-bold ${
-                (set[1] ?? 0) > (set[0] ?? 0) ? "text-accent" : "text-text-primary"
+              className={`text-center text-lg font-bold ${
+                (set[1] ?? 0) > (set[0] ?? 0) ? "text-brand" : "text-text-primary"
               }`}
             >
               {set[1] ?? 0}
@@ -230,7 +230,7 @@ export function VolleyballScoreboard({
           ))}
           {/* Current Set */}
           {volleyballState.sets.length < volleyballState.setsToWin * 2 - 1 && (
-            <div className="text-center font-display text-lg font-bold text-accent">
+            <div className="text-center text-lg font-bold text-brand">
               -
             </div>
           )}
@@ -243,7 +243,7 @@ export function VolleyballScoreboard({
             </div>
           ))}
           {/* Current Points */}
-          <div className="text-center font-display text-2xl font-bold text-accent">
+          <div className="text-center text-2xl font-bold text-brand">
             {volleyballState.currentSetPoints[1]}
           </div>
         </div>
@@ -251,11 +251,11 @@ export function VolleyballScoreboard({
 
       {/* Set Score Summary */}
       <div className="flex justify-center gap-4 text-lg">
-        <span className={`font-bold ${p1SetsWon > p2SetsWon ? "text-accent" : "text-text-primary"}`}>
+        <span className={`font-bold ${p1SetsWon > p2SetsWon ? "text-brand" : "text-text-primary"}`}>
           {p1SetsWon}
         </span>
         <span className="text-text-muted">-</span>
-        <span className={`font-bold ${p2SetsWon > p1SetsWon ? "text-accent" : "text-text-primary"}`}>
+        <span className={`font-bold ${p2SetsWon > p1SetsWon ? "text-brand" : "text-text-primary"}`}>
           {p2SetsWon}
         </span>
       </div>
@@ -263,7 +263,7 @@ export function VolleyballScoreboard({
       {/* Match Complete */}
       {volleyballState.isMatchComplete && (
         <div className="text-center">
-          <span className="px-4 py-2 text-lg font-bold text-accent bg-accent/10 rounded-lg">
+          <span className="px-4 py-2 text-lg font-bold text-brand bg-brand/10 rounded-lg">
             Match Complete - {p1SetsWon > p2SetsWon ? p1Name : p2Name} Wins!
           </span>
         </div>
@@ -279,14 +279,14 @@ export function VolleyballScoreboard({
             <button
               onClick={() => handleScorePoint(1)}
               disabled={loading}
-              className="flex-1 py-4 text-lg font-bold text-text-inverse bg-accent rounded-xl hover:bg-accent-bright transition-all disabled:opacity-50"
+              className="flex-1 py-4 text-lg font-bold text-text-inverse bg-brand rounded-xl hover:bg-brand-hover transition-all disabled:opacity-50"
             >
               {p1Name.split(" ")[0]}
             </button>
             <button
               onClick={() => handleScorePoint(2)}
               disabled={loading}
-              className="flex-1 py-4 text-lg font-bold text-text-inverse bg-accent rounded-xl hover:bg-accent-bright transition-all disabled:opacity-50"
+              className="flex-1 py-4 text-lg font-bold text-text-inverse bg-brand rounded-xl hover:bg-brand-hover transition-all disabled:opacity-50"
             >
               {p2Name.split(" ")[0]}
             </button>
@@ -300,7 +300,7 @@ export function VolleyballScoreboard({
               className={`px-3 py-1 text-sm rounded-lg transition-all ${
                 volleyballState.servingTeam === 1
                   ? "bg-success text-white"
-                  : "bg-bg-elevated text-text-secondary hover:bg-bg-card"
+                  : "bg-bg-secondary text-text-secondary hover:bg-bg-card"
               }`}
             >
               {p1Name.split(" ")[0]}
@@ -310,7 +310,7 @@ export function VolleyballScoreboard({
               className={`px-3 py-1 text-sm rounded-lg transition-all ${
                 volleyballState.servingTeam === 2
                   ? "bg-success text-white"
-                  : "bg-bg-elevated text-text-secondary hover:bg-bg-card"
+                  : "bg-bg-secondary text-text-secondary hover:bg-bg-card"
               }`}
             >
               {p2Name.split(" ")[0]}
@@ -322,13 +322,13 @@ export function VolleyballScoreboard({
             <span>Adjust:</span>
             <button
               onClick={() => handleAdjustScore(1, -1)}
-              className="px-2 py-1 bg-bg-elevated rounded hover:bg-bg-card"
+              className="px-2 py-1 bg-bg-secondary rounded hover:bg-bg-card"
             >
               {p1Name.split(" ")[0]} -1
             </button>
             <button
               onClick={() => handleAdjustScore(2, -1)}
-              className="px-2 py-1 bg-bg-elevated rounded hover:bg-bg-card"
+              className="px-2 py-1 bg-bg-secondary rounded hover:bg-bg-card"
             >
               {p2Name.split(" ")[0]} -1
             </button>
@@ -407,7 +407,7 @@ export function VolleyballMatchSetup({
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-6">
       <div className="text-center">
-        <h3 className="font-display text-xl font-bold text-text-primary mb-2">
+        <h3 className="text-xl font-bold text-text-primary mb-2">
           Start Volleyball Match
         </h3>
         <p className="text-sm text-text-secondary">
@@ -418,13 +418,13 @@ export function VolleyballMatchSetup({
       {/* Tournament Rules Display */}
       {volleyballConfig && (
         <div className="flex justify-center gap-3">
-          <span className="px-3 py-1 text-xs font-semibold text-accent bg-accent/10 rounded-full">
+          <span className="px-3 py-1 text-xs font-semibold text-brand bg-brand/10 rounded-full">
             Best of {volleyballConfig.setsToWin * 2 - 1}
           </span>
-          <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-elevated rounded-full">
+          <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-secondary rounded-full">
             Sets to {volleyballConfig.pointsPerSet}
           </span>
-          <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-elevated rounded-full">
+          <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-secondary rounded-full">
             Deciding: {volleyballConfig.pointsPerDecidingSet}
           </span>
         </div>
@@ -442,7 +442,7 @@ export function VolleyballMatchSetup({
             className={`flex-1 py-4 rounded-lg border font-semibold transition-all ${
               firstServer === 1
                 ? "bg-success/10 border-success text-success"
-                : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
+                : "bg-bg-secondary border-border text-text-secondary hover:border-text-muted"
             }`}
           >
             {participant1Name}
@@ -453,7 +453,7 @@ export function VolleyballMatchSetup({
             className={`flex-1 py-4 rounded-lg border font-semibold transition-all ${
               firstServer === 2
                 ? "bg-success/10 border-success text-success"
-                : "bg-bg-elevated border-border text-text-secondary hover:border-text-muted"
+                : "bg-bg-secondary border-border text-text-secondary hover:border-text-muted"
             }`}
           >
             {participant2Name}
@@ -464,7 +464,7 @@ export function VolleyballMatchSetup({
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-4 font-semibold text-text-inverse bg-accent rounded-xl hover:bg-accent-bright transition-all disabled:opacity-50"
+        className="w-full py-4 font-semibold text-text-inverse bg-brand rounded-xl hover:bg-brand-hover transition-all disabled:opacity-50"
       >
         {loading ? "Starting..." : "Start Match"}
       </button>

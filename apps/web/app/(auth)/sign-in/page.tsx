@@ -46,73 +46,72 @@ export default function SignInPage(): React.ReactNode {
   return (
     <div className="w-full min-h-screen flex">
       {/* Left side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative bg-gradient-to-br from-accent/20 via-bg-secondary to-bg-primary overflow-hidden">
-        {/* Background elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/20 blur-[100px] rounded-full" />
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/10 blur-[80px] rounded-full" />
-          <div className="absolute inset-0 grid-bg opacity-30" />
-        </div>
-
-        {/* Content */}
-        <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16">
+      <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative bg-[#1f2937]">
+        <div className="flex flex-col justify-between p-12 xl:p-16 w-full">
           <Link href="/" className="inline-flex items-center gap-3">
-            <img src="/logo.png" alt="ScoreForge" className="w-12 h-12 object-contain" />
-            <span className="font-display text-2xl font-semibold tracking-tight text-text-primary">ScoreForge</span>
+            <div className="w-10 h-10 bg-brand rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M13 3L4 14h7v7l9-11h-7V3z" />
+              </svg>
+            </div>
+            <span className="text-xl font-semibold text-white">ScoreForge</span>
           </Link>
 
           <div className="max-w-lg">
-            <h2 className="font-display text-4xl xl:text-5xl font-bold tracking-tight text-text-primary mb-6">
-              Manage tournaments with precision
+            <h2 className="text-title text-white mb-6">
+              Score with precision
             </h2>
-            <p className="text-lg text-text-secondary leading-relaxed">
-              Real-time scoring, live brackets, and seamless tournament management for tennis, volleyball, and more.
+            <p className="text-body-lg text-white/60 leading-relaxed">
+              Real-time scoring, live brackets, and seamless tournament management for tennis and volleyball.
             </p>
 
-            {/* Feature highlights */}
-            <div className="mt-10 space-y-4">
+            <div className="mt-12 space-y-5">
               {[
-                { icon: "🎾", text: "Live match scoring" },
-                { icon: "📊", text: "Real-time brackets" },
-                { icon: "👥", text: "Team management" },
+                { icon: "🎾", text: "Live match scoring with undo" },
+                { icon: "📊", text: "Real-time bracket updates" },
+                { icon: "👥", text: "Multi-user scoring support" },
               ].map((feature, i) => (
-                <div key={i} className="flex items-center gap-3 text-text-secondary">
-                  <span className="text-xl">{feature.icon}</span>
-                  <span>{feature.text}</span>
+                <div key={i} className="flex items-center gap-4 text-white/70">
+                  <span className="text-2xl">{feature.icon}</span>
+                  <span className="font-medium">{feature.text}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <p className="text-sm text-text-muted">
+          <p className="text-small text-white/40">
             Trusted by tournament organizers worldwide
           </p>
         </div>
       </div>
 
       {/* Right side - Form */}
-      <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center p-6 sm:p-12">
-        <div className="w-full max-w-md animate-fadeInUp">
+      <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center p-6 sm:p-12 bg-bg-page">
+        <div className="w-full max-w-md animate-slideUp">
           {/* Mobile logo */}
-          <div className="lg:hidden text-center mb-8">
-            <Link href="/" className="inline-flex items-center gap-2 mb-4">
-              <img src="/logo.png" alt="ScoreForge" className="w-10 h-10 object-contain" />
-              <span className="font-display text-xl font-semibold tracking-tight text-text-primary">ScoreForge</span>
+          <div className="lg:hidden text-center mb-10">
+            <Link href="/" className="inline-flex items-center gap-3">
+              <div className="w-10 h-10 bg-brand rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M13 3L4 14h7v7l9-11h-7V3z" />
+                </svg>
+              </div>
+              <span className="text-xl font-semibold text-text-primary">ScoreForge</span>
             </Link>
           </div>
 
-          <div className="mb-8">
-            <h1 className="font-display text-3xl font-bold tracking-tight text-text-primary mb-3">
+          <div className="mb-10">
+            <h1 className="text-title text-text-primary mb-3">
               Welcome back
             </h1>
-            <p className="text-text-secondary">
+            <p className="text-body text-text-muted">
               Sign in to your account to continue
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-text-primary mb-2">
+              <label htmlFor="email" className="text-label block mb-2">
                 Email
               </label>
               <input
@@ -122,12 +121,12 @@ export default function SignInPage(): React.ReactNode {
                 required
                 autoComplete="email"
                 placeholder="you@example.com"
-                className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                className="input"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-text-primary mb-2">
+              <label htmlFor="password" className="text-label block mb-2">
                 Password
               </label>
               <input
@@ -137,12 +136,12 @@ export default function SignInPage(): React.ReactNode {
                 required
                 autoComplete="current-password"
                 placeholder="Enter your password"
-                className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                className="input"
               />
             </div>
 
             {error && (
-              <div className="flex items-start gap-3 p-4 text-sm text-error bg-error/10 border border-error/20 rounded-xl">
+              <div className="flex items-start gap-3 p-4 text-small text-error bg-error-light border border-error/20 rounded-lg">
                 <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                 </svg>
@@ -153,7 +152,7 @@ export default function SignInPage(): React.ReactNode {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center py-3.5 px-4 text-sm font-semibold text-text-inverse bg-accent rounded-xl hover:bg-accent-bright transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-accent/25"
+              className="btn-primary w-full"
             >
               {loading ? (
                 <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -166,10 +165,10 @@ export default function SignInPage(): React.ReactNode {
             </button>
           </form>
 
-          <div className="mt-8 pt-8 border-t border-border">
-            <p className="text-center text-text-secondary">
+          <div className="mt-10 pt-8 border-t border-border">
+            <p className="text-center text-text-muted">
               Don&apos;t have an account?{" "}
-              <Link href="/sign-up" className="font-semibold text-accent hover:text-accent-bright transition-colors">
+              <Link href="/sign-up" className="font-semibold text-brand hover:text-brand-hover transition-colors">
                 Create one
               </Link>
             </p>

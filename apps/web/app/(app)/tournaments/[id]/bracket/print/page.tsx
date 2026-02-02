@@ -55,7 +55,7 @@ export default function PrintBracketPage({
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-text-muted">Loading bracket...</p>
         </div>
       </div>
@@ -69,7 +69,7 @@ export default function PrintBracketPage({
           <h1 className="text-2xl font-bold text-text-primary mb-4">
             Tournament Not Found
           </h1>
-          <Link href="/tournaments" className="text-accent hover:underline">
+          <Link href="/tournaments" className="text-brand hover:underline">
             Back to Tournaments
           </Link>
         </div>
@@ -89,7 +89,7 @@ export default function PrintBracketPage({
           </p>
           <Link
             href={`/tournaments/${id}`}
-            className="text-accent hover:underline"
+            className="text-brand hover:underline"
           >
             Back to Tournament
           </Link>
@@ -136,7 +136,7 @@ export default function PrintBracketPage({
           <div className="flex items-center gap-4">
             <Link
               href={`/tournaments/${id}`}
-              className="text-sm text-text-secondary hover:text-accent transition-colors"
+              className="text-sm text-text-secondary hover:text-brand transition-colors"
             >
               &larr; Back to Tournament
             </Link>
@@ -150,7 +150,7 @@ export default function PrintBracketPage({
           </div>
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-text-inverse bg-accent rounded-lg hover:bg-accent-bright transition-all print-button"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-text-inverse bg-brand rounded-lg hover:bg-brand-hover transition-all print-button"
           >
             <svg
               className="w-4 h-4"

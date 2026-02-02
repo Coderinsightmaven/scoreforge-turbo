@@ -56,11 +56,12 @@ export default function AddParticipantPage({
 
   // Set initial bracket from URL or default to first bracket
   useEffect(() => {
-    if (brackets && brackets.length > 0 && !initialBracketSet) {
+    const firstBracket = brackets?.[0];
+    if (brackets && brackets.length > 0 && firstBracket && !initialBracketSet) {
       if (bracketIdFromUrl && brackets.some(b => b._id === bracketIdFromUrl)) {
         setSelectedBracketId(bracketIdFromUrl);
       } else {
-        setSelectedBracketId(brackets[0]._id);
+        setSelectedBracketId(firstBracket._id);
       }
       setInitialBracketSet(true);
     }
@@ -220,16 +221,10 @@ export default function AddParticipantPage({
 
   return (
     <div className="min-h-screen flex items-start justify-center px-6 py-12">
-      {/* Background */}
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-accent/10 blur-[120px] rounded-full" />
-        <div className="absolute inset-0 grid-bg opacity-50" />
-      </div>
-
       <div className="w-full max-w-lg">
         <Link
           href={`/tournaments/${tournamentId}`}
-          className="inline-flex items-center gap-2 text-text-secondary hover:text-accent transition-colors mb-8"
+          className="inline-flex items-center gap-2 text-text-secondary hover:text-brand transition-colors mb-8"
         >
           <span>←</span> Back to {tournament.name}
         </Link>
@@ -237,19 +232,19 @@ export default function AddParticipantPage({
         <div className="relative bg-bg-card border border-border rounded-2xl overflow-hidden">
           {/* Header */}
           <div className="text-center px-8 pt-10 pb-6">
-            <div className="w-14 h-14 mx-auto flex items-center justify-center bg-accent/10 rounded-2xl mb-4">
-              <svg className="w-7 h-7 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <div className="w-14 h-14 mx-auto flex items-center justify-center bg-brand/10 rounded-2xl mb-4">
+              <svg className="w-7 h-7 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
               </svg>
             </div>
-            <h1 className="font-display text-2xl font-semibold tracking-tight text-text-primary mb-2">
+            <h1 className="text-heading text-text-primary mb-2">
               Add participant
             </h1>
             <p className="text-sm text-text-secondary">
               {getFormTitle()}
             </p>
             <div className="mt-4 flex items-center justify-center gap-2 text-sm">
-              <span className="text-accent font-semibold">{currentParticipantCount}</span>
+              <span className="text-brand font-semibold">{currentParticipantCount}</span>
               {maxParticipants && (
                 <>
                   <span className="text-text-muted">/</span>
@@ -272,7 +267,7 @@ export default function AddParticipantPage({
                 </p>
                 <Link
                   href={`/tournaments/${tournamentId}`}
-                  className="text-accent hover:text-accent-bright transition-colors"
+                  className="text-brand hover:text-brand-bright transition-colors"
                 >
                   Return to Tournament
                 </Link>
@@ -307,7 +302,7 @@ export default function AddParticipantPage({
                     }
                     setSelectedBracketId(newBracketId);
                   }}
-                  className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-lg text-text-primary focus:outline-none focus:border-accent transition-colors"
+                  className="w-full px-4 py-3 bg-bg-secondary border border-border rounded-lg text-text-primary focus:outline-none focus:border-brand transition-colors"
                   required
                 >
                   <option value="">Select a bracket</option>
@@ -340,7 +335,7 @@ export default function AddParticipantPage({
                     value={playerName}
                     onChange={(e) => setPlayerName(e.target.value)}
                     placeholder="e.g., John Doe, Jane Smith, Bob Wilson"
-                    className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors"
+                    className="w-full px-4 py-3 bg-bg-secondary border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand transition-colors"
                     autoFocus
                   />
                   <span className="block text-xs text-text-muted">
@@ -367,7 +362,7 @@ export default function AddParticipantPage({
                       value={player1Name}
                       onChange={(e) => setPlayer1Name(e.target.value)}
                       placeholder="e.g., John Doe, Jane Smith"
-                      className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors"
+                      className="w-full px-4 py-3 bg-bg-secondary border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand transition-colors"
                       autoFocus
                     />
                   </div>
@@ -386,7 +381,7 @@ export default function AddParticipantPage({
                       value={player2Name}
                       onChange={(e) => setPlayer2Name(e.target.value)}
                       placeholder="e.g., Bob Wilson, Alice Brown"
-                      className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors"
+                      className="w-full px-4 py-3 bg-bg-secondary border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand transition-colors"
                     />
                     <span className="block text-xs text-text-muted">
                       For multiple pairs, separate names with commas (same order in both fields)
@@ -394,9 +389,9 @@ export default function AddParticipantPage({
                   </div>
                   {/* Preview of display name */}
                   {player1Name.trim() && player2Name.trim() && (
-                    <div className="px-4 py-3 bg-accent/5 border border-accent/20 rounded-lg">
+                    <div className="px-4 py-3 bg-brand/5 border border-brand/20 rounded-lg">
                       <span className="text-xs text-text-muted block mb-1">Display Name Preview</span>
-                      <span className="text-sm font-medium text-accent">
+                      <span className="text-sm font-medium text-brand">
                         {formatDoublesDisplayName(player1Name.split(",")[0]?.trim() || "", player2Name.split(",")[0]?.trim() || "")}
                         {player1Name.includes(",") && " (+ more)"}
                       </span>
@@ -422,7 +417,7 @@ export default function AddParticipantPage({
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
                     placeholder="e.g., Team Alpha, Team Beta, Team Gamma"
-                    className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors"
+                    className="w-full px-4 py-3 bg-bg-secondary border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand transition-colors"
                     autoFocus
                   />
                   <span className="block text-xs text-text-muted">
@@ -447,7 +442,7 @@ export default function AddParticipantPage({
                   value={seed}
                   onChange={(e) => setSeed(e.target.value)}
                   placeholder="e.g., 1 for top seed"
-                  className="w-full px-4 py-3 bg-bg-elevated border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors"
+                  className="w-full px-4 py-3 bg-bg-secondary border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand transition-colors"
                 />
                 <span className="block text-xs text-text-muted">
                   Seeds determine bracket placement. Lower numbers = higher seed.
@@ -466,14 +461,14 @@ export default function AddParticipantPage({
               <div className="flex gap-3 pt-2">
                 <Link
                   href={`/tournaments/${tournamentId}`}
-                  className="flex-1 px-4 py-3 text-center bg-bg-elevated border border-border rounded-lg text-text-secondary hover:text-text-primary hover:border-text-muted transition-all"
+                  className="flex-1 px-4 py-3 text-center bg-bg-secondary border border-border rounded-lg text-text-secondary hover:text-text-primary hover:border-text-muted transition-all"
                 >
                   Cancel
                 </Link>
                 <button
                   type="submit"
                   disabled={loading || !isFormValid()}
-                  className="flex-[2] flex items-center justify-center gap-2 px-4 py-3 bg-accent text-text-inverse font-semibold rounded-lg hover:bg-accent-bright transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-[2] flex items-center justify-center gap-2 px-4 py-3 bg-brand text-text-inverse font-semibold rounded-lg hover:bg-brand-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <span className="w-5 h-5 border-2 border-text-inverse/30 border-t-text-inverse rounded-full animate-spin" />
@@ -489,7 +484,7 @@ export default function AddParticipantPage({
           )}
 
           {/* Accent bar */}
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-gold to-accent" />
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-brand" />
         </div>
       </div>
     </div>
@@ -515,7 +510,7 @@ function NotFound() {
           <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
         </svg>
       </div>
-      <h1 className="font-display text-3xl text-text-primary mb-3">
+      <h1 className="text-title text-text-primary mb-3">
         Tournament Not Found
       </h1>
       <p className="text-text-secondary mb-8">
@@ -523,7 +518,7 @@ function NotFound() {
       </p>
       <Link
         href="/tournaments"
-        className="inline-flex items-center gap-2 text-accent hover:text-accent-bright transition-colors"
+        className="inline-flex items-center gap-2 text-brand hover:text-brand-bright transition-colors"
       >
         ← Back to Tournaments
       </Link>
@@ -535,13 +530,13 @@ function NotAuthorized({ tournamentId }: { tournamentId: string }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-center px-6">
       <div className="text-6xl text-text-muted mb-6">⚠</div>
-      <h1 className="font-display text-3xl text-text-primary mb-3">Not Authorized</h1>
+      <h1 className="text-title text-text-primary mb-3">Not Authorized</h1>
       <p className="text-text-secondary mb-8">
         You don&apos;t have permission to add participants to this tournament.
       </p>
       <Link
         href={`/tournaments/${tournamentId}`}
-        className="inline-flex items-center gap-2 text-accent hover:text-accent-bright transition-colors"
+        className="inline-flex items-center gap-2 text-brand hover:text-brand-bright transition-colors"
       >
         ← Back to Tournament
       </Link>
@@ -553,13 +548,13 @@ function TournamentNotDraft({ tournamentId }: { tournamentId: string }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-center px-6">
       <div className="text-6xl text-text-muted mb-6">🚫</div>
-      <h1 className="font-display text-3xl text-text-primary mb-3">Cannot Add Participants</h1>
+      <h1 className="text-title text-text-primary mb-3">Cannot Add Participants</h1>
       <p className="text-text-secondary mb-8">
         This tournament has already started and is no longer accepting new participants.
       </p>
       <Link
         href={`/tournaments/${tournamentId}`}
-        className="inline-flex items-center gap-2 text-accent hover:text-accent-bright transition-colors"
+        className="inline-flex items-center gap-2 text-brand hover:text-brand-bright transition-colors"
       >
         ← Back to Tournament
       </Link>
