@@ -214,10 +214,9 @@ export function EditableBracket({
               </div>
               <div className="flex flex-col gap-3 flex-1 justify-around print:gap-2">
                 {(rounds[round] || []).map((match) => {
-                  const isByeMatch =
-                    (match.participant1 && !match.participant2) ||
-                    (!match.participant1 && match.participant2) ||
-                    match.status === "bye";
+                  // Only show as bye if it's an actual bye match (status === "bye")
+                  // Not just because a participant is missing from an incomplete previous round
+                  const isByeMatch = match.status === "bye";
 
                   return (
                     <div

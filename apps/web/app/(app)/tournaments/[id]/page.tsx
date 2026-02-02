@@ -1029,11 +1029,9 @@ function BracketTab({
               </div>
               <div className="flex flex-col gap-3 flex-1 justify-around">
                 {(rounds[round] || []).map((match) => {
-                  // Check if this is a bye match (only one participant)
-                  const isByeMatch =
-                    (match.participant1 && !match.participant2) ||
-                    (!match.participant1 && match.participant2) ||
-                    match.status === "bye";
+                  // Only show as bye if it's an actual bye match (status === "bye")
+                  // Not just because a participant is missing from an incomplete previous round
+                  const isByeMatch = match.status === "bye";
                   const isScoreable =
                     !isByeMatch &&
                     match.participant1 &&

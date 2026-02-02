@@ -201,10 +201,9 @@ export default function PrintBracketPage({
                 </div>
                 <div className="flex flex-col gap-4 flex-1 justify-around print:gap-2">
                   {(rounds[round] || []).map((match) => {
-                    const isByeMatch =
-                      (match.participant1 && !match.participant2) ||
-                      (!match.participant1 && match.participant2) ||
-                      match.status === "bye";
+                    // Only show as bye if it's an actual bye match (status === "bye")
+                    // Not just because a participant is missing from an incomplete previous round
+                    const isByeMatch = match.status === "bye";
 
                     return (
                       <div
@@ -218,7 +217,7 @@ export default function PrintBracketPage({
                           <span className="w-5 text-xs text-center text-gray-500 print:text-[10px]">
                             {match.participant1?.seed || "-"}
                           </span>
-                          {match.participant1?.isPlaceholder ? (
+                          {match.participant1?.isPlaceholder || !match.participant1 ? (
                             <span className="flex-1 bracket-slot-empty print:min-w-[80px]" />
                           ) : (
                             <span
@@ -228,8 +227,7 @@ export default function PrintBracketPage({
                                   : ""
                               }`}
                             >
-                              {match.participant1?.displayName ||
-                                (isByeMatch ? "BYE" : "")}
+                              {match.participant1.displayName}
                             </span>
                           )}
                           {!isByeMatch && match.status === "completed" && (
@@ -244,7 +242,7 @@ export default function PrintBracketPage({
                           <span className="w-5 text-xs text-center text-gray-500 print:text-[10px]">
                             {match.participant2?.seed || "-"}
                           </span>
-                          {match.participant2?.isPlaceholder ? (
+                          {match.participant2?.isPlaceholder || !match.participant2 ? (
                             <span className="flex-1 bracket-slot-empty print:min-w-[80px]" />
                           ) : (
                             <span
@@ -254,8 +252,7 @@ export default function PrintBracketPage({
                                   : ""
                               }`}
                             >
-                              {match.participant2?.displayName ||
-                                (isByeMatch ? "BYE" : "")}
+                              {match.participant2.displayName}
                             </span>
                           )}
                           {!isByeMatch && match.status === "completed" && (
