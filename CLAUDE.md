@@ -164,24 +164,14 @@ const mutate = useMutation(api.file.mutation);
 
 ## Mobile App Patterns
 
-### Navigation
-- Uses Expo Router (file-based routing like Next.js)
-- Route groups: `(auth)` for sign-in/sign-up, `(main)` for authenticated routes
-- Bottom tabs via `@react-navigation/bottom-tabs`
+### Structure
+- Simple Expo app with `index.js` entry point and `App.tsx` root component
+- Components in `components/` directory
 
-### Path Aliases
-Use `@/` prefix for imports:
-```tsx
-import { ConvexProvider } from "@/providers/ConvexProvider";
-import { useTheme } from "@/contexts/ThemeContext";
-import { Colors } from "@/constants/theme";
-```
-
-### Theme System
-- `ThemeContext` provides `useTheme()` hook with `theme`, `isDark`, `resolvedTheme`, `setTheme`
-- Theme syncs to Convex via `userPreferences` table
-- Colors defined in `constants/theme.ts` with `Colors.light` and `Colors.dark`
-- Fonts: DM Serif Display (display), Outfit (body) - loaded via `expo-font`
+### Styling
+- Uses NativeWind (Tailwind CSS for React Native)
+- Import `global.css` in App.tsx for styles
+- Configure in `tailwind.config.js` with `nativewind/preset`
 
 ### Environment
 - Convex URL: `EXPO_PUBLIC_CONVEX_URL`
