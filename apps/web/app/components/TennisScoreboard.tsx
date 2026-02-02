@@ -175,143 +175,136 @@ export function TennisScoreboard({
       </div>
 
       {/* Main Scoreboard */}
-      <div className="bg-bg-secondary rounded-xl overflow-hidden border border-border">
-        {/* Header Row */}
-        <div className="grid grid-cols-[1fr_repeat(5,48px)_64px] gap-1 p-2 bg-bg-secondary text-xs font-semibold text-text-muted">
-          <div className="px-3">Player</div>
-          {tennisState.sets.map((_, idx) => (
-            <div key={idx} className="text-center">
-              Set {idx + 1}
-            </div>
-          ))}
-          {tennisState.sets.length < (tennisState.setsToWin * 2 - 1) && (
-            <div className="text-center text-brand">
-              Set {tennisState.sets.length + 1}
-            </div>
-          )}
-          {/* Pad remaining set columns */}
-          {Array.from({
-            length: Math.max(0, 3 - tennisState.sets.length - 1),
-          }).map((_, idx) => (
-            <div key={`pad-${idx}`} className="text-center">
-              -
-            </div>
-          ))}
-          <div className="text-center">
-            {tennisState.isTiebreak ? "TB" : "Game"}
-          </div>
-        </div>
+      {(() => {
+        // Determine which sets to display
+        const hasCurrentSetGames = (tennisState.currentSetGames[0] ?? 0) > 0 || (tennisState.currentSetGames[1] ?? 0) > 0;
+        const showCurrentSet = !tennisState.isMatchComplete && hasCurrentSetGames;
+        const totalSetColumns = tennisState.sets.length + (showCurrentSet ? 1 : 0);
 
-        {/* Player 1 Row */}
-        <div
-          className={`grid grid-cols-[1fr_repeat(5,48px)_64px] gap-1 p-2 items-center border-b border-border ${
-            tennisState.isMatchComplete && p1SetsWon > p2SetsWon
-              ? "bg-brand/10"
-              : ""
-          }`}
-        >
-          <div className="flex items-center gap-2 px-3">
-            {tennisState.servingParticipant === 1 && (
-              <span className="w-2 h-2 bg-success rounded-full animate-pulse" title="Serving" />
-            )}
-            <span className="font-semibold text-text-primary truncate">{p1Name}</span>
-            {participant1?.seed && (
-              <span className="text-xs text-brand">#{participant1.seed}</span>
-            )}
-          </div>
-          {/* Completed Sets */}
-          {tennisState.sets.map((set, idx) => (
-            <div
-              key={idx}
-              className={`text-center text-lg font-bold ${
-                (set[0] ?? 0) > (set[1] ?? 0) ? "text-brand" : "text-text-primary"
-              }`}
-            >
-              {set[0] ?? 0}
-            </div>
-          ))}
-          {/* Current Set */}
-          {tennisState.sets.length < (tennisState.setsToWin * 2 - 1) && (
-            <div className="text-center text-lg font-bold text-brand">
-              {tennisState.currentSetGames[0]}
-            </div>
-          )}
-          {/* Pad remaining */}
-          {Array.from({
-            length: Math.max(0, 3 - tennisState.sets.length - 1),
-          }).map((_, idx) => (
-            <div key={`pad-${idx}`} className="text-center text-text-muted">
-              -
-            </div>
-          ))}
-          {/* Current Game/Tiebreak Points */}
-          <div className="text-center text-xl font-bold text-brand">
-            {getPointDisplay(
-              tennisState.isTiebreak
-                ? tennisState.tiebreakPoints
-                : tennisState.currentGamePoints,
-              0,
-              tennisState.isAdScoring,
-              tennisState.isTiebreak
-            )}
-          </div>
-        </div>
+        // Dynamic grid: 1fr for name, 48px per set column, 64px for game points
+        const gridCols = `1fr repeat(${totalSetColumns}, 48px) 64px`;
 
-        {/* Player 2 Row */}
-        <div
-          className={`grid grid-cols-[1fr_repeat(5,48px)_64px] gap-1 p-2 items-center ${
-            tennisState.isMatchComplete && p2SetsWon > p1SetsWon
-              ? "bg-brand/10"
-              : ""
-          }`}
-        >
-          <div className="flex items-center gap-2 px-3">
-            {tennisState.servingParticipant === 2 && (
-              <span className="w-2 h-2 bg-success rounded-full animate-pulse" title="Serving" />
-            )}
-            <span className="font-semibold text-text-primary truncate">{p2Name}</span>
-            {participant2?.seed && (
-              <span className="text-xs text-brand">#{participant2.seed}</span>
-            )}
-          </div>
-          {/* Completed Sets */}
-          {tennisState.sets.map((set, idx) => (
+        return (
+          <div className="bg-bg-secondary rounded-xl overflow-hidden border border-border">
+            {/* Header Row */}
             <div
-              key={idx}
-              className={`text-center text-lg font-bold ${
-                (set[1] ?? 0) > (set[0] ?? 0) ? "text-brand" : "text-text-primary"
-              }`}
+              className="gap-1 p-2 bg-bg-secondary text-xs font-semibold text-text-muted"
+              style={{ display: 'grid', gridTemplateColumns: gridCols }}
             >
-              {set[1] ?? 0}
+              <div className="px-3">Player</div>
+              {tennisState.sets.map((_, idx) => (
+                <div key={idx} className="text-center">
+                  Set {idx + 1}
+                </div>
+              ))}
+              {showCurrentSet && (
+                <div className="text-center text-brand">
+                  Set {tennisState.sets.length + 1}
+                </div>
+              )}
+              <div className="text-center">
+                {tennisState.isTiebreak ? "TB" : "Game"}
+              </div>
             </div>
-          ))}
-          {/* Current Set */}
-          {tennisState.sets.length < (tennisState.setsToWin * 2 - 1) && (
-            <div className="text-center text-lg font-bold text-brand">
-              {tennisState.currentSetGames[1]}
+
+            {/* Player 1 Row */}
+            <div
+              className={`gap-1 p-2 items-center border-b border-border ${
+                tennisState.isMatchComplete && p1SetsWon > p2SetsWon
+                  ? "bg-brand/10"
+                  : ""
+              }`}
+              style={{ display: 'grid', gridTemplateColumns: gridCols }}
+            >
+              <div className="flex items-center gap-2 px-3">
+                {tennisState.servingParticipant === 1 && (
+                  <span className="w-2 h-2 bg-success rounded-full animate-pulse" title="Serving" />
+                )}
+                <span className="font-semibold text-text-primary truncate">{p1Name}</span>
+                {participant1?.seed && (
+                  <span className="text-xs text-brand">#{participant1.seed}</span>
+                )}
+              </div>
+              {/* Completed Sets */}
+              {tennisState.sets.map((set, idx) => (
+                <div
+                  key={idx}
+                  className={`text-center text-lg font-bold ${
+                    (set[0] ?? 0) > (set[1] ?? 0) ? "text-brand" : "text-text-primary"
+                  }`}
+                >
+                  {set[0] ?? 0}
+                </div>
+              ))}
+              {/* Current Set - only if games have been played */}
+              {showCurrentSet && (
+                <div className="text-center text-lg font-bold text-brand">
+                  {tennisState.currentSetGames[0]}
+                </div>
+              )}
+              {/* Current Game/Tiebreak Points */}
+              <div className="text-center text-xl font-bold text-brand">
+                {getPointDisplay(
+                  tennisState.isTiebreak
+                    ? tennisState.tiebreakPoints
+                    : tennisState.currentGamePoints,
+                  0,
+                  tennisState.isAdScoring,
+                  tennisState.isTiebreak
+                )}
+              </div>
             </div>
-          )}
-          {/* Pad remaining */}
-          {Array.from({
-            length: Math.max(0, 3 - tennisState.sets.length - 1),
-          }).map((_, idx) => (
-            <div key={`pad-${idx}`} className="text-center text-text-muted">
-              -
+
+            {/* Player 2 Row */}
+            <div
+              className={`gap-1 p-2 items-center ${
+                tennisState.isMatchComplete && p2SetsWon > p1SetsWon
+                  ? "bg-brand/10"
+                  : ""
+              }`}
+              style={{ display: 'grid', gridTemplateColumns: gridCols }}
+            >
+              <div className="flex items-center gap-2 px-3">
+                {tennisState.servingParticipant === 2 && (
+                  <span className="w-2 h-2 bg-success rounded-full animate-pulse" title="Serving" />
+                )}
+                <span className="font-semibold text-text-primary truncate">{p2Name}</span>
+                {participant2?.seed && (
+                  <span className="text-xs text-brand">#{participant2.seed}</span>
+                )}
+              </div>
+              {/* Completed Sets */}
+              {tennisState.sets.map((set, idx) => (
+                <div
+                  key={idx}
+                  className={`text-center text-lg font-bold ${
+                    (set[1] ?? 0) > (set[0] ?? 0) ? "text-brand" : "text-text-primary"
+                  }`}
+                >
+                  {set[1] ?? 0}
+                </div>
+              ))}
+              {/* Current Set - only if games have been played */}
+              {showCurrentSet && (
+                <div className="text-center text-lg font-bold text-brand">
+                  {tennisState.currentSetGames[1]}
+                </div>
+              )}
+              {/* Current Game/Tiebreak Points */}
+              <div className="text-center text-xl font-bold text-brand">
+                {getPointDisplay(
+                  tennisState.isTiebreak
+                    ? tennisState.tiebreakPoints
+                    : tennisState.currentGamePoints,
+                  1,
+                  tennisState.isAdScoring,
+                  tennisState.isTiebreak
+                )}
+              </div>
             </div>
-          ))}
-          {/* Current Game/Tiebreak Points */}
-          <div className="text-center text-xl font-bold text-brand">
-            {getPointDisplay(
-              tennisState.isTiebreak
-                ? tennisState.tiebreakPoints
-                : tennisState.currentGamePoints,
-              1,
-              tennisState.isAdScoring,
-              tennisState.isTiebreak
-            )}
           </div>
-        </div>
-      </div>
+        );
+      })()}
 
       {/* Game Status */}
       {gameStatus && !tennisState.isMatchComplete && (

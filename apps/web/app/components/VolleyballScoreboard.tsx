@@ -127,127 +127,120 @@ export function VolleyballScoreboard({
       </div>
 
       {/* Main Scoreboard */}
-      <div className="bg-bg-secondary rounded-xl overflow-hidden border border-border">
-        {/* Header Row */}
-        <div className="grid grid-cols-[1fr_repeat(5,48px)_80px] gap-1 p-2 bg-bg-secondary text-xs font-semibold text-text-muted">
-          <div className="px-3">Team</div>
-          {volleyballState.sets.map((_, idx) => (
-            <div key={idx} className="text-center">
-              Set {idx + 1}
-            </div>
-          ))}
-          {volleyballState.sets.length < volleyballState.setsToWin * 2 - 1 && (
-            <div className="text-center text-brand">
-              Set {volleyballState.sets.length + 1}
-            </div>
-          )}
-          {/* Pad remaining set columns */}
-          {Array.from({
-            length: Math.max(0, (volleyballState.setsToWin * 2 - 1) - volleyballState.sets.length - 1),
-          }).map((_, idx) => (
-            <div key={`pad-${idx}`} className="text-center">
-              -
-            </div>
-          ))}
-          <div className="text-center">Points</div>
-        </div>
+      {(() => {
+        // Determine which sets to display - only show current set if points have been scored
+        const hasCurrentSetPoints = (volleyballState.currentSetPoints[0] ?? 0) > 0 || (volleyballState.currentSetPoints[1] ?? 0) > 0;
+        const showCurrentSet = !volleyballState.isMatchComplete && hasCurrentSetPoints;
+        const totalSetColumns = volleyballState.sets.length + (showCurrentSet ? 1 : 0);
 
-        {/* Team 1 Row */}
-        <div
-          className={`grid grid-cols-[1fr_repeat(5,48px)_80px] gap-1 p-2 items-center border-b border-border ${
-            volleyballState.isMatchComplete && p1SetsWon > p2SetsWon
-              ? "bg-brand/10"
-              : ""
-          }`}
-        >
-          <div className="flex items-center gap-2 px-3">
-            {volleyballState.servingTeam === 1 && (
-              <span className="w-2 h-2 bg-success rounded-full animate-pulse" title="Serving" />
-            )}
-            <span className="font-semibold text-text-primary truncate">{p1Name}</span>
-            {participant1?.seed && (
-              <span className="text-xs text-brand">#{participant1.seed}</span>
-            )}
-          </div>
-          {/* Completed Sets */}
-          {volleyballState.sets.map((set, idx) => (
-            <div
-              key={idx}
-              className={`text-center text-lg font-bold ${
-                (set[0] ?? 0) > (set[1] ?? 0) ? "text-brand" : "text-text-primary"
-              }`}
-            >
-              {set[0] ?? 0}
-            </div>
-          ))}
-          {/* Current Set */}
-          {volleyballState.sets.length < volleyballState.setsToWin * 2 - 1 && (
-            <div className="text-center text-lg font-bold text-brand">
-              -
-            </div>
-          )}
-          {/* Pad remaining */}
-          {Array.from({
-            length: Math.max(0, (volleyballState.setsToWin * 2 - 1) - volleyballState.sets.length - 1),
-          }).map((_, idx) => (
-            <div key={`pad-${idx}`} className="text-center text-text-muted">
-              -
-            </div>
-          ))}
-          {/* Current Points */}
-          <div className="text-center text-2xl font-bold text-brand">
-            {volleyballState.currentSetPoints[0]}
-          </div>
-        </div>
+        // Dynamic grid: 1fr for name, 48px per set column, 80px for points
+        const gridCols = `1fr repeat(${totalSetColumns}, 48px) 80px`;
 
-        {/* Team 2 Row */}
-        <div
-          className={`grid grid-cols-[1fr_repeat(5,48px)_80px] gap-1 p-2 items-center ${
-            volleyballState.isMatchComplete && p2SetsWon > p1SetsWon
-              ? "bg-brand/10"
-              : ""
-          }`}
-        >
-          <div className="flex items-center gap-2 px-3">
-            {volleyballState.servingTeam === 2 && (
-              <span className="w-2 h-2 bg-success rounded-full animate-pulse" title="Serving" />
-            )}
-            <span className="font-semibold text-text-primary truncate">{p2Name}</span>
-            {participant2?.seed && (
-              <span className="text-xs text-brand">#{participant2.seed}</span>
-            )}
-          </div>
-          {/* Completed Sets */}
-          {volleyballState.sets.map((set, idx) => (
+        return (
+          <div className="bg-bg-secondary rounded-xl overflow-hidden border border-border">
+            {/* Header Row */}
             <div
-              key={idx}
-              className={`text-center text-lg font-bold ${
-                (set[1] ?? 0) > (set[0] ?? 0) ? "text-brand" : "text-text-primary"
-              }`}
+              className="gap-1 p-2 bg-bg-secondary text-xs font-semibold text-text-muted"
+              style={{ display: 'grid', gridTemplateColumns: gridCols }}
             >
-              {set[1] ?? 0}
+              <div className="px-3">Team</div>
+              {volleyballState.sets.map((_, idx) => (
+                <div key={idx} className="text-center">
+                  Set {idx + 1}
+                </div>
+              ))}
+              {showCurrentSet && (
+                <div className="text-center text-brand">
+                  Set {volleyballState.sets.length + 1}
+                </div>
+              )}
+              <div className="text-center">Points</div>
             </div>
-          ))}
-          {/* Current Set */}
-          {volleyballState.sets.length < volleyballState.setsToWin * 2 - 1 && (
-            <div className="text-center text-lg font-bold text-brand">
-              -
+
+            {/* Team 1 Row */}
+            <div
+              className={`gap-1 p-2 items-center border-b border-border ${
+                volleyballState.isMatchComplete && p1SetsWon > p2SetsWon
+                  ? "bg-brand/10"
+                  : ""
+              }`}
+              style={{ display: 'grid', gridTemplateColumns: gridCols }}
+            >
+              <div className="flex items-center gap-2 px-3">
+                {volleyballState.servingTeam === 1 && (
+                  <span className="w-2 h-2 bg-success rounded-full animate-pulse" title="Serving" />
+                )}
+                <span className="font-semibold text-text-primary truncate">{p1Name}</span>
+                {participant1?.seed && (
+                  <span className="text-xs text-brand">#{participant1.seed}</span>
+                )}
+              </div>
+              {/* Completed Sets */}
+              {volleyballState.sets.map((set, idx) => (
+                <div
+                  key={idx}
+                  className={`text-center text-lg font-bold ${
+                    (set[0] ?? 0) > (set[1] ?? 0) ? "text-brand" : "text-text-primary"
+                  }`}
+                >
+                  {set[0] ?? 0}
+                </div>
+              ))}
+              {/* Current Set - only if points have been scored */}
+              {showCurrentSet && (
+                <div className="text-center text-lg font-bold text-brand">
+                  -
+                </div>
+              )}
+              {/* Current Points */}
+              <div className="text-center text-2xl font-bold text-brand">
+                {volleyballState.currentSetPoints[0]}
+              </div>
             </div>
-          )}
-          {/* Pad remaining */}
-          {Array.from({
-            length: Math.max(0, (volleyballState.setsToWin * 2 - 1) - volleyballState.sets.length - 1),
-          }).map((_, idx) => (
-            <div key={`pad-${idx}`} className="text-center text-text-muted">
-              -
+
+            {/* Team 2 Row */}
+            <div
+              className={`gap-1 p-2 items-center ${
+                volleyballState.isMatchComplete && p2SetsWon > p1SetsWon
+                  ? "bg-brand/10"
+                  : ""
+              }`}
+              style={{ display: 'grid', gridTemplateColumns: gridCols }}
+            >
+              <div className="flex items-center gap-2 px-3">
+                {volleyballState.servingTeam === 2 && (
+                  <span className="w-2 h-2 bg-success rounded-full animate-pulse" title="Serving" />
+                )}
+                <span className="font-semibold text-text-primary truncate">{p2Name}</span>
+                {participant2?.seed && (
+                  <span className="text-xs text-brand">#{participant2.seed}</span>
+                )}
+              </div>
+              {/* Completed Sets */}
+              {volleyballState.sets.map((set, idx) => (
+                <div
+                  key={idx}
+                  className={`text-center text-lg font-bold ${
+                    (set[1] ?? 0) > (set[0] ?? 0) ? "text-brand" : "text-text-primary"
+                  }`}
+                >
+                  {set[1] ?? 0}
+                </div>
+              ))}
+              {/* Current Set - only if points have been scored */}
+              {showCurrentSet && (
+                <div className="text-center text-lg font-bold text-brand">
+                  -
+                </div>
+              )}
+              {/* Current Points */}
+              <div className="text-center text-2xl font-bold text-brand">
+                {volleyballState.currentSetPoints[1]}
+              </div>
             </div>
-          ))}
-          {/* Current Points */}
-          <div className="text-center text-2xl font-bold text-brand">
-            {volleyballState.currentSetPoints[1]}
           </div>
-        </div>
-      </div>
+        );
+      })()}
 
       {/* Set Score Summary */}
       <div className="flex justify-center gap-4 text-lg">

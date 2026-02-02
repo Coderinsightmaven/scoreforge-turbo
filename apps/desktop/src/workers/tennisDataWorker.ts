@@ -191,7 +191,7 @@ class TennisDataProcessor {
    * 
    * Converts various point representations to standard values:
    * - "love" -> "0"
-   * - "A", "advantage" -> "AD"
+   * - "A", "advantage" -> "Ad"
    * - Numbers -> string representation
    * 
    * @param points - Point value (string or number)
@@ -208,9 +208,9 @@ class TennisDataProcessor {
       '15': '15',
       '30': '30',
       '40': '40',
-      'A': 'AD',
-      'AD': 'AD',
-      'advantage': 'AD',
+      'A': 'Ad',
+      'AD': 'Ad',
+      'advantage': 'Ad',
       'love': '0'
     };
 

@@ -344,21 +344,21 @@ impl TennisDataProcessor {
     ///
     /// Converts various point representations:
     /// - "love" -> "0"
-    /// - "a", "ad", "advantage" -> "AD"
+    /// - "a", "ad", "advantage" -> "Ad"
     /// - Numbers -> string representation
     ///
     /// # Arguments
     /// * `points` - Point value string
     ///
     /// # Returns
-    /// Normalized point string (0, 15, 30, 40, or AD)
+    /// Normalized point string (0, 15, 30, 40, or Ad)
     fn normalize_points(points: &str) -> String {
         match points.to_lowercase().as_str() {
             "0" => "0".to_string(),
             "15" => "15".to_string(),
             "30" => "30".to_string(),
             "40" => "40".to_string(),
-            "a" | "ad" | "advantage" => "AD".to_string(),
+            "a" | "ad" | "advantage" => "Ad".to_string(),
             "love" => "0".to_string(),
             _ => points.to_string(),
         }

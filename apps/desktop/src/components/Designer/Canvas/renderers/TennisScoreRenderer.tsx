@@ -63,6 +63,7 @@ export const TennisScoreRenderer: React.FC<TennisScoreRendererProps> = ({
         const setNumber = componentData.setNumber || 1;
         const setKey = setNumber.toString();
 
+        // Only show score if the set exists (has been started)
         if (tennisMatch.sets[setKey]) {
           const playerScore =
             playerNumber === 1
@@ -70,7 +71,8 @@ export const TennisScoreRenderer: React.FC<TennisScoreRendererProps> = ({
               : tennisMatch.sets[setKey].player2 || 0;
           return playerScore.toString();
         }
-        return '0';
+        // Return empty for sets that haven't started yet
+        return '';
       }
 
       default:

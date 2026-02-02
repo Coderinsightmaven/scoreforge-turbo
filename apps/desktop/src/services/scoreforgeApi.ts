@@ -71,7 +71,7 @@ function convertPoints(points: number, isTiebreak: boolean): string {
   if (points < 4) {
     return pointMap[points];
   }
-  return 'AD';
+  return 'Ad';
 }
 
 /**

@@ -569,10 +569,10 @@
                 } else {
                     player1Points = tennisState.currentGamePoints[0] < 4
                         ? pointMap[tennisState.currentGamePoints[0]]
-                        : 'AD';
+                        : 'Ad';
                     player2Points = tennisState.currentGamePoints[1] < 4
                         ? pointMap[tennisState.currentGamePoints[1]]
-                        : 'AD';
+                        : 'Ad';
                 }
             }
 
@@ -795,11 +795,11 @@
                         break;
                     case 'tennis_game_score':
                         // Maps to: match.score.player1Points / match.score.player2Points
-                        // Shows current game points: "0", "15", "30", "40", "AD" (advantage)
+                        // Shows current game points: "0", "15", "30", "40", "Ad" (advantage)
                         let pointScore = playerNumber === 1 ? (match.score?.player1Points || '0') : (match.score?.player2Points || '0');
-                        // Convert "A" to "AD" for advantage scoring
+                        // Convert "A" to "Ad" for advantage scoring
                         if (pointScore === 'A') {
-                            pointScore = 'AD';
+                            pointScore = 'Ad';
                         }
                         newValue = pointScore;
                         break;
@@ -826,7 +826,8 @@
                                 : (match.sets[setKey].player2 || 0);
                             newValue = playerScore.toString();
                         } else {
-                            newValue = '0';
+                            // Return empty for sets that haven't started yet
+                            newValue = '';
                         }
                         break;
                     case 'tennis_serving_indicator':
