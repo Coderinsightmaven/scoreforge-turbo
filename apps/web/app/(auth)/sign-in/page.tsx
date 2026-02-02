@@ -3,6 +3,11 @@
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 export default function SignInPage(): React.ReactNode {
   const { signIn } = useAuthActions();
@@ -49,7 +54,7 @@ export default function SignInPage(): React.ReactNode {
       <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative bg-[#1f2937]">
         <div className="flex flex-col justify-between p-12 xl:p-16 w-full">
           <Link href="/" className="inline-flex items-center gap-3">
-            <div className="w-10 h-10 bg-brand rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center">
               <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M13 3L4 14h7v7l9-11h-7V3z" />
               </svg>
@@ -86,89 +91,80 @@ export default function SignInPage(): React.ReactNode {
       </div>
 
       {/* Right side - Form */}
-      <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center p-6 sm:p-12 bg-bg-page">
+      <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center p-6 sm:p-12 bg-background">
         <div className="w-full max-w-md animate-slideUp">
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-10">
             <Link href="/" className="inline-flex items-center gap-3">
-              <div className="w-10 h-10 bg-brand rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center">
                 <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M13 3L4 14h7v7l9-11h-7V3z" />
                 </svg>
               </div>
-              <span className="text-xl font-semibold text-text-primary">ScoreForge</span>
+              <span className="text-xl font-semibold text-foreground">ScoreForge</span>
             </Link>
           </div>
 
           <div className="mb-10">
-            <h1 className="text-title text-text-primary mb-3">
+            <h1 className="text-title text-foreground mb-3">
               Welcome back
             </h1>
-            <p className="text-body text-text-muted">
+            <p className="text-body text-muted-foreground">
               Sign in to your account to continue
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label htmlFor="email" className="text-label block mb-2">
-                Email
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
                 id="email"
                 name="email"
                 type="email"
                 required
                 autoComplete="email"
                 placeholder="you@example.com"
-                className="input"
               />
             </div>
 
-            <div>
-              <label htmlFor="password" className="text-label block mb-2">
-                Password
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
                 id="password"
                 name="password"
                 type="password"
                 required
                 autoComplete="current-password"
                 placeholder="Enter your password"
-                className="input"
               />
             </div>
 
             {error && (
-              <div className="flex items-start gap-3 p-4 text-small text-error bg-error-light border border-error/20 rounded-lg">
-                <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                </svg>
-                <span>{error}</span>
-              </div>
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
 
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full"
+              className="w-full"
+              variant="brand"
+              size="lg"
             >
               {loading ? (
-                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 "Sign in"
               )}
-            </button>
+            </Button>
           </form>
 
           <div className="mt-10 pt-8 border-t border-border">
-            <p className="text-center text-text-muted">
+            <p className="text-center text-muted-foreground">
               Don&apos;t have an account?{" "}
-              <Link href="/sign-up" className="font-semibold text-brand hover:text-brand-hover transition-colors">
+              <Link href="/sign-up" className="font-semibold text-amber-500 hover:text-amber-600 transition-colors">
                 Create one
               </Link>
             </p>

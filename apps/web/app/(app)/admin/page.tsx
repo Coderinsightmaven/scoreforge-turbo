@@ -21,28 +21,28 @@ export default function AdminPage(): React.ReactNode {
   }
 
   return (
-    <div className="min-h-screen bg-bg-page">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-border bg-bg-card">
+      <div className="border-b border-border bg-card">
         <div className="container py-8">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-small text-text-muted hover:text-text-secondary transition-colors mb-4"
+            className="inline-flex items-center gap-2 text-small text-muted-foreground hover:text-muted-foreground transition-colors mb-4"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
             Back to dashboard
           </Link>
-          <h1 className="text-title text-text-primary mb-2">Site Administration</h1>
-          <p className="text-body text-text-secondary">
+          <h1 className="text-title text-foreground mb-2">Site Administration</h1>
+          <p className="text-body text-muted-foreground">
             Manage users, admins, and system settings
           </p>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-border bg-bg-card sticky top-16 z-10">
+      <div className="border-b border-border bg-card sticky top-16 z-10">
         <div className="container">
           <nav className="flex gap-6">
             {[
@@ -55,8 +55,8 @@ export default function AdminPage(): React.ReactNode {
                 onClick={() => setActiveTab(tab.id)}
                 className={`py-4 text-body font-medium border-b-2 transition-colors ${
                   activeTab === tab.id
-                    ? "border-brand text-brand"
-                    : "border-transparent text-text-secondary hover:text-text-primary"
+                    ? "border-amber-500 text-amber-500"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {tab.label}
@@ -125,7 +125,7 @@ function UsersSection() {
       {/* Search */}
       <div className="relative">
         <svg
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted"
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -148,22 +148,22 @@ function UsersSection() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-bg-secondary">
-                <th className="text-left px-6 py-4 text-small font-semibold text-text-muted uppercase tracking-wide">
+                <th className="text-left px-6 py-4 text-small font-semibold text-muted-foreground uppercase tracking-wide">
                   User
                 </th>
-                <th className="text-left px-6 py-4 text-small font-semibold text-text-muted uppercase tracking-wide">
+                <th className="text-left px-6 py-4 text-small font-semibold text-muted-foreground uppercase tracking-wide">
                   Joined
                 </th>
-                <th className="text-left px-6 py-4 text-small font-semibold text-text-muted uppercase tracking-wide">
+                <th className="text-left px-6 py-4 text-small font-semibold text-muted-foreground uppercase tracking-wide">
                   Tournaments
                 </th>
-                <th className="text-left px-6 py-4 text-small font-semibold text-text-muted uppercase tracking-wide">
+                <th className="text-left px-6 py-4 text-small font-semibold text-muted-foreground uppercase tracking-wide">
                   Status
                 </th>
-                <th className="text-center px-6 py-4 text-small font-semibold text-text-muted uppercase tracking-wide">
+                <th className="text-center px-6 py-4 text-small font-semibold text-muted-foreground uppercase tracking-wide">
                   Logs
                 </th>
-                <th className="text-right px-6 py-4 text-small font-semibold text-text-muted uppercase tracking-wide">
+                <th className="text-right px-6 py-4 text-small font-semibold text-muted-foreground uppercase tracking-wide">
                   Actions
                 </th>
               </tr>
@@ -190,7 +190,7 @@ function UsersSection() {
                 ))
               ) : users.users.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-text-muted">
+                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
                     No users found
                   </td>
                 </tr>
@@ -218,16 +218,16 @@ function UsersSection() {
                               }}
                             />
                           ) : (
-                            <p className="font-medium text-text-primary truncate">{user.name || "No name"}</p>
+                            <p className="font-medium text-foreground truncate">{user.name || "No name"}</p>
                           )}
-                          <p className="text-small text-text-muted truncate">{user.email}</p>
+                          <p className="text-small text-muted-foreground truncate">{user.email}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-small text-text-secondary">
+                    <td className="px-6 py-4 text-small text-muted-foreground">
                       {new Date(user._creationTime).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 text-small text-text-secondary">
+                    <td className="px-6 py-4 text-small text-muted-foreground">
                       {user.tournamentCount}
                     </td>
                     <td className="px-6 py-4">
@@ -256,7 +256,7 @@ function UsersSection() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => setEditingUser(null)}
-                            className="px-3 py-1.5 text-small text-text-secondary hover:text-text-primary"
+                            className="px-3 py-1.5 text-small text-muted-foreground hover:text-foreground"
                           >
                             Cancel
                           </button>
@@ -274,7 +274,7 @@ function UsersSection() {
                             setEditingUser(user._id);
                             setEditName(user.name || "");
                           }}
-                          className="px-3 py-1.5 text-small text-text-secondary hover:text-brand"
+                          className="px-3 py-1.5 text-small text-muted-foreground hover:text-amber-500"
                         >
                           Edit
                         </button>
@@ -343,14 +343,14 @@ function AdminsSection() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-heading text-text-primary">Site Administrators</h2>
-          <p className="text-small text-text-muted mt-1">
+          <h2 className="text-heading text-foreground">Site Administrators</h2>
+          <p className="text-small text-muted-foreground mt-1">
             Users with full access to site administration
           </p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="btn-primary"
+          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2"
         >
           Add Admin
         </button>
@@ -380,7 +380,7 @@ function AdminsSection() {
             ))}
           </div>
         ) : admins.length === 0 ? (
-          <div className="p-12 text-center text-text-muted">No site admins found</div>
+          <div className="p-12 text-center text-muted-foreground">No site admins found</div>
         ) : (
           <div className="divide-y divide-border">
             {admins.map((admin) => (
@@ -392,9 +392,9 @@ function AdminsSection() {
                       : admin.userEmail?.[0]?.toUpperCase() || "?"}
                   </div>
                   <div>
-                    <p className="font-medium text-text-primary">{admin.userName || "No name"}</p>
-                    <p className="text-small text-text-muted">{admin.userEmail}</p>
-                    <p className="text-small text-text-muted mt-1">
+                    <p className="font-medium text-foreground">{admin.userName || "No name"}</p>
+                    <p className="text-small text-muted-foreground">{admin.userEmail}</p>
+                    <p className="text-small text-muted-foreground mt-1">
                       Added {new Date(admin.grantedAt).toLocaleDateString()}
                       {admin.grantedByName && ` by ${admin.grantedByName}`}
                     </p>
@@ -416,10 +416,10 @@ function AdminsSection() {
       {/* Add Admin Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-bg-card border border-border rounded-xl w-full max-w-md">
+          <div className="bg-card border border-border rounded-xl w-full max-w-md">
             <div className="p-6 border-b border-border">
-              <h3 className="text-heading text-text-primary">Add Site Admin</h3>
-              <p className="text-small text-text-muted mt-1">
+              <h3 className="text-heading text-foreground">Add Site Admin</h3>
+              <p className="text-small text-muted-foreground mt-1">
                 Search for a user to grant admin access
               </p>
             </div>
@@ -429,12 +429,12 @@ function AdminsSection() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by name or email..."
-                className="input"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 autoFocus
               />
               <div className="mt-4 max-h-64 overflow-y-auto">
                 {nonAdminUsers.length === 0 ? (
-                  <p className="text-small text-text-muted text-center py-4">
+                  <p className="text-small text-muted-foreground text-center py-4">
                     {searchQuery ? "No matching users found" : "All users are admins"}
                   </p>
                 ) : (
@@ -452,8 +452,8 @@ function AdminsSection() {
                             : user.email?.[0]?.toUpperCase() || "?"}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-text-primary truncate">{user.name || "No name"}</p>
-                          <p className="text-small text-text-muted truncate">{user.email}</p>
+                          <p className="font-medium text-foreground truncate">{user.name || "No name"}</p>
+                          <p className="text-small text-muted-foreground truncate">{user.email}</p>
                         </div>
                       </button>
                     ))}
@@ -467,7 +467,7 @@ function AdminsSection() {
                   setShowAddModal(false);
                   setSearchQuery("");
                 }}
-                className="btn-secondary"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
               >
                 Cancel
               </button>
@@ -524,7 +524,7 @@ function SettingsSection() {
 
   if (settings === undefined || settings === null) {
     return (
-      <div className="card">
+      <div className="bg-card text-card-foreground rounded-xl border p-6 shadow-sm">
         <div className="h-6 w-40 bg-bg-secondary rounded animate-pulse mb-6" />
         <div className="space-y-6">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -539,9 +539,9 @@ function SettingsSection() {
   }
 
   return (
-    <form onSubmit={handleSave} className="card">
-      <h2 className="text-heading text-text-primary mb-2">System Settings</h2>
-      <p className="text-small text-text-muted mb-6">Configure global platform settings</p>
+    <form onSubmit={handleSave} className="bg-card text-card-foreground rounded-xl border p-6 shadow-sm">
+      <h2 className="text-heading text-foreground mb-2">System Settings</h2>
+      <p className="text-small text-muted-foreground mb-6">Configure global platform settings</p>
 
       <div className="space-y-8">
         {/* Max Tournaments */}
@@ -549,7 +549,7 @@ function SettingsSection() {
           <label htmlFor="maxTournaments" className="text-label block mb-2">
             Max Tournaments per User
           </label>
-          <p className="text-small text-text-muted mb-2">
+          <p className="text-small text-muted-foreground mb-2">
             Limit how many tournaments a single user can create
           </p>
           <input
@@ -567,7 +567,7 @@ function SettingsSection() {
         <div className="flex items-center justify-between">
           <div>
             <label className="text-label">Allow Public Registration</label>
-            <p className="text-small text-text-muted mt-1">
+            <p className="text-small text-muted-foreground mt-1">
               Allow new users to sign up for accounts
             </p>
           </div>
@@ -591,7 +591,7 @@ function SettingsSection() {
           <div className="flex items-center justify-between">
             <div>
               <label className="text-label">Maintenance Mode</label>
-              <p className="text-small text-text-muted mt-1">
+              <p className="text-small text-muted-foreground mt-1">
                 Show a maintenance message to all users
               </p>
             </div>
@@ -641,13 +641,13 @@ function SettingsSection() {
         )}
 
         {/* Last Updated */}
-        <p className="text-small text-text-muted">
+        <p className="text-small text-muted-foreground">
           Last updated: {new Date(settings.updatedAt).toLocaleString()}
         </p>
       </div>
 
       <div className="flex justify-end pt-6 mt-6 border-t border-border">
-        <button type="submit" disabled={saving} className="btn-primary">
+        <button type="submit" disabled={saving} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2">
           {saving ? "Saving..." : "Save Settings"}
         </button>
       </div>
@@ -657,18 +657,18 @@ function SettingsSection() {
 
 function UnauthorizedState() {
   return (
-    <div className="min-h-screen bg-bg-page flex items-center justify-center px-6">
+    <div className="min-h-screen bg-background flex items-center justify-center px-6">
       <div className="text-center max-w-md">
         <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center bg-error-light rounded-full">
           <svg className="w-8 h-8 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
           </svg>
         </div>
-        <h1 className="text-title text-text-primary mb-2">Access Denied</h1>
-        <p className="text-body text-text-secondary mb-6">
+        <h1 className="text-title text-foreground mb-2">Access Denied</h1>
+        <p className="text-body text-muted-foreground mb-6">
           You don't have permission to access the site administration panel.
         </p>
-        <Link href="/dashboard" className="btn-primary">
+        <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2">
           Back to Dashboard
         </Link>
       </div>
@@ -678,15 +678,15 @@ function UnauthorizedState() {
 
 function AdminSkeleton() {
   return (
-    <div className="min-h-screen bg-bg-page">
-      <div className="border-b border-border bg-bg-card">
+    <div className="min-h-screen bg-background">
+      <div className="border-b border-border bg-card">
         <div className="container py-8">
           <div className="h-5 w-32 bg-bg-secondary rounded animate-pulse mb-4" />
           <div className="h-8 w-64 bg-bg-secondary rounded animate-pulse mb-2" />
           <div className="h-5 w-80 bg-bg-secondary rounded animate-pulse" />
         </div>
       </div>
-      <div className="border-b border-border bg-bg-card">
+      <div className="border-b border-border bg-card">
         <div className="container">
           <div className="flex gap-6 py-4">
             <div className="h-5 w-16 bg-bg-secondary rounded animate-pulse" />

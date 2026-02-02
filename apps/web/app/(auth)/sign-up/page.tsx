@@ -5,6 +5,11 @@ import { useQuery } from "convex/react";
 import { api } from "@repo/convex";
 import { useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, Loader2, Ban } from "lucide-react";
 
 export default function SignUpPage(): React.ReactNode {
   const { signIn } = useAuthActions();
@@ -82,7 +87,7 @@ export default function SignUpPage(): React.ReactNode {
       <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative bg-[#1f2937]">
         <div className="flex flex-col justify-between p-12 xl:p-16 w-full">
           <Link href="/" className="inline-flex items-center gap-3">
-            <div className="w-10 h-10 bg-brand rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center">
               <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M13 3L4 14h7v7l9-11h-7V3z" />
               </svg>
@@ -119,162 +124,142 @@ export default function SignUpPage(): React.ReactNode {
       </div>
 
       {/* Right side - Form */}
-      <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center p-6 sm:p-12 bg-bg-page">
+      <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center p-6 sm:p-12 bg-background">
         <div className="w-full max-w-md animate-slideUp">
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-10">
             <Link href="/" className="inline-flex items-center gap-3">
-              <div className="w-10 h-10 bg-brand rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center">
                 <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M13 3L4 14h7v7l9-11h-7V3z" />
                 </svg>
               </div>
-              <span className="text-xl font-semibold text-text-primary">ScoreForge</span>
+              <span className="text-xl font-semibold text-foreground">ScoreForge</span>
             </Link>
           </div>
 
           {!isRegistrationAllowed ? (
             // Registration disabled message
             <div className="text-center">
-              <div className="w-16 h-16 bg-bg-secondary rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                </svg>
+              <div className="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Ban className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h1 className="text-title text-text-primary mb-3">
+              <h1 className="text-title text-foreground mb-3">
                 Registration Closed
               </h1>
-              <p className="text-body text-text-muted mb-8">
+              <p className="text-body text-muted-foreground mb-8">
                 New account registration is currently disabled. Please contact an administrator if you need access.
               </p>
-              <Link href="/sign-in" className="btn-primary inline-flex">
-                Sign in to existing account
-              </Link>
+              <Button variant="brand" size="lg" asChild>
+                <Link href="/sign-in">Sign in to existing account</Link>
+              </Button>
             </div>
           ) : (
             // Registration form
             <>
               <div className="mb-10">
-                <h1 className="text-title text-text-primary mb-3">
+                <h1 className="text-title text-foreground mb-3">
                   Create your account
                 </h1>
-                <p className="text-body text-text-muted">
+                <p className="text-body text-muted-foreground">
                   Get started with ScoreForge today
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="firstName" className="text-label block mb-2">
-                  First Name
-                </label>
-                <input
-                  id="firstName"
-                  name="firstName"
-                  type="text"
-                  required
-                  autoComplete="given-name"
-                  placeholder="John"
-                  className="input"
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input
+                      id="firstName"
+                      name="firstName"
+                      type="text"
+                      required
+                      autoComplete="given-name"
+                      placeholder="John"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      name="lastName"
+                      type="text"
+                      required
+                      autoComplete="family-name"
+                      placeholder="Doe"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    required
+                    autoComplete="new-password"
+                    minLength={8}
+                    placeholder="Min 8 characters"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    required
+                    autoComplete="new-password"
+                    minLength={8}
+                    placeholder="Repeat password"
+                  />
+                </div>
+
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full"
+                  variant="brand"
+                  size="lg"
+                >
+                  {loading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    "Create Account"
+                  )}
+                </Button>
+              </form>
+
+              <div className="mt-10 pt-8 border-t border-border">
+                <p className="text-center text-muted-foreground">
+                  Already have an account?{" "}
+                  <Link href="/sign-in" className="font-semibold text-amber-500 hover:text-amber-600 transition-colors">
+                    Sign in
+                  </Link>
+                </p>
               </div>
-              <div>
-                <label htmlFor="lastName" className="text-label block mb-2">
-                  Last Name
-                </label>
-                <input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  required
-                  autoComplete="family-name"
-                  placeholder="Doe"
-                  className="input"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="email" className="text-label block mb-2">
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                autoComplete="email"
-                placeholder="you@example.com"
-                className="input"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="text-label block mb-2">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                autoComplete="new-password"
-                minLength={8}
-                placeholder="Min 8 characters"
-                className="input"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="text-label block mb-2">
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                autoComplete="new-password"
-                minLength={8}
-                placeholder="Repeat password"
-                className="input"
-              />
-            </div>
-
-            {error && (
-              <div className="flex items-start gap-3 p-4 text-small text-error bg-error-light border border-error/20 rounded-lg">
-                <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                </svg>
-                <span>{error}</span>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full"
-            >
-              {loading ? (
-                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-              ) : (
-                "Create Account"
-              )}
-            </button>
-          </form>
-
-          <div className="mt-10 pt-8 border-t border-border">
-            <p className="text-center text-text-muted">
-              Already have an account?{" "}
-              <Link href="/sign-in" className="font-semibold text-brand hover:text-brand-hover transition-colors">
-                Sign in
-              </Link>
-            </p>
-          </div>
             </>
           )}
         </div>

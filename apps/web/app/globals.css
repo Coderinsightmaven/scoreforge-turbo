@@ -1,5 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
 
 @theme {
   /* ═══════════════════════════════════════════════════════════════════════════
@@ -219,134 +222,6 @@ h1, h2, h3, h4, h5, h6 {
    COMPONENTS
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Primary Button — Large and obvious */
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 14px 24px;
-  font-size: 1rem;
-  font-weight: 600;
-  color: white;
-  background: var(--color-brand);
-  border-radius: var(--radius-lg);
-  transition: all 0.15s ease;
-  min-height: 48px;
-}
-
-.btn-primary:hover {
-  background: var(--color-brand-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-/* Secondary Button */
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 14px 24px;
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--color-text-primary);
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  transition: all 0.15s ease;
-  min-height: 48px;
-}
-
-.btn-secondary:hover {
-  background: var(--color-bg-tertiary);
-  border-color: var(--color-border-strong);
-}
-
-/* Card */
-.card {
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  padding: 24px;
-}
-
-.card-hover {
-  transition: all 0.2s ease;
-}
-
-.card-hover:hover {
-  border-color: var(--color-border-strong);
-  box-shadow: var(--shadow-md);
-}
-
-/* Input Field */
-.input {
-  width: 100%;
-  padding: 14px 16px;
-  font-size: 1rem;
-  color: var(--color-text-primary);
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  transition: all 0.15s ease;
-  min-height: 48px;
-}
-
-.input::placeholder {
-  color: var(--color-text-muted);
-}
-
-.input:hover {
-  border-color: var(--color-border-strong);
-}
-
-.input:focus {
-  outline: none;
-  border-color: var(--color-brand);
-  box-shadow: 0 0 0 3px var(--color-brand-light);
-}
-
-/* Badge */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  border-radius: var(--radius-full);
-}
-
-.badge-brand {
-  color: var(--color-brand-text);
-  background: var(--color-brand-light);
-}
-
-.badge-success {
-  color: var(--color-success);
-  background: var(--color-success-light);
-}
-
-.badge-warning {
-  color: var(--color-warning);
-  background: var(--color-warning-light);
-}
-
-.badge-error {
-  color: var(--color-error);
-  background: var(--color-error-light);
-}
-
-.badge-muted {
-  color: var(--color-text-muted);
-  background: var(--color-bg-tertiary);
-}
-
 /* Live indicator */
 .live-dot {
   width: 8px;
@@ -399,6 +274,53 @@ h1, h2, h3, h4, h5, h6 {
 .delay-3 { animation-delay: 150ms; }
 .delay-4 { animation-delay: 200ms; }
 
+/* Tennis ball bounce animation */
+@keyframes tennisBounce {
+  0% {
+    top: -80px;
+    transform: translateX(0) rotate(0deg);
+    animation-timing-function: ease-in;
+  }
+  15% {
+    top: 60vh;
+    transform: translateX(20px) rotate(180deg);
+    animation-timing-function: ease-out;
+  }
+  30% {
+    top: 30vh;
+    transform: translateX(40px) rotate(360deg);
+    animation-timing-function: ease-in;
+  }
+  45% {
+    top: 70vh;
+    transform: translateX(60px) rotate(540deg);
+    animation-timing-function: ease-out;
+  }
+  60% {
+    top: 45vh;
+    transform: translateX(80px) rotate(720deg);
+    animation-timing-function: ease-in;
+  }
+  75% {
+    top: 75vh;
+    transform: translateX(100px) rotate(900deg);
+    animation-timing-function: ease-out;
+  }
+  90% {
+    top: 55vh;
+    transform: translateX(120px) rotate(1080deg);
+    animation-timing-function: ease-in;
+  }
+  100% {
+    top: 100vh;
+    transform: translateX(140px) rotate(1260deg);
+  }
+}
+
+.animate-tennis-bounce {
+  animation: tennisBounce 1.2s ease-in forwards;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    UTILITIES
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -407,7 +329,13 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   max-width: var(--content-max);
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 16px;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding: 0 24px;
+  }
 }
 
 .container-narrow {
@@ -435,5 +363,175 @@ h1, h2, h3, h4, h5, h6 {
   body {
     background: white;
     color: black;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SHADCN CSS VARIABLES — Mapped from ScoreForge Design System
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.625rem;
+
+  /* Core colors - mapped from ScoreForge tokens */
+  --background: #ffffff;
+  --foreground: #1f2937;
+
+  /* Card */
+  --card: #ffffff;
+  --card-foreground: #1f2937;
+
+  /* Popover */
+  --popover: #ffffff;
+  --popover-foreground: #1f2937;
+
+  /* Primary - neutral dark for standard buttons */
+  --primary: #1f2937;
+  --primary-foreground: #ffffff;
+
+  /* Secondary - soft gray background */
+  --secondary: #f8f9fa;
+  --secondary-foreground: #1f2937;
+
+  /* Muted */
+  --muted: #f8f9fa;
+  --muted-foreground: #6b7280;
+
+  /* Accent */
+  --accent: #f8f9fa;
+  --accent-foreground: #1f2937;
+
+  /* Destructive */
+  --destructive: #dc2626;
+
+  /* Border & Input */
+  --border: #e5e7eb;
+  --input: #e5e7eb;
+
+  /* Ring - brand amber for focus */
+  --ring: #f59e0b;
+
+  /* Chart colors */
+  --chart-1: #f59e0b;
+  --chart-2: #059669;
+  --chart-3: #2563eb;
+  --chart-4: #d97706;
+  --chart-5: #dc2626;
+
+  /* Sidebar */
+  --sidebar: #f8f9fa;
+  --sidebar-foreground: #1f2937;
+  --sidebar-primary: #1f2937;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1f3f4;
+  --sidebar-accent-foreground: #1f2937;
+  --sidebar-border: #e5e7eb;
+  --sidebar-ring: #f59e0b;
+}
+
+.dark {
+  /* Core colors - mapped from ScoreForge dark tokens */
+  --background: #111827;
+  --foreground: #f9fafb;
+
+  /* Card */
+  --card: #1f2937;
+  --card-foreground: #f9fafb;
+
+  /* Popover */
+  --popover: #1f2937;
+  --popover-foreground: #f9fafb;
+
+  /* Primary - light for dark mode */
+  --primary: #f9fafb;
+  --primary-foreground: #1f2937;
+
+  /* Secondary */
+  --secondary: #374151;
+  --secondary-foreground: #f9fafb;
+
+  /* Muted */
+  --muted: #374151;
+  --muted-foreground: #9ca3af;
+
+  /* Accent */
+  --accent: #374151;
+  --accent-foreground: #f9fafb;
+
+  /* Destructive */
+  --destructive: #f87171;
+
+  /* Border & Input */
+  --border: #374151;
+  --input: #374151;
+
+  /* Ring - brand amber for focus */
+  --ring: #fbbf24;
+
+  /* Chart colors */
+  --chart-1: #fbbf24;
+  --chart-2: #34d399;
+  --chart-3: #60a5fa;
+  --chart-4: #f59e0b;
+  --chart-5: #f87171;
+
+  /* Sidebar */
+  --sidebar: #1f2937;
+  --sidebar-foreground: #f9fafb;
+  --sidebar-primary: #f9fafb;
+  --sidebar-primary-foreground: #1f2937;
+  --sidebar-accent: #374151;
+  --sidebar-accent-foreground: #f9fafb;
+  --sidebar-border: #374151;
+  --sidebar-ring: #fbbf24;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }

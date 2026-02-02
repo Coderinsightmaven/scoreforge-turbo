@@ -51,10 +51,10 @@ export default function TournamentDetailPage({
   };
 
   const statusStyles: Record<string, string> = {
-    draft: "text-text-muted bg-bg-secondary",
-    active: "text-success bg-success/10",
-    completed: "text-gold bg-gold/10",
-    cancelled: "text-error bg-error/10",
+    draft: "text-muted-foreground bg-secondary",
+    active: "text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/20",
+    completed: "text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/20",
+    cancelled: "text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20",
   };
 
   const formatLabels: Record<string, string> = {
@@ -84,12 +84,12 @@ export default function TournamentDetailPage({
         <div className="max-w-[var(--content-max)] mx-auto animate-fadeIn">
           <Link
             href="/tournaments"
-            className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-brand transition-colors mb-6"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-amber-500 transition-colors mb-6"
           >
             <span>←</span> Tournaments
           </Link>
           <div className="flex flex-col md:flex-row md:items-start gap-6">
-            <div className="w-[100px] h-[100px] flex items-center justify-center text-6xl bg-bg-card border border-border rounded-2xl shadow-lg flex-shrink-0">
+            <div className="w-[100px] h-[100px] flex items-center justify-center text-6xl bg-card border border-border rounded-2xl shadow-lg flex-shrink-0">
               {sportIcons[tournament.sport] || "🏆"}
             </div>
             <div className="flex-1">
@@ -102,27 +102,27 @@ export default function TournamentDetailPage({
                   )}
                   {tournament.status}
                 </span>
-                <span className="text-sm text-text-muted">
+                <span className="text-sm text-muted-foreground">
                   {formatLabels[tournament.format] || tournament.format}
                 </span>
               </div>
-              <h1 className="text-title text-text-primary mb-2">
+              <h1 className="text-title text-foreground mb-2">
                 {tournament.name}
               </h1>
               {tournament.description && (
-                <p className="text-text-secondary mb-4 max-w-xl">
+                <p className="text-muted-foreground mb-4 max-w-xl">
                   {tournament.description}
                 </p>
               )}
               {tournament.startDate && (
                 <div className="flex items-baseline gap-1">
-                  <span className="text-heading text-brand">
+                  <span className="text-heading text-amber-500">
                     {new Date(tournament.startDate).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
                     })}
                   </span>
-                  <span className="text-sm text-text-muted">Start Date</span>
+                  <span className="text-sm text-muted-foreground">Start Date</span>
                 </div>
               )}
 
@@ -146,7 +146,7 @@ export default function TournamentDetailPage({
       )}
 
       {/* Tabs */}
-      <nav className="bg-bg-secondary border-b border-border sticky top-[var(--nav-height)] z-50">
+      <nav className="bg-secondary border-b border-border sticky top-[var(--nav-height)] z-50">
         <div className="flex gap-1 max-w-[var(--content-max)] mx-auto px-6">
           {tabs.map((tab) => (
             <button
@@ -154,8 +154,8 @@ export default function TournamentDetailPage({
               onClick={() => setActiveTab(tab.id)}
               className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium -mb-px border-b-2 transition-colors ${
                 activeTab === tab.id
-                  ? "text-text-primary border-brand"
-                  : "text-text-secondary border-transparent hover:text-text-primary"
+                  ? "text-foreground border-amber-500"
+                  : "text-muted-foreground border-transparent hover:text-foreground"
               }`}
             >
               <span>{tab.label}</span>
@@ -223,17 +223,17 @@ function TournamentIdDisplay({ tournamentId }: { tournamentId: string }) {
 
   return (
     <div className="mt-4 flex items-center gap-2">
-      <span className="text-xs text-text-muted">Tournament ID:</span>
-      <code className="px-2 py-1 text-xs font-mono text-text-secondary bg-bg-secondary border border-border rounded">
+      <span className="text-xs text-muted-foreground">Tournament ID:</span>
+      <code className="px-2 py-1 text-xs font-mono text-muted-foreground bg-secondary border border-border rounded">
         {tournamentId}
       </code>
       <button
         onClick={handleCopy}
-        className="p-1.5 text-text-muted hover:text-brand hover:bg-brand/10 rounded transition-all"
+        className="p-1.5 text-muted-foreground hover:text-amber-500 hover:bg-brand/10 rounded transition-all"
         title="Copy tournament ID"
       >
         {copied ? (
-          <svg className="w-4 h-4 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
         ) : (
@@ -403,7 +403,7 @@ function TournamentActions({
           <button
             onClick={handleGenerateBracket}
             disabled={generating}
-            className="btn-secondary text-xs"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 text-xs"
           >
             {generating ? "..." : "Generate Bracket"}
           </button>
@@ -411,7 +411,7 @@ function TournamentActions({
         {tournament.status === "draft" && supportsBlankBracket && (
           <button
             onClick={() => setShowBlankBracketModal(true)}
-            className="px-4 py-2 text-xs font-semibold tracking-wide text-brand bg-brand/10 border border-brand/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
+            className="px-4 py-2 text-xs font-semibold tracking-wide text-amber-500 bg-brand/10 border border-amber-500/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
           >
             Blank Bracket
           </button>
@@ -420,7 +420,7 @@ function TournamentActions({
           <button
             onClick={handleStart}
             disabled={loading || tournament.participantCount < 2}
-            className="btn-primary text-xs"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2 text-xs"
           >
             {loading ? "..." : "Start Tournament"}
           </button>
@@ -450,7 +450,7 @@ function TournamentActions({
           <button
             onClick={handleDownloadScores}
             disabled={downloading}
-            className="btn-secondary text-xs flex items-center gap-1.5"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 text-xs flex items-center gap-1.5"
             title={`Download scores for ${exportInfo.matchCount} completed match${exportInfo.matchCount !== 1 ? "es" : ""}`}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -464,7 +464,7 @@ function TournamentActions({
           <button
             onClick={handleDownloadLogs}
             disabled={downloadingLogs}
-            className="btn-secondary text-xs flex items-center gap-1.5"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 text-xs flex items-center gap-1.5"
             title={`Download ${logsInfo.logCount} scoring log${logsInfo.logCount !== 1 ? "s" : ""}`}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -482,22 +482,22 @@ function TournamentActions({
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setErrorMessage(null)}
           />
-          <div className="relative bg-bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-fadeIn">
+          <div className="relative bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-fadeIn">
             <div className="p-6">
               <div className="flex items-center justify-center w-14 h-14 mx-auto bg-red/10 rounded-full mb-4">
                 <svg className="w-7 h-7 text-red" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-text-primary text-center mb-2">
+              <h3 className="text-lg font-semibold text-foreground text-center mb-2">
                 Unable to Generate Bracket
               </h3>
-              <p className="text-sm text-text-secondary text-center mb-6">
+              <p className="text-sm text-muted-foreground text-center mb-6">
                 {errorMessage}
               </p>
               <button
                 onClick={() => setErrorMessage(null)}
-                className="btn-primary w-full"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2 w-full"
               >
                 Got it
               </button>
@@ -602,28 +602,28 @@ function BlankBracketModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-2xl max-h-[90vh] bg-bg-card border border-border rounded-2xl shadow-2xl animate-scaleIn flex flex-col">
+      <div className="w-full max-w-2xl max-h-[90vh] bg-card border border-border rounded-2xl shadow-2xl animate-scaleIn flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
-          <h3 className="text-heading text-text-primary">
+          <h3 className="text-heading text-foreground">
             Generate Blank Bracket
           </h3>
           <button
             onClick={onClose}
-            className="text-text-muted hover:text-text-primary transition-colors"
+            className="text-muted-foreground hover:text-foreground transition-colors"
           >
             X
           </button>
         </div>
 
         <div className="p-6 overflow-y-auto flex-1">
-          <p className="text-sm text-text-secondary mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Create a bracket with placeholder slots.
             {realParticipants.length > 0 && " Assign existing participants to seeds or leave slots empty to fill in later."}
           </p>
 
           {/* Bracket Size Selector */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-text-primary mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Bracket Size
             </label>
             <select
@@ -634,7 +634,7 @@ function BlankBracketModal({
                 // Remove assignments for seeds beyond new size
                 setSeedAssignments(seedAssignments.filter(a => a.seed <= newSize));
               }}
-              className="input"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <option value={4} disabled={realParticipants.length > 4}>4 participants</option>
               <option value={8} disabled={realParticipants.length > 8}>8 participants</option>
@@ -647,18 +647,18 @@ function BlankBracketModal({
           {/* Existing Participants Section */}
           {realParticipants.length > 0 && (
             <div className="mb-6">
-              <h4 className="text-sm font-medium text-text-primary mb-3">
+              <h4 className="text-sm font-medium text-foreground mb-3">
                 Existing Participants ({realParticipants.length})
               </h4>
 
               {unassignedParticipants.length > 0 && (
                 <div className="mb-4">
-                  <p className="text-xs text-text-muted mb-2">Unassigned - click a slot below to assign:</p>
+                  <p className="text-xs text-muted-foreground mb-2">Unassigned - click a slot below to assign:</p>
                   <div className="flex flex-wrap gap-2">
                     {unassignedParticipants.map(p => (
                       <div
                         key={p._id}
-                        className="px-3 py-1.5 text-sm bg-brand/10 text-brand border border-brand/30 rounded-lg"
+                        className="px-3 py-1.5 text-sm bg-brand/10 text-amber-500 border border-amber-500/30 rounded-lg"
                       >
                         {p.displayName}
                       </div>
@@ -668,7 +668,7 @@ function BlankBracketModal({
               )}
 
               {seedAssignments.length > 0 && (
-                <p className="text-xs text-success mb-2">
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-2">
                   {seedAssignments.length} participant{seedAssignments.length !== 1 ? 's' : ''} assigned to seeds
                 </p>
               )}
@@ -677,7 +677,7 @@ function BlankBracketModal({
 
           {/* Seed Slots */}
           <div>
-            <h4 className="text-sm font-medium text-text-primary mb-3">
+            <h4 className="text-sm font-medium text-foreground mb-3">
               Bracket Slots
             </h4>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-[300px] overflow-y-auto">
@@ -688,16 +688,16 @@ function BlankBracketModal({
                     key={seed}
                     className={`relative p-3 border rounded-lg transition-all ${
                       assigned
-                        ? "bg-brand/10 border-brand/30"
-                        : "bg-bg-secondary border-border hover:border-brand/30"
+                        ? "bg-brand/10 border-amber-500/30"
+                        : "bg-secondary border-border hover:border-amber-500/30"
                     }`}
                   >
-                    <div className="text-xs font-medium text-text-muted mb-1">
+                    <div className="text-xs font-medium text-muted-foreground mb-1">
                       Seed {seed}
                     </div>
                     {assigned ? (
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-medium text-text-primary truncate">
+                        <span className="text-sm font-medium text-foreground truncate">
                           {assigned.displayName}
                         </span>
                         <button
@@ -718,7 +718,7 @@ function BlankBracketModal({
                                 assignToSeed(e.target.value, seed);
                               }
                             }}
-                            className="w-full text-sm bg-transparent border-none text-text-muted focus:outline-none cursor-pointer"
+                            className="w-full text-sm bg-transparent border-none text-muted-foreground focus:outline-none cursor-pointer"
                           >
                             <option value="">Empty slot</option>
                             {unassignedParticipants.map(p => (
@@ -728,7 +728,7 @@ function BlankBracketModal({
                             ))}
                           </select>
                         ) : (
-                          <span className="text-sm text-text-muted italic">
+                          <span className="text-sm text-muted-foreground italic">
                             Empty slot
                           </span>
                         )}
@@ -742,20 +742,20 @@ function BlankBracketModal({
         </div>
 
         <div className="flex justify-between items-center gap-3 p-6 border-t border-border flex-shrink-0">
-          <p className="text-xs text-text-muted">
+          <p className="text-xs text-muted-foreground">
             {seedAssignments.length} of {bracketSize} slots filled
           </p>
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="btn-secondary"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
             >
               Cancel
             </button>
             <button
               onClick={handleGenerate}
               disabled={generatingBlank}
-              className="btn-primary"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2"
             >
               {generatingBlank ? "Generating..." : "Generate Bracket"}
             </button>
@@ -867,15 +867,15 @@ function BracketTab({
     const canGenerate = canManage && status === "draft" && participantCount >= 2;
 
     return (
-      <div className="flex flex-col items-center py-16 text-center bg-bg-secondary border border-dashed border-border rounded-2xl">
-        <div className="w-14 h-14 flex items-center justify-center bg-bg-card rounded-2xl mb-4">
-          <svg className="w-7 h-7 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <div className="flex flex-col items-center py-16 text-center bg-secondary border border-dashed border-border rounded-2xl">
+        <div className="w-14 h-14 flex items-center justify-center bg-card rounded-2xl mb-4">
+          <svg className="w-7 h-7 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
           </svg>
         </div>
         {bracketId ? (
           <>
-            <p className="text-text-secondary">
+            <p className="text-muted-foreground">
               {participantCount < 2
                 ? `Add at least 2 participants to generate matches (${participantCount} added)`
                 : "No matches generated yet"}
@@ -884,7 +884,7 @@ function BracketTab({
               <button
                 onClick={handleGenerateMatches}
                 disabled={generating}
-                className="btn-primary mt-4"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2 mt-4"
               >
                 {generating ? "Generating..." : "Generate Matches"}
               </button>
@@ -895,22 +895,22 @@ function BracketTab({
                   className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                   onClick={() => setErrorMessage(null)}
                 />
-                <div className="relative bg-bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-fadeIn">
+                <div className="relative bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-fadeIn">
                   <div className="p-6">
                     <div className="flex items-center justify-center w-14 h-14 mx-auto bg-red/10 rounded-full mb-4">
                       <svg className="w-7 h-7 text-red" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                       </svg>
                     </div>
-                    <h3 className="text-lg font-semibold text-text-primary text-center mb-2">
+                    <h3 className="text-lg font-semibold text-foreground text-center mb-2">
                       Unable to Generate Matches
                     </h3>
-                    <p className="text-sm text-text-secondary text-center mb-6">
+                    <p className="text-sm text-muted-foreground text-center mb-6">
                       {errorMessage}
                     </p>
                     <button
                       onClick={() => setErrorMessage(null)}
-                      className="btn-primary w-full"
+                      className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2 w-full"
                     >
                       Got it
                     </button>
@@ -921,11 +921,11 @@ function BracketTab({
           </>
         ) : (
           <>
-            <p className="text-text-secondary">
+            <p className="text-muted-foreground">
               Bracket will be generated when the tournament starts
             </p>
             {canManage && status === "draft" && (format === "single_elimination" || format === "double_elimination") && (
-              <p className="text-sm text-text-muted mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 Use the &quot;Blank Bracket&quot; button to create a bracket with placeholder slots.
               </p>
             )}
@@ -945,13 +945,13 @@ function BracketTab({
     return (
       <div className="animate-fadeIn">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-sm text-text-muted">
+          <p className="text-sm text-muted-foreground">
             Click on placeholder slots to fill in participant names.
           </p>
           <div className="flex gap-2">
             <Link
               href={`/tournaments/${tournamentId}/bracket/print${bracketId ? `?bracketId=${bracketId}` : ""}`}
-              className="btn-secondary text-xs no-print"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 text-xs no-print"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" />
@@ -1012,7 +1012,7 @@ function BracketTab({
       <div className="flex justify-end mb-4 no-print">
         <Link
           href={`/tournaments/${tournamentId}/bracket/print${bracketId ? `?bracketId=${bracketId}` : ""}`}
-          className="btn-secondary text-xs"
+          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 text-xs"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" />
@@ -1024,7 +1024,7 @@ function BracketTab({
         <div className="flex gap-8 min-w-max">
           {roundNumbers.map((round) => (
             <div key={round} className="flex flex-col gap-3 min-w-[260px]">
-              <div className="text-sm font-medium text-text-muted pb-2 border-b border-border">
+              <div className="text-sm font-medium text-muted-foreground pb-2 border-b border-border">
                 {getRoundName(round, roundNumbers.length)}
               </div>
               <div className="flex flex-col gap-3 flex-1 justify-around">
@@ -1042,7 +1042,7 @@ function BracketTab({
                     <>
                       {/* Court badge - top-left */}
                       {match.court && (
-                        <div className="absolute top-1 left-1 px-1.5 py-0.5 text-[9px] font-medium text-brand bg-brand/10 rounded z-10">
+                        <div className="absolute top-1 left-1 px-1.5 py-0.5 text-[9px] font-medium text-amber-500 bg-brand/10 rounded z-10">
                           {match.court}
                         </div>
                       )}
@@ -1053,27 +1053,27 @@ function BracketTab({
                             : ""
                         } ${match.court ? "pt-5" : ""}`}
                       >
-                        <span className="w-6 text-xs text-center text-text-muted">
+                        <span className="w-6 text-xs text-center text-muted-foreground">
                           {match.participant1?.seed || "-"}
                         </span>
                         <span
                           className={`flex-1 text-sm font-medium truncate ${
                             match.winnerId === match.participant1?._id
-                              ? "text-brand"
+                              ? "text-amber-500"
                               : isByeMatch && match.participant1
-                                ? "text-brand"
-                                : "text-text-primary"
+                                ? "text-amber-500"
+                                : "text-foreground"
                           }`}
                         >
                           {match.participant1?.displayName || (isByeMatch ? "BYE" : "TBD")}
                         </span>
                         {!isByeMatch && (
-                          <span className="text-sm font-bold text-text-primary min-w-[40px] text-right tracking-wider">
+                          <span className="text-sm font-bold text-foreground min-w-[40px] text-right tracking-wider">
                             {getScoreDisplay(match, 0)}
                           </span>
                         )}
                         {isByeMatch && match.participant1 && (
-                          <span className="text-xs font-medium text-success">
+                          <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
                             Advances
                           </span>
                         )}
@@ -1085,33 +1085,33 @@ function BracketTab({
                             : ""
                         }`}
                       >
-                        <span className="w-6 text-xs text-center text-text-muted">
+                        <span className="w-6 text-xs text-center text-muted-foreground">
                           {match.participant2?.seed || "-"}
                         </span>
                         <span
                           className={`flex-1 text-sm font-medium truncate ${
                             match.winnerId === match.participant2?._id
-                              ? "text-brand"
+                              ? "text-amber-500"
                               : isByeMatch && match.participant2
-                                ? "text-brand"
-                                : "text-text-primary"
+                                ? "text-amber-500"
+                                : "text-foreground"
                           }`}
                         >
                           {match.participant2?.displayName || (isByeMatch ? "BYE" : "TBD")}
                         </span>
                         {!isByeMatch && (
-                          <span className="text-sm font-bold text-text-primary min-w-[40px] text-right tracking-wider">
+                          <span className="text-sm font-bold text-foreground min-w-[40px] text-right tracking-wider">
                             {getScoreDisplay(match, 1)}
                           </span>
                         )}
                         {isByeMatch && match.participant2 && (
-                          <span className="text-xs font-medium text-success">
+                          <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
                             Advances
                           </span>
                         )}
                       </div>
                       {isByeMatch && (
-                        <span className="absolute top-1 right-1 px-1.5 py-0.5 text-[9px] font-medium text-text-muted bg-bg-secondary rounded">
+                        <span className="absolute top-1 right-1 px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground bg-secondary rounded">
                           BYE
                         </span>
                       )}
@@ -1126,7 +1126,7 @@ function BracketTab({
                       <Link
                         key={match._id}
                         href={`/matches/${match._id}`}
-                        className={`relative flex flex-col bg-bg-card border rounded-lg overflow-hidden transition-all hover:border-brand/30 hover:-translate-y-0.5 ${
+                        className={`relative flex flex-col bg-card border rounded-lg overflow-hidden transition-all hover:border-amber-500/30 hover:-translate-y-0.5 ${
                           match.status === "live"
                             ? "border-success shadow-[0_0_20px_var(--success-glow)]"
                             : match.status === "completed"
@@ -1143,7 +1143,7 @@ function BracketTab({
                   return (
                     <div
                       key={match._id}
-                      className={`relative flex flex-col bg-bg-card border border-border rounded-lg overflow-hidden ${
+                      className={`relative flex flex-col bg-card border border-border rounded-lg overflow-hidden ${
                         isByeMatch ? "opacity-60" : ""
                       }`}
                     >
@@ -1186,13 +1186,13 @@ function MatchesTab({
 
   if (readyMatches.length === 0) {
     return (
-      <div className="flex flex-col items-center py-16 text-center bg-bg-secondary border border-dashed border-border rounded-2xl">
-        <div className="w-14 h-14 flex items-center justify-center bg-bg-card rounded-2xl mb-4">
-          <svg className="w-7 h-7 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <div className="flex flex-col items-center py-16 text-center bg-secondary border border-dashed border-border rounded-2xl">
+        <div className="w-14 h-14 flex items-center justify-center bg-card rounded-2xl mb-4">
+          <svg className="w-7 h-7 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
           </svg>
         </div>
-        <p className="text-text-secondary">
+        <p className="text-muted-foreground">
           Matches will appear when participants are assigned
         </p>
       </div>
@@ -1209,11 +1209,11 @@ function MatchesTab({
   });
 
   const matchStatusStyles: Record<string, string> = {
-    pending: "text-text-muted bg-bg-secondary",
+    pending: "text-muted-foreground bg-secondary",
     scheduled: "text-info bg-info/10",
-    live: "text-success bg-success/10",
+    live: "text-emerald-600 dark:text-emerald-400 bg-success/10",
     completed: "text-gold bg-gold/10",
-    bye: "text-text-muted bg-bg-secondary",
+    bye: "text-muted-foreground bg-secondary",
   };
 
   // Allow clicking matches in draft mode to set court
@@ -1226,14 +1226,14 @@ function MatchesTab({
           const content = (
             <>
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-xs font-semibold text-text-muted">
+                <span className="text-xs font-semibold text-muted-foreground">
                   Round {match.round}
                 </span>
-                <span className="text-xs text-text-muted">
+                <span className="text-xs text-muted-foreground">
                   Match {match.matchNumber}
                 </span>
                 {match.court && (
-                  <span className="text-xs text-brand">
+                  <span className="text-xs text-amber-500">
                     @ {match.court}
                   </span>
                 )}
@@ -1253,30 +1253,30 @@ function MatchesTab({
                   }`}
                 >
                   <span
-                    className={`font-medium ${match.winnerId === match.participant1?._id ? "text-brand" : "text-text-primary"}`}
+                    className={`font-medium ${match.winnerId === match.participant1?._id ? "text-amber-500" : "text-foreground"}`}
                   >
                     {match.participant1?.displayName || "TBD"}
                   </span>
-                  <span className="text-base font-bold text-text-primary">
+                  <span className="text-base font-bold text-foreground">
                     {match.participant1Score}
                   </span>
                 </div>
-                <span className="text-xs font-semibold text-text-muted flex-shrink-0">
+                <span className="text-xs font-semibold text-muted-foreground flex-shrink-0">
                   vs
                 </span>
                 <div className="flex-1 flex items-center justify-end gap-2">
-                  <span className="text-base font-bold text-text-primary">
+                  <span className="text-base font-bold text-foreground">
                     {match.participant2Score}
                   </span>
                   <span
-                    className={`font-medium ${match.winnerId === match.participant2?._id ? "text-brand" : "text-text-primary"}`}
+                    className={`font-medium ${match.winnerId === match.participant2?._id ? "text-amber-500" : "text-foreground"}`}
                   >
                     {match.participant2?.displayName || "TBD"}
                   </span>
                 </div>
               </div>
               {match.scheduledTime && (
-                <div className="text-xs text-text-muted mt-2 pt-2 border-t border-border">
+                <div className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border">
                   {new Date(match.scheduledTime).toLocaleString("en-US", {
                     month: "short",
                     day: "numeric",
@@ -1293,7 +1293,7 @@ function MatchesTab({
               <Link
                 key={match._id}
                 href={`/matches/${match._id}`}
-                className="flex flex-col p-4 bg-bg-card border border-border rounded-xl hover:bg-bg-card-hover hover:border-brand/30 transition-all animate-fadeInUp"
+                className="flex flex-col p-4 bg-card border border-border rounded-xl hover:bg-card-hover hover:border-amber-500/30 transition-all animate-fadeInUp"
                 style={{ animationDelay: `${index * 0.03}s` }}
               >
                 {content}
@@ -1304,7 +1304,7 @@ function MatchesTab({
           return (
             <div
               key={match._id}
-              className="flex flex-col p-4 bg-bg-card border border-border rounded-xl animate-fadeInUp"
+              className="flex flex-col p-4 bg-card border border-border rounded-xl animate-fadeInUp"
               style={{ animationDelay: `${index * 0.03}s` }}
             >
               {content}
@@ -1362,13 +1362,13 @@ function ParticipantsTab({
   return (
     <div className="animate-fadeIn">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-heading text-text-primary">
+        <h2 className="text-heading text-foreground">
           Participants ({participants.length})
         </h2>
         {canAdd && (
           <Link
             href={`/tournaments/${tournamentId}/participants/add${bracketId ? `?bracketId=${bracketId}` : ''}`}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-brand bg-brand/10 border border-brand/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-amber-500 bg-brand/10 border border-amber-500/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
           >
             <span>+</span> Add Participant
           </Link>
@@ -1376,13 +1376,13 @@ function ParticipantsTab({
       </div>
 
       {participants.length === 0 ? (
-        <div className="flex flex-col items-center py-16 text-center bg-bg-secondary border border-dashed border-border rounded-2xl">
-          <span className="text-5xl text-text-muted mb-4 opacity-50">{getParticipantIcon()}</span>
-          <p className="text-text-secondary mb-6">No participants yet</p>
+        <div className="flex flex-col items-center py-16 text-center bg-secondary border border-dashed border-border rounded-2xl">
+          <span className="text-5xl text-muted-foreground mb-4 opacity-50">{getParticipantIcon()}</span>
+          <p className="text-muted-foreground mb-6">No participants yet</p>
           {canAdd && (
             <Link
               href={`/tournaments/${tournamentId}/participants/add${bracketId ? `?bracketId=${bracketId}` : ''}`}
-              className="btn-primary"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2"
             >
               Add Participant
             </Link>
@@ -1394,14 +1394,14 @@ function ParticipantsTab({
             return (
               <div
                 key={participant._id}
-                className="flex items-center gap-4 p-4 bg-bg-card border border-border rounded-xl animate-fadeInUp"
+                className="flex items-center gap-4 p-4 bg-card border border-border rounded-xl animate-fadeInUp"
                 style={{ animationDelay: `${index * 0.03}s` }}
               >
-                <div className="w-8 h-8 flex items-center justify-center text-sm font-bold text-brand bg-brand/10 rounded-lg flex-shrink-0">
+                <div className="w-8 h-8 flex items-center justify-center text-sm font-bold text-amber-500 bg-brand/10 rounded-lg flex-shrink-0">
                   {participant.seed || "-"}
                 </div>
                 <div className="flex-1">
-                  <span className="block font-medium text-text-primary">
+                  <span className="block font-medium text-foreground">
                     {getParticipantDisplayName(participant)}
                   </span>
                 </div>
@@ -1432,9 +1432,9 @@ function StandingsTab({
 
   if (standings.length === 0) {
     return (
-      <div className="flex flex-col items-center py-16 text-center bg-bg-secondary border border-dashed border-border rounded-2xl">
-        <span className="text-5xl text-text-muted mb-4 opacity-50">📊</span>
-        <p className="text-text-secondary">
+      <div className="flex flex-col items-center py-16 text-center bg-secondary border border-dashed border-border rounded-2xl">
+        <span className="text-5xl text-muted-foreground mb-4 opacity-50">📊</span>
+        <p className="text-muted-foreground">
           Standings will appear when matches are played
         </p>
       </div>
@@ -1443,8 +1443,8 @@ function StandingsTab({
 
   return (
     <div className="animate-fadeIn">
-      <div className="bg-bg-card border border-border rounded-xl overflow-hidden">
-        <div className="grid grid-cols-[40px_1fr_40px_40px_40px_50px_60px] gap-2 p-4 text-xs font-semibold tracking-wide uppercase text-text-muted bg-bg-secondary border-b border-border">
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <div className="grid grid-cols-[40px_1fr_40px_40px_40px_50px_60px] gap-2 p-4 text-xs font-semibold tracking-wide uppercase text-muted-foreground bg-secondary border-b border-border">
           <span className="text-center">#</span>
           <span>Participant</span>
           <span className="text-center">W</span>
@@ -1456,7 +1456,7 @@ function StandingsTab({
         {standings.map((participant, index) => (
           <div
             key={participant._id}
-            className="grid grid-cols-[40px_1fr_40px_40px_40px_50px_60px] gap-2 p-4 text-sm text-text-primary border-b border-border last:border-b-0 animate-fadeIn"
+            className="grid grid-cols-[40px_1fr_40px_40px_40px_50px_60px] gap-2 p-4 text-sm text-foreground border-b border-border last:border-b-0 animate-fadeIn"
             style={{ animationDelay: `${index * 0.03}s` }}
           >
             <span
@@ -1473,16 +1473,16 @@ function StandingsTab({
               {index + 1}
             </span>
             <span className="font-medium truncate">{participant.displayName}</span>
-            <span className="text-center text-success">{participant.wins}</span>
+            <span className="text-center text-emerald-600 dark:text-emerald-400">{participant.wins}</span>
             <span className="text-center text-red">{participant.losses}</span>
-            <span className="text-center text-text-muted">{participant.draws}</span>
-            <span className="text-center font-bold text-brand">
+            <span className="text-center text-muted-foreground">{participant.draws}</span>
+            <span className="text-center font-bold text-amber-500">
               {participant.points}
             </span>
             <span
               className={`text-right ${
                 participant.pointsFor - participant.pointsAgainst > 0
-                  ? "text-success"
+                  ? "text-emerald-600 dark:text-emerald-400"
                   : participant.pointsFor - participant.pointsAgainst < 0
                     ? "text-red"
                     : ""
@@ -1555,27 +1555,27 @@ function ScorersTab({
   return (
     <div className="animate-fadeIn">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-heading text-text-primary">
+        <h2 className="text-heading text-foreground">
           Assigned scorers ({scorers.length})
         </h2>
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-brand bg-brand/10 border border-brand/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-amber-500 bg-brand/10 border border-amber-500/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
         >
           <span>+</span> Assign Scorer
         </button>
       </div>
 
       {scorers.length === 0 ? (
-        <div className="flex flex-col items-center py-16 text-center bg-bg-secondary border border-dashed border-border rounded-2xl">
-          <span className="text-5xl text-text-muted mb-4 opacity-50">📋</span>
-          <p className="text-text-secondary mb-2">No scorers assigned yet</p>
-          <p className="text-sm text-text-muted mb-6">
+        <div className="flex flex-col items-center py-16 text-center bg-secondary border border-dashed border-border rounded-2xl">
+          <span className="text-5xl text-muted-foreground mb-4 opacity-50">📋</span>
+          <p className="text-muted-foreground mb-2">No scorers assigned yet</p>
+          <p className="text-sm text-muted-foreground mb-6">
             Assign users by their email address to let them score matches in this tournament.
           </p>
           <button
             onClick={() => setShowAddModal(true)}
-            className="btn-primary"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2"
           >
             Assign Scorer
           </button>
@@ -1585,21 +1585,21 @@ function ScorersTab({
           {scorers.map((scorer, index) => (
             <div
               key={scorer._id}
-              className="flex items-center gap-4 p-4 bg-bg-card border border-border rounded-xl animate-fadeInUp"
+              className="flex items-center gap-4 p-4 bg-card border border-border rounded-xl animate-fadeInUp"
               style={{ animationDelay: `${index * 0.03}s` }}
             >
-              <div className="w-10 h-10 flex items-center justify-center text-sm font-bold text-brand bg-brand/10 rounded-full flex-shrink-0">
+              <div className="w-10 h-10 flex items-center justify-center text-sm font-bold text-amber-500 bg-brand/10 rounded-full flex-shrink-0">
                 {(scorer.userName || scorer.userEmail || "?").charAt(0).toUpperCase()}
               </div>
               <div className="flex-1">
-                <span className="block font-medium text-text-primary">
+                <span className="block font-medium text-foreground">
                   {scorer.userName || "Unknown"}
                 </span>
-                <span className="block text-sm text-text-muted">
+                <span className="block text-sm text-muted-foreground">
                   {scorer.userEmail}
                 </span>
               </div>
-              <div className="text-xs text-text-muted">
+              <div className="text-xs text-muted-foreground">
                 Added {new Date(scorer.assignedAt).toLocaleDateString()}
               </div>
               <button
@@ -1617,9 +1617,9 @@ function ScorersTab({
       {/* Add Scorer Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-lg bg-bg-card border border-border rounded-2xl shadow-2xl animate-scaleIn">
+          <div className="w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl animate-scaleIn">
             <div className="flex items-center justify-between p-6 border-b border-border">
-              <h3 className="text-heading text-text-primary">
+              <h3 className="text-heading text-foreground">
                 Assign scorer
               </h3>
               <button
@@ -1628,7 +1628,7 @@ function ScorersTab({
                   setEmail("");
                   setError(null);
                 }}
-                className="text-text-muted hover:text-text-primary transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 ✕
               </button>
@@ -1643,7 +1643,7 @@ function ScorersTab({
                 </div>
               )}
 
-              <p className="text-sm text-text-secondary mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 Enter the email address of a user to assign them as a scorer for this tournament. They must already have an account.
               </p>
               <input
@@ -1651,7 +1651,7 @@ function ScorersTab({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter email address..."
-                className="input"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && email.trim()) {
@@ -1667,14 +1667,14 @@ function ScorersTab({
                   setEmail("");
                   setError(null);
                 }}
-                className="btn-secondary"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAssign}
                 disabled={!email.trim() || loading}
-                className="btn-primary"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2"
               >
                 {loading ? "Assigning..." : "Assign Scorer"}
               </button>
@@ -1721,7 +1721,7 @@ function LoadingSkeleton() {
       </header>
 
       {/* Tabs skeleton */}
-      <nav className="bg-bg-secondary border-b border-border">
+      <nav className="bg-secondary border-b border-border">
         <div className="max-w-[var(--content-max)] mx-auto px-6">
           <SkeletonTabs count={4} className="py-3" />
         </div>
@@ -1738,20 +1738,20 @@ function LoadingSkeleton() {
 function NotFound() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-center px-6">
-      <div className="w-16 h-16 flex items-center justify-center bg-bg-card rounded-2xl mb-6">
-        <svg className="w-8 h-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <div className="w-16 h-16 flex items-center justify-center bg-card rounded-2xl mb-6">
+        <svg className="w-8 h-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
         </svg>
       </div>
-      <h1 className="text-title text-text-primary mb-3">
+      <h1 className="text-title text-foreground mb-3">
         Tournament Not Found
       </h1>
-      <p className="text-text-secondary mb-8">
+      <p className="text-muted-foreground mb-8">
         This tournament doesn&apos;t exist or you don&apos;t have access.
       </p>
       <Link
         href="/tournaments"
-        className="text-brand hover:text-brand-hover transition-colors"
+        className="text-amber-500 hover:text-amber-500-hover transition-colors"
       >
         ← Back to Tournaments
       </Link>
@@ -1766,7 +1766,7 @@ function TabSkeleton() {
         {[1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
-            className="flex flex-col p-4 bg-bg-card border border-border rounded-xl"
+            className="flex flex-col p-4 bg-card border border-border rounded-xl"
             style={{ animationDelay: `${i * 0.05}s` }}
           >
             <div className="flex items-center gap-3 mb-2">

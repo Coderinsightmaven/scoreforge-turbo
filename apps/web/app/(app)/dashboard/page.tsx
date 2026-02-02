@@ -4,6 +4,11 @@ import { useQuery } from "convex/react";
 import { api } from "@repo/convex";
 import Link from "next/link";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Plus, Trophy } from "lucide-react";
 
 type Filter = "all" | "active" | "draft" | "completed";
 
@@ -36,14 +41,14 @@ export default function DashboardPage(): React.ReactNode {
   const liveMatchCount = tournaments.reduce((acc, t) => acc + t.liveMatchCount, 0);
 
   return (
-    <div className="min-h-screen bg-bg-page py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="container">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-title text-text-primary mb-2">
+          <h1 className="text-title text-foreground mb-2">
             Welcome back, {firstName}
           </h1>
-          <p className="text-body text-text-secondary">
+          <p className="text-body text-muted-foreground">
             {tournaments.length === 0
               ? "Create your first tournament to get started"
               : `You have ${tournaments.length} tournament${tournaments.length === 1 ? "" : "s"}`}
@@ -52,13 +57,13 @@ export default function DashboardPage(): React.ReactNode {
 
         {/* Live matches alert */}
         {liveMatchCount > 0 && (
-          <div className="mb-8 p-4 bg-error-light border border-error/20 rounded-xl flex items-center gap-4">
+          <div className="mb-8 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-4">
             <div className="live-dot" />
             <div>
-              <p className="font-medium text-text-primary">
+              <p className="font-medium text-foreground">
                 {liveMatchCount} match{liveMatchCount === 1 ? "" : "es"} in progress
               </p>
-              <p className="text-small text-text-secondary">
+              <p className="text-small text-muted-foreground">
                 Tap a tournament to see live scores
               </p>
             </div>
@@ -71,31 +76,28 @@ export default function DashboardPage(): React.ReactNode {
           {tournaments.length > 0 && (
             <div className="flex gap-2">
               {filters.map((f) => (
-                <button
+                <Button
                   key={f.value}
                   onClick={() => setFilter(f.value)}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    filter === f.value
-                      ? "bg-text-primary text-bg-page"
-                      : "bg-bg-secondary text-text-secondary hover:bg-bg-tertiary"
-                  }`}
+                  variant={filter === f.value ? "default" : "secondary"}
+                  size="sm"
                 >
                   {f.label}
-                </button>
+                </Button>
               ))}
             </div>
           )}
 
           {/* Create button */}
           {canCreate ? (
-            <Link href="/tournaments/new" className="btn-primary">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-              New Tournament
-            </Link>
+            <Button variant="brand" asChild>
+              <Link href="/tournaments/new">
+                <Plus className="w-5 h-5" />
+                New Tournament
+              </Link>
+            </Button>
           ) : (
-            <div className="text-small text-text-muted">
+            <div className="text-small text-muted-foreground">
               Tournament limit reached ({createStatus?.maxAllowed})
             </div>
           )}
@@ -106,10 +108,10 @@ export default function DashboardPage(): React.ReactNode {
           <EmptyState canCreate={canCreate} />
         ) : filteredTournaments?.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-text-muted">No {filter} tournaments</p>
+            <p className="text-muted-foreground">No {filter} tournaments</p>
             <button
               onClick={() => setFilter("all")}
-              className="mt-2 text-brand hover:underline"
+              className="mt-2 text-amber-500 hover:underline"
             >
               Show all tournaments
             </button>
@@ -152,51 +154,52 @@ function TournamentCard({
     round_robin: "Round Robin",
   };
 
-  const statusStyles: Record<string, string> = {
-    draft: "badge-muted",
-    active: "badge-success",
-    completed: "badge-brand",
-    cancelled: "badge-error",
+  const statusVariants: Record<string, "muted" | "success" | "brand" | "destructive"> = {
+    draft: "muted",
+    active: "success",
+    completed: "brand",
+    cancelled: "destructive",
   };
 
   const hasLive = tournament.liveMatchCount > 0;
 
   return (
-    <Link
-      href={`/tournaments/${tournament._id}`}
-      className={`card card-hover block ${hasLive ? "ring-2 ring-error/30" : ""}`}
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-3">
-        <span className={`badge ${statusStyles[tournament.status] || "badge-muted"}`}>
-          {hasLive && <span className="live-dot" />}
-          {tournament.status}
-        </span>
-        <span className="text-small text-text-muted">
-          {tournament.isOwner ? "Owner" : "Scorer"}
-        </span>
-      </div>
+    <Link href={`/tournaments/${tournament._id}`} className="block">
+      <Card className={`h-full transition-all hover:border-border hover:shadow-md ${hasLive ? "ring-2 ring-red-500/30" : ""}`}>
+        <CardContent className="pt-6">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-3">
+            <Badge variant={statusVariants[tournament.status] || "muted"}>
+              {hasLive && <span className="live-dot" />}
+              {tournament.status}
+            </Badge>
+            <span className="text-small text-muted-foreground">
+              {tournament.isOwner ? "Owner" : "Scorer"}
+            </span>
+          </div>
 
-      {/* Title */}
-      <h3 className="text-heading text-text-primary mb-2 truncate">
-        {tournament.name}
-      </h3>
+          {/* Title */}
+          <h3 className="text-heading text-foreground mb-2 truncate">
+            {tournament.name}
+          </h3>
 
-      {/* Details */}
-      <div className="space-y-1 text-small text-text-secondary">
-        <p>{sportLabels[tournament.sport] || tournament.sport}</p>
-        <p>{formatLabels[tournament.format] || tournament.format}</p>
-        <p>{tournament.participantCount} of {tournament.maxParticipants} players</p>
-      </div>
+          {/* Details */}
+          <div className="space-y-1 text-small text-muted-foreground">
+            <p>{sportLabels[tournament.sport] || tournament.sport}</p>
+            <p>{formatLabels[tournament.format] || tournament.format}</p>
+            <p>{tournament.participantCount} of {tournament.maxParticipants} players</p>
+          </div>
 
-      {/* Live indicator */}
-      {hasLive && (
-        <div className="mt-4 pt-3 border-t border-border">
-          <p className="text-small text-error font-medium">
-            {tournament.liveMatchCount} live match{tournament.liveMatchCount === 1 ? "" : "es"}
-          </p>
-        </div>
-      )}
+          {/* Live indicator */}
+          {hasLive && (
+            <div className="mt-4 pt-3 border-t border-border">
+              <p className="text-small text-red-600 dark:text-red-400 font-medium">
+                {tournament.liveMatchCount} live match{tournament.liveMatchCount === 1 ? "" : "es"}
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </Link>
   );
 }
@@ -204,22 +207,20 @@ function TournamentCard({
 function EmptyState({ canCreate }: { canCreate: boolean }) {
   return (
     <div className="text-center py-16 px-4">
-      <div className="w-16 h-16 mx-auto mb-6 bg-bg-secondary rounded-2xl flex items-center justify-center">
-        <svg className="w-8 h-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
-        </svg>
+      <div className="w-16 h-16 mx-auto mb-6 bg-secondary rounded-2xl flex items-center justify-center">
+        <Trophy className="w-8 h-8 text-muted-foreground" />
       </div>
-      <h2 className="text-heading text-text-primary mb-2">No tournaments yet</h2>
-      <p className="text-body text-text-secondary mb-6 max-w-sm mx-auto">
+      <h2 className="text-heading text-foreground mb-2">No tournaments yet</h2>
+      <p className="text-body text-muted-foreground mb-6 max-w-sm mx-auto">
         Create your first tournament to start managing competitions
       </p>
       {canCreate && (
-        <Link href="/tournaments/new" className="btn-primary">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          Create Tournament
-        </Link>
+        <Button variant="brand" asChild>
+          <Link href="/tournaments/new">
+            <Plus className="w-5 h-5" />
+            Create Tournament
+          </Link>
+        </Button>
       )}
     </div>
   );
@@ -227,31 +228,33 @@ function EmptyState({ canCreate }: { canCreate: boolean }) {
 
 function DashboardSkeleton() {
   return (
-    <div className="min-h-screen bg-bg-page py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="container">
         <div className="mb-8">
-          <div className="h-8 w-64 bg-bg-secondary rounded-lg animate-pulse mb-2" />
-          <div className="h-5 w-48 bg-bg-secondary rounded-lg animate-pulse" />
+          <Skeleton className="h-8 w-64 mb-2" />
+          <Skeleton className="h-5 w-48" />
         </div>
         <div className="flex justify-between items-center mb-6">
           <div className="flex gap-2">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-10 w-20 bg-bg-secondary rounded-lg animate-pulse" />
+              <Skeleton key={i} className="h-10 w-20" />
             ))}
           </div>
-          <div className="h-12 w-40 bg-bg-secondary rounded-lg animate-pulse" />
+          <Skeleton className="h-12 w-40" />
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="card">
-              <div className="h-6 w-20 bg-bg-secondary rounded animate-pulse mb-3" />
-              <div className="h-6 w-48 bg-bg-secondary rounded animate-pulse mb-2" />
-              <div className="space-y-2">
-                <div className="h-4 w-24 bg-bg-secondary rounded animate-pulse" />
-                <div className="h-4 w-32 bg-bg-secondary rounded animate-pulse" />
-                <div className="h-4 w-28 bg-bg-secondary rounded animate-pulse" />
-              </div>
-            </div>
+            <Card key={i}>
+              <CardContent className="pt-6">
+                <Skeleton className="h-6 w-20 mb-3" />
+                <Skeleton className="h-6 w-48 mb-2" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-28" />
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>

@@ -5,6 +5,22 @@ import { api } from "@repo/convex";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ChevronLeft, CheckCircle, X, Key, Copy, AlertCircle } from "lucide-react";
 
 export default function SettingsPage(): React.ReactNode {
   const user = useQuery(api.users.currentUser);
@@ -71,28 +87,26 @@ export default function SettingsPage(): React.ReactNode {
 
   if (user === null) {
     return (
-      <div className="min-h-screen bg-bg-page flex items-center justify-center">
-        <p className="text-text-secondary">Please sign in to access settings.</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Please sign in to access settings.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-bg-page py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="container">
         {/* Header */}
         <div className="mb-8">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-small text-text-muted hover:text-text-secondary transition-colors mb-4"
+            className="inline-flex items-center gap-2 text-small text-muted-foreground hover:text-foreground transition-colors mb-4"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-            </svg>
+            <ChevronLeft className="w-4 h-4" />
             Back to dashboard
           </Link>
-          <h1 className="text-title text-text-primary mb-2">Settings</h1>
-          <p className="text-body text-text-secondary">
+          <h1 className="text-title text-foreground mb-2">Settings</h1>
+          <p className="text-body text-muted-foreground">
             Manage your profile and account preferences
           </p>
         </div>
@@ -101,76 +115,78 @@ export default function SettingsPage(): React.ReactNode {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Profile Card */}
-            <div className="card">
-              <h2 className="text-heading text-text-primary mb-6">Profile Information</h2>
-
-              <form onSubmit={handleSave} className="space-y-6">
-                {/* Avatar */}
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 flex items-center justify-center text-xl font-semibold text-white bg-brand rounded-full">
-                    {initials}
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSave} className="space-y-6">
+                  {/* Avatar */}
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 flex items-center justify-center text-xl font-semibold text-white bg-amber-500 rounded-full">
+                      {initials}
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">Profile Picture</p>
+                      <p className="text-small text-muted-foreground">
+                        Avatar is generated from your initials
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-text-primary">Profile Picture</p>
-                    <p className="text-small text-text-muted">
-                      Avatar is generated from your initials
+
+                  {/* Name */}
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Display Name</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Enter your name"
+                    />
+                  </div>
+
+                  {/* Email (read-only) */}
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={user.email || ""}
+                      disabled
+                      className="bg-secondary cursor-not-allowed text-muted-foreground"
+                    />
+                    <p className="text-small text-muted-foreground">
+                      Email cannot be changed
                     </p>
                   </div>
-                </div>
 
-                {/* Name */}
-                <div>
-                  <label htmlFor="name" className="text-label block mb-2">
-                    Display Name
-                  </label>
-                  <input
-                    id="name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter your name"
-                    className="input"
-                  />
-                </div>
+                  {/* Status Messages */}
+                  {error && (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  )}
 
-                {/* Email (read-only) */}
-                <div>
-                  <label htmlFor="email" className="text-label block mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    value={user.email || ""}
-                    disabled
-                    className="input bg-bg-secondary cursor-not-allowed text-text-muted"
-                  />
-                  <p className="text-small text-text-muted mt-1">
-                    Email cannot be changed
-                  </p>
-                </div>
+                  {success && (
+                    <Alert className="border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-900/20">
+                      <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      <AlertDescription className="text-emerald-700 dark:text-emerald-300">
+                        Profile updated successfully!
+                      </AlertDescription>
+                    </Alert>
+                  )}
 
-                {/* Status Messages */}
-                {error && (
-                  <div className="p-4 bg-error-light border border-error/20 rounded-lg text-error text-small">
-                    {error}
+                  {/* Save Button */}
+                  <div className="flex justify-end pt-4 border-t border-border">
+                    <Button type="submit" disabled={saving} variant="brand">
+                      {saving ? "Saving..." : "Save Changes"}
+                    </Button>
                   </div>
-                )}
-
-                {success && (
-                  <div className="p-4 bg-success-light border border-success/20 rounded-lg text-success text-small">
-                    Profile updated successfully!
-                  </div>
-                )}
-
-                {/* Save Button */}
-                <div className="flex justify-end pt-4 border-t border-border">
-                  <button type="submit" disabled={saving} className="btn-primary">
-                    {saving ? "Saving..." : "Save Changes"}
-                  </button>
-                </div>
-              </form>
-            </div>
+                </form>
+              </CardContent>
+            </Card>
 
             {/* API Keys Section */}
             <ApiKeysSection />
@@ -179,12 +195,14 @@ export default function SettingsPage(): React.ReactNode {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Account Info Card */}
-            <div className="card">
-              <h2 className="text-heading text-text-primary mb-4">Account</h2>
-              <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Account</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div>
-                  <p className="text-small text-text-muted mb-1">Member Since</p>
-                  <p className="text-body text-text-primary">
+                  <p className="text-small text-muted-foreground mb-1">Member Since</p>
+                  <p className="text-body text-foreground">
                     {new Date(user._creationTime).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "long",
@@ -194,105 +212,104 @@ export default function SettingsPage(): React.ReactNode {
                 </div>
                 {user.emailVerificationTime && (
                   <div>
-                    <p className="text-small text-text-muted mb-1">Email Status</p>
-                    <p className="text-body text-success flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                    <p className="text-small text-muted-foreground mb-1">Email Status</p>
+                    <p className="text-body text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4" />
                       Verified
                     </p>
                   </div>
                 )}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Danger Zone */}
-            <div className="card border-error/20">
-              <h2 className="text-heading text-error mb-4">Danger Zone</h2>
-              <div className="space-y-6">
+            <Card className="border-red-200 dark:border-red-800">
+              <CardHeader>
+                <CardTitle className="text-red-600 dark:text-red-400">Danger Zone</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
                 <div>
-                  <p className="text-small text-text-secondary mb-3">
+                  <p className="text-small text-muted-foreground mb-3">
                     Sign out of your account on this device.
                   </p>
-                  <button
+                  <Button
                     onClick={() => signOut()}
-                    className="w-full py-3 text-sm font-medium text-error bg-error-light rounded-lg hover:bg-error/20 transition-colors"
+                    variant="outline"
+                    className="w-full text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20"
                   >
                     Sign Out
-                  </button>
+                  </Button>
                 </div>
 
-                <div className="pt-4 border-t border-error/20">
-                  <p className="text-small text-text-secondary mb-2">
+                <div className="pt-4 border-t border-red-200 dark:border-red-800">
+                  <p className="text-small text-muted-foreground mb-2">
                     Permanently delete your account and all associated data.
                   </p>
-                  <p className="text-small text-text-muted mb-3">
+                  <p className="text-small text-muted-foreground mb-3">
                     This action cannot be undone.
                   </p>
-                  <button
+                  <Button
                     onClick={() => setShowDeleteModal(true)}
-                    className="w-full py-3 text-sm font-medium text-white bg-error rounded-lg hover:bg-error/90 transition-colors"
+                    variant="destructive"
+                    className="w-full"
                   >
                     Delete Account
-                  </button>
+                  </Button>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
 
       {/* Delete Account Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-bg-card border border-border rounded-xl w-full max-w-md">
-            <div className="p-6 border-b border-border">
-              <h3 className="text-heading text-error">Delete Account</h3>
-            </div>
-            <div className="p-6 space-y-4">
-              <p className="text-body text-text-secondary">
-                This will permanently delete:
-              </p>
-              <ul className="text-small text-text-muted list-disc list-inside space-y-1">
-                <li>All tournaments you own</li>
-                <li>All matches and scoring history</li>
-                <li>Your API keys</li>
-                <li>Your preferences and settings</li>
-              </ul>
-              <p className="text-body text-text-secondary">
-                Type <span className="font-mono text-error font-medium">DELETE</span> to confirm:
-              </p>
-              <input
-                type="text"
-                value={deleteConfirmText}
-                onChange={(e) => setDeleteConfirmText(e.target.value)}
-                placeholder="Type DELETE to confirm"
-                className="input"
-                autoFocus
-              />
-            </div>
-            <div className="p-6 border-t border-border flex gap-3">
-              <button
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setDeleteConfirmText("");
-                }}
-                disabled={deleting}
-                className="flex-1 btn-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteAccount}
-                disabled={deleteConfirmText !== "DELETE" || deleting}
-                className="flex-1 py-3 text-sm font-semibold text-white bg-error rounded-lg hover:bg-error/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {deleting ? "Deleting..." : "Delete Account"}
-              </button>
-            </div>
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-red-600 dark:text-red-400">Delete Account</DialogTitle>
+            <DialogDescription>
+              This will permanently delete:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <ul className="text-small text-muted-foreground list-disc list-inside space-y-1">
+              <li>All tournaments you own</li>
+              <li>All matches and scoring history</li>
+              <li>Your API keys</li>
+              <li>Your preferences and settings</li>
+            </ul>
+            <p className="text-body text-foreground">
+              Type <span className="font-mono text-red-600 dark:text-red-400 font-medium">DELETE</span> to confirm:
+            </p>
+            <Input
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="Type DELETE to confirm"
+              autoFocus
+            />
           </div>
-        </div>
-      )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteModal(false);
+                setDeleteConfirmText("");
+              }}
+              disabled={deleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDeleteAccount}
+              disabled={deleteConfirmText !== "DELETE" || deleting}
+              variant="destructive"
+            >
+              {deleting ? "Deleting..." : "Delete Account"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -348,169 +365,178 @@ function ApiKeysSection() {
   };
 
   return (
-    <div className="card">
-      <div className="mb-6">
-        <h2 className="text-heading text-text-primary">API Keys</h2>
-        <p className="text-small text-text-secondary mt-1">
+    <Card>
+      <CardHeader>
+        <CardTitle>API Keys</CardTitle>
+        <p className="text-small text-muted-foreground">
           Use API keys to access your tournament data programmatically
         </p>
-      </div>
-
-      {/* New key created alert */}
-      {showNewKey && (
-        <div className="mb-6 p-4 bg-success-light border border-success/20 rounded-lg">
-          <div className="flex items-center justify-between mb-2">
-            <p className="font-medium text-success">API key created!</p>
-            <button
-              onClick={() => setShowNewKey(null)}
-              className="text-text-muted hover:text-text-secondary"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <p className="text-small text-text-secondary mb-3">
-            Make sure to copy your API key now. You won't be able to see it again!
-          </p>
-          <div className="flex items-center gap-2">
-            <code className="flex-1 p-3 bg-bg-secondary text-text-primary text-small font-mono rounded-lg overflow-x-auto">
-              {showNewKey}
-            </code>
-            <button
-              onClick={() => copyToClipboard(showNewKey)}
-              className="btn-secondary !py-2.5 !px-4"
-            >
-              Copy
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Error */}
-      {error && (
-        <div className="mb-6 p-4 bg-error-light border border-error/20 rounded-lg text-error text-small">
-          {error}
-        </div>
-      )}
-
-      {/* Create new key */}
-      <form onSubmit={handleCreateKey} className="flex gap-3 mb-6">
-        <input
-          type="text"
-          value={newKeyName}
-          onChange={(e) => setNewKeyName(e.target.value)}
-          placeholder="Key name (e.g., Production)"
-          className="input flex-1"
-        />
-        <button
-          type="submit"
-          disabled={isCreating || !newKeyName.trim()}
-          className="btn-primary"
-        >
-          {isCreating ? "Creating..." : "Create Key"}
-        </button>
-      </form>
-
-      {/* Existing keys */}
-      {apiKeys === undefined ? (
-        <div className="space-y-3">
-          {[1, 2].map((i) => (
-            <div key={i} className="p-4 bg-bg-secondary rounded-lg animate-pulse">
-              <div className="h-5 w-32 bg-bg-tertiary rounded mb-2" />
-              <div className="h-4 w-24 bg-bg-tertiary rounded" />
+      </CardHeader>
+      <CardContent>
+        {/* New key created alert */}
+        {showNewKey && (
+          <Alert className="mb-6 border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-900/20">
+            <div className="flex items-center justify-between mb-2">
+              <p className="font-medium text-emerald-700 dark:text-emerald-300">API key created!</p>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                onClick={() => setShowNewKey(null)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
             </div>
-          ))}
-        </div>
-      ) : apiKeys.length === 0 ? (
-        <div className="text-center py-8">
-          <svg className="w-12 h-12 mx-auto mb-3 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
-          </svg>
-          <p className="text-text-muted">No API keys yet. Create one to get started.</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {apiKeys.map((key) => (
-            <div
-              key={key._id}
-              className={`p-4 bg-bg-secondary rounded-lg ${!key.isActive ? "opacity-60" : ""}`}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-text-primary">{key.name}</span>
-                    {!key.isActive && (
-                      <span className="badge badge-muted text-small">Revoked</span>
-                    )}
+            <AlertDescription className="text-emerald-700 dark:text-emerald-300 mb-3">
+              Make sure to copy your API key now. You won&apos;t be able to see it again!
+            </AlertDescription>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 p-3 bg-secondary text-foreground text-small font-mono rounded-lg overflow-x-auto">
+                {showNewKey}
+              </code>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => copyToClipboard(showNewKey)}
+              >
+                <Copy className="w-4 h-4 mr-1" />
+                Copy
+              </Button>
+            </div>
+          </Alert>
+        )}
+
+        {/* Error */}
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Create new key */}
+        <form onSubmit={handleCreateKey} className="flex gap-3 mb-6">
+          <Input
+            type="text"
+            value={newKeyName}
+            onChange={(e) => setNewKeyName(e.target.value)}
+            placeholder="Key name (e.g., Production)"
+            className="flex-1"
+          />
+          <Button
+            type="submit"
+            disabled={isCreating || !newKeyName.trim()}
+            variant="brand"
+          >
+            {isCreating ? "Creating..." : "Create Key"}
+          </Button>
+        </form>
+
+        {/* Existing keys */}
+        {apiKeys === undefined ? (
+          <div className="space-y-3">
+            {[1, 2].map((i) => (
+              <div key={i} className="p-4 bg-secondary rounded-lg">
+                <Skeleton className="h-5 w-32 mb-2" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            ))}
+          </div>
+        ) : apiKeys.length === 0 ? (
+          <div className="text-center py-8">
+            <Key className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+            <p className="text-muted-foreground">No API keys yet. Create one to get started.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {apiKeys.map((key) => (
+              <div
+                key={key._id}
+                className={`p-4 bg-secondary rounded-lg ${!key.isActive ? "opacity-60" : ""}`}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-foreground">{key.name}</span>
+                      {!key.isActive && (
+                        <Badge variant="muted">Revoked</Badge>
+                      )}
+                    </div>
+                    <code className="text-small text-muted-foreground font-mono">
+                      {key.keyPrefix}...
+                    </code>
+                    <p className="text-small text-muted-foreground mt-1">
+                      Created {new Date(key.createdAt).toLocaleDateString()}
+                      {key.lastUsedAt && ` · Last used ${new Date(key.lastUsedAt).toLocaleDateString()}`}
+                    </p>
                   </div>
-                  <code className="text-small text-text-muted font-mono">
-                    {key.keyPrefix}...
-                  </code>
-                  <p className="text-small text-text-muted mt-1">
-                    Created {new Date(key.createdAt).toLocaleDateString()}
-                    {key.lastUsedAt && ` · Last used ${new Date(key.lastUsedAt).toLocaleDateString()}`}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {key.isActive && (
-                    <button
-                      onClick={() => handleRevoke(key._id)}
-                      className="px-3 py-1.5 text-small font-medium text-warning bg-warning-light rounded-lg hover:bg-warning/20 transition-colors"
+                  <div className="flex items-center gap-2">
+                    {key.isActive && (
+                      <Button
+                        onClick={() => handleRevoke(key._id)}
+                        variant="outline"
+                        size="sm"
+                        className="text-amber-600 border-amber-200 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/20"
+                      >
+                        Revoke
+                      </Button>
+                    )}
+                    <Button
+                      onClick={() => handleDelete(key._id)}
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20"
                     >
-                      Revoke
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleDelete(key._id)}
-                    className="px-3 py-1.5 text-small font-medium text-error bg-error-light rounded-lg hover:bg-error/20 transition-colors"
-                  >
-                    Delete
-                  </button>
+                      Delete
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
 function SettingsSkeleton() {
   return (
-    <div className="min-h-screen bg-bg-page py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="container">
         <div className="mb-8">
-          <div className="h-5 w-32 bg-bg-secondary rounded animate-pulse mb-4" />
-          <div className="h-8 w-48 bg-bg-secondary rounded animate-pulse mb-2" />
-          <div className="h-5 w-72 bg-bg-secondary rounded animate-pulse" />
+          <Skeleton className="h-5 w-32 mb-4" />
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-5 w-72" />
         </div>
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
-            <div className="card">
-              <div className="h-6 w-40 bg-bg-secondary rounded animate-pulse mb-6" />
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 bg-bg-secondary rounded-full animate-pulse" />
-                <div>
-                  <div className="h-5 w-32 bg-bg-secondary rounded animate-pulse mb-2" />
-                  <div className="h-4 w-48 bg-bg-secondary rounded animate-pulse" />
+            <Card>
+              <CardContent className="pt-6">
+                <Skeleton className="h-6 w-40 mb-6" />
+                <div className="flex items-center gap-4 mb-6">
+                  <Skeleton className="w-16 h-16 rounded-full" />
+                  <div>
+                    <Skeleton className="h-5 w-32 mb-2" />
+                    <Skeleton className="h-4 w-48" />
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-4">
-                <div className="h-12 bg-bg-secondary rounded-lg animate-pulse" />
-                <div className="h-12 bg-bg-secondary rounded-lg animate-pulse" />
-              </div>
-            </div>
+                <div className="space-y-4">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              </CardContent>
+            </Card>
           </div>
           <div className="space-y-6">
-            <div className="card">
-              <div className="h-6 w-24 bg-bg-secondary rounded animate-pulse mb-4" />
-              <div className="space-y-4">
-                <div className="h-12 bg-bg-secondary rounded animate-pulse" />
-                <div className="h-12 bg-bg-secondary rounded animate-pulse" />
-              </div>
-            </div>
+            <Card>
+              <CardContent className="pt-6">
+                <Skeleton className="h-6 w-24 mb-4" />
+                <div className="space-y-4">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

@@ -243,7 +243,7 @@ export default function QuickBracketPage(): React.ReactNode {
 
                 <button
                   onClick={handleGenerate}
-                  className="w-full px-4 py-3 btn-primary mt-4"
+                  className="w-full px-4 py-3 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm mt-4"
                 >
                   Generate Bracket
                 </button>
@@ -275,7 +275,7 @@ export default function QuickBracketPage(): React.ReactNode {
                 </button>
                 <button
                   onClick={handlePrint}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 btn-primary text-xs"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm text-xs"
                 >
                   <svg
                     className="w-4 h-4"
