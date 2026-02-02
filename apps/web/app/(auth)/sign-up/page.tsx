@@ -1,6 +1,8 @@
 "use client";
 
 import { useAuthActions } from "@convex-dev/auth/react";
+import { useQuery } from "convex/react";
+import { api } from "@repo/convex";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -8,6 +10,10 @@ export default function SignUpPage(): React.ReactNode {
   const { signIn } = useAuthActions();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Check if registration is allowed
+  const registrationStatus = useQuery(api.siteAdmin.getRegistrationStatus);
+  const isRegistrationAllowed = registrationStatus?.allowPublicRegistration ?? true;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -127,16 +133,37 @@ export default function SignUpPage(): React.ReactNode {
             </Link>
           </div>
 
-          <div className="mb-10">
-            <h1 className="text-title text-text-primary mb-3">
-              Create your account
-            </h1>
-            <p className="text-body text-text-muted">
-              Get started with ScoreForge today
-            </p>
-          </div>
+          {!isRegistrationAllowed ? (
+            // Registration disabled message
+            <div className="text-center">
+              <div className="w-16 h-16 bg-bg-secondary rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                </svg>
+              </div>
+              <h1 className="text-title text-text-primary mb-3">
+                Registration Closed
+              </h1>
+              <p className="text-body text-text-muted mb-8">
+                New account registration is currently disabled. Please contact an administrator if you need access.
+              </p>
+              <Link href="/sign-in" className="btn-primary inline-flex">
+                Sign in to existing account
+              </Link>
+            </div>
+          ) : (
+            // Registration form
+            <>
+              <div className="mb-10">
+                <h1 className="text-title text-text-primary mb-3">
+                  Create your account
+                </h1>
+                <p className="text-body text-text-muted">
+                  Get started with ScoreForge today
+                </p>
+              </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className="text-label block mb-2">
@@ -248,6 +275,8 @@ export default function SignUpPage(): React.ReactNode {
               </Link>
             </p>
           </div>
+            </>
+          )}
         </div>
       </div>
     </div>

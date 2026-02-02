@@ -310,6 +310,28 @@ export const getSystemSettings = query({
 });
 
 /**
+ * Get registration status (public - no auth required)
+ * Used by sign-up page to check if registration is allowed
+ */
+export const getRegistrationStatus = query({
+  args: {},
+  returns: v.object({
+    allowPublicRegistration: v.boolean(),
+  }),
+  handler: async (ctx) => {
+    const settings = await ctx.db
+      .query("systemSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+
+    // Default to allowing registration if no settings exist
+    return {
+      allowPublicRegistration: settings?.allowPublicRegistration ?? true,
+    };
+  },
+});
+
+/**
  * Grant site admin status to a user
  */
 export const grantSiteAdmin = mutation({
