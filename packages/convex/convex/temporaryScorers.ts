@@ -2,6 +2,67 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
+const SCORER_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const SESSION_TOKEN_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+const PIN_HASH_PREFIX = "pbkdf2_sha256";
+const PIN_HASH_ITERATIONS = 120_000;
+const PIN_SALT_BYTES = 16;
+const PIN_HASH_BYTES = 32;
+
+function randomInt(maxExclusive: number): number {
+  if (maxExclusive <= 0 || maxExclusive > 0x100000000) {
+    throw new Error("maxExclusive must be between 1 and 2^32");
+  }
+
+  const range = 0x100000000;
+  const limit = Math.floor(range / maxExclusive) * maxExclusive;
+  const buffer = new Uint32Array(1);
+
+  while (true) {
+    crypto.getRandomValues(buffer);
+    const value = buffer[0]!;
+    if (value < limit) {
+      return value % maxExclusive;
+    }
+  }
+}
+
+function randomString(length: number, alphabet: string): string {
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    const idx = randomInt(alphabet.length);
+    result += alphabet.charAt(idx);
+  }
+  return result;
+}
+
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function hexToBytes(hex: string): Uint8Array {
+  if (hex.length % 2 !== 0) {
+    throw new Error("Invalid hex string length");
+  }
+  const out = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < out.length; i++) {
+    const byte = hex.slice(i * 2, i * 2 + 2);
+    out[i] = Number.parseInt(byte, 16);
+  }
+  return out;
+}
+
+function constantTimeEqual(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a[i]! ^ b[i]!;
+  }
+  return diff === 0;
+}
+
 // ============================================
 // Helper functions
 // ============================================
@@ -10,38 +71,29 @@ import { v } from "convex/values";
  * Generate a random 6-character alphanumeric code
  */
 function generateScorerCode(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Removed confusing chars: I, O, 0, 1
-  let code = "";
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
+  // Removed confusing chars: I, O, 0, 1
+  return randomString(6, SCORER_CODE_ALPHABET);
 }
 
 /**
  * Generate a random 4-digit PIN
  */
 function generatePin(): string {
-  return Math.floor(1000 + Math.random() * 9000).toString();
+  return (1000 + randomInt(9000)).toString();
 }
 
 /**
  * Generate a random session token
  */
 function generateSessionToken(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let token = "";
-  for (let i = 0; i < 64; i++) {
-    token += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return token;
+  return randomString(64, SESSION_TOKEN_ALPHABET);
 }
 
 /**
  * Simple hash function for PIN (not cryptographically secure, but adequate for PINs)
  * In production, you'd want to use a proper hashing library
  */
-function hashPin(pin: string): string {
+function hashPinLegacy(pin: string): string {
   // Simple hash - in a real app, use bcrypt or similar
   // This is a basic implementation for demonstration
   let hash = 0;
@@ -54,11 +106,95 @@ function hashPin(pin: string): string {
   return Math.abs(hash).toString(36);
 }
 
+async function hashPin(pin: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(pin),
+    { name: "PBKDF2" },
+    false,
+    ["deriveBits"]
+  );
+
+  const salt = new Uint8Array(PIN_SALT_BYTES);
+  crypto.getRandomValues(salt);
+
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      hash: "SHA-256",
+      salt,
+      iterations: PIN_HASH_ITERATIONS,
+    },
+    key,
+    PIN_HASH_BYTES * 8
+  );
+
+  const hashBytes = new Uint8Array(derivedBits);
+  return `${PIN_HASH_PREFIX}$${PIN_HASH_ITERATIONS}$${bytesToHex(salt)}$${bytesToHex(hashBytes)}`;
+}
+
+function parsePinHash(hash: string): { iterations: number; salt: Uint8Array; hash: Uint8Array } | null {
+  if (!hash.startsWith(`${PIN_HASH_PREFIX}$`)) {
+    return null;
+  }
+  const parts = hash.split("$");
+  if (parts.length !== 4) {
+    return null;
+  }
+
+  const iterations = Number.parseInt(parts[1] || "", 10);
+  if (!Number.isFinite(iterations) || iterations <= 0) {
+    return null;
+  }
+
+  try {
+    const salt = hexToBytes(parts[2] || "");
+    const derived = hexToBytes(parts[3] || "");
+    return { iterations, salt, hash: derived };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Verify a PIN against its hash
  */
-function verifyPin(pin: string, hash: string): boolean {
-  return hashPin(pin) === hash;
+async function verifyPin(pin: string, hash: string): Promise<boolean> {
+  const parsed = parsePinHash(hash);
+  if (!parsed) {
+    return hashPinLegacy(pin) === hash;
+  }
+
+  const salt = new Uint8Array(parsed.salt);
+  const expected = new Uint8Array(parsed.hash);
+
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(pin),
+    { name: "PBKDF2" },
+    false,
+    ["deriveBits"]
+  );
+
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      hash: "SHA-256",
+      salt,
+      iterations: parsed.iterations,
+    },
+    key,
+    expected.length * 8
+  );
+
+  const derived = new Uint8Array(derivedBits);
+  return constantTimeEqual(derived, expected);
+}
+
+function isLegacyPinHash(hash: string): boolean {
+  return !hash.startsWith(`${PIN_HASH_PREFIX}$`);
 }
 
 // ============================================
@@ -342,7 +478,7 @@ export const createTemporaryScorer = mutation({
 
     // Generate PIN and hash it
     const pin = generatePin();
-    const pinHash = hashPin(pin);
+    const pinHash = await hashPin(pin);
 
     const scorerId = await ctx.db.insert("temporaryScorers", {
       tournamentId: args.tournamentId,
@@ -464,7 +600,7 @@ export const resetTemporaryScorerPin = mutation({
 
     // Generate new PIN
     const pin = generatePin();
-    const pinHash = hashPin(pin);
+    const pinHash = await hashPin(pin);
 
     await ctx.db.patch(args.scorerId, { pinHash });
 
@@ -576,8 +712,14 @@ export const signIn = mutation({
     }
 
     // Verify PIN
-    if (!verifyPin(args.pin, scorer.pinHash)) {
+    const pinValid = await verifyPin(args.pin, scorer.pinHash);
+    if (!pinValid) {
       return null; // Invalid PIN
+    }
+
+    if (isLegacyPinHash(scorer.pinHash)) {
+      const upgradedHash = await hashPin(args.pin);
+      await ctx.db.patch(scorer._id, { pinHash: upgradedHash });
     }
 
     // Create session
@@ -631,14 +773,15 @@ export const cleanupExpiredSessions = internalMutation({
   returns: v.number(),
   handler: async (ctx) => {
     const now = Date.now();
-    const sessions = await ctx.db.query("temporaryScorerSessions").collect();
+    const sessions = await ctx.db
+      .query("temporaryScorerSessions")
+      .withIndex("by_expires_at", (q) => q.lt("expiresAt", now))
+      .collect();
 
     let deleted = 0;
     for (const session of sessions) {
-      if (session.expiresAt < now) {
-        await ctx.db.delete(session._id);
-        deleted++;
-      }
+      await ctx.db.delete(session._id);
+      deleted++;
     }
 
     return deleted;

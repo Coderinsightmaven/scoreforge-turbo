@@ -16,12 +16,12 @@ import type {
 import type { TennisLiveData } from '../types/scoreboard';
 
 /**
- * Calls a Convex query function via HTTP POST.
+ * Calls a Convex mutation function via HTTP POST.
  *
- * Convex exposes queries at: POST {convexUrl}/api/query
+ * Convex exposes mutations at: POST {convexUrl}/api/mutation
  * Body: { path: "file:functionName", args: {...} }
  */
-async function callConvexQuery<T>(
+async function callConvexMutation<T>(
   convexUrl: string,
   functionPath: string,
   args: Record<string, unknown>
@@ -29,7 +29,7 @@ async function callConvexQuery<T>(
   // Ensure URL ends without trailing slash
   const baseUrl = convexUrl.replace(/\/$/, '');
 
-  const response = await fetch(`${baseUrl}/api/query`, {
+  const response = await fetch(`${baseUrl}/api/mutation`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -137,7 +137,7 @@ export class ScoreForgeApiService {
    * Fetches a single match by ID.
    */
   async getMatch(config: ScoreForgeConfig, matchId: string): Promise<ScoreForgeGetMatchResponse> {
-    return callConvexQuery<ScoreForgeGetMatchResponse>(config.convexUrl, 'publicApi:getMatch', {
+    return callConvexMutation<ScoreForgeGetMatchResponse>(config.convexUrl, 'publicApi:getMatch', {
       apiKey: config.apiKey,
       matchId: matchId,
     });
@@ -156,7 +156,7 @@ export class ScoreForgeApiService {
       bracketId?: string;
     }
   ): Promise<ScoreForgeListMatchesResponse> {
-    return callConvexQuery<ScoreForgeListMatchesResponse>(config.convexUrl, 'publicApi:listMatches', {
+    return callConvexMutation<ScoreForgeListMatchesResponse>(config.convexUrl, 'publicApi:listMatches', {
       apiKey: config.apiKey,
       tournamentId: tournamentId,
       ...filters,
@@ -170,7 +170,7 @@ export class ScoreForgeApiService {
     config: ScoreForgeConfig,
     tournamentId: string
   ): Promise<ScoreForgeListBracketsResponse> {
-    return callConvexQuery<ScoreForgeListBracketsResponse>(config.convexUrl, 'publicApi:listBrackets', {
+    return callConvexMutation<ScoreForgeListBracketsResponse>(config.convexUrl, 'publicApi:listBrackets', {
       apiKey: config.apiKey,
       tournamentId: tournamentId,
     });
@@ -188,7 +188,7 @@ export class ScoreForgeApiService {
       args.status = status;
     }
 
-    return callConvexQuery<ScoreForgeListTournamentsResponse>(
+    return callConvexMutation<ScoreForgeListTournamentsResponse>(
       config.convexUrl,
       'publicApi:listTournaments',
       args

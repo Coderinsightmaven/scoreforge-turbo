@@ -74,7 +74,89 @@ export const listUsers = query({
     const limit = args.limit ?? 20;
     const search = args.search?.toLowerCase().trim();
 
-    // Get all users (in production, you'd want proper pagination)
+    if (!search) {
+      try {
+        const paginated = await ctx.db
+          .query("users")
+          .order("desc")
+          .paginate({ numItems: limit, cursor: args.cursor ?? null });
+
+        const enrichedUsers = await Promise.all(
+          paginated.page.map(async (user) => {
+            const isAdmin = await isSiteAdmin(ctx, user._id);
+
+            const ownedTournaments = await ctx.db
+              .query("tournaments")
+              .withIndex("by_created_by", (q) => q.eq("createdBy", user._id))
+              .collect();
+
+            const scoringLogsSettings = await ctx.db
+              .query("userScoringLogs")
+              .withIndex("by_user", (q) => q.eq("userId", user._id))
+              .first();
+
+            return {
+              _id: user._id,
+              _creationTime: user._creationTime,
+              name: user.name,
+              email: user.email,
+              isSiteAdmin: isAdmin,
+              tournamentCount: ownedTournaments.length,
+              scoringLogsEnabled: scoringLogsSettings?.enabled ?? false,
+            };
+          })
+        );
+
+        return {
+          users: enrichedUsers,
+          nextCursor: paginated.continueCursor,
+        };
+      } catch {
+        // Fall back to legacy path below if cursor format is invalid.
+      }
+    }
+
+    // Fast path for exact email search
+    if (search && search.includes("@")) {
+      const user = await ctx.db
+        .query("users")
+        .withIndex("email", (q) => q.eq("email", search))
+        .first();
+
+      const users = user ? [user] : [];
+      const enrichedUsers = await Promise.all(
+        users.map(async (u) => {
+          const isAdmin = await isSiteAdmin(ctx, u._id);
+
+          const ownedTournaments = await ctx.db
+            .query("tournaments")
+            .withIndex("by_created_by", (q) => q.eq("createdBy", u._id))
+            .collect();
+
+          const scoringLogsSettings = await ctx.db
+            .query("userScoringLogs")
+            .withIndex("by_user", (q) => q.eq("userId", u._id))
+            .first();
+
+          return {
+            _id: u._id,
+            _creationTime: u._creationTime,
+            name: u.name,
+            email: u.email,
+            isSiteAdmin: isAdmin,
+            tournamentCount: ownedTournaments.length,
+            scoringLogsEnabled: scoringLogsSettings?.enabled ?? false,
+          };
+        })
+      );
+
+      return {
+        users: enrichedUsers,
+        nextCursor: null,
+      };
+    }
+
+    // Legacy path with in-memory search and cursor by ID
     const allUsers = await ctx.db.query("users").collect();
 
     // Filter by search if provided

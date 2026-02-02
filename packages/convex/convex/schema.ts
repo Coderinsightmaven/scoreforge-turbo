@@ -426,5 +426,6 @@ export default defineSchema({
     expiresAt: v.number(), // 24 hours from creation
   })
     .index("by_token", ["token"])
-    .index("by_scorer", ["scorerId"]),
+    .index("by_scorer", ["scorerId"])
+    .index("by_expires_at", ["expiresAt"]),
 });

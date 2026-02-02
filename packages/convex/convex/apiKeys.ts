@@ -2,6 +2,35 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
+const API_KEY_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+function randomInt(maxExclusive: number): number {
+  if (maxExclusive <= 0 || maxExclusive > 0x100000000) {
+    throw new Error("maxExclusive must be between 1 and 2^32");
+  }
+
+  const range = 0x100000000;
+  const limit = Math.floor(range / maxExclusive) * maxExclusive;
+  const buffer = new Uint32Array(1);
+
+  while (true) {
+    crypto.getRandomValues(buffer);
+    const value = buffer[0]!;
+    if (value < limit) {
+      return value % maxExclusive;
+    }
+  }
+}
+
+function randomString(length: number, alphabet: string): string {
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    const idx = randomInt(alphabet.length);
+    result += alphabet.charAt(idx);
+  }
+  return result;
+}
+
 /**
  * Generate a cryptographically random API key
  * Format: sf_XXXXXXXX_YYYYYYYYYYYYYYYYYYYYYYYY
@@ -10,16 +39,8 @@ import { v } from "convex/values";
  * - 24 char random suffix
  */
 function generateKey(): { fullKey: string; prefix: string } {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let prefixPart = "";
-  let suffixPart = "";
-
-  for (let i = 0; i < 8; i++) {
-    prefixPart += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  for (let i = 0; i < 24; i++) {
-    suffixPart += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
+  const prefixPart = randomString(8, API_KEY_ALPHABET);
+  const suffixPart = randomString(24, API_KEY_ALPHABET);
 
   const fullKey = `sf_${prefixPart}_${suffixPart}`;
   const prefix = `sf_${prefixPart}`;
