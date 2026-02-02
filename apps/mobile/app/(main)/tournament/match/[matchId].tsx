@@ -209,6 +209,11 @@ export default function MatchScoreScreen() {
   // First server selection state
   const [selectedFirstServer, setSelectedFirstServer] = useState<1 | 2>(1);
 
+  // Court assignment state
+  const [isEditingCourt, setIsEditingCourt] = useState(false);
+  const [isUpdatingCourt, setIsUpdatingCourt] = useState(false);
+  const updateMatchCourt = useMutation(api.matches.updateMatchCourt);
+
   const canStart = (match?.status === 'pending' || match?.status === 'scheduled') && match?.tournamentStatus === 'active';
 
   // Sport detection
@@ -291,6 +296,18 @@ export default function MatchScoreScreen() {
         },
       ]
     );
+  };
+
+  const handleUpdateCourt = async (court: string | undefined) => {
+    setIsUpdatingCourt(true);
+    try {
+      await updateMatchCourt({ matchId: id, court });
+      setIsEditingCourt(false);
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to update court');
+    } finally {
+      setIsUpdatingCourt(false);
+    }
   };
 
   if (!match) {
@@ -592,6 +609,108 @@ export default function MatchScoreScreen() {
             </View>
           )}
         </Animated.View>
+
+        {/* Court Assignment - Only for owners, not for completed/bye matches */}
+        {match.myRole === 'owner' && match.status !== 'completed' && match.status !== 'bye' && (
+          <Animated.View entering={FadeInDown.duration(600).delay(175)} style={[styles.courtCard, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
+            <View style={styles.courtHeader}>
+              <View style={styles.courtHeaderLeft}>
+                <IconSymbol name="mappin.circle.fill" size={20} color={colors.accent} />
+                <ThemedText style={styles.courtTitle}>Court Assignment</ThemedText>
+              </View>
+              {!isEditingCourt && (
+                <Pressable
+                  onPress={() => setIsEditingCourt(true)}
+                  style={[styles.courtEditButton, { backgroundColor: colors.accent + '15' }]}>
+                  <ThemedText style={[styles.courtEditButtonText, { color: colors.accent }]}>
+                    {match.court ? 'Change' : 'Assign'}
+                  </ThemedText>
+                </Pressable>
+              )}
+            </View>
+
+            {isEditingCourt ? (
+              <View style={styles.courtOptions}>
+                {match.availableCourts && match.availableCourts.length > 0 ? (
+                  <>
+                    <View style={styles.courtButtonsGrid}>
+                      {match.availableCourts.map((court) => (
+                        <Pressable
+                          key={court}
+                          onPress={() => handleUpdateCourt(court)}
+                          disabled={isUpdatingCourt}
+                          style={[
+                            styles.courtButton,
+                            {
+                              backgroundColor: match.court === court ? colors.accent + '20' : colors.bgSecondary,
+                              borderColor: match.court === court ? colors.accent : colors.border,
+                            },
+                          ]}>
+                          <ThemedText
+                            style={[
+                              styles.courtButtonText,
+                              { color: match.court === court ? colors.accent : colors.textPrimary },
+                            ]}>
+                            {court}
+                          </ThemedText>
+                        </Pressable>
+                      ))}
+                    </View>
+                    <View style={styles.courtActionsRow}>
+                      {match.court && (
+                        <Pressable
+                          onPress={() => handleUpdateCourt(undefined)}
+                          disabled={isUpdatingCourt}
+                          style={[styles.courtClearButton, { borderColor: colors.border }]}>
+                          <ThemedText style={[styles.courtClearButtonText, { color: colors.textMuted }]}>
+                            Clear
+                          </ThemedText>
+                        </Pressable>
+                      )}
+                      <Pressable
+                        onPress={() => setIsEditingCourt(false)}
+                        style={[styles.courtCancelButton, { borderColor: colors.border }]}>
+                        <ThemedText style={[styles.courtCancelButtonText, { color: colors.textSecondary }]}>
+                          Cancel
+                        </ThemedText>
+                      </Pressable>
+                    </View>
+                  </>
+                ) : (
+                  <View style={styles.noCourtsDefined}>
+                    <ThemedText type="muted" style={styles.noCourtsText}>
+                      No courts defined for this tournament.
+                    </ThemedText>
+                    <ThemedText type="muted" style={styles.noCourtsHint}>
+                      Add courts in tournament settings.
+                    </ThemedText>
+                    <Pressable
+                      onPress={() => setIsEditingCourt(false)}
+                      style={[styles.courtCancelButton, { borderColor: colors.border, marginTop: Spacing.md }]}>
+                      <ThemedText style={[styles.courtCancelButtonText, { color: colors.textSecondary }]}>
+                        Cancel
+                      </ThemedText>
+                    </Pressable>
+                  </View>
+                )}
+              </View>
+            ) : (
+              <View style={styles.courtCurrentValue}>
+                {match.court ? (
+                  <View style={[styles.courtValueBadge, { backgroundColor: colors.accent + '15' }]}>
+                    <ThemedText style={[styles.courtValueText, { color: colors.accent }]}>
+                      {match.court}
+                    </ThemedText>
+                  </View>
+                ) : (
+                  <ThemedText type="muted" style={styles.courtNoneText}>
+                    No court assigned
+                  </ThemedText>
+                )}
+              </View>
+            )}
+          </Animated.View>
+        )}
 
         {/* Bye Match Display */}
         {isByeMatch && (
@@ -1409,5 +1528,110 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: Spacing.xs,
     letterSpacing: 1,
+  },
+
+  // Court assignment styles
+  courtCard: {
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
+  courtHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+  },
+  courtHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  courtTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  courtEditButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.sm,
+  },
+  courtEditButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  courtOptions: {
+    gap: Spacing.md,
+  },
+  courtButtonsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  courtButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  courtButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  courtActionsRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginTop: Spacing.xs,
+  },
+  courtClearButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+  },
+  courtClearButtonText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  courtCancelButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+  },
+  courtCancelButtonText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  courtCurrentValue: {
+    alignItems: 'flex-start',
+  },
+  courtValueBadge: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.sm,
+  },
+  courtValueText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  courtNoneText: {
+    fontSize: 14,
+  },
+  noCourtsDefined: {
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+  },
+  noCourtsText: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  noCourtsHint: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: Spacing.xs,
   },
 });
