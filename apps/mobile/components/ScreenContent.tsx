@@ -11,7 +11,7 @@ type ScreenContentProps = {
 
 export const ScreenContent = ({ title, path, children }: ScreenContentProps) => {
   return (
-    <View className="items-center flex-1 justify-center bg-white">
+    <View className="flex-1 items-center justify-center bg-white">
       <Text className={styles.title}>{title}</Text>
       <View className={styles.separator} />
       <EditScreenInfo path={path} />
