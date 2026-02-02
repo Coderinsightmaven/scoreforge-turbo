@@ -384,7 +384,7 @@ export default defineSchema({
     tournamentId: v.id("tournaments"),
     matchId: v.id("matches"),
     action: scoringLogAction,
-    actorId: v.id("users"),
+    actorId: v.optional(v.id("users")), // Optional to support temp scorers
     timestamp: v.number(),
     sport: presetSports,
     details: v.object({

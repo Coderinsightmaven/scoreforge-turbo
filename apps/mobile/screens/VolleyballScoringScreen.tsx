@@ -15,11 +15,12 @@ import { useRef, useCallback } from 'react';
 
 type Props = {
   matchId: Id<'matches'>;
+  tempScorerToken?: string;
   onBack: () => void;
 };
 
-export function VolleyballScoringScreen({ matchId, onBack }: Props) {
-  const match = useQuery(api.volleyball.getVolleyballMatch, { matchId });
+export function VolleyballScoringScreen({ matchId, tempScorerToken, onBack }: Props) {
+  const match = useQuery(api.volleyball.getVolleyballMatch, { matchId, tempScorerToken });
   const initMatch = useMutation(api.volleyball.initVolleyballMatch);
   const scorePoint = useMutation(api.volleyball.scoreVolleyballPoint);
   const undoPoint = useMutation(api.volleyball.undoVolleyballPoint);
@@ -69,9 +70,9 @@ export function VolleyballScoringScreen({ matchId, onBack }: Props) {
 
   const handleInitMatch = async (firstServer: number) => {
     try {
-      await initMatch({ matchId, firstServer });
+      await initMatch({ matchId, firstServer, tempScorerToken });
       if (match.status === 'pending' || match.status === 'scheduled') {
-        await startMatch({ matchId });
+        await startMatch({ matchId, tempScorerToken });
       }
     } catch {
       Alert.alert('Error', 'Failed to start match');
@@ -82,7 +83,7 @@ export function VolleyballScoringScreen({ matchId, onBack }: Props) {
     if (!isLive || isCompleted) return;
     triggerFlash(team === 1 ? flash1 : flash2);
     try {
-      await scorePoint({ matchId, winnerTeam: team });
+      await scorePoint({ matchId, winnerTeam: team, tempScorerToken });
     } catch {
       Alert.alert('Error', 'Failed to score point');
     }
@@ -90,7 +91,7 @@ export function VolleyballScoringScreen({ matchId, onBack }: Props) {
 
   const handleUndo = async () => {
     try {
-      await undoPoint({ matchId });
+      await undoPoint({ matchId, tempScorerToken });
     } catch {
       Alert.alert('Error', 'Cannot undo');
     }

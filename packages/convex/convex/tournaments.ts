@@ -1,7 +1,8 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { query, mutation, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { query, mutation, internalMutation, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
 import type { Id, Doc } from "./_generated/dataModel";
+import { internal } from "./_generated/api";
 import {
   tournamentFormats,
   tournamentStatus,
@@ -123,7 +124,10 @@ async function getTournamentRole(
  * Get a single tournament with user's role
  */
 export const getTournament = query({
-  args: { tournamentId: v.id("tournaments") },
+  args: {
+    tournamentId: v.id("tournaments"),
+    tempScorerToken: v.optional(v.string()),
+  },
   returns: v.union(
     v.object({
       _id: v.id("tournaments"),
@@ -163,7 +167,7 @@ export const getTournament = query({
     }
 
     // Check if user has access to this tournament
-    const role = await getTournamentRole(ctx, args.tournamentId, userId);
+    const role = await getTournamentRole(ctx, args.tournamentId, userId, args.tempScorerToken);
     if (!role) {
       return null;
     }
@@ -1442,6 +1446,63 @@ export const generateBlankBracket = mutation({
   },
 });
 
+// ============================================
+// Internal mutations for tournament completion
+// ============================================
+
+/**
+ * Check if all matches in a tournament are complete and mark it as completed
+ * Also deactivates all temporary scorers when tournament completes
+ * Called internally after each match completion
+ */
+export const checkAndCompleteTournament = internalMutation({
+  args: { tournamentId: v.id("tournaments") },
+  returns: v.boolean(),
+  handler: async (ctx, args) => {
+    const tournament = await ctx.db.get(args.tournamentId);
+    if (!tournament) {
+      return false;
+    }
+
+    // Only check active tournaments
+    if (tournament.status !== "active") {
+      return false;
+    }
+
+    // Get all matches for this tournament
+    const matches = await ctx.db
+      .query("matches")
+      .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
+      .collect();
+
+    if (matches.length === 0) {
+      return false;
+    }
+
+    // Check if all matches are completed or bye
+    const allComplete = matches.every(
+      (m) => m.status === "completed" || m.status === "bye"
+    );
+
+    if (!allComplete) {
+      return false;
+    }
+
+    // Mark tournament as completed
+    await ctx.db.patch(args.tournamentId, {
+      status: "completed",
+      endDate: Date.now(),
+    });
+
+    // Deactivate all temporary scorers for this tournament
+    await ctx.runMutation(internal.temporaryScorers.deactivateAllForTournament, {
+      tournamentId: args.tournamentId,
+    });
+
+    return true;
+  },
+});
+
 /**
  * Cancel a tournament (owner only)
  */
@@ -1470,6 +1531,11 @@ export const cancelTournament = mutation({
 
     await ctx.db.patch(args.tournamentId, {
       status: "cancelled",
+    });
+
+    // Deactivate all temporary scorers for this tournament
+    await ctx.runMutation(internal.temporaryScorers.deactivateAllForTournament, {
+      tournamentId: args.tournamentId,
     });
 
     return null;

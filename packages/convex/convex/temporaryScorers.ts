@@ -644,3 +644,40 @@ export const cleanupExpiredSessions = internalMutation({
     return deleted;
   },
 });
+
+/**
+ * Deactivate all temporary scorers for a tournament (internal - called when tournament completes)
+ * This logs them out on any devices by deleting their sessions
+ */
+export const deactivateAllForTournament = internalMutation({
+  args: { tournamentId: v.id("tournaments") },
+  returns: v.number(),
+  handler: async (ctx, args) => {
+    // Get all temp scorers for this tournament
+    const scorers = await ctx.db
+      .query("temporaryScorers")
+      .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
+      .collect();
+
+    let deactivated = 0;
+    for (const scorer of scorers) {
+      if (scorer.isActive) {
+        // Deactivate the scorer
+        await ctx.db.patch(scorer._id, { isActive: false });
+        deactivated++;
+      }
+
+      // Delete all sessions for this scorer (whether active or not)
+      const sessions = await ctx.db
+        .query("temporaryScorerSessions")
+        .withIndex("by_scorer", (q) => q.eq("scorerId", scorer._id))
+        .collect();
+
+      for (const session of sessions) {
+        await ctx.db.delete(session._id);
+      }
+    }
+
+    return deactivated;
+  },
+});

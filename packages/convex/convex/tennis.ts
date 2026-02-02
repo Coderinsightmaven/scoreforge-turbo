@@ -342,7 +342,10 @@ function getNextServer(state: TennisState, isTiebreakPoint: boolean = false): nu
  * Get tennis match state
  */
 export const getTennisMatch = query({
-  args: { matchId: v.id("matches") },
+  args: {
+    matchId: v.id("matches"),
+    tempScorerToken: v.optional(v.string()),
+  },
   returns: v.union(
     v.object({
       _id: v.id("matches"),
@@ -391,7 +394,7 @@ export const getTennisMatch = query({
     }
 
     // Check if user has access (owner, scorer, or temp scorer)
-    const role = await getTournamentRole(ctx, tournament, userId);
+    const role = await getTournamentRole(ctx, tournament, userId, args.tempScorerToken);
     if (!role) {
       return null;
     }
@@ -452,13 +455,11 @@ export const initTennisMatch = mutation({
   args: {
     matchId: v.id("matches"),
     firstServer: v.number(), // 1 or 2
+    tempScorerToken: v.optional(v.string()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
 
     const match = await ctx.db.get(args.matchId);
     if (!match) {
@@ -475,8 +476,8 @@ export const initTennisMatch = mutation({
       throw new Error("Tournament must be started before matches can begin");
     }
 
-    // Check user's access (owner or scorer can init matches)
-    const hasAccess = await canScoreTournament(ctx, tournament, userId);
+    // Check user's access (owner, scorer, or temp scorer can init matches)
+    const hasAccess = await canScoreTournament(ctx, tournament, userId, args.tempScorerToken);
     if (!hasAccess) {
       throw new Error("Not authorized");
     }
@@ -537,7 +538,7 @@ export const initTennisMatch = mutation({
         tournamentId: match.tournamentId,
         matchId: args.matchId,
         action: "init_match",
-        actorId: userId,
+        actorId: userId ?? undefined,
         sport: "tennis",
         details: { firstServer: args.firstServer },
         stateAfter: JSON.stringify(tennisState),
@@ -559,13 +560,11 @@ export const scoreTennisPoint = mutation({
   args: {
     matchId: v.id("matches"),
     winnerParticipant: v.number(), // 1 or 2
+    tempScorerToken: v.optional(v.string()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
 
     const match = await ctx.db.get(args.matchId);
     if (!match) {
@@ -577,8 +576,8 @@ export const scoreTennisPoint = mutation({
       throw new Error("Tournament not found");
     }
 
-    // Check user's access (owner or scorer can score)
-    const hasAccess = await canScoreTournament(ctx, tournament, userId);
+    // Check user's access (owner, scorer, or temp scorer can score)
+    const hasAccess = await canScoreTournament(ctx, tournament, userId, args.tempScorerToken);
     if (!hasAccess) {
       throw new Error("Not authorized");
     }
@@ -627,7 +626,7 @@ export const scoreTennisPoint = mutation({
         tournamentId: match.tournamentId,
         matchId: args.matchId,
         action: "score_point",
-        actorId: userId,
+        actorId: userId ?? undefined,
         sport: "tennis",
         details: { winnerParticipant: winner },
         stateBefore,
@@ -720,6 +719,12 @@ export const scoreTennisPoint = mutation({
           }
 
           await logAction(state);
+
+          // Check if tournament is now complete (deactivates temp scorers)
+          await ctx.runMutation(internal.tournaments.checkAndCompleteTournament, {
+            tournamentId: match.tournamentId,
+          });
+
           return null;
         } else {
           // New set starts - alternate first server
@@ -819,6 +824,12 @@ export const scoreTennisPoint = mutation({
             }
 
             await logAction(state);
+
+            // Check if tournament is now complete (deactivates temp scorers)
+            await ctx.runMutation(internal.tournaments.checkAndCompleteTournament, {
+              tournamentId: match.tournamentId,
+            });
+
             return null;
           } else {
             // New set - alternate first server
@@ -858,13 +869,11 @@ export const scoreTennisPoint = mutation({
 export const undoTennisPoint = mutation({
   args: {
     matchId: v.id("matches"),
+    tempScorerToken: v.optional(v.string()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
 
     const match = await ctx.db.get(args.matchId);
     if (!match) {
@@ -876,8 +885,8 @@ export const undoTennisPoint = mutation({
       throw new Error("Tournament not found");
     }
 
-    // Check user's access (owner or scorer can undo)
-    const hasAccess = await canScoreTournament(ctx, tournament, userId);
+    // Check user's access (owner, scorer, or temp scorer can undo)
+    const hasAccess = await canScoreTournament(ctx, tournament, userId, args.tempScorerToken);
     if (!hasAccess) {
       throw new Error("Not authorized");
     }
@@ -942,7 +951,7 @@ export const undoTennisPoint = mutation({
         tournamentId: match.tournamentId,
         matchId: args.matchId,
         action: "undo",
-        actorId: userId,
+        actorId: userId ?? undefined,
         sport: "tennis",
         details: {},
         stateBefore: JSON.stringify(match.tennisState),
@@ -1029,7 +1038,7 @@ export const setTennisServer = mutation({
         tournamentId: match.tournamentId,
         matchId: args.matchId,
         action: "set_server",
-        actorId: userId,
+        actorId: userId ?? undefined,
         sport: "tennis",
         details: { servingParticipant: args.servingParticipant },
         stateBefore: JSON.stringify(match.tennisState),

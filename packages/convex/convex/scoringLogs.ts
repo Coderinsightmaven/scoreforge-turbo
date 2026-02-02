@@ -42,7 +42,7 @@ export const logScoringAction = internalMutation({
     tournamentId: v.id("tournaments"),
     matchId: v.id("matches"),
     action: scoringLogAction,
-    actorId: v.id("users"),
+    actorId: v.optional(v.id("users")),
     sport: presetSports,
     details: v.object({
       winnerParticipant: v.optional(v.number()),
@@ -98,7 +98,7 @@ export const getTournamentLogs = query({
       tournamentId: v.id("tournaments"),
       matchId: v.id("matches"),
       action: scoringLogAction,
-      actorId: v.id("users"),
+      actorId: v.optional(v.id("users")),
       actorName: v.optional(v.string()),
       timestamp: v.number(),
       sport: presetSports,
@@ -145,8 +145,8 @@ export const getTournamentLogs = query({
         .collect();
     }
 
-    // Get actor names
-    const actorIds = [...new Set(logs.map((l) => l.actorId))];
+    // Get actor names (filter out undefined actorIds for temp scorers)
+    const actorIds = [...new Set(logs.map((l) => l.actorId).filter((id): id is Id<"users"> => id !== undefined))];
     const actors = await Promise.all(actorIds.map((id) => ctx.db.get(id)));
     const actorMap = new Map(
       actors.filter(Boolean).map((a) => [a!._id, a!.name || a!.email])
@@ -159,7 +159,7 @@ export const getTournamentLogs = query({
       matchId: log.matchId,
       action: log.action,
       actorId: log.actorId,
-      actorName: actorMap.get(log.actorId),
+      actorName: log.actorId ? actorMap.get(log.actorId) : "Temporary Scorer",
       timestamp: log.timestamp,
       sport: log.sport,
       details: log.details,
@@ -346,7 +346,7 @@ type ScoringLog = {
   tournamentId: string;
   matchId: string;
   action: "init_match" | "score_point" | "undo" | "set_server" | "adjust_score";
-  actorId: string;
+  actorId?: string;
   actorName?: string;
   timestamp: number;
   sport: "tennis" | "volleyball";

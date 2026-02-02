@@ -1,6 +1,6 @@
 import { useQuery } from 'convex/react';
 import { api } from '@repo/convex';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -47,13 +47,33 @@ export function TempScorerHomeScreen() {
   const [statusFilter, setStatusFilter] = useState<MatchStatus | 'all'>('all');
   const [refreshing, setRefreshing] = useState(false);
 
+  // Verify session is still valid on the server (detects deactivation/tournament completion)
+  const sessionValid = useQuery(
+    api.temporaryScorers.verifySession,
+    session?.token ? { token: session.token } : 'skip'
+  );
+
+  // Auto sign out if session becomes invalid (scorer deactivated or tournament completed)
+  useEffect(() => {
+    // sessionValid is undefined while loading, null if invalid
+    if (session && sessionValid === null) {
+      Alert.alert(
+        'Session Ended',
+        'Your scoring session has ended. This may be because the tournament has completed or your access was revoked.',
+        [{ text: 'OK', onPress: signOut }]
+      );
+    }
+  }, [session, sessionValid, signOut]);
+
   const tournament = useQuery(api.tournaments.getTournament, {
     tournamentId: session?.tournamentId as Id<'tournaments'>,
+    tempScorerToken: session?.token,
   });
 
   const matches = useQuery(api.matches.listMatches, {
     tournamentId: session?.tournamentId as Id<'tournaments'>,
     status: statusFilter === 'all' ? undefined : statusFilter,
+    tempScorerToken: session?.token,
   });
 
   const onRefresh = useCallback(() => {
@@ -85,6 +105,7 @@ export function TempScorerHomeScreen() {
     return (
       <MatchDetailScreen
         matchId={screen.matchId}
+        tempScorerToken={session.token}
         onBack={() => setScreen({ type: 'matches' })}
         onStartScoring={(matchId, sport) => setScreen({ type: 'scoring', matchId, sport })}
       />
@@ -97,6 +118,7 @@ export function TempScorerHomeScreen() {
       return (
         <TennisScoringScreen
           matchId={screen.matchId}
+          tempScorerToken={session.token}
           onBack={() => setScreen({ type: 'match', matchId: screen.matchId })}
         />
       );
@@ -104,6 +126,7 @@ export function TempScorerHomeScreen() {
     return (
       <VolleyballScoringScreen
         matchId={screen.matchId}
+        tempScorerToken={session.token}
         onBack={() => setScreen({ type: 'match', matchId: screen.matchId })}
       />
     );

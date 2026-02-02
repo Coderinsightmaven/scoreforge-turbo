@@ -6,6 +6,7 @@ import { Id } from '@repo/convex/dataModel';
 
 type Props = {
   matchId: Id<'matches'>;
+  tempScorerToken?: string;
   onBack: () => void;
   onStartScoring: (matchId: Id<'matches'>, sport: 'tennis' | 'volleyball') => void;
 };
@@ -18,8 +19,8 @@ const statusColors = {
   bye: 'bg-gray-100 text-gray-500',
 };
 
-export function MatchDetailScreen({ matchId, onBack, onStartScoring }: Props) {
-  const match = useQuery(api.matches.getMatch, { matchId });
+export function MatchDetailScreen({ matchId, tempScorerToken, onBack, onStartScoring }: Props) {
+  const match = useQuery(api.matches.getMatch, { matchId, tempScorerToken });
 
   if (match === undefined) {
     return (

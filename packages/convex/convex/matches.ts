@@ -3,6 +3,7 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { matchStatus, tennisState, tennisConfig, volleyballState, volleyballConfig } from "./schema";
 import type { Id, Doc } from "./_generated/dataModel";
+import { internal } from "./_generated/api";
 
 // ============================================
 // Access Control Helpers
@@ -106,6 +107,7 @@ export const listMatches = query({
     round: v.optional(v.number()),
     status: v.optional(matchStatus),
     bracketType: v.optional(v.string()),
+    tempScorerToken: v.optional(v.string()),
   },
   returns: v.array(
     v.object({
@@ -144,9 +146,6 @@ export const listMatches = query({
   ),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      return [];
-    }
 
     const tournament = await ctx.db.get(args.tournamentId);
     if (!tournament) {
@@ -154,8 +153,8 @@ export const listMatches = query({
       return [];
     }
 
-    // Check if user has access (owner or scorer)
-    const hasAccess = await canScoreTournament(ctx, tournament, userId);
+    // Check if user has access (owner, scorer, or temp scorer)
+    const hasAccess = await canScoreTournament(ctx, tournament, userId, args.tempScorerToken);
     if (!hasAccess) {
       return [];
     }
@@ -278,7 +277,10 @@ export const listMatches = query({
  * Get a single match with full details
  */
 export const getMatch = query({
-  args: { matchId: v.id("matches") },
+  args: {
+    matchId: v.id("matches"),
+    tempScorerToken: v.optional(v.string()),
+  },
   returns: v.union(
     v.object({
       _id: v.id("matches"),
@@ -336,9 +338,6 @@ export const getMatch = query({
   ),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      return null;
-    }
 
     const match = await ctx.db.get(args.matchId);
     if (!match) {
@@ -350,8 +349,8 @@ export const getMatch = query({
       return null;
     }
 
-    // Check if user has access (owner or scorer)
-    const role = await getTournamentRole(ctx, tournament, userId);
+    // Check if user has access (owner, scorer, or temp scorer)
+    const role = await getTournamentRole(ctx, tournament, userId, args.tempScorerToken);
     if (!role) {
       return null;
     }
@@ -623,13 +622,13 @@ export const updateScore = mutation({
  * Start a match (set to live)
  */
 export const startMatch = mutation({
-  args: { matchId: v.id("matches") },
+  args: {
+    matchId: v.id("matches"),
+    tempScorerToken: v.optional(v.string()),
+  },
   returns: v.null(),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
 
     const match = await ctx.db.get(args.matchId);
     if (!match) {
@@ -646,8 +645,8 @@ export const startMatch = mutation({
       throw new Error("Tournament must be started before matches can begin");
     }
 
-    // Check user's access (owner or scorer can start matches)
-    const hasAccess = await canScoreTournament(ctx, tournament, userId);
+    // Check user's access (owner, scorer, or temp scorer can start matches)
+    const hasAccess = await canScoreTournament(ctx, tournament, userId, args.tempScorerToken);
     if (!hasAccess) {
       throw new Error("Not authorized");
     }
@@ -820,6 +819,11 @@ export const completeMatch = mutation({
       await ctx.db.patch(match.tournamentId, {
         status: "completed",
         endDate: Date.now(),
+      });
+
+      // Deactivate all temporary scorers for this tournament
+      await ctx.runMutation(internal.temporaryScorers.deactivateAllForTournament, {
+        tournamentId: match.tournamentId,
       });
     }
 

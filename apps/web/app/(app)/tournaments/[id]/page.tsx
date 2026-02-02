@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@repo/convex";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { use } from "react";
 import { useSearchParams } from "next/navigation";
@@ -1531,7 +1532,7 @@ function ScorersTab({
   const [loading, setLoading] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [createdCredentials, setCreatedCredentials] = useState<{ pin: string; scorerCode: string } | null>(null);
+  const [createdCredentials, setCreatedCredentials] = useState<{ pin: string; scorerCode: string; username: string } | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedPin, setCopiedPin] = useState(false);
   const [resetPinResult, setResetPinResult] = useState<{ scorerId: string; pin: string } | null>(null);
@@ -1583,7 +1584,7 @@ function ScorersTab({
         username: tempUsername.trim(),
         displayName: tempDisplayName.trim() || tempUsername.trim(),
       });
-      setCreatedCredentials({ pin: result.pin, scorerCode: result.scorerCode });
+      setCreatedCredentials({ pin: result.pin, scorerCode: result.scorerCode, username: tempUsername.trim() });
       setTempUsername("");
       setTempDisplayName("");
     } catch (err) {
@@ -1827,8 +1828,8 @@ function ScorersTab({
       </div>
 
       {/* Add Account Scorer Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+      {showAddModal && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl animate-scaleIn">
             <div className="flex items-center justify-between p-6 border-b border-border">
               <h3 className="text-heading text-foreground">
@@ -1892,12 +1893,13 @@ function ScorersTab({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Create Temporary Scorer Modal */}
-      {showTempScorerModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+      {showTempScorerModal && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl animate-scaleIn">
             <div className="flex items-center justify-between p-6 border-b border-border">
               <h3 className="text-heading text-foreground">
@@ -1948,7 +1950,7 @@ function ScorersTab({
                         Username
                       </label>
                       <div className="px-3 py-2 mt-1 text-sm font-medium text-foreground bg-secondary border border-border rounded-lg">
-                        {tempUsername || "—"}
+                        {createdCredentials.username}
                       </div>
                     </div>
 
@@ -2056,12 +2058,13 @@ function ScorersTab({
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Reset PIN Result Modal */}
-      {resetPinResult && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+      {resetPinResult && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="w-full max-w-sm bg-card border border-border rounded-2xl shadow-2xl animate-scaleIn">
             <div className="p-6">
               <h3 className="text-lg font-semibold text-foreground mb-4 text-center">
@@ -2093,7 +2096,8 @@ function ScorersTab({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
