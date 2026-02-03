@@ -661,6 +661,9 @@ export const migrateSystemSettings = internalMutation({
 /**
  * Initialize the first site admin (internal use only)
  * Run via: npx convex run siteAdmin:initializeFirstAdmin '{"userId": "YOUR_USER_ID"}'
+ *
+ * Security: This can only be run once. After initialization, the adminSystemInitialized
+ * flag is set permanently, preventing re-initialization even if all admins are deleted.
  */
 export const initializeFirstAdmin = internalMutation({
   args: {
@@ -668,6 +671,18 @@ export const initializeFirstAdmin = internalMutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    // Check if admin system has already been initialized (persistent flag)
+    const existingSettings = await ctx.db
+      .query("systemSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+
+    if (existingSettings?.adminSystemInitialized) {
+      throw errors.invalidState(
+        "Admin system has already been initialized. Use grantSiteAdmin mutation instead."
+      );
+    }
+
     // Check if there are already any admins
     const existingAdmins = await ctx.db.query("siteAdmins").collect();
     if (existingAdmins.length > 0) {
@@ -687,15 +702,25 @@ export const initializeFirstAdmin = internalMutation({
       grantedAt: Date.now(),
     });
 
-    // Also create default system settings
-    await ctx.db.insert("systemSettings", {
-      key: "global",
-      maxTournamentsPerUser: 50,
-      allowPublicRegistration: true,
-      maintenanceMode: false,
-      updatedBy: args.userId,
-      updatedAt: Date.now(),
-    });
+    // Create or update system settings with the initialization flag
+    if (existingSettings) {
+      // eslint-disable-next-line @convex-dev/explicit-table-ids -- _id is typed
+      await ctx.db.patch(existingSettings._id, {
+        adminSystemInitialized: true,
+        updatedBy: args.userId,
+        updatedAt: Date.now(),
+      });
+    } else {
+      await ctx.db.insert("systemSettings", {
+        key: "global",
+        maxTournamentsPerUser: 50,
+        allowPublicRegistration: true,
+        maintenanceMode: false,
+        adminSystemInitialized: true,
+        updatedBy: args.userId,
+        updatedAt: Date.now(),
+      });
+    }
 
     return null;
   },

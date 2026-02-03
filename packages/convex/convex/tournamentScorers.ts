@@ -90,7 +90,8 @@ export const assignScorer = mutation({
       .first();
 
     if (!targetUser) {
-      throw errors.notFound("User. They must create an account first");
+      // Use generic error to prevent email enumeration
+      throw errors.invalidInput("Could not assign scorer. Please verify the email address is correct and the user has created an account.");
     }
 
     // Cannot assign yourself

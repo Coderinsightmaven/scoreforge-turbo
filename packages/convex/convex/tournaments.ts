@@ -364,9 +364,15 @@ export const canCreateTournament = query({
       .first();
 
     if (siteAdmin) {
+      // Still count tournaments for admins (for accurate display)
+      const existingTournaments = await ctx.db
+        .query("tournaments")
+        .withIndex("by_created_by", (q) => q.eq("createdBy", userId))
+        .collect();
+
       return {
         canCreate: true,
-        currentCount: 0,
+        currentCount: existingTournaments.length,
         maxAllowed: Infinity,
         isSiteAdmin: true,
       };
@@ -1144,6 +1150,13 @@ export const generateBracket = mutation({
       throw errors.invalidState("Can only generate bracket for draft tournaments");
     }
 
+    // Optimistic concurrency control: increment version before making changes
+    // If another call is racing, Convex OCC will retry one of them
+    const newVersion = (tournament.bracketVersion ?? 0) + 1;
+    await ctx.db.patch(args.tournamentId, {
+      bracketVersion: newVersion,
+    });
+
     // Get participants that are NOT assigned to a specific bracket
     // (for multi-bracket tournaments, each bracket generates its own matches)
     const allParticipants = await ctx.db
@@ -1203,6 +1216,13 @@ export const startTournament = mutation({
     if (tournament.status !== "draft") {
       throw errors.invalidState("Tournament has already started or is cancelled");
     }
+
+    // Optimistic concurrency control: increment version before making changes
+    // If another call is racing, Convex OCC will retry one of them
+    const newVersion = (tournament.bracketVersion ?? 0) + 1;
+    await ctx.db.patch(args.tournamentId, {
+      bracketVersion: newVersion,
+    });
 
     // Check if this tournament has brackets
     const brackets = await ctx.db
@@ -1335,6 +1355,13 @@ export const generateBlankBracket = mutation({
     if (tournament.status !== "draft") {
       throw errors.invalidState("Can only generate blank bracket for draft tournaments");
     }
+
+    // Optimistic concurrency control: increment version before making changes
+    // If another call is racing, Convex OCC will retry one of them
+    const newVersion = (tournament.bracketVersion ?? 0) + 1;
+    await ctx.db.patch(args.tournamentId, {
+      bracketVersion: newVersion,
+    });
 
     // Validate bracket size (must be power of 2 and between 2 and 128)
     const validSizes = [2, 4, 8, 16, 32, 64, 128];

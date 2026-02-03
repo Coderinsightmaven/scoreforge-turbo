@@ -186,6 +186,8 @@ export default defineSchema({
     allowPublicRegistration: v.boolean(),
     maintenanceMode: v.boolean(),
     maintenanceMessage: v.optional(v.string()),
+    // Prevents admin re-initialization after bootstrap
+    adminSystemInitialized: v.optional(v.boolean()),
     updatedBy: v.id("users"),
     updatedAt: v.number(),
   }).index("by_key", ["key"]),
@@ -217,6 +219,8 @@ export default defineSchema({
     courts: v.optional(v.array(v.string())),
     // 6-char alphanumeric code for temporary scorer login
     scorerCode: v.optional(v.string()),
+    // Version counter for optimistic concurrency control during bracket generation
+    bracketVersion: v.optional(v.number()),
   })
     .index("by_created_by", ["createdBy"])
     .index("by_created_by_and_status", ["createdBy", "status"])
