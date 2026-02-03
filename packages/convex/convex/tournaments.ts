@@ -17,6 +17,7 @@ import {
   generateRoundRobinSchedule,
 } from "./lib/bracketGenerator";
 import { errors } from "./lib/errors";
+import { validateStringLength, validateStringArrayLength, MAX_LENGTHS } from "./lib/validation";
 
 // ============================================
 // Helper functions for access control
@@ -649,6 +650,12 @@ export const createTournament = mutation({
       throw errors.unauthenticated();
     }
 
+    // Validate input lengths
+    validateStringLength(args.name, "Tournament name", MAX_LENGTHS.tournamentName);
+    validateStringLength(args.description, "Description", MAX_LENGTHS.tournamentDescription);
+    validateStringLength(args.bracketName, "Bracket name", MAX_LENGTHS.bracketName);
+    validateStringArrayLength(args.courts, "courts", MAX_LENGTHS.courtName);
+
     // Check if user is a site admin (exempt from limits)
     const siteAdmin = await ctx.db
       .query("siteAdmins")
@@ -753,6 +760,10 @@ export const updateTournament = mutation({
     if (tournament.status !== "draft") {
       throw errors.invalidState("Cannot update tournament after it has started");
     }
+
+    // Validate input lengths
+    validateStringLength(args.name, "Tournament name", MAX_LENGTHS.tournamentName);
+    validateStringLength(args.description, "Description", MAX_LENGTHS.tournamentDescription);
 
     const updates: Partial<typeof tournament> = {};
     if (args.name !== undefined) updates.name = args.name;

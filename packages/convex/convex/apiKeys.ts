@@ -2,6 +2,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { errors } from "./lib/errors";
+import { validateStringLength, MAX_LENGTHS } from "./lib/validation";
 
 const API_KEY_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
@@ -132,6 +133,9 @@ export const generateApiKey = mutation({
     if (!userId) {
       throw errors.unauthenticated();
     }
+
+    // Validate input length
+    validateStringLength(args.name, "API key name", MAX_LENGTHS.apiKeyName);
 
     // Generate the key
     const { fullKey, prefix } = generateKey();

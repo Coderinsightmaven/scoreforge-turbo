@@ -2,6 +2,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { errors } from "./lib/errors";
+import { validateStringLength, MAX_LENGTHS } from "./lib/validation";
 import bcrypt from "bcryptjs";
 
 const SCORER_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -646,6 +647,9 @@ export const createTemporaryScorer = mutation({
       throw errors.unauthorized("Only the tournament owner can create temporary scorers");
     }
 
+    // Validate input lengths
+    validateStringLength(args.displayName, "Display name", MAX_LENGTHS.scorerDisplayName);
+
     // Validate username
     const normalizedUsername = args.username.trim().toLowerCase();
     if (normalizedUsername.length < 1 || normalizedUsername.length > 20) {
@@ -1016,6 +1020,79 @@ export const cleanupExpiredSessions = internalMutation({
     }
 
     return deleted;
+  },
+});
+
+/**
+ * Clean up expired rate limit records
+ * Removes records where the window has expired and there's no active lockout
+ */
+export const cleanupExpiredRateLimits = internalMutation({
+  args: {},
+  returns: v.number(),
+  handler: async (ctx) => {
+    const now = Date.now();
+    // Clean up rate limits where both window and lockout have expired
+    const allRateLimits = await ctx.db.query("loginRateLimits").collect();
+
+    let deleted = 0;
+    for (const record of allRateLimits) {
+      const windowExpired = now > record.windowStart + LOGIN_RATE_LIMIT.windowMs;
+      const lockoutExpired = !record.lockedUntil || now > record.lockedUntil;
+
+      if (windowExpired && lockoutExpired) {
+        await ctx.db.delete(record._id);
+        deleted++;
+      }
+    }
+
+    return deleted;
+  },
+});
+
+/**
+ * Combined cleanup of all expired data (sessions + rate limits)
+ * Designed to be called by a cron job
+ */
+export const cleanupAllExpiredData = internalMutation({
+  args: {},
+  returns: v.object({
+    sessions: v.number(),
+    rateLimits: v.number(),
+  }),
+  handler: async (ctx) => {
+    const now = Date.now();
+
+    // Clean expired sessions
+    const sessions = await ctx.db
+      .query("temporaryScorerSessions")
+      .withIndex("by_expires_at", (q) => q.lt("expiresAt", now))
+      .collect();
+
+    let sessionsDeleted = 0;
+    for (const session of sessions) {
+      await ctx.db.delete(session._id);
+      sessionsDeleted++;
+    }
+
+    // Clean expired rate limits
+    const allRateLimits = await ctx.db.query("loginRateLimits").collect();
+
+    let rateLimitsDeleted = 0;
+    for (const record of allRateLimits) {
+      const windowExpired = now > record.windowStart + LOGIN_RATE_LIMIT.windowMs;
+      const lockoutExpired = !record.lockedUntil || now > record.lockedUntil;
+
+      if (windowExpired && lockoutExpired) {
+        await ctx.db.delete(record._id);
+        rateLimitsDeleted++;
+      }
+    }
+
+    return {
+      sessions: sessionsDeleted,
+      rateLimits: rateLimitsDeleted,
+    };
   },
 });
 

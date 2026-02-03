@@ -3,6 +3,7 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { themePreference } from "./schema";
 import { errors } from "./lib/errors";
+import { validateStringLength, MAX_LENGTHS } from "./lib/validation";
 
 export const currentUser = query({
   args: {},
@@ -39,6 +40,9 @@ export const updateProfile = mutation({
     if (userId === null) {
       throw errors.unauthenticated();
     }
+
+    // Validate input length
+    validateStringLength(args.name, "Name", MAX_LENGTHS.userName);
 
     const updates: { name?: string; image?: string } = {};
     if (args.name !== undefined) {

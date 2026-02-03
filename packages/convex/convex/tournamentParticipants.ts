@@ -4,6 +4,7 @@ import { v } from "convex/values";
 import { participantTypes } from "./schema";
 import type { Id, Doc } from "./_generated/dataModel";
 import { errors } from "./lib/errors";
+import { validateStringLength, MAX_LENGTHS } from "./lib/validation";
 
 // ============================================
 // Access Control Helpers
@@ -313,6 +314,12 @@ export const addParticipant = mutation({
     // Use bracket's participantType if set, otherwise fallback to tournament
     const participantType = bracket.participantType || tournament.participantType;
 
+    // Validate input lengths
+    validateStringLength(args.playerName, "Player name", MAX_LENGTHS.playerName);
+    validateStringLength(args.player1Name, "Player 1 name", MAX_LENGTHS.playerName);
+    validateStringLength(args.player2Name, "Player 2 name", MAX_LENGTHS.playerName);
+    validateStringLength(args.teamName, "Team name", MAX_LENGTHS.teamName);
+
     // Check bracket's maxParticipants if set
     if (bracket.maxParticipants) {
       const bracketParticipants = await ctx.db
@@ -425,6 +432,12 @@ export const updateParticipant = mutation({
     if (tournament.status !== "draft") {
       throw errors.invalidState("Cannot update participants after tournament has started");
     }
+
+    // Validate input lengths
+    validateStringLength(args.playerName, "Player name", MAX_LENGTHS.playerName);
+    validateStringLength(args.player1Name, "Player 1 name", MAX_LENGTHS.playerName);
+    validateStringLength(args.player2Name, "Player 2 name", MAX_LENGTHS.playerName);
+    validateStringLength(args.teamName, "Team name", MAX_LENGTHS.teamName);
 
     // Build updates based on participant type
     const updates: {
@@ -634,6 +647,13 @@ export const updatePlaceholderName = mutation({
     if (!canManage) {
       throw errors.unauthorized();
     }
+
+    // Validate input lengths
+    validateStringLength(args.displayName, "Display name", MAX_LENGTHS.displayName);
+    validateStringLength(args.playerName, "Player name", MAX_LENGTHS.playerName);
+    validateStringLength(args.player1Name, "Player 1 name", MAX_LENGTHS.playerName);
+    validateStringLength(args.player2Name, "Player 2 name", MAX_LENGTHS.playerName);
+    validateStringLength(args.teamName, "Team name", MAX_LENGTHS.teamName);
 
     // Build updates based on participant type
     const updates: {
