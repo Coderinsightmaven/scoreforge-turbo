@@ -8,7 +8,7 @@ type Props = {
   matchId: Id<'matches'>;
   tempScorerToken?: string;
   onBack: () => void;
-  onStartScoring: (matchId: Id<'matches'>, sport: 'tennis' | 'volleyball') => void;
+  onStartScoring: (matchId: Id<'matches'>) => void;
 };
 
 const statusColors = {
@@ -68,15 +68,6 @@ export function MatchDetailScreen({ matchId, tempScorerToken, onBack, onStartSco
       }
       return setScores.join('  ') || '0-0';
     }
-    if (match.sport === 'volleyball' && match.volleyballState) {
-      const sets = match.volleyballState.sets || [];
-      const current = match.volleyballState.currentSetPoints || [0, 0];
-      const setScores = sets.map((s) => `${s[0]}-${s[1]}`);
-      if (!match.volleyballState.isMatchComplete) {
-        setScores.push(`(${current[0]}-${current[1]})`);
-      }
-      return setScores.join('  ') || '0-0';
-    }
     return `${match.participant1Score} - ${match.participant2Score}`;
   };
 
@@ -106,7 +97,7 @@ export function MatchDetailScreen({ matchId, tempScorerToken, onBack, onStartSco
         {/* Score Card */}
         <View className="mb-4 rounded-2xl bg-white p-6 shadow-sm">
           <View className="mb-4 flex-row items-center justify-center">
-            <Text className="text-3xl">{match.sport === 'tennis' ? '🎾' : '🏐'}</Text>
+            <Text className="text-3xl">🎾</Text>
           </View>
 
           {/* Participant 1 */}
@@ -162,7 +153,7 @@ export function MatchDetailScreen({ matchId, tempScorerToken, onBack, onStartSco
           </View>
 
           {/* Detailed Score */}
-          {(match.tennisState || match.volleyballState) && (
+          {match.tennisState && (
             <View className="mt-4 rounded-lg bg-gray-50 p-3">
               <Text className="text-center text-sm font-medium text-gray-600">
                 {getScoreDisplay()}
@@ -213,7 +204,7 @@ export function MatchDetailScreen({ matchId, tempScorerToken, onBack, onStartSco
         {canScore && (
           <TouchableOpacity
             className="rounded-xl bg-amber-500 py-4"
-            onPress={() => onStartScoring(matchId, match.sport as 'tennis' | 'volleyball')}
+            onPress={() => onStartScoring(matchId)}
             activeOpacity={0.8}>
             <Text className="text-center text-lg font-bold text-white">
               {match.status === 'live' ? 'Continue Scoring' : 'Start Scoring'}

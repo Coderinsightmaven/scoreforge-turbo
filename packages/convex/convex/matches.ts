@@ -1,7 +1,7 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { matchStatus, tennisState, tennisConfig, volleyballState, volleyballConfig } from "./schema";
+import { matchStatus, tennisState, tennisConfig } from "./schema";
 import type { Id, Doc } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 
@@ -141,7 +141,6 @@ export const listMatches = query({
       completedAt: v.optional(v.number()),
       sport: v.string(),
       tennisState: v.optional(tennisState),
-      volleyballState: v.optional(volleyballState),
     })
   ),
   handler: async (ctx, args) => {
@@ -258,7 +257,6 @@ export const listMatches = query({
           completedAt: match.completedAt,
           sport: tournament.sport,
           tennisState: match.tennisState,
-          volleyballState: match.volleyballState,
         };
       })
     );
@@ -330,8 +328,6 @@ export const getMatch = query({
       ),
       tennisState: v.optional(tennisState),
       tennisConfig: v.optional(tennisConfig),
-      volleyballState: v.optional(volleyballState),
-      volleyballConfig: v.optional(volleyballConfig),
       availableCourts: v.optional(v.array(v.string())),
     }),
     v.null()
@@ -408,8 +404,6 @@ export const getMatch = query({
       tournamentStatus: tournament.status,
       tennisState: match.tennisState,
       tennisConfig: tournament.tennisConfig,
-      volleyballState: match.volleyballState,
-      volleyballConfig: tournament.volleyballConfig,
       availableCourts: tournament.courts,
     };
   },
@@ -449,7 +443,6 @@ export const listMyLiveMatches = query({
       court: v.optional(v.string()),
       startedAt: v.optional(v.number()),
       tennisState: v.optional(tennisState),
-      volleyballState: v.optional(volleyballState),
     })
   ),
   handler: async (ctx) => {
@@ -539,7 +532,6 @@ export const listMyLiveMatches = query({
           court: match.court,
           startedAt: match.startedAt,
           tennisState: match.tennisState,
-          volleyballState: match.volleyballState,
         });
       }
     };

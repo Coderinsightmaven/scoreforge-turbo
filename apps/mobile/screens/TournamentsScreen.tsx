@@ -22,9 +22,8 @@ const statusColors = {
   cancelled: 'bg-red-100 text-red-700',
 };
 
-const sportEmoji = {
+const sportEmoji: Record<string, string> = {
   tennis: '🎾',
-  volleyball: '🏐',
 };
 
 export function TournamentsScreen({ onSelectTournament }: Props) {

@@ -29,18 +29,6 @@ type TennisState = {
   isMatchComplete: boolean;
 };
 
-type VolleyballState = {
-  sets: number[][];
-  currentSetPoints: number[];
-  servingTeam: number;
-  setsToWin: number;
-  pointsPerSet: number;
-  pointsPerDecidingSet: number;
-  minLeadToWin: number;
-  currentSetNumber: number;
-  isMatchComplete: boolean;
-};
-
 type Participant = {
   _id: string;
   displayName: string;
@@ -52,9 +40,7 @@ type Props = {
   tournamentId: string;
   participant1?: Participant;
   participant2?: Participant;
-  sport: "tennis" | "volleyball";
   tennisState?: TennisState;
-  volleyballState?: VolleyballState;
   canScore: boolean;
 };
 
@@ -165,9 +151,7 @@ export function FullScreenScoring({
   tournamentId,
   participant1,
   participant2,
-  sport,
   tennisState,
-  volleyballState,
   canScore,
 }: Props): React.ReactNode {
   const [isUpdating, setIsUpdating] = useState(false);
@@ -175,31 +159,19 @@ export function FullScreenScoring({
   // Mutations
   const scoreTennisPoint = useMutation(api.tennis.scoreTennisPoint);
   const undoTennisPoint = useMutation(api.tennis.undoTennisPoint);
-  const scoreVolleyballPoint = useMutation(api.volleyball.scoreVolleyballPoint);
-  const undoVolleyballPoint = useMutation(api.volleyball.undoVolleyballPoint);
 
-  const isTennis = sport === "tennis";
-  const isVolleyball = sport === "volleyball";
-  const isMatchComplete = tennisState?.isMatchComplete || volleyballState?.isMatchComplete;
+  const isMatchComplete = tennisState?.isMatchComplete;
 
   // Serving status
-  const serving1 = isTennis
-    ? tennisState?.servingParticipant === 1
-    : volleyballState?.servingTeam === 1;
-  const serving2 = isTennis
-    ? tennisState?.servingParticipant === 2
-    : volleyballState?.servingTeam === 2;
+  const serving1 = tennisState?.servingParticipant === 1;
+  const serving2 = tennisState?.servingParticipant === 2;
 
   const handleScorePoint = async (winner: 1 | 2) => {
     if (!canScore || isMatchComplete) return;
 
     setIsUpdating(true);
     try {
-      if (isTennis) {
-        await scoreTennisPoint({ matchId: matchId as any, winnerParticipant: winner });
-      } else if (isVolleyball) {
-        await scoreVolleyballPoint({ matchId: matchId as any, winnerTeam: winner });
-      }
+      await scoreTennisPoint({ matchId: matchId as any, winnerParticipant: winner });
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to score point");
     }
@@ -214,11 +186,7 @@ export function FullScreenScoring({
 
     setIsUpdating(true);
     try {
-      if (isTennis) {
-        await undoTennisPoint({ matchId: matchId as any });
-      } else if (isVolleyball) {
-        await undoVolleyballPoint({ matchId: matchId as any });
-      }
+      await undoTennisPoint({ matchId: matchId as any });
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to undo");
     }
@@ -255,8 +223,8 @@ export function FullScreenScoring({
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 px-4 pointer-events-none">
         <div className="w-[400px] max-w-[90vw] pointer-events-auto">
 
-          {/* Tennis Scoreboard - Unified layout for all match types */}
-          {isTennis && tennisState && (
+          {/* Tennis Scoreboard */}
+          {tennisState && (
             <div className="bg-bg-card border border-border rounded-2xl p-4 shadow-lg">
               {/* Tiebreak indicator */}
               {tennisState.isTiebreak && (
@@ -319,52 +287,6 @@ export function FullScreenScoring({
               )}
             </div>
           )}
-
-          {/* Volleyball Scoreboard - Unified layout for all match types */}
-          {isVolleyball && volleyballState && (
-            <div className="bg-bg-card border border-border rounded-2xl p-4 shadow-lg">
-              {/* Large Points Display */}
-              <div className="flex items-center justify-between py-4">
-                {/* Team 1 Score */}
-                <div className="w-[100px] flex items-center justify-center">
-                  <div className="flex items-center">
-                    <div className="w-[18px] flex items-center justify-center">
-                      {serving1 && <span className="w-3 h-3 bg-success rounded-full" />}
-                    </div>
-                    <span className="text-6xl font-bold text-brand min-w-[60px] text-center">
-                      {volleyballState.currentSetPoints[0]}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Divider with set count */}
-                <div className="px-4 py-2 bg-bg-tertiary rounded-lg">
-                  <span className="text-xl font-bold text-text-primary">
-                    Set {volleyballState.sets.length + 1}
-                  </span>
-                </div>
-
-                {/* Team 2 Score */}
-                <div className="w-[100px] flex items-center justify-center">
-                  <div className="flex items-center">
-                    <div className="w-[18px] flex items-center justify-center">
-                      {serving2 && <span className="w-3 h-3 bg-success rounded-full" />}
-                    </div>
-                    <span className="text-6xl font-bold text-brand min-w-[60px] text-center">
-                      {volleyballState.currentSetPoints[1]}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Set scores - simple inline */}
-              {volleyballState.sets.length > 0 && (
-                <p className="text-center text-sm text-text-muted mt-2 tracking-wider">
-                  {volleyballState.sets.map((set) => `${set[0]}-${set[1]}`).join("  ")}
-                </p>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
@@ -401,41 +323,26 @@ export function FirstServerSetup({
   tournamentId,
   participant1Name,
   participant2Name,
-  sport,
   tennisConfig,
-  volleyballConfig,
   matchStatus,
 }: {
   matchId: string;
   tournamentId: string;
   participant1Name: string;
   participant2Name: string;
-  sport: "tennis" | "volleyball";
   tennisConfig?: { isAdScoring: boolean; setsToWin: number };
-  volleyballConfig?: {
-    setsToWin: number;
-    pointsPerSet: number;
-    pointsPerDecidingSet: number;
-  };
   matchStatus?: string;
 }): React.ReactNode {
   const [selectedServer, setSelectedServer] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
 
   const initTennisMatch = useMutation(api.tennis.initTennisMatch);
-  const initVolleyballMatch = useMutation(api.volleyball.initVolleyballMatch);
   const startMatch = useMutation(api.matches.startMatch);
-
-  const isTennis = sport === "tennis";
 
   const handleStart = async () => {
     setLoading(true);
     try {
-      if (isTennis) {
-        await initTennisMatch({ matchId: matchId as any, firstServer: selectedServer });
-      } else {
-        await initVolleyballMatch({ matchId: matchId as any, firstServer: selectedServer });
-      }
+      await initTennisMatch({ matchId: matchId as any, firstServer: selectedServer });
       if (matchStatus === "pending" || matchStatus === "scheduled") {
         await startMatch({ matchId: matchId as any });
       }
@@ -463,28 +370,18 @@ export function FirstServerSetup({
             Select First Server
           </h2>
           <p className="text-sm text-text-secondary">
-            Who will serve first in this {isTennis ? "tennis" : "volleyball"} match?
+            Who will serve first in this tennis match?
           </p>
         </div>
 
         {/* Config Badges */}
-        {isTennis && tennisConfig && (
+        {tennisConfig && (
           <div className="flex justify-center gap-3 mb-6">
             <span className="px-3 py-1 text-xs font-semibold text-brand bg-brand/10 rounded-full">
               Best of {tennisConfig.setsToWin * 2 - 1}
             </span>
             <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-secondary rounded-full">
               {tennisConfig.isAdScoring ? "Ad Scoring" : "No-Ad"}
-            </span>
-          </div>
-        )}
-        {!isTennis && volleyballConfig && (
-          <div className="flex justify-center gap-3 mb-6">
-            <span className="px-3 py-1 text-xs font-semibold text-brand bg-brand/10 rounded-full">
-              Best of {volleyballConfig.setsToWin * 2 - 1}
-            </span>
-            <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-secondary rounded-full">
-              Sets to {volleyballConfig.pointsPerSet}
             </span>
           </div>
         )}
@@ -552,7 +449,7 @@ export function FirstServerSetup({
           disabled={loading}
           className="w-full py-4 font-semibold text-text-inverse bg-success rounded-xl hover:opacity-90 transition-all disabled:opacity-50"
         >
-          {loading ? "Starting..." : `Start ${isTennis ? "Tennis" : "Volleyball"} Match`}
+          {loading ? "Starting..." : "Start Tennis Match"}
         </button>
       </div>
     </div>
@@ -567,19 +464,14 @@ export function MatchCompleteScreen({
   winnerName,
   participant1Name,
   participant2Name,
-  sport,
   tennisState,
-  volleyballState,
 }: {
   tournamentId: string;
   winnerName: string;
   participant1Name: string;
   participant2Name: string;
-  sport: "tennis" | "volleyball";
   tennisState?: TennisState;
-  volleyballState?: VolleyballState;
 }): React.ReactNode {
-  const isTennis = sport === "tennis";
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-bg-primary z-50 p-6">
@@ -599,14 +491,7 @@ export function MatchCompleteScreen({
           {/* Player 1 */}
           <div className="flex items-center px-4 py-3 border-b border-border">
             <span className="flex-1 font-semibold text-text-primary truncate">{participant1Name}</span>
-            {isTennis && tennisState?.sets.map((set, idx) => (
-              <div key={idx} className="w-10 text-center">
-                <span className={`text-lg font-bold ${(set[0] ?? 0) > (set[1] ?? 0) ? "text-brand" : "text-text-muted"}`}>
-                  {set[0]}
-                </span>
-              </div>
-            ))}
-            {!isTennis && volleyballState?.sets.map((set, idx) => (
+            {tennisState?.sets.map((set, idx) => (
               <div key={idx} className="w-10 text-center">
                 <span className={`text-lg font-bold ${(set[0] ?? 0) > (set[1] ?? 0) ? "text-brand" : "text-text-muted"}`}>
                   {set[0]}
@@ -617,14 +502,7 @@ export function MatchCompleteScreen({
           {/* Player 2 */}
           <div className="flex items-center px-4 py-3">
             <span className="flex-1 font-semibold text-text-primary truncate">{participant2Name}</span>
-            {isTennis && tennisState?.sets.map((set, idx) => (
-              <div key={idx} className="w-10 text-center">
-                <span className={`text-lg font-bold ${(set[1] ?? 0) > (set[0] ?? 0) ? "text-brand" : "text-text-muted"}`}>
-                  {set[1]}
-                </span>
-              </div>
-            ))}
-            {!isTennis && volleyballState?.sets.map((set, idx) => (
+            {tennisState?.sets.map((set, idx) => (
               <div key={idx} className="w-10 text-center">
                 <span className={`text-lg font-bold ${(set[1] ?? 0) > (set[0] ?? 0) ? "text-brand" : "text-text-muted"}`}>
                   {set[1]}

@@ -87,9 +87,6 @@ export function TournamentDetailScreen({ tournamentId, onBack, onSelectMatch }: 
       }
       return sets.map((s) => `${s[0]}-${s[1]}`).join(', ');
     }
-    if (match.sport === 'volleyball' && match.volleyballState) {
-      return `${match.participant1Score}-${match.participant2Score}`;
-    }
     return `${match.participant1Score}-${match.participant2Score}`;
   };
 

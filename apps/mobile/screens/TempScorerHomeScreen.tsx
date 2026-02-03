@@ -16,14 +16,13 @@ import { Id } from '@repo/convex/dataModel';
 import { useTempScorer } from '../contexts/TempScorerContext';
 import { MatchDetailScreen } from './MatchDetailScreen';
 import { TennisScoringScreen } from './TennisScoringScreen';
-import { VolleyballScoringScreen } from './VolleyballScoringScreen';
 
 type MatchStatus = 'pending' | 'scheduled' | 'live' | 'completed' | 'bye';
 
 type Screen =
   | { type: 'matches' }
   | { type: 'match'; matchId: Id<'matches'> }
-  | { type: 'scoring'; matchId: Id<'matches'>; sport: 'tennis' | 'volleyball' };
+  | { type: 'scoring'; matchId: Id<'matches'> };
 
 const statusColors: Record<MatchStatus, string> = {
   pending: 'bg-gray-100 text-gray-600',
@@ -107,24 +106,15 @@ export function TempScorerHomeScreen() {
         matchId={screen.matchId}
         tempScorerToken={session.token}
         onBack={() => setScreen({ type: 'matches' })}
-        onStartScoring={(matchId, sport) => setScreen({ type: 'scoring', matchId, sport })}
+        onStartScoring={(matchId) => setScreen({ type: 'scoring', matchId })}
       />
     );
   }
 
   // Scoring screen
   if (screen.type === 'scoring') {
-    if (screen.sport === 'tennis') {
-      return (
-        <TennisScoringScreen
-          matchId={screen.matchId}
-          tempScorerToken={session.token}
-          onBack={() => setScreen({ type: 'match', matchId: screen.matchId })}
-        />
-      );
-    }
     return (
-      <VolleyballScoringScreen
+      <TennisScoringScreen
         matchId={screen.matchId}
         tempScorerToken={session.token}
         onBack={() => setScreen({ type: 'match', matchId: screen.matchId })}

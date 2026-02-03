@@ -9,9 +9,7 @@ import {
   presetSports,
   participantTypes,
   tennisConfig,
-  volleyballConfig,
   tennisState,
-  volleyballState,
 } from "./schema";
 import {
   generateSingleEliminationBracket,
@@ -149,7 +147,6 @@ export const getTournament = query({
         })
       ),
       tennisConfig: v.optional(tennisConfig),
-      volleyballConfig: v.optional(volleyballConfig),
       courts: v.optional(v.array(v.string())),
       createdBy: v.id("users"),
       participantCount: v.number(),
@@ -198,7 +195,6 @@ export const getTournament = query({
       endDate: tournament.endDate,
       scoringConfig: tournament.scoringConfig,
       tennisConfig: tournament.tennisConfig,
-      volleyballConfig: tournament.volleyballConfig,
       courts: tournament.courts,
       createdBy: tournament.createdBy,
       participantCount: participants.length,
@@ -253,7 +249,6 @@ export const getBracket = query({
         court: v.optional(v.string()),
         nextMatchId: v.optional(v.id("matches")),
         tennisState: v.optional(tennisState),
-        volleyballState: v.optional(volleyballState),
       })
     ),
   }),
@@ -326,7 +321,6 @@ export const getBracket = query({
           court: match.court,
           nextMatchId: match.nextMatchId,
           tennisState: match.tennisState,
-          volleyballState: match.volleyballState,
         };
       })
     );
@@ -440,7 +434,7 @@ export const listMyTournaments = query({
       _creationTime: number;
       name: string;
       description?: string;
-      sport: "tennis" | "volleyball";
+      sport: "tennis";
       format: "single_elimination" | "double_elimination" | "round_robin";
       participantType: "team" | "individual" | "doubles";
       maxParticipants: number;
@@ -638,7 +632,6 @@ export const createTournament = mutation({
       })
     ),
     tennisConfig: v.optional(tennisConfig),
-    volleyballConfig: v.optional(volleyballConfig),
     courts: v.optional(v.array(v.string())),
     bracketName: v.optional(v.string()),
   },
@@ -685,11 +678,6 @@ export const createTournament = mutation({
       throw new Error("Tennis configuration is required for tennis tournaments");
     }
 
-    // Validate volleyball config for volleyball tournaments
-    if (args.sport === "volleyball" && !args.volleyballConfig) {
-      throw new Error("Volleyball configuration is required for volleyball tournaments");
-    }
-
     const tournamentId = await ctx.db.insert("tournaments", {
       createdBy: userId,
       name: args.name,
@@ -702,7 +690,6 @@ export const createTournament = mutation({
       startDate: args.startDate,
       scoringConfig: args.scoringConfig,
       tennisConfig: args.tennisConfig,
-      volleyballConfig: args.volleyballConfig,
       courts: args.courts,
     });
 
@@ -1541,4 +1528,3 @@ export const cancelTournament = mutation({
     return null;
   },
 });
-

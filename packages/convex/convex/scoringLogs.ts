@@ -323,17 +323,6 @@ function formatScoreState(stateJson: string | undefined, sport: string): string 
       return score;
     }
 
-    if (sport === "volleyball") {
-      const sets = state.sets || [];
-      const currentPoints = state.currentSetPoints || [0, 0];
-
-      let score = sets.map((s: number[]) => `${s[0]}-${s[1]}`).join(" ");
-      if (score) score += " ";
-      score += `${currentPoints[0]}-${currentPoints[1]}`;
-
-      return score;
-    }
-
     return "";
   } catch {
     return "";
@@ -349,7 +338,7 @@ type ScoringLog = {
   actorId?: string;
   actorName?: string;
   timestamp: number;
-  sport: "tennis" | "volleyball";
+  sport: "tennis";
   details: {
     winnerParticipant?: number;
     servingParticipant?: number;

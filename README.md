@@ -6,9 +6,8 @@ A real-time tournament management platform for organizing competitions, tracking
 
 - **Tournament Formats** - Single elimination, double elimination, and round robin
 - **Multiple Brackets** - Organize tournaments with multiple brackets (e.g., Men's Singles, Women's Doubles)
-- **Multi-Sport Support** - Tennis and volleyball with sport-specific scoring
 - **Real-Time Scoring** - Live score updates with undo functionality
-- **Sport-Specific Scoring** - Dedicated interfaces for tennis (sets/games/points) and volleyball (sets/points)
+- **Tennis Scoring** - Dedicated interface for tennis (sets/games/points)
 - **Organization Management** - Role-based access control (owner, admin, scorer)
 - **Bracket Generation** - Automatic seeding and bracket creation
 - **Blank Bracket Generator** - Create printable brackets with placeholder slots, assign existing participants to seeds

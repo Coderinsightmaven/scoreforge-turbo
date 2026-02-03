@@ -7,9 +7,7 @@ import {
   participantTypes,
   bracketStatus,
   tennisConfig,
-  volleyballConfig,
   tennisState,
-  volleyballState,
 } from "./schema";
 import {
   generateSingleEliminationBracket,
@@ -73,7 +71,6 @@ export const listBrackets = query({
       participantType: v.optional(participantTypes),
       maxParticipants: v.optional(v.number()),
       tennisConfig: v.optional(tennisConfig),
-      volleyballConfig: v.optional(volleyballConfig),
       status: bracketStatus,
       displayOrder: v.number(),
       createdAt: v.number(),
@@ -120,7 +117,6 @@ export const listBrackets = query({
           participantType: bracket.participantType,
           maxParticipants: bracket.maxParticipants,
           tennisConfig: bracket.tennisConfig,
-          volleyballConfig: bracket.volleyballConfig,
           status: bracket.status,
           displayOrder: bracket.displayOrder,
           createdAt: bracket.createdAt,
@@ -152,7 +148,6 @@ export const getBracket = query({
       participantType: v.optional(participantTypes),
       maxParticipants: v.optional(v.number()),
       tennisConfig: v.optional(tennisConfig),
-      volleyballConfig: v.optional(volleyballConfig),
       status: bracketStatus,
       displayOrder: v.number(),
       createdAt: v.number(),
@@ -204,7 +199,6 @@ export const getBracket = query({
       participantType: bracket.participantType,
       maxParticipants: bracket.maxParticipants,
       tennisConfig: bracket.tennisConfig,
-      volleyballConfig: bracket.volleyballConfig,
       status: bracket.status,
       displayOrder: bracket.displayOrder,
       createdAt: bracket.createdAt,
@@ -262,7 +256,6 @@ export const getBracketMatches = query({
           court: v.optional(v.string()),
           nextMatchId: v.optional(v.id("matches")),
           tennisState: v.optional(tennisState),
-          volleyballState: v.optional(volleyballState),
         })
       ),
     }),
@@ -341,7 +334,6 @@ export const getBracketMatches = query({
           court: match.court,
           nextMatchId: match.nextMatchId,
           tennisState: match.tennisState,
-          volleyballState: match.volleyballState,
         };
       })
     );
@@ -372,7 +364,6 @@ export const createBracket = mutation({
     participantType: v.optional(participantTypes),
     maxParticipants: v.optional(v.number()),
     tennisConfig: v.optional(tennisConfig),
-    volleyballConfig: v.optional(volleyballConfig),
   },
   returns: v.id("tournamentBrackets"),
   handler: async (ctx, args) => {
@@ -415,7 +406,6 @@ export const createBracket = mutation({
       participantType: args.participantType,
       maxParticipants: args.maxParticipants,
       tennisConfig: args.tennisConfig,
-      volleyballConfig: args.volleyballConfig,
       status: "draft",
       displayOrder: maxOrder + 1,
       createdAt: Date.now(),
@@ -437,7 +427,6 @@ export const updateBracket = mutation({
     participantType: v.optional(participantTypes),
     maxParticipants: v.optional(v.number()),
     tennisConfig: v.optional(tennisConfig),
-    volleyballConfig: v.optional(volleyballConfig),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -468,7 +457,6 @@ export const updateBracket = mutation({
     if (args.participantType !== undefined) updates.participantType = args.participantType;
     if (args.maxParticipants !== undefined) updates.maxParticipants = args.maxParticipants;
     if (args.tennisConfig !== undefined) updates.tennisConfig = args.tennisConfig;
-    if (args.volleyballConfig !== undefined) updates.volleyballConfig = args.volleyballConfig;
 
     await ctx.db.patch(args.bracketId, updates);
     return null;

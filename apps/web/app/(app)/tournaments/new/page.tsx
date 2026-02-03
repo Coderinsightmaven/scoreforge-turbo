@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ChevronLeft, Plus, X, Check, Loader2, AlertCircle } from "lucide-react";
 
-type Sport = "tennis" | "volleyball";
+type Sport = "tennis";
 type Format = "single_elimination" | "double_elimination" | "round_robin";
 type ParticipantType = "individual" | "doubles" | "team";
 
@@ -34,12 +34,6 @@ export default function NewTournamentPage(): React.ReactNode {
   const [tennisIsAdScoring, setTennisIsAdScoring] = useState(true);
   const [tennisSetsToWin, setTennisSetsToWin] = useState(2);
 
-  // Volleyball config
-  const [volleyballSetsToWin, setVolleyballSetsToWin] = useState(2);
-  const [volleyballPointsPerSet, setVolleyballPointsPerSet] = useState(25);
-  const [volleyballPointsPerDecidingSet, setVolleyballPointsPerDecidingSet] = useState(15);
-  const [volleyballMinLeadToWin, setVolleyballMinLeadToWin] = useState(2);
-
   // Courts
   const [courts, setCourts] = useState<string[]>([]);
   const [newCourt, setNewCourt] = useState("");
@@ -50,17 +44,10 @@ export default function NewTournamentPage(): React.ReactNode {
     setIsSubmitting(true);
 
     try {
-      const tennisConfig = sport === "tennis" ? {
+      const tennisConfig = {
         isAdScoring: tennisIsAdScoring,
         setsToWin: tennisSetsToWin,
-      } : undefined;
-
-      const volleyballConfig = sport === "volleyball" ? {
-        setsToWin: volleyballSetsToWin,
-        pointsPerSet: volleyballPointsPerSet,
-        pointsPerDecidingSet: volleyballPointsPerDecidingSet,
-        minLeadToWin: volleyballMinLeadToWin,
-      } : undefined;
+      };
 
       const tournamentId = await createTournament({
         name,
@@ -70,7 +57,6 @@ export default function NewTournamentPage(): React.ReactNode {
         participantType,
         maxParticipants,
         tennisConfig,
-        volleyballConfig,
         courts: courts.length > 0 ? courts : undefined,
         bracketName: bracketName.trim() || "Main Draw",
       });
@@ -154,46 +140,7 @@ export default function NewTournamentPage(): React.ReactNode {
             </CardContent>
           </Card>
 
-          {/* Sport Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Sport</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setSport("tennis")}
-                  className={`p-6 flex flex-col items-center gap-3 border-2 rounded-xl transition-all ${
-                    sport === "tennis"
-                      ? "border-amber-500 bg-amber-50 dark:bg-amber-900/20"
-                      : "border-border bg-secondary hover:border-muted-foreground"
-                  }`}
-                >
-                  <span className="text-4xl">🎾</span>
-                  <span className={`font-semibold ${sport === "tennis" ? "text-amber-700 dark:text-amber-300" : "text-foreground"}`}>
-                    Tennis
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSport("volleyball")}
-                  className={`p-6 flex flex-col items-center gap-3 border-2 rounded-xl transition-all ${
-                    sport === "volleyball"
-                      ? "border-amber-500 bg-amber-50 dark:bg-amber-900/20"
-                      : "border-border bg-secondary hover:border-muted-foreground"
-                  }`}
-                >
-                  <span className="text-4xl">🏐</span>
-                  <span className={`font-semibold ${sport === "volleyball" ? "text-amber-700 dark:text-amber-300" : "text-foreground"}`}>
-                    Volleyball
-                  </span>
-                </button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Sport-specific config */}
+          {/* Tennis Rules */}
           {sport === "tennis" && (
             <Card>
               <CardHeader>
@@ -222,59 +169,6 @@ export default function NewTournamentPage(): React.ReactNode {
                       <option value={2}>Best of 3</option>
                       <option value={3}>Best of 5</option>
                     </select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {sport === "volleyball" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Volleyball Rules</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Match format</Label>
-                    <select
-                      value={volleyballSetsToWin}
-                      onChange={(e) => setVolleyballSetsToWin(Number(e.target.value))}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    >
-                      <option value={2}>Best of 3</option>
-                      <option value={3}>Best of 5</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Points per set</Label>
-                    <Input
-                      type="number"
-                      value={volleyballPointsPerSet}
-                      onChange={(e) => setVolleyballPointsPerSet(Number(e.target.value))}
-                      min={15}
-                      max={50}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Points in deciding set</Label>
-                    <Input
-                      type="number"
-                      value={volleyballPointsPerDecidingSet}
-                      onChange={(e) => setVolleyballPointsPerDecidingSet(Number(e.target.value))}
-                      min={10}
-                      max={30}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Min lead to win</Label>
-                    <Input
-                      type="number"
-                      value={volleyballMinLeadToWin}
-                      onChange={(e) => setVolleyballMinLeadToWin(Number(e.target.value))}
-                      min={1}
-                      max={5}
-                    />
                   </div>
                 </div>
               </CardContent>

@@ -7,8 +7,7 @@ import Link from "next/link";
 import { use } from "react";
 import { Skeleton, SkeletonScoreboard } from "@/app/components/Skeleton";
 import { TennisScoreboard } from "@/app/components/TennisScoreboard";
-import { VolleyballScoreboard } from "@/app/components/VolleyballScoreboard";
-import { FullScreenScoring, FirstServerSetup, MatchCompleteScreen } from "@/app/components/FullScreenScoring";
+import { FullScreenScoring, MatchCompleteScreen } from "@/app/components/FullScreenScoring";
 
 export default function MatchDetailPage({
   params,
@@ -43,23 +42,19 @@ export default function MatchDetailPage({
 
   // Sport detection for full-screen scoring
   const isTennis = match.sport === "tennis";
-  const isVolleyball = match.sport === "volleyball";
-  const isSportSpecific = isTennis || isVolleyball;
-  const needsSetup = isSportSpecific && !match.tennisState && !match.volleyballState;
+  const needsSetup = isTennis && !match.tennisState;
   const isLive = match.status === "live";
-  const isMatchComplete = match.tennisState?.isMatchComplete || match.volleyballState?.isMatchComplete;
+  const isMatchComplete = match.tennisState?.isMatchComplete;
 
-  // Full-screen scoring for live tennis/volleyball matches
-  if (isLive && !isMatchComplete && (match.tennisState || match.volleyballState) && canScore) {
+  // Full-screen scoring for live tennis matches
+  if (isLive && !isMatchComplete && match.tennisState && canScore) {
     return (
       <FullScreenScoring
         matchId={match._id}
         tournamentId={match.tournamentId}
         participant1={match.participant1}
         participant2={match.participant2}
-        sport={match.sport as "tennis" | "volleyball"}
         tennisState={match.tennisState}
-        volleyballState={match.volleyballState}
         canScore={canScore}
       />
     );
@@ -68,8 +63,8 @@ export default function MatchDetailPage({
   // Note: First server setup is now shown inline in the match detail view below
   // to allow court editing before starting the match
 
-  // Match complete screen for tennis/volleyball
-  if (isMatchComplete && (match.tennisState || match.volleyballState)) {
+  // Match complete screen for tennis
+  if (isMatchComplete && match.tennisState) {
     const winnerName = match.winnerId === match.participant1?._id
       ? match.participant1?.displayName || "Player 1"
       : match.participant2?.displayName || "Player 2";
@@ -80,9 +75,7 @@ export default function MatchDetailPage({
         winnerName={winnerName}
         participant1Name={match.participant1?.displayName || "Player 1"}
         participant2Name={match.participant2?.displayName || "Player 2"}
-        sport={match.sport as "tennis" | "volleyball"}
         tennisState={match.tennisState}
-        volleyballState={match.volleyballState}
       />
     );
   }
@@ -155,22 +148,6 @@ export default function MatchDetailPage({
                 participant2={match.participant2}
               />
             )
-          ) : match.sport === "volleyball" ? (
-            match.volleyballState ? (
-              <VolleyballScoreboard
-                matchId={match._id}
-                participant1={match.participant1}
-                participant2={match.participant2}
-                volleyballState={match.volleyballState}
-                canScore={canScore}
-                status={match.status}
-              />
-            ) : (
-              <MatchPreview
-                participant1={match.participant1}
-                participant2={match.participant2}
-              />
-            )
           ) : (
             <Scoreboard
               match={match}
@@ -183,7 +160,7 @@ export default function MatchDetailPage({
             />
           )}
 
-          {/* First Server Setup - For tennis/volleyball matches that need setup */}
+          {/* First Server Setup - For tennis matches that need setup */}
           {needsSetup && canScore && !isByeMatch && match.participant1 && match.participant2 &&
             (match.status === "pending" || match.status === "scheduled") &&
             match.tournamentStatus === "active" && (
@@ -191,9 +168,7 @@ export default function MatchDetailPage({
               matchId={match._id}
               participant1Name={match.participant1.displayName}
               participant2Name={match.participant2.displayName}
-              sport={match.sport as "tennis" | "volleyball"}
               tennisConfig={match.tennisConfig}
-              volleyballConfig={match.volleyballConfig}
               matchStatus={match.status}
             />
           )}
@@ -215,11 +190,10 @@ export default function MatchDetailPage({
             </div>
           )}
 
-          {/* Match Actions - For generic sports (not tennis or volleyball with state) */}
+          {/* Match Actions - For generic sports (not tennis with state) */}
           {canScore &&
             !isByeMatch &&
             (match.sport !== "tennis" || !match.tennisState) &&
-            (match.sport !== "volleyball" || !match.volleyballState) &&
             !needsSetup && (
             <MatchActions match={match} tournamentStatus={match.tournamentStatus} />
           )}
@@ -607,40 +581,25 @@ function InlineFirstServerSetup({
   matchId,
   participant1Name,
   participant2Name,
-  sport,
   tennisConfig,
-  volleyballConfig,
   matchStatus,
 }: {
   matchId: string;
   participant1Name: string;
   participant2Name: string;
-  sport: "tennis" | "volleyball";
   tennisConfig?: { isAdScoring: boolean; setsToWin: number };
-  volleyballConfig?: {
-    setsToWin: number;
-    pointsPerSet: number;
-    pointsPerDecidingSet: number;
-  };
   matchStatus?: string;
 }) {
   const [selectedServer, setSelectedServer] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
 
   const initTennisMatch = useMutation(api.tennis.initTennisMatch);
-  const initVolleyballMatch = useMutation(api.volleyball.initVolleyballMatch);
   const startMatch = useMutation(api.matches.startMatch);
-
-  const isTennis = sport === "tennis";
 
   const handleStart = async () => {
     setLoading(true);
     try {
-      if (isTennis) {
-        await initTennisMatch({ matchId: matchId as any, firstServer: selectedServer });
-      } else {
-        await initVolleyballMatch({ matchId: matchId as any, firstServer: selectedServer });
-      }
+      await initTennisMatch({ matchId: matchId as any, firstServer: selectedServer });
       if (matchStatus === "pending" || matchStatus === "scheduled") {
         await startMatch({ matchId: matchId as any });
       }
@@ -662,28 +621,16 @@ function InlineFirstServerSetup({
       </div>
 
       {/* Config Badges */}
-      <div className="flex justify-center gap-3 mb-6">
-        {isTennis && tennisConfig && (
-          <>
-            <span className="px-3 py-1 text-xs font-semibold text-brand bg-brand/10 rounded-full">
-              Best of {tennisConfig.setsToWin * 2 - 1}
-            </span>
-            <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-secondary rounded-full">
-              {tennisConfig.isAdScoring ? "Ad Scoring" : "No-Ad"}
-            </span>
-          </>
-        )}
-        {!isTennis && volleyballConfig && (
-          <>
-            <span className="px-3 py-1 text-xs font-semibold text-brand bg-brand/10 rounded-full">
-              Best of {volleyballConfig.setsToWin * 2 - 1}
-            </span>
-            <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-secondary rounded-full">
-              Sets to {volleyballConfig.pointsPerSet}
-            </span>
-          </>
-        )}
-      </div>
+      {tennisConfig && (
+        <div className="flex justify-center gap-3 mb-6">
+          <span className="px-3 py-1 text-xs font-semibold text-brand bg-brand/10 rounded-full">
+            Best of {tennisConfig.setsToWin * 2 - 1}
+          </span>
+          <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-secondary rounded-full">
+            {tennisConfig.isAdScoring ? "Ad Scoring" : "No-Ad"}
+          </span>
+        </div>
+      )}
 
       {/* First Server Selection */}
       <div className="mb-6">
@@ -745,7 +692,7 @@ function InlineFirstServerSetup({
         disabled={loading}
         className="w-full py-3 font-semibold text-text-inverse bg-success rounded-xl hover:opacity-90 transition-all disabled:opacity-50"
       >
-        {loading ? "Starting..." : `Start ${isTennis ? "Tennis" : "Volleyball"} Match`}
+        {loading ? "Starting..." : "Start Tennis Match"}
       </button>
     </div>
   );

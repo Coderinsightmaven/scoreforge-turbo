@@ -6,8 +6,6 @@ import {
   tournamentFormats,
   tennisState,
   tennisConfig,
-  volleyballState,
-  volleyballConfig,
 } from "./schema";
 import { hashKey } from "./apiKeys";
 import type { Id } from "./_generated/dataModel";
@@ -57,7 +55,6 @@ const matchReturn = v.object({
   participant2: v.optional(participantReturn),
   winnerId: v.optional(v.string()),
   tennisState: v.optional(tennisState),
-  volleyballState: v.optional(volleyballState),
 });
 
 const tournamentReturn = v.object({
@@ -66,7 +63,6 @@ const tournamentReturn = v.object({
   sport: presetSports,
   format: tournamentFormats,
   tennisConfig: v.optional(tennisConfig),
-  volleyballConfig: v.optional(volleyballConfig),
   courts: v.optional(v.array(v.string())),
 });
 
@@ -318,7 +314,6 @@ export const getMatch = mutation({
         participant2,
         winnerId: match.winnerId,
         tennisState: match.tennisState,
-        volleyballState: match.volleyballState,
       },
       tournament: {
         id: tournament._id,
@@ -326,7 +321,6 @@ export const getMatch = mutation({
         sport: tournament.sport,
         format: tournament.format,
         tennisConfig: tournament.tennisConfig,
-        volleyballConfig: tournament.volleyballConfig,
         courts: tournament.courts,
       },
     };
@@ -505,7 +499,6 @@ export const listMatches = mutation({
           participant2,
           winnerId: match.winnerId,
           tennisState: match.tennisState,
-          volleyballState: match.volleyballState,
         };
       })
     );
@@ -545,7 +538,6 @@ export const listMatches = mutation({
         sport: tournament.sport,
         format: tournament.format,
         tennisConfig: tournament.tennisConfig,
-        volleyballConfig: tournament.volleyballConfig,
         courts: tournament.courts,
       },
     };

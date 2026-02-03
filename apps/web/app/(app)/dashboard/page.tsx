@@ -145,7 +145,6 @@ function TournamentCard({
 }) {
   const sportLabels: Record<string, string> = {
     tennis: "Tennis",
-    volleyball: "Volleyball",
   };
 
   const formatLabels: Record<string, string> = {

@@ -10,13 +10,12 @@ import { TournamentsScreen } from './TournamentsScreen';
 import { TournamentDetailScreen } from './TournamentDetailScreen';
 import { MatchDetailScreen } from './MatchDetailScreen';
 import { TennisScoringScreen } from './TennisScoringScreen';
-import { VolleyballScoringScreen } from './VolleyballScoringScreen';
 
 type Screen =
   | { type: 'tournaments' }
   | { type: 'tournament'; tournamentId: Id<'tournaments'> }
   | { type: 'match'; matchId: Id<'matches'> }
-  | { type: 'scoring'; matchId: Id<'matches'>; sport: 'tennis' | 'volleyball' };
+  | { type: 'scoring'; matchId: Id<'matches'> };
 
 export function HomeScreen() {
   const { signOut } = useAuthActions();
@@ -52,22 +51,14 @@ export function HomeScreen() {
           // Go back to tournament if we came from there
           setScreen({ type: 'tournaments' });
         }}
-        onStartScoring={(matchId, sport) => setScreen({ type: 'scoring', matchId, sport })}
+        onStartScoring={(matchId) => setScreen({ type: 'scoring', matchId })}
       />
     );
   }
 
   if (screen.type === 'scoring') {
-    if (screen.sport === 'tennis') {
-      return (
-        <TennisScoringScreen
-          matchId={screen.matchId}
-          onBack={() => setScreen({ type: 'match', matchId: screen.matchId })}
-        />
-      );
-    }
     return (
-      <VolleyballScoringScreen
+      <TennisScoringScreen
         matchId={screen.matchId}
         onBack={() => setScreen({ type: 'match', matchId: screen.matchId })}
       />

@@ -20,12 +20,6 @@ type TennisState = {
   tiebreakPoints?: [number, number];
 };
 
-type VolleyballState = {
-  sets: [number, number][];
-  currentSetPoints: [number, number];
-  isMatchComplete: boolean;
-};
-
 type Match = {
   _id: string;
   round: number;
@@ -42,7 +36,6 @@ type Match = {
   court?: string;
   nextMatchId?: string;
   tennisState?: TennisState;
-  volleyballState?: VolleyballState;
 };
 
 type EditableBracketProps = {
@@ -134,7 +127,7 @@ export function EditableBracket({
     return `Round ${round}`;
   };
 
-  // Get scores for a participant (tennis or volleyball)
+  // Get scores for a participant (tennis)
   const getParticipantScores = (match: Match, participantIndex: 0 | 1) => {
     if (match.tennisState) {
       const { sets, currentSetGames, isMatchComplete } = match.tennisState;
@@ -148,23 +141,6 @@ export function EditableBracket({
       // Add current set if match is in progress (not complete and has games played)
       if (!isMatchComplete && (currentSetGames[0] > 0 || currentSetGames[1] > 0)) {
         scores.push({ games: currentSetGames[participantIndex], isCurrentSet: true });
-      }
-
-      return scores;
-    }
-
-    if (match.volleyballState) {
-      const { sets, currentSetPoints, isMatchComplete } = match.volleyballState;
-      const scores: { games: number; isCurrentSet: boolean }[] = [];
-
-      // Add completed sets
-      sets.forEach((set) => {
-        scores.push({ games: set[participantIndex], isCurrentSet: false });
-      });
-
-      // Add current set if match is in progress
-      if (!isMatchComplete && (currentSetPoints[0] > 0 || currentSetPoints[1] > 0)) {
-        scores.push({ games: currentSetPoints[participantIndex], isCurrentSet: true });
       }
 
       return scores;

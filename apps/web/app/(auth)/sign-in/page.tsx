@@ -67,7 +67,7 @@ export default function SignInPage(): React.ReactNode {
               Score with precision
             </h2>
             <p className="text-body-lg text-white/60 leading-relaxed">
-              Real-time scoring, live brackets, and seamless tournament management for tennis and volleyball.
+              Real-time scoring, live brackets, and seamless tournament management for tennis.
             </p>
 
             <div className="mt-12 space-y-5">

@@ -353,8 +353,8 @@ function LandingContent({ isAuthenticated }: { isAuthenticated: boolean }): Reac
     },
     {
       icon: Trophy,
-      title: "Tennis & volleyball",
-      description: "Proper scoring rules for each sport, including tiebreaks and set points.",
+      title: "Tennis scoring",
+      description: "Proper tennis scoring rules, including tiebreaks and advantage points.",
       gradient: "from-rose-500 to-pink-500",
     },
     {
@@ -414,7 +414,7 @@ function LandingContent({ isAuthenticated }: { isAuthenticated: boolean }): Reac
 
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8 sm:mb-10 max-w-2xl mx-auto animate-slideUp delay-1 px-2">
               Create brackets, track scores in real-time, and manage your competitions — all in one place.
-              <span className="text-foreground font-medium"> Perfect for tennis and volleyball.</span>
+              <span className="text-foreground font-medium"> Perfect for tennis tournaments.</span>
             </p>
 
             {/* CTA buttons */}

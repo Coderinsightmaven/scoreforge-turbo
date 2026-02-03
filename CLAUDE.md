@@ -111,11 +111,10 @@ export const myFunction = query({
 - `systemSettings` - Global app settings (tournament limits, maintenance mode)
 
 ### Sport-Specific State
-Tennis and volleyball have dedicated state objects on matches:
+Tennis has a dedicated state object on matches:
 - `tennisState` - Sets, games, points, tiebreak, serve tracking, ad-scoring config
-- `volleyballState` - Sets, points, serve tracking
 
-Both include `history` array for undo functionality (last 10 states).
+Includes `history` array for undo functionality (last 10 states).
 
 ### Access Control
 - Tournament owner (`createdBy`) has full control
@@ -138,7 +137,6 @@ External API access via `publicApi.ts` for integrations:
 CSV export functionality via `reports.ts`:
 - `getTournamentMatchScores` - Query completed tennis matches with set scores
 - `generateMatchScoresCSV` - Action to generate downloadable CSV
-- Tennis-only (volleyball not supported)
 - Download button appears on tournament page for tennis tournaments with completed matches
 
 ## Web App Patterns
@@ -181,7 +179,6 @@ State-based navigation in `HomeScreen.tsx`:
 - `TournamentDetailScreen` - Match list with status filtering
 - `MatchDetailScreen` - Match info and "Start Scoring" button
 - `TennisScoringScreen` - Full tennis scoring (sets, games, points, tiebreaks, undo)
-- `VolleyballScoringScreen` - Volleyball scoring (sets, points, undo)
 
 ### Scoring Flow
 1. Select tournament → Select match → Start Scoring

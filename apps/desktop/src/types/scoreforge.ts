@@ -55,25 +55,6 @@ export interface ScoreForgeTennisState {
 }
 
 // ============================================
-// Volleyball State Types
-// ============================================
-
-export interface ScoreForgeVolleyballState {
-  /** Completed sets: array of [p1Points, p2Points] */
-  sets: number[][];
-  /** Current set points: [p1Points, p2Points] */
-  currentSetPoints: number[];
-  /** Which participant is serving (1 or 2) */
-  servingTeam: number;
-  setsToWin: number;
-  pointsPerSet: number;
-  pointsPerDecidingSet: number;
-  minLeadToWin: number;
-  currentSetNumber: number;
-  isMatchComplete: boolean;
-}
-
-// ============================================
 // Match Types
 // ============================================
 
@@ -99,14 +80,13 @@ export interface ScoreForgeMatch {
   participant2?: ScoreForgeParticipant;
   winnerId?: string;
   tennisState?: ScoreForgeTennisState;
-  volleyballState?: ScoreForgeVolleyballState;
 }
 
 // ============================================
 // Tournament Types
 // ============================================
 
-export type ScoreForgeSport = 'tennis' | 'volleyball';
+export type ScoreForgeSport = 'tennis';
 export type ScoreForgeFormat = 'single_elimination' | 'double_elimination' | 'round_robin';
 export type ScoreForgeTournamentStatus = 'draft' | 'active' | 'completed' | 'cancelled';
 
@@ -115,20 +95,12 @@ export interface ScoreForgeTennisConfig {
   setsToWin: number;
 }
 
-export interface ScoreForgeVolleyballConfig {
-  setsToWin: number;
-  pointsPerSet: number;
-  pointsPerDecidingSet: number;
-  minLeadToWin: number;
-}
-
 export interface ScoreForgeTournament {
   id: string;
   name: string;
   sport: ScoreForgeSport;
   format: ScoreForgeFormat;
   tennisConfig?: ScoreForgeTennisConfig;
-  volleyballConfig?: ScoreForgeVolleyballConfig;
   courts?: string[];
 }
 

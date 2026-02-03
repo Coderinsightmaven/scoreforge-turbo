@@ -48,7 +48,6 @@ export default function TournamentDetailPage({
 
   const sportIcons: Record<string, string> = {
     tennis: "🎾",
-    volleyball: "🏐",
   };
 
   const statusStyles: Record<string, string> = {
@@ -786,22 +785,6 @@ function formatTennisScoreForBracket(
   return parts.join(" ");
 }
 
-// Volleyball score formatter for bracket display
-function formatVolleyballScoreForBracket(
-  volleyballState: {
-    sets: number[][];
-    currentSetPoints: number[];
-  },
-  playerIndex: 0 | 1
-): string {
-  const parts: string[] = [];
-  for (const set of volleyballState.sets) {
-    parts.push((set[playerIndex] ?? 0).toString());
-  }
-  parts.push((volleyballState.currentSetPoints[playerIndex] ?? 0).toString());
-  return parts.join(" ");
-}
-
 function BracketTab({
   tournamentId,
   bracketId,
@@ -1001,9 +984,6 @@ function BracketTab({
   ) => {
     if (bracket.sport === "tennis" && match.tennisState) {
       return formatTennisScoreForBracket(match.tennisState, playerIndex);
-    }
-    if (bracket.sport === "volleyball" && match.volleyballState) {
-      return formatVolleyballScoreForBracket(match.volleyballState, playerIndex);
     }
     return playerIndex === 0 ? match.participant1Score : match.participant2Score;
   };
