@@ -123,10 +123,10 @@ function hashPinLegacy(pin: string): string {
 }
 
 /**
- * Hash a PIN using bcrypt
+ * Hash a PIN using bcrypt (synchronous for Convex compatibility)
  */
-async function hashPin(pin: string): Promise<string> {
-  return bcrypt.hash(pin, BCRYPT_ROUNDS);
+function hashPin(pin: string): string {
+  return bcrypt.hashSync(pin, BCRYPT_ROUNDS);
 }
 
 /**
@@ -208,9 +208,9 @@ function needsHashUpgrade(hash: string): boolean {
  * Verify a PIN against its hash (supports bcrypt, PBKDF2, and legacy formats)
  */
 async function verifyPin(pin: string, hash: string): Promise<boolean> {
-  // Try bcrypt first (new format)
+  // Try bcrypt first (new format) - use sync for Convex compatibility
   if (isBcryptHash(hash)) {
-    return bcrypt.compare(pin, hash);
+    return bcrypt.compareSync(pin, hash);
   }
 
   // Try PBKDF2 (previous format)
@@ -691,7 +691,7 @@ export const createTemporaryScorer = mutation({
 
     // Generate PIN and hash it
     const pin = generatePin();
-    const pinHash = await hashPin(pin);
+    const pinHash = hashPin(pin);
 
     const scorerId = await ctx.db.insert("temporaryScorers", {
       tournamentId: args.tournamentId,
@@ -813,7 +813,7 @@ export const resetTemporaryScorerPin = mutation({
 
     // Generate new PIN
     const pin = generatePin();
-    const pinHash = await hashPin(pin);
+    const pinHash = hashPin(pin);
 
     await ctx.db.patch(args.scorerId, { pinHash });
 
@@ -953,7 +953,7 @@ export const signIn = mutation({
 
     // Upgrade hash to bcrypt if needed
     if (needsHashUpgrade(scorer.pinHash)) {
-      const upgradedHash = await hashPin(args.pin);
+      const upgradedHash = hashPin(args.pin);
       await ctx.db.patch(scorer._id, { pinHash: upgradedHash });
     }
 
