@@ -123,6 +123,7 @@ pub async fn create_scoreboard_window(
     .title("Scoreboard Display")
     .resizable(false)
     .decorations(false)
+    .shadow(false)  // Remove shadow for square corners on macOS
     .always_on_top(true)
     .visible(false)
     .skip_taskbar(true)
