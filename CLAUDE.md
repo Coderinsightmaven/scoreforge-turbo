@@ -30,6 +30,7 @@ bun run dev --filter=@repo/convex
 bun run dev          # Start Convex dev server
 bun run logs         # View Convex logs
 npx convex run myFunctions:myQuery '{"arg": "value"}'  # Run a function
+npx convex deploy    # Deploy to production
 ```
 
 ### Mobile App Commands (from apps/mobile)
@@ -61,7 +62,8 @@ bun run build        # Build native app for distribution
 - `packages/typescript-config` - Shared TypeScript configs
 
 ### Package Imports
-- Convex functions: `api.filename.functionName`
+- Convex functions: `import { api } from "@repo/convex"` → use as `api.filename.functionName`
+- Internal functions: `import { internal } from "@repo/convex"` → use as `internal.filename.functionName`
 
 ## Convex Patterns
 
@@ -103,9 +105,11 @@ export const myFunction = query({
 
 ### Core Tables
 - `tournaments` - Competitions owned by `createdBy` user, with format (single/double elimination, round robin)
+- `tournamentBrackets` - Categories within a tournament (e.g., "Men's Singles", "Women's Doubles") with optional format overrides
 - `tournamentScorers` - Users assigned to score matches in a tournament (not the owner)
-- `tournamentParticipants` - Supports individual, doubles, team types
-- `matches` - Game records with sport-specific state
+- `tournamentParticipants` - Supports individual, doubles, team types; can be assigned to specific brackets
+- `matches` - Game records with sport-specific state; can belong to a bracket
+- `temporaryScorers` - Lightweight scorer accounts with PIN login (no full user account needed)
 - `apiKeys` - User-owned API keys for public API access
 - `siteAdmins` - Users with site-wide admin privileges
 - `systemSettings` - Global app settings (tournament limits, maintenance mode)
@@ -119,6 +123,7 @@ Includes `history` array for undo functionality (last 10 states).
 ### Access Control
 - Tournament owner (`createdBy`) has full control
 - Scorers (via `tournamentScorers`) can score matches but not manage tournament
+- Temporary scorers authenticate via tournament's `scorerCode` + their PIN
 - Site admins can manage users and system settings
 
 ### User Preferences
