@@ -115,6 +115,7 @@ pub async fn create_scoreboard_window(
     }
 
     // Create window in windowed mode first, then position and set fullscreen
+    // Use transparent window to bypass macOS rounded corners
     let window = WebviewWindowBuilder::new(
         &app,
         window_id.clone(),
@@ -123,7 +124,8 @@ pub async fn create_scoreboard_window(
     .title("Scoreboard Display")
     .resizable(false)
     .decorations(false)
-    .shadow(false)  // Remove shadow for square corners on macOS
+    .shadow(false)
+    .transparent(true)  // Transparent window for pixel-perfect square corners
     .always_on_top(true)
     .visible(false)
     .skip_taskbar(true)
