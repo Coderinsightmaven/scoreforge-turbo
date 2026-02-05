@@ -23,7 +23,7 @@ export interface TennisWorkerMessage {
   /** Type of operation to perform */
   type: 'PROCESS_DATA' | 'UPDATE_CONFIG' | 'STOP_PROCESSING';
   /** Optional payload data */
-  payload?: any;
+  payload?: Record<string, unknown>;
 }
 
 /**
@@ -33,7 +33,7 @@ export interface TennisWorkerResponse {
   /** Type of response */
   type: 'DATA_PROCESSED' | 'ERROR' | 'READY';
   /** Optional response payload */
-  payload?: any;
+  payload?: ProcessedTennisMatch | Record<string, unknown>;
   /** Error message if type is ERROR */
   error?: string;
 }
@@ -127,33 +127,40 @@ class TennisDataProcessor {
    * @returns Processed tennis match data, or null if processing fails
    * @throws Error if data format is invalid
    */
-  processData(rawData: any): ProcessedTennisMatch | null {
+  processData(rawData: Record<string, unknown>): ProcessedTennisMatch | null {
     try {
       if (!rawData || typeof rawData !== 'object') {
         throw new Error('Invalid data format');
       }
 
+      // Cast nested objects for safe property access
+      const score = rawData.score as Record<string, unknown> | undefined;
+      const player1Raw = rawData.player1 as Record<string, unknown> | undefined;
+      const player2Raw = rawData.player2 as Record<string, unknown> | undefined;
+      const team1Raw = rawData.team1 as Record<string, unknown> | undefined;
+      const team2Raw = rawData.team2 as Record<string, unknown> | undefined;
+
       // Extract score data with fallbacks
-      const player1Sets = rawData.score?.player1Sets || rawData.score?.player1_sets || 0;
-      const player2Sets = rawData.score?.player2Sets || rawData.score?.player2_sets || 0;
-      const player1Games = rawData.score?.player1Games || rawData.score?.player1_games || 0;
-      const player2Games = rawData.score?.player2Games || rawData.score?.player2_games || 0;
-      const player1Points = this.normalizePoints(rawData.score?.player1Points || rawData.score?.player1_points || '0');
-      const player2Points = this.normalizePoints(rawData.score?.player2Points || rawData.score?.player2_points || '0');
+      const player1Sets = (score?.player1Sets || score?.player1_sets || 0) as number;
+      const player2Sets = (score?.player2Sets || score?.player2_sets || 0) as number;
+      const player1Games = (score?.player1Games || score?.player1_games || 0) as number;
+      const player2Games = (score?.player2Games || score?.player2_games || 0) as number;
+      const player1Points = this.normalizePoints((score?.player1Points || score?.player1_points || '0') as string | number);
+      const player2Points = this.normalizePoints((score?.player2Points || score?.player2_points || '0') as string | number);
       const servingPlayer = (rawData.servingPlayer || rawData.serving_player || 1) as 1 | 2 | 3 | 4;
 
       // Process raw tennis data into structured format
       const processedData: ProcessedTennisMatch = {
-        matchId: rawData.matchId || rawData.id || 'unknown',
+        matchId: (rawData.matchId || rawData.id || 'unknown') as string,
         player1: {
-          name: rawData.player1?.name || rawData.team1?.name || 'Player 1',
-          country: rawData.player1?.country,
-          seed: rawData.player1?.seed
+          name: (player1Raw?.name || team1Raw?.name || 'Player 1') as string,
+          country: player1Raw?.country as string | undefined,
+          seed: player1Raw?.seed as number | undefined
         },
         player2: {
-          name: rawData.player2?.name || rawData.team2?.name || 'Player 2',
-          country: rawData.player2?.country,
-          seed: rawData.player2?.seed
+          name: (player2Raw?.name || team2Raw?.name || 'Player 2') as string,
+          country: player2Raw?.country as string | undefined,
+          seed: player2Raw?.seed as number | undefined
         },
         score: {
           player1Sets,
@@ -170,11 +177,11 @@ class TennisDataProcessor {
           player1_points: player1Points,
           player2_points: player2Points
         },
-        sets: this.processSetsData(rawData.sets || {}),
+        sets: this.processSetsData((rawData.sets || {}) as Record<string, unknown>),
         servingPlayer,
-        currentSet: rawData.currentSet || rawData.current_set || 1,
-        isTiebreak: rawData.isTiebreak || rawData.is_tiebreak || false,
-        matchStatus: rawData.matchStatus || rawData.match_status || 'in_progress'
+        currentSet: (rawData.currentSet || rawData.current_set || 1) as number,
+        isTiebreak: (rawData.isTiebreak || rawData.is_tiebreak || false) as boolean,
+        matchStatus: (rawData.matchStatus || rawData.match_status || 'in_progress') as 'in_progress' | 'completed'
       };
 
       this.log('Data processed successfully:', processedData.matchId);
@@ -225,14 +232,15 @@ class TennisDataProcessor {
    * @param rawSets - Raw sets data object
    * @returns Normalized sets data with consistent structure
    */
-  private processSetsData(rawSets: any): Record<string, { player1: number; player2: number }> {
+  private processSetsData(rawSets: Record<string, unknown>): Record<string, { player1: number; player2: number }> {
     const processedSets: Record<string, { player1: number; player2: number }> = {};
 
-    Object.entries(rawSets).forEach(([setKey, setData]: [string, any]) => {
+    Object.entries(rawSets).forEach(([setKey, setData]: [string, unknown]) => {
+      const setRecord = setData as Record<string, unknown>;
       if (setData && typeof setData === 'object') {
         processedSets[setKey] = {
-          player1: setData.player1 || setData.player1_games || 0,
-          player2: setData.player2 || setData.player2_games || 0
+          player1: (setRecord.player1 as number) || (setRecord.player1_games as number) || 0,
+          player2: (setRecord.player2 as number) || (setRecord.player2_games as number) || 0
         };
       }
     });
@@ -245,7 +253,7 @@ class TennisDataProcessor {
    * 
    * @param args - Arguments to log
    */
-  private log(...args: any[]) {
+  private log(...args: unknown[]) {
     if (this.config.enableDebugLogging) {
       console.log('[TennisDataProcessor]', ...args);
     }
@@ -275,7 +283,7 @@ self.onmessage = (event: MessageEvent<TennisWorkerMessage>) => {
   try {
     switch (type) {
       case 'PROCESS_DATA':
-        const processedData = processor.processData(payload);
+        const processedData = processor.processData(payload ?? {});
         self.postMessage({
           type: 'DATA_PROCESSED',
           payload: processedData
@@ -283,7 +291,7 @@ self.onmessage = (event: MessageEvent<TennisWorkerMessage>) => {
         break;
 
       case 'UPDATE_CONFIG':
-        processor.updateConfig(payload);
+        processor.updateConfig((payload ?? {}) as Partial<WorkerConfig>);
         self.postMessage({
           type: 'READY'
         } as TennisWorkerResponse);
@@ -303,7 +311,7 @@ self.onmessage = (event: MessageEvent<TennisWorkerMessage>) => {
     self.postMessage({
       type: 'ERROR',
       error: error instanceof Error ? error.message : 'Unknown error',
-      payload: event.data
+      payload: event.data as unknown as Record<string, unknown>
     } as TennisWorkerResponse);
   }
 };

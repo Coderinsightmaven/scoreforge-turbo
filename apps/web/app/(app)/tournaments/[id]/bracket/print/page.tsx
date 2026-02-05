@@ -2,6 +2,7 @@
 
 import { useQuery } from "convex/react";
 import { api } from "@repo/convex";
+import type { Id } from "@repo/convex/dataModel";
 import { use, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -16,12 +17,12 @@ export default function PrintBracketPage({
   const bracketIdParam = searchParams.get("bracketId");
 
   const tournament = useQuery(api.tournaments.getTournament, {
-    tournamentId: id as any,
+    tournamentId: id as Id<"tournaments">,
   });
 
   // Get all brackets for this tournament
   const brackets = useQuery(api.tournamentBrackets.listBrackets, {
-    tournamentId: id as any,
+    tournamentId: id as Id<"tournaments">,
   });
 
   // Determine which bracket to display
@@ -30,13 +31,13 @@ export default function PrintBracketPage({
   // Get bracket details if we have a selected bracket
   const bracketDetails = useQuery(
     api.tournamentBrackets.getBracket,
-    selectedBracketId ? { bracketId: selectedBracketId as any } : "skip"
+    selectedBracketId ? { bracketId: selectedBracketId as Id<"tournamentBrackets"> } : "skip"
   );
 
   // Get bracket matches
   const bracket = useQuery(
     api.tournamentBrackets.getBracketMatches,
-    selectedBracketId ? { bracketId: selectedBracketId as any } : "skip"
+    selectedBracketId ? { bracketId: selectedBracketId as Id<"tournamentBrackets"> } : "skip"
   );
 
   // Auto-print when loaded (optional - user can trigger manually)

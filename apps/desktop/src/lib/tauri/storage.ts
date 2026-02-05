@@ -7,7 +7,7 @@ import { TauriScoreboardConfig } from './types';
 /**
  * Saves a scoreboard design to disk.
  */
-export async function saveScoreboard(name: string, config: any): Promise<string> {
+export async function saveScoreboard(name: string, config: Record<string, unknown>): Promise<string> {
   try {
     return await invoke('save_scoreboard', { name, data: config });
   } catch (error) {

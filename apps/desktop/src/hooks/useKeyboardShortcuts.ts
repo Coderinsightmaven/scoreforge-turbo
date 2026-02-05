@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useScoreboardStore } from '../stores/useScoreboardStore';
 import { useCanvasStore } from '../stores/useCanvasStore';
+import { ScoreboardConfig } from '../types/scoreboard';
 
 /**
  * Hook that handles keyboard shortcuts for the scoreboard designer.
@@ -12,7 +13,7 @@ import { useCanvasStore } from '../stores/useCanvasStore';
  * @param config - The current scoreboard config (null if no scoreboard loaded)
  * @returns Object with handler functions for copy/paste operations
  */
-export const useKeyboardShortcuts = (config: any) => {
+export const useKeyboardShortcuts = (config: ScoreboardConfig | null) => {
   const { copyComponents, pasteComponents } = useScoreboardStore();
   const { selectedComponents, clipboard, setClipboard } = useCanvasStore();
 

@@ -282,7 +282,7 @@ export const useAppStore = create<AppState & AppActions>()(
         const windowId = `scoreboard_${instanceId}`;
         
         // Get current scoreboard data from the store, or load saved scoreboard data if provided
-        let scoreboardData = null;
+        let scoreboardData: Record<string, unknown> | undefined = undefined;
         
         // Import the scoreboard store
         const { useScoreboardStore } = await import('./useScoreboardStore');
@@ -293,7 +293,7 @@ export const useAppStore = create<AppState & AppActions>()(
             const savedScoreboards = await TauriAPI.listScoreboards();
             const savedScoreboard = savedScoreboards.find(sb => sb.id === savedScoreboardId);
             if (savedScoreboard) {
-              scoreboardData = savedScoreboard.data;
+              scoreboardData = savedScoreboard.data as unknown as Record<string, unknown>;
               // Include tennis API scoreboard ID and ScoreForge config if provided
               if (tennisApiScoreboardId || scoreForgeConfig) {
                 scoreboardData = {

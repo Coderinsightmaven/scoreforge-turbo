@@ -3,7 +3,9 @@
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Image from "next/image";
 import { Navigation } from "../components/Navigation";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 
 export default function AppLayout({
   children,
@@ -17,7 +19,7 @@ export default function AppLayout({
       <AuthLoading>
         <div className="flex items-center justify-center min-h-screen bg-bg-primary">
           <div className="flex flex-col items-center gap-4 animate-fadeIn">
-            <img src="/logo.png" alt="ScoreForge" className="w-16 h-16 object-contain animate-pulse" />
+            <Image src="/logo.png" alt="ScoreForge" width={64} height={64} className="w-16 h-16 object-contain animate-pulse" />
             <div className="text-xl font-semibold tracking-tight text-text-primary">
               ScoreForge
             </div>
@@ -31,7 +33,9 @@ export default function AppLayout({
 
       <Authenticated>
         <main className="pt-[var(--nav-height)] min-h-screen">
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
         </main>
       </Authenticated>
     </div>
@@ -47,7 +51,7 @@ function RedirectToSignIn() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-bg-primary">
-      <img src="/logo.png" alt="ScoreForge" className="w-16 h-16 object-contain animate-pulse" />
+      <Image src="/logo.png" alt="ScoreForge" width={64} height={64} className="w-16 h-16 object-contain animate-pulse" />
     </div>
   );
 }

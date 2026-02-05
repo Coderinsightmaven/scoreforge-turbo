@@ -3416,6 +3416,7 @@ dependencies = [
  "chrono",
  "futures-util",
  "lazy_static",
+ "log",
  "reqwest",
  "serde",
  "serde_json",

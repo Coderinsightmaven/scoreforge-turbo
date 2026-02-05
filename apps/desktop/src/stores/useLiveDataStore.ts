@@ -51,7 +51,7 @@ interface LiveDataActions {
   removeComponentBinding: (componentId: string) => void;
   updateComponentBinding: (componentId: string, updates: Partial<LiveDataComponentBinding>) => void;
   getComponentBinding: (componentId: string) => LiveDataComponentBinding | undefined;
-  getComponentValue: (componentId: string) => any;
+  getComponentValue: (componentId: string) => unknown;
   
   // Polling control
   startPolling: (connectionId: string) => void;
@@ -115,9 +115,12 @@ interface LiveDataActions {
  * @param path - Dot-notation path (e.g., 'player1.name')
  * @returns The value at the path, or undefined if path doesn't exist
  */
-const getValueFromPath = (obj: any, path: string): any => {
-  return path.split('.').reduce((current, key) => {
-    return current && current[key] !== undefined ? current[key] : undefined;
+const getValueFromPath = (obj: Record<string, unknown>, path: string): unknown => {
+  return path.split('.').reduce<unknown>((current, key) => {
+    if (current && typeof current === 'object' && current !== null) {
+      return (current as Record<string, unknown>)[key];
+    }
+    return undefined;
   }, obj);
 };
 
@@ -313,7 +316,7 @@ export const useLiveDataStore = create<LiveDataStoreState & LiveDataActions>()(
       const liveData = state.activeData[binding.connectionId];
       if (!liveData) return undefined;
       
-      return getValueFromPath(liveData, binding.dataPath);
+      return getValueFromPath(liveData as unknown as Record<string, unknown>, binding.dataPath);
     },
 
     // Polling control

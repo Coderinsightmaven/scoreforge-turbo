@@ -2,6 +2,7 @@
 
 import { useQuery } from "convex/react";
 import { api } from "@repo/convex";
+import type { Id } from "@repo/convex/dataModel";
 import { useState, useRef, useEffect } from "react";
 import { Skeleton } from "./Skeleton";
 
@@ -32,7 +33,7 @@ export function BracketSelector({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const brackets = useQuery(api.tournamentBrackets.listBrackets, {
-    tournamentId: tournamentId as any,
+    tournamentId: tournamentId as Id<"tournaments">,
   });
 
   // Close dropdown when clicking outside

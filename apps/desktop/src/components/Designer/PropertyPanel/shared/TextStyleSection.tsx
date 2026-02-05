@@ -5,7 +5,7 @@ interface TextStyleSectionProps {
   /** The component being edited */
   component: ScoreboardComponent;
   /** Callback when style changes */
-  onStyleChange: (property: string, value: any) => void;
+  onStyleChange: (property: string, value: string | number | boolean | Record<string, unknown>) => void;
 }
 
 /**

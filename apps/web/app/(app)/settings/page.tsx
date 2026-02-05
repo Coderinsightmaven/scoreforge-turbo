@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@repo/convex";
+import type { Id } from "@repo/convex/dataModel";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -22,6 +23,8 @@ import {
 } from "@/components/ui/dialog";
 import { ChevronLeft, CheckCircle, X, Key, Copy, AlertCircle } from "lucide-react";
 import { getDisplayMessage } from "@/lib/errors";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/app/components/ConfirmDialog";
 
 export default function SettingsPage(): React.ReactNode {
   const user = useQuery(api.users.currentUser);
@@ -68,7 +71,7 @@ export default function SettingsPage(): React.ReactNode {
       await deleteAccount();
       await signOut();
     } catch (err) {
-      alert(getDisplayMessage(err) || "Failed to delete account");
+      toast.error(getDisplayMessage(err) || "Failed to delete account");
       setDeleting(false);
     }
   };
@@ -325,6 +328,7 @@ function ApiKeysSection() {
   const [isCreating, setIsCreating] = useState(false);
   const [showNewKey, setShowNewKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [confirmDeleteKey, setConfirmDeleteKey] = useState<string | null>(null);
 
   const handleCreateKey = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -346,19 +350,24 @@ function ApiKeysSection() {
 
   const handleRevoke = async (keyId: string) => {
     try {
-      await revokeApiKey({ keyId: keyId as any });
+      await revokeApiKey({ keyId: keyId as Id<"apiKeys"> });
     } catch (err) {
       setError(getDisplayMessage(err) || "Failed to revoke API key");
     }
   };
 
-  const handleDelete = async (keyId: string) => {
-    if (!confirm("Are you sure you want to delete this API key?")) return;
+  const handleDelete = (keyId: string) => {
+    setConfirmDeleteKey(keyId);
+  };
+
+  const executeDeleteKey = async () => {
+    if (!confirmDeleteKey) return;
     try {
-      await deleteApiKey({ keyId: keyId as any });
+      await deleteApiKey({ keyId: confirmDeleteKey as Id<"apiKeys"> });
     } catch (err) {
       setError(getDisplayMessage(err) || "Failed to delete API key");
     }
+    setConfirmDeleteKey(null);
   };
 
   const copyToClipboard = (text: string) => {
@@ -366,6 +375,7 @@ function ApiKeysSection() {
   };
 
   return (
+  <>
     <Card>
       <CardHeader>
         <CardTitle>API Keys</CardTitle>
@@ -497,6 +507,16 @@ function ApiKeysSection() {
         )}
       </CardContent>
     </Card>
+    <ConfirmDialog
+      open={confirmDeleteKey !== null}
+      onConfirm={executeDeleteKey}
+      onCancel={() => setConfirmDeleteKey(null)}
+      title="Delete API Key"
+      description="Are you sure you want to delete this API key? Any applications using it will lose access."
+      confirmLabel="Delete"
+      variant="danger"
+    />
+  </>
   );
 }
 

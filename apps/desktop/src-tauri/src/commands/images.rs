@@ -143,7 +143,7 @@ pub async fn delete_image(app: AppHandle, image_id: String) -> Result<(), String
     
     // Delete the actual file
     if let Err(e) = fs::remove_file(&image.path) {
-        eprintln!("Warning: Failed to delete image file {}: {}", image.path, e);
+        log::error!("Failed to delete image file {}: {}", image.path, e);
     }
     
     // Remove from metadata

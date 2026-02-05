@@ -24,7 +24,7 @@ export default function NewTournamentPage(): React.ReactNode {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [bracketName, setBracketName] = useState("Main Draw");
-  const [sport, setSport] = useState<Sport>("tennis");
+  const [sport] = useState<Sport>("tennis");
   const [format, setFormat] = useState<Format>("single_elimination");
   const [participantType, setParticipantType] = useState<ParticipantType>("individual");
   const [maxParticipants, setMaxParticipants] = useState(8);

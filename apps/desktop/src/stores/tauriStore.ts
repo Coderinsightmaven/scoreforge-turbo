@@ -15,10 +15,10 @@ export interface TauriStoreState {
   isLoading: Record<string, boolean>;
 
   // State cache (for immediate access)
-  cachedState: Record<string, any>;
+  cachedState: Record<string, unknown>;
 
   // Event subscriptions
-  subscriptions: Record<string, { stateType: string; callback: (data: any) => void }>;
+  subscriptions: Record<string, { stateType: string; callback: (data: unknown) => void }>;
 }
 
 // ==================== ACTIONS ====================
@@ -30,10 +30,10 @@ export interface TauriStoreActions {
 
   // Generic state operations
   getState: <T>(stateType: string) => Promise<T>;
-  updateState: (stateType: string, updates: any) => Promise<void>;
+  updateState: (stateType: string, updates: Record<string, unknown>) => Promise<void>;
 
   // Subscription management
-  subscribeToStateUpdates: (stateType: string, callback: (data: any) => void) => Promise<string>;
+  subscribeToStateUpdates: (stateType: string, callback: (data: unknown) => void) => Promise<string>;
   unsubscribeFromStateUpdates: (subscriptionId: string) => Promise<void>;
 
   // Loading state management
@@ -45,7 +45,7 @@ export interface TauriStoreActions {
   clearError: () => void;
 
   // Cache management
-  updateCache: (stateType: string, data: any) => void;
+  updateCache: (stateType: string, data: unknown) => void;
   clearCache: (stateType?: string) => void;
 
   // Private methods
@@ -150,7 +150,7 @@ export const useTauriStore = create<TauriStoreState & TauriStoreActions>()(
       }
     },
 
-    updateState: async (stateType: string, updates: any) => {
+    updateState: async (stateType: string, updates: Record<string, unknown>) => {
       const { setLoading, clearLoading } = get();
 
       setLoading(`update_${stateType}`, true);
@@ -175,18 +175,20 @@ export const useTauriStore = create<TauriStoreState & TauriStoreActions>()(
 
           case 'canvas':
             if (updates.canvasSize) {
+              const canvasSize = updates.canvasSize as { width: number; height: number };
               await invoke('set_canvas_size', {
-                width: updates.canvasSize.width,
-                height: updates.canvasSize.height
+                width: canvasSize.width,
+                height: canvasSize.height
               });
             }
             if (updates.zoom !== undefined) {
               await invoke('set_canvas_zoom', { zoom: updates.zoom });
             }
             if (updates.pan) {
+              const pan = updates.pan as { x: number; y: number };
               await invoke('set_canvas_pan', {
-                x: updates.pan.x,
-                y: updates.pan.y
+                x: pan.x,
+                y: pan.y
               });
             }
             if (updates.showGrid !== undefined) {
@@ -247,7 +249,7 @@ export const useTauriStore = create<TauriStoreState & TauriStoreActions>()(
 
     // ==================== SUBSCRIPTION MANAGEMENT ====================
 
-    subscribeToStateUpdates: async (stateType: string, callback: (data: any) => void): Promise<string> => {
+    subscribeToStateUpdates: async (stateType: string, callback: (data: unknown) => void): Promise<string> => {
       const subscriptionId = `${stateType}_${Date.now()}_${Math.random()}`;
 
       try {
@@ -317,7 +319,7 @@ export const useTauriStore = create<TauriStoreState & TauriStoreActions>()(
 
     // ==================== CACHE MANAGEMENT ====================
 
-    updateCache: (stateType: string, data: any) => {
+    updateCache: (stateType: string, data: unknown) => {
       set(state => ({
         cachedState: {
           ...state.cachedState,
@@ -441,7 +443,7 @@ export const createTauriStateHook = <T>(stateType: string) => {
 
 // Helper to create typed update functions
 export const createTauriUpdateFunction = (stateType: string) => {
-  return async (updates: any) => {
+  return async (updates: Record<string, unknown>) => {
     const { updateState } = useTauriStore.getState();
     await updateState(stateType, updates);
   };

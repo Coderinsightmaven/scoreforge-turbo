@@ -404,7 +404,7 @@ impl BatchTennisProcessor {
             match TennisDataProcessor::process_data(raw_data) {
                 Ok(processed) => results.push(processed),
                 Err(error) => {
-                    eprintln!("Error processing tennis data: {}", error);
+                    log::error!("Error processing tennis data: {}", error);
                     // Continue processing other items
                 }
             }
@@ -429,7 +429,7 @@ impl BatchTennisProcessor {
 /// * `Err(String)` - Error message
 #[command]
 pub async fn process_tennis_data(raw_data: RawTennisData) -> Result<ProcessedTennisMatch, String> {
-    println!("🎾 Processing tennis data via Rust backend");
+    log::debug!("Processing tennis data via Rust backend");
     TennisDataProcessor::process_data(raw_data)
 }
 
@@ -445,7 +445,7 @@ pub async fn process_tennis_data(raw_data: RawTennisData) -> Result<ProcessedTen
 /// * `Err(String)` - Error message
 #[command]
 pub async fn process_tennis_data_batch(raw_data_batch: Vec<RawTennisData>) -> Result<Vec<ProcessedTennisMatch>, String> {
-    println!("🎾 Batch processing {} tennis matches via Rust backend", raw_data_batch.len());
+    log::debug!("Batch processing {} tennis matches via Rust backend", raw_data_batch.len());
     BatchTennisProcessor::process_batch(raw_data_batch)
 }
 

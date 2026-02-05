@@ -3,7 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@repo/convex";
+import type { Id } from "@repo/convex/dataModel";
 import { getDisplayMessage } from "@/lib/errors";
+import { toast } from "sonner";
 
 type Participant = {
   _id: string;
@@ -42,17 +44,15 @@ type Match = {
 type EditableBracketProps = {
   matches: Match[];
   format: string;
-  sport: string;
-  tournamentId: string;
   canEdit: boolean;
   onParticipantUpdate?: (participantId: string, newName: string) => void;
 };
 
+export type { Match };
+
 export function EditableBracket({
   matches,
   format,
-  sport,
-  tournamentId,
   canEdit,
   onParticipantUpdate,
 }: EditableBracketProps): React.ReactNode {
@@ -85,12 +85,12 @@ export function EditableBracket({
     setSaving(true);
     try {
       await updatePlaceholderName({
-        participantId: editingSlot as any,
+        participantId: editingSlot as Id<"tournamentParticipants">,
         displayName: editValue.trim(),
       });
       onParticipantUpdate?.(editingSlot, editValue.trim());
     } catch (err) {
-      alert(getDisplayMessage(err) || "Failed to update participant name");
+      toast.error(getDisplayMessage(err) || "Failed to update participant name");
     }
     setSaving(false);
     setEditingSlot(null);

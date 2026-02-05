@@ -3,6 +3,7 @@
 import { Authenticated, AuthLoading } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 
 export default function AuthLayout({
   children,
@@ -26,7 +27,9 @@ export default function AuthLayout({
       </Authenticated>
 
       <div className="relative z-10">
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </div>
     </div>
   );

@@ -33,6 +33,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Rust build artifacts
+target/
+
 # Misc
 .DS_Store
 *.pem

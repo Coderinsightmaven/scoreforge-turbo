@@ -9,6 +9,8 @@ import { Skeleton, SkeletonScoreboard } from "@/app/components/Skeleton";
 import { TennisScoreboard } from "@/app/components/TennisScoreboard";
 import { FullScreenScoring, MatchCompleteScreen } from "@/app/components/FullScreenScoring";
 import { getDisplayMessage } from "@/lib/errors";
+import { toast } from "sonner";
+import type { Id } from "@repo/convex/dataModel";
 
 export default function MatchDetailPage({
   params,
@@ -16,7 +18,7 @@ export default function MatchDetailPage({
   params: Promise<{ id: string }>;
 }): React.ReactNode {
   const { id } = use(params);
-  const match = useQuery(api.matches.getMatch, { matchId: id as any });
+  const match = useQuery(api.matches.getMatch, { matchId: id as Id<"matches"> });
 
   if (match === undefined) {
     return <LoadingSkeleton />;
@@ -324,12 +326,12 @@ function Scoreboard({
     setSaving(true);
     try {
       await updateScore({
-        matchId: match._id as any,
+        matchId: match._id as Id<"matches">,
         participant1Score: newP1,
         participant2Score: newP2,
       });
     } catch (err) {
-      alert(getDisplayMessage(err) || "Failed to update score");
+      toast.error(getDisplayMessage(err) || "Failed to update score");
       setP1Score(match.participant1Score);
       setP2Score(match.participant2Score);
     }
@@ -476,23 +478,23 @@ function MatchActions({
   const handleStart = async () => {
     setLoading(true);
     try {
-      await startMatch({ matchId: match._id as any });
+      await startMatch({ matchId: match._id as Id<"matches"> });
     } catch (err) {
-      alert(getDisplayMessage(err) || "Failed to start match");
+      toast.error(getDisplayMessage(err) || "Failed to start match");
     }
     setLoading(false);
   };
 
   const handleComplete = async () => {
     if (match.participant1Score === match.participant2Score) {
-      alert("Cannot complete match with tied score in elimination format");
+      toast.error("Cannot complete match with tied score in elimination format");
       return;
     }
     setLoading(true);
     try {
-      await completeMatch({ matchId: match._id as any });
+      await completeMatch({ matchId: match._id as Id<"matches"> });
     } catch (err) {
-      alert(getDisplayMessage(err) || "Failed to complete match");
+      toast.error(getDisplayMessage(err) || "Failed to complete match");
     }
     setLoading(false);
   };
@@ -600,12 +602,12 @@ function InlineFirstServerSetup({
   const handleStart = async () => {
     setLoading(true);
     try {
-      await initTennisMatch({ matchId: matchId as any, firstServer: selectedServer });
+      await initTennisMatch({ matchId: matchId as Id<"matches">, firstServer: selectedServer });
       if (matchStatus === "pending" || matchStatus === "scheduled") {
-        await startMatch({ matchId: matchId as any });
+        await startMatch({ matchId: matchId as Id<"matches"> });
       }
     } catch (err) {
-      alert(getDisplayMessage(err) || "Failed to start match");
+      toast.error(getDisplayMessage(err) || "Failed to start match");
     }
     setLoading(false);
   };
@@ -720,13 +722,13 @@ function CourtInfo({
     setSaving(true);
     try {
       await updateMatchCourt({
-        matchId: matchId as any,
+        matchId: matchId as Id<"matches">,
         court: newValue.trim() || undefined,
       });
       setCourtValue(newValue);
       setIsEditing(false);
     } catch (err) {
-      alert(getDisplayMessage(err) || "Failed to update court");
+      toast.error(getDisplayMessage(err) || "Failed to update court");
     }
     setSaving(false);
   };

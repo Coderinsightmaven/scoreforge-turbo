@@ -84,7 +84,7 @@ export interface CanvasHistory {
 }
 
 export interface CanvasSnapshot {
-  components: any[];
+  components: Record<string, unknown>[];
   canvasSize: { width: number; height: number };
   timestamp: number;
   description: string;

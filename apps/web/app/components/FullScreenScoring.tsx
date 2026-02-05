@@ -2,9 +2,12 @@
 
 import { useMutation } from "convex/react";
 import { api } from "@repo/convex";
+import type { Id } from "@repo/convex/dataModel";
 import { getDisplayMessage } from "@/lib/errors";
 import { useState, useCallback } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/app/components/ConfirmDialog";
 
 // Check if name is a doubles format (contains " / ")
 function isDoublesName(name: string): boolean {
@@ -156,6 +159,7 @@ export function FullScreenScoring({
   canScore,
 }: Props): React.ReactNode {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [confirmState, setConfirmState] = useState<{action: () => void, title: string, description: string} | null>(null);
 
   // Mutations
   const scoreTennisPoint = useMutation(api.tennis.scoreTennisPoint);
@@ -172,33 +176,33 @@ export function FullScreenScoring({
 
     setIsUpdating(true);
     try {
-      await scoreTennisPoint({ matchId: matchId as any, winnerParticipant: winner });
+      await scoreTennisPoint({ matchId: matchId as Id<"matches">, winnerParticipant: winner });
     } catch (err) {
-      alert(getDisplayMessage(err) || "Failed to score point");
+      toast.error(getDisplayMessage(err) || "Failed to score point");
     }
     setIsUpdating(false);
   };
 
-  const handleUndo = async () => {
+  const handleUndo = () => {
     if (!canScore || isMatchComplete) return;
 
-    const confirmed = window.confirm("Undo last point? This will revert to the previous state.");
-    if (!confirmed) return;
-
-    setIsUpdating(true);
-    try {
-      await undoTennisPoint({ matchId: matchId as any });
-    } catch (err) {
-      alert(getDisplayMessage(err) || "Failed to undo");
-    }
-    setIsUpdating(false);
+    setConfirmState({
+      action: async () => {
+        setIsUpdating(true);
+        try {
+          await undoTennisPoint({ matchId: matchId as Id<"matches"> });
+        } catch (err) {
+          toast.error(getDisplayMessage(err) || "Failed to undo");
+        }
+        setIsUpdating(false);
+      },
+      title: "Undo Point",
+      description: "Undo last point? This will revert to the previous state.",
+    });
   };
 
   const p1Name = participant1?.displayName || "Player 1";
   const p2Name = participant2?.displayName || "Player 2";
-
-  // Check if this is a doubles match
-  const isDoubles = isDoublesName(p1Name) || isDoublesName(p2Name);
 
   return (
     <div className="fixed inset-0 flex flex-row bg-bg-primary z-50">
@@ -312,6 +316,18 @@ export function FullScreenScoring({
           <span className="font-semibold text-text-primary text-sm sm:text-base md:text-lg">Undo</span>
         </button>
       )}
+
+      <ConfirmDialog
+        open={confirmState !== null}
+        onConfirm={() => {
+          confirmState?.action();
+          setConfirmState(null);
+        }}
+        onCancel={() => setConfirmState(null)}
+        title={confirmState?.title ?? ""}
+        description={confirmState?.description ?? ""}
+        confirmLabel="Undo"
+      />
     </div>
   );
 }
@@ -343,12 +359,12 @@ export function FirstServerSetup({
   const handleStart = async () => {
     setLoading(true);
     try {
-      await initTennisMatch({ matchId: matchId as any, firstServer: selectedServer });
+      await initTennisMatch({ matchId: matchId as Id<"matches">, firstServer: selectedServer });
       if (matchStatus === "pending" || matchStatus === "scheduled") {
-        await startMatch({ matchId: matchId as any });
+        await startMatch({ matchId: matchId as Id<"matches"> });
       }
     } catch (err) {
-      alert(getDisplayMessage(err) || "Failed to start match");
+      toast.error(getDisplayMessage(err) || "Failed to start match");
     }
     setLoading(false);
   };

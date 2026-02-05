@@ -139,7 +139,7 @@ fn create_mock_tennis_data() -> TennisLiveData {
 
 #[tauri::command]
 pub async fn connect_websocket(ws_url: String, connection_id: String) -> Result<String, String> {
-    println!("Attempting to connect to WebSocket: {}", ws_url);
+    log::info!("Attempting to connect to WebSocket: {}", ws_url);
 
     // Ensure URL starts with wss://
     let ws_url = if ws_url.starts_with("ws://") {
@@ -157,20 +157,20 @@ pub async fn connect_websocket(ws_url: String, connection_id: String) -> Result<
     // Attempt to connect using the URL string directly
     match connect_async(&ws_url).await {
         Ok((ws_stream, _)) => {
-            println!("Successfully connected to WebSocket: {}", ws_url);
+            log::info!("Successfully connected to WebSocket: {}", ws_url);
 
             // Store the connection
             let mut connections = WEBSOCKET_CONNECTIONS.lock().await;
             connections.insert(connection_id.clone(), ws_stream);
 
             // Single connection receives all court data
-            println!("🎾 [WEBSOCKET {}] Single connection established - will receive data from all courts", connection_id);
+            log::debug!("[WEBSOCKET {}] Single connection established - will receive data from all courts", connection_id);
 
             Ok(format!("Connected to WebSocket: {}", ws_url))
         }
         Err(e) => {
             let error_msg = format!("Failed to connect to WebSocket: {}", e);
-            println!("{}", error_msg);
+            log::error!("{}", error_msg);
             Err(error_msg)
         }
     }
@@ -178,7 +178,7 @@ pub async fn connect_websocket(ws_url: String, connection_id: String) -> Result<
 
 #[tauri::command]
 pub async fn disconnect_websocket(connection_id: String) -> Result<String, String> {
-    println!("Disconnecting WebSocket connection: {}", connection_id);
+    log::info!("Disconnecting WebSocket connection: {}", connection_id);
 
     let mut connections = WEBSOCKET_CONNECTIONS.lock().await;
 
@@ -197,7 +197,7 @@ pub async fn disconnect_websocket(connection_id: String) -> Result<String, Strin
 
 #[tauri::command]
 pub async fn start_websocket_listener(connection_id: String) -> Result<String, String> {
-    println!("🚀 Starting WebSocket message listener for: {}", connection_id);
+    log::info!("Starting WebSocket message listener for: {}", connection_id);
 
     // Check if we already have a listener for this connection
     let mut listeners = MESSAGE_LISTENERS.lock().await;
@@ -215,7 +215,7 @@ pub async fn start_websocket_listener(connection_id: String) -> Result<String, S
     // Start the listener task
     let connection_id_clone = connection_id.clone();
     let listener_handle = tokio::spawn(async move {
-        println!("📡 WebSocket listener started for: {}", connection_id_clone);
+        log::debug!("WebSocket listener started for: {}", connection_id_clone);
 
         loop {
             let mut connections = WEBSOCKET_CONNECTIONS.lock().await;
@@ -228,62 +228,62 @@ pub async fn start_websocket_listener(connection_id: String) -> Result<String, S
                             Ok(message) => {
                                 match message {
                                     Message::Text(text) => {
-                                        println!("📨 [WEBSOCKET {}] Received TEXT message: {}", connection_id_clone, text);
+                                        log::debug!("[WEBSOCKET {}] Received TEXT message: {}", connection_id_clone, text);
                                         // Generic message logging - specific parsing handled by frontend
                                     }
                                     Message::Binary(data) => {
-                                        println!("📨 [WEBSOCKET {}] Received BINARY message: {} bytes", connection_id_clone, data.len());
+                                        log::debug!("[WEBSOCKET {}] Received BINARY message: {} bytes", connection_id_clone, data.len());
                                     }
                                     Message::Ping(payload) => {
-                                        println!("🏓 [WEBSOCKET {}] Received PING: {} bytes", connection_id_clone, payload.len());
+                                        log::debug!("[WEBSOCKET {}] Received PING: {} bytes", connection_id_clone, payload.len());
                                     }
                                     Message::Pong(payload) => {
-                                        println!("🏓 [WEBSOCKET {}] Received PONG: {} bytes", connection_id_clone, payload.len());
+                                        log::debug!("[WEBSOCKET {}] Received PONG: {} bytes", connection_id_clone, payload.len());
                                     }
                                     Message::Close(close_frame) => {
                                         if let Some(frame) = close_frame {
-                                            println!("🔌 [WEBSOCKET {}] Connection closed: Code={}, Reason={}",
+                                            log::info!("[WEBSOCKET {}] Connection closed: Code={}, Reason={}",
                                                 connection_id_clone,
                                                 frame.code,
                                                 frame.reason
                                             );
                                         } else {
-                                            println!("🔌 [WEBSOCKET {}] Connection closed (no close frame)", connection_id_clone);
+                                            log::info!("[WEBSOCKET {}] Connection closed (no close frame)", connection_id_clone);
                                         }
-                                        println!("🔄 [WEBSOCKET {}] Attempting to reconnect in 5 seconds...", connection_id_clone);
+                                        log::debug!("[WEBSOCKET {}] Attempting to reconnect in 5 seconds...", connection_id_clone);
                                         tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
 
                                         // Attempt reconnection
                                         match attempt_reconnection(&connection_id_clone).await {
                                             Ok(_) => {
-                                                println!("✅ [WEBSOCKET {}] Reconnection successful, continuing...", connection_id_clone);
+                                                log::info!("[WEBSOCKET {}] Reconnection successful, continuing...", connection_id_clone);
                                                 continue;
                                             }
                                             Err(e) => {
-                                                println!("❌ [WEBSOCKET {}] Reconnection failed: {}, giving up", connection_id_clone, e);
+                                                log::error!("[WEBSOCKET {}] Reconnection failed: {}, giving up", connection_id_clone, e);
                                                 break;
                                             }
                                         }
                                     }
                                     Message::Frame(frame) => {
-                                        println!("📋 [WEBSOCKET {}] Received FRAME: {:?}", connection_id_clone, frame);
+                                        log::debug!("[WEBSOCKET {}] Received FRAME: {:?}", connection_id_clone, frame);
                                     }
                                 }
                             }
                             Err(e) => {
-                                println!("❌ [WEBSOCKET {}] Error receiving message: {}", connection_id_clone, e);
+                                log::error!("[WEBSOCKET {}] Error receiving message: {}", connection_id_clone, e);
 
                                 // Attempt to reconnect after network errors
-                                println!("🔄 [WEBSOCKET {}] Network error detected, attempting to reconnect in 3 seconds...", connection_id_clone);
+                                log::debug!("[WEBSOCKET {}] Network error detected, attempting to reconnect in 3 seconds...", connection_id_clone);
                                 tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
 
                                 match attempt_reconnection(&connection_id_clone).await {
                                     Ok(_) => {
-                                        println!("✅ [WEBSOCKET {}] Reconnection successful after network error", connection_id_clone);
+                                        log::info!("[WEBSOCKET {}] Reconnection successful after network error", connection_id_clone);
                                         continue;
                                     }
                                     Err(reconnect_err) => {
-                                        println!("❌ [WEBSOCKET {}] Reconnection failed after network error: {}", connection_id_clone, reconnect_err);
+                                        log::error!("[WEBSOCKET {}] Reconnection failed after network error: {}", connection_id_clone, reconnect_err);
                                         break;
                                     }
                                 }
@@ -291,33 +291,33 @@ pub async fn start_websocket_listener(connection_id: String) -> Result<String, S
                         }
                     }
                     None => {
-                        println!("🔚 [WEBSOCKET {}] Message stream ended", connection_id_clone);
+                        log::info!("[WEBSOCKET {}] Message stream ended", connection_id_clone);
 
                         // Attempt to reconnect when stream ends
-                        println!("🔄 [WEBSOCKET {}] Stream ended, attempting to reconnect in 2 seconds...", connection_id_clone);
+                        log::debug!("[WEBSOCKET {}] Stream ended, attempting to reconnect in 2 seconds...", connection_id_clone);
                         tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
 
                         match attempt_reconnection(&connection_id_clone).await {
                             Ok(_) => {
-                                println!("✅ [WEBSOCKET {}] Reconnection successful after stream ended", connection_id_clone);
+                                log::info!("[WEBSOCKET {}] Reconnection successful after stream ended", connection_id_clone);
                                 continue;
                             }
                             Err(reconnect_err) => {
-                                println!("❌ [WEBSOCKET {}] Reconnection failed after stream ended: {}", connection_id_clone, reconnect_err);
+                                log::error!("[WEBSOCKET {}] Reconnection failed after stream ended: {}", connection_id_clone, reconnect_err);
                                 break;
                             }
                         }
                     }
                 }
             } else {
-                println!("⚠️ [WEBSOCKET {}] Connection no longer exists, stopping listener", connection_id_clone);
+                log::warn!("[WEBSOCKET {}] Connection no longer exists, stopping listener", connection_id_clone);
                 break;
             }
 
             drop(connections);
         }
 
-        println!("🛑 WebSocket listener stopped for: {}", connection_id_clone);
+        log::info!("WebSocket listener stopped for: {}", connection_id_clone);
     });
 
     listeners.insert(connection_id.clone(), listener_handle);
@@ -326,14 +326,14 @@ pub async fn start_websocket_listener(connection_id: String) -> Result<String, S
 }
 
 async fn attempt_reconnection(connection_id: &str) -> Result<(), String> {
-    println!("🔄 [WEBSOCKET {}] Attempting reconnection...", connection_id);
+    log::debug!("[WEBSOCKET {}] Attempting reconnection...", connection_id);
     // Automatic reconnection is not supported - connection URL must be provided by the client
     Err("Automatic reconnection is not supported. Please reconnect manually.".to_string())
 }
 
 #[tauri::command]
 pub async fn stop_websocket_listener(connection_id: String) -> Result<String, String> {
-    println!("🛑 Stopping WebSocket message listener for: {}", connection_id);
+    log::info!("Stopping WebSocket message listener for: {}", connection_id);
 
     let mut listeners = MESSAGE_LISTENERS.lock().await;
 
@@ -347,7 +347,7 @@ pub async fn stop_websocket_listener(connection_id: String) -> Result<String, St
 
 #[tauri::command]
 pub async fn send_websocket_message(connection_id: String, message: String) -> Result<String, String> {
-    println!("Sending message to WebSocket {}: {}", connection_id, message);
+    log::debug!("Sending message to WebSocket {}: {}", connection_id, message);
 
     let mut connections = WEBSOCKET_CONNECTIONS.lock().await;
 
@@ -363,7 +363,7 @@ pub async fn send_websocket_message(connection_id: String, message: String) -> R
 
 #[tauri::command]
 pub async fn test_websocket_connection(ws_url: String) -> Result<bool, String> {
-    println!("Testing WebSocket connection to: {}", ws_url);
+    log::debug!("Testing WebSocket connection to: {}", ws_url);
 
     // Ensure URL starts with wss://
     let ws_url = if ws_url.starts_with("ws://") {
@@ -384,7 +384,7 @@ pub async fn test_websocket_connection(ws_url: String) -> Result<bool, String> {
         connect_async(&ws_url)
     ).await {
         Ok(Ok((mut ws_stream, _))) => {
-            println!("WebSocket test successful: {}", ws_url);
+            log::info!("WebSocket test successful: {}", ws_url);
 
             // Send a close frame to cleanly disconnect
             let _ = ws_stream.close(None).await;
@@ -393,12 +393,12 @@ pub async fn test_websocket_connection(ws_url: String) -> Result<bool, String> {
         }
         Ok(Err(e)) => {
             let error_msg = format!("WebSocket test failed: {}", e);
-            println!("{}", error_msg);
+            log::error!("{}", error_msg);
             Err(error_msg)
         }
         Err(_) => {
             let error_msg = "WebSocket test timed out after 10 seconds".to_string();
-            println!("{}", error_msg);
+            log::error!("{}", error_msg);
             Err(error_msg)
         }
     }
@@ -457,7 +457,7 @@ pub async fn inspect_live_data() -> Result<String, String> {
 
 #[tauri::command]
 pub async fn cleanup_live_data() -> Result<String, String> {
-    println!("🧹 Manual data cleanup requested");
+    log::debug!("Manual data cleanup requested");
     // No cleanup needed - live data is managed via ScoreForge HTTP polling
     Ok("Data cleanup completed.".to_string())
 }

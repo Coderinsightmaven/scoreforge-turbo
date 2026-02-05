@@ -2,8 +2,10 @@
 
 import { useMutation } from "convex/react";
 import { api } from "@repo/convex";
+import type { Id } from "@repo/convex/dataModel";
 import { useState } from "react";
 import { getDisplayMessage } from "@/lib/errors";
+import { toast } from "sonner";
 
 type TennisState = {
   sets: number[][];
@@ -127,11 +129,11 @@ export function TennisScoreboard({
     setLoading(true);
     try {
       await scorePoint({
-        matchId: matchId as any,
+        matchId: matchId as Id<"matches">,
         winnerParticipant: winner,
       });
     } catch (err) {
-      alert(getDisplayMessage(err) || "Failed to score point");
+      toast.error(getDisplayMessage(err) || "Failed to score point");
     }
     setLoading(false);
   };
@@ -139,11 +141,11 @@ export function TennisScoreboard({
   const handleSetServer = async (server: 1 | 2) => {
     try {
       await setServer({
-        matchId: matchId as any,
+        matchId: matchId as Id<"matches">,
         servingParticipant: server,
       });
     } catch (err) {
-      alert(getDisplayMessage(err) || "Failed to set server");
+      toast.error(getDisplayMessage(err) || "Failed to set server");
     }
   };
 
@@ -413,16 +415,16 @@ export function TennisMatchSetup({
     try {
       // Initialize tennis state (pulls config from tournament)
       await initTennisMatch({
-        matchId: matchId as any,
+        matchId: matchId as Id<"matches">,
         firstServer,
       });
       // Start the match if it's not already live
       if (matchStatus === "pending" || matchStatus === "scheduled") {
-        await startMatch({ matchId: matchId as any });
+        await startMatch({ matchId: matchId as Id<"matches"> });
       }
       onSetupComplete();
     } catch (err) {
-      alert(getDisplayMessage(err) || "Failed to initialize match");
+      toast.error(getDisplayMessage(err) || "Failed to initialize match");
     }
     setLoading(false);
   };

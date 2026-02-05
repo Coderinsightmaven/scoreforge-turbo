@@ -3,9 +3,10 @@ import { cn } from '../../utils/cn';
 import { Button } from './button';
 import { IconButton, Icons } from './IconButton';
 import { ScoreForgeConnectionButton } from './ScoreForgeConnectionButton';
+import { ScoreboardConfig } from '../../types/scoreboard';
 
 interface AppHeaderProps {
-  config: any;
+  config: ScoreboardConfig | null;
   scoreboardInstancesCount: number;
   selectedComponentsCount: number;
   clipboardCount: number;

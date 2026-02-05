@@ -30,9 +30,9 @@ export interface WindowConfig {
   visible?: boolean;
 }
 
-export interface TauriCommand<T = any> {
+export interface TauriCommand<T = unknown> {
   command: string;
-  payload?: Record<string, any>;
+  payload?: Record<string, unknown>;
   response?: T;
 }
 
@@ -65,7 +65,7 @@ export interface LoadFileResult {
 export interface TauriError {
   message: string;
   code?: string;
-  details?: any;
+  details?: Record<string, unknown>;
 }
 
 export interface AppSettings {

@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@repo/convex";
+import { Id } from "@repo/convex/dataModel";
+import { toast } from "sonner";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 type BracketManagementModalProps = {
   tournamentId: string;
@@ -22,13 +25,14 @@ export function BracketManagementModal({
   const [newBracketParticipantType, setNewBracketParticipantType] = useState<ParticipantType | "">("");
   const [newBracketMaxParticipants, setNewBracketMaxParticipants] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const brackets = useQuery(api.tournamentBrackets.listBrackets, {
-    tournamentId: tournamentId as any,
+    tournamentId: tournamentId as Id<"tournaments">,
   });
 
   const tournament = useQuery(api.tournaments.getTournament, {
-    tournamentId: tournamentId as any,
+    tournamentId: tournamentId as Id<"tournaments">,
   });
 
   const createBracket = useMutation(api.tournamentBrackets.createBracket);
@@ -41,7 +45,7 @@ export function BracketManagementModal({
     setIsSubmitting(true);
     try {
       await createBracket({
-        tournamentId: tournamentId as any,
+        tournamentId: tournamentId as Id<"tournaments">,
         name: newBracketName.trim(),
         format: newBracketFormat || undefined,
         participantType: newBracketParticipantType || undefined,
@@ -53,40 +57,52 @@ export function BracketManagementModal({
       setNewBracketMaxParticipants("");
       setIsCreating(false);
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Failed to create bracket");
+      toast.error(error instanceof Error ? error.message : "Failed to create bracket");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDeleteBracket = async (bracketId: string) => {
-    if (!confirm("Are you sure you want to delete this bracket?")) return;
+  const handleDeleteBracket = (bracketId: string) => {
+    setConfirmDelete(bracketId);
+  };
 
+  const executeDeleteBracket = async () => {
+    if (!confirmDelete) return;
     try {
-      await deleteBracket({ bracketId: bracketId as any });
+      await deleteBracket({ bracketId: confirmDelete as Id<"tournamentBrackets"> });
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Failed to delete bracket");
+      toast.error(error instanceof Error ? error.message : "Failed to delete bracket");
     }
+    setConfirmDelete(null);
   };
 
   const handleMoveUp = async (index: number) => {
     if (!brackets || index === 0) return;
     const newOrder = [...brackets];
     [newOrder[index - 1], newOrder[index]] = [newOrder[index]!, newOrder[index - 1]!];
-    await reorderBrackets({
-      tournamentId: tournamentId as any,
-      bracketIds: newOrder.map((b) => b._id as any),
-    });
+    try {
+      await reorderBrackets({
+        tournamentId: tournamentId as Id<"tournaments">,
+        bracketIds: newOrder.map((b) => b._id as Id<"tournamentBrackets">),
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to reorder brackets");
+    }
   };
 
   const handleMoveDown = async (index: number) => {
     if (!brackets || index === brackets.length - 1) return;
     const newOrder = [...brackets];
     [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1]!, newOrder[index]!];
-    await reorderBrackets({
-      tournamentId: tournamentId as any,
-      bracketIds: newOrder.map((b) => b._id as any),
-    });
+    try {
+      await reorderBrackets({
+        tournamentId: tournamentId as Id<"tournaments">,
+        bracketIds: newOrder.map((b) => b._id as Id<"tournamentBrackets">),
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to reorder brackets");
+    }
   };
 
   const formatLabels: Record<TournamentFormat, string> = {
@@ -318,6 +334,15 @@ export function BracketManagementModal({
           </button>
         </div>
       </div>
+      <ConfirmDialog
+        open={confirmDelete !== null}
+        onConfirm={executeDeleteBracket}
+        onCancel={() => setConfirmDelete(null)}
+        title="Delete Bracket"
+        description="Are you sure you want to delete this bracket? This action cannot be undone."
+        confirmLabel="Delete"
+        variant="danger"
+      />
     </div>
   );
 }

@@ -2,7 +2,7 @@
  * gameState.ts - Game state management Tauri commands.
  */
 import { invoke } from '@tauri-apps/api/core';
-import { GameState } from '../../types/scoreboard';
+import { GameState, Team } from '../../types/scoreboard';
 
 /**
  * Updates the game state in the Rust backend.
@@ -91,7 +91,7 @@ export async function resetGame(): Promise<void> {
 /**
  * Updates team information (name, logo, colors, etc.).
  */
-export async function updateTeamInfo(teamSide: 'home' | 'away', team: any): Promise<void> {
+export async function updateTeamInfo(teamSide: 'home' | 'away', team: Team): Promise<void> {
   try {
     await invoke('update_team_info', { teamSide, team });
   } catch (error) {

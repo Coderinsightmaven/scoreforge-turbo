@@ -89,13 +89,13 @@ pub async fn create_scoreboard_window(
     let monitor_list: Vec<_> = monitors.into_iter().collect();
     
     // Debug logging
-    println!("Creating scoreboard window:");
-    println!("  Requested monitor_id: {}", monitor_id);
-    println!("  Available monitors: {}", monitor_list.len());
+    log::debug!("Creating scoreboard window:");
+    log::debug!("  Requested monitor_id: {}", monitor_id);
+    log::debug!("  Available monitors: {}", monitor_list.len());
     for (i, monitor) in monitor_list.iter().enumerate() {
         let monitor_name = monitor.name().map_or("Unknown".to_string(), |n| n.clone());
-        println!("    Monitor {}: {} at ({}, {})", i, 
-                monitor_name, 
+        log::debug!("    Monitor {}: {} at ({}, {})", i,
+                monitor_name,
                 monitor.position().x, monitor.position().y);
     }
     
@@ -103,19 +103,18 @@ pub async fn create_scoreboard_window(
     
     // Store the scoreboard data for this window
     if let Some(data) = &scoreboard_data {
-        println!("🎾 [RUST] Storing scoreboard data for window: {}", window_id);
-        println!("🎾 [RUST] Data has scoreForgeConfig: {}", data.get("scoreForgeConfig").is_some());
+        log::debug!("[RUST] Storing scoreboard data for window: {}", window_id);
+        log::debug!("[RUST] Data has scoreForgeConfig: {}", data.get("scoreForgeConfig").is_some());
         if let Some(config) = data.get("scoreForgeConfig") {
-            println!("🎾 [RUST] ScoreForge config: {:?}", config);
+            log::debug!("[RUST] ScoreForge config: {:?}", config);
         }
         let mut instances = store.instances.lock().map_err(|e| e.to_string())?;
-        instances.insert(window_id.clone(), scoreboard_data.unwrap());
+        instances.insert(window_id.clone(), data.clone());
     } else {
-        println!("🎾 [RUST] No scoreboard data provided for window: {}", window_id);
+        log::debug!("[RUST] No scoreboard data provided for window: {}", window_id);
     }
 
     // Create window in windowed mode first, then position and set fullscreen
-    // Use transparent window to bypass macOS rounded corners
     let window = WebviewWindowBuilder::new(
         &app,
         window_id.clone(),
@@ -125,14 +124,13 @@ pub async fn create_scoreboard_window(
     .resizable(false)
     .decorations(false)
     .shadow(false)
-    .transparent(true)  // Transparent window for pixel-perfect square corners
     .always_on_top(true)
     .visible(false)
     .skip_taskbar(true)
     .fullscreen(false)
     .inner_size(width as f64, height as f64)
     .build()
-    .map_err(|e| e.to_string())?;
+    .map_err(|e: tauri::Error| e.to_string())?;
 
     // Position the window at the target monitor's origin
     let (final_x, final_y) = if let Some(ref monitor) = target_monitor {
@@ -144,7 +142,7 @@ pub async fn create_scoreboard_window(
         (offset_x, offset_y)
     };
 
-    println!("  Positioning window at: ({}, {})", final_x, final_y);
+    log::debug!("  Positioning window at: ({}, {})", final_x, final_y);
     window.set_position(tauri::Position::Physical(tauri::PhysicalPosition {
         x: final_x,
         y: final_y
@@ -158,10 +156,10 @@ pub async fn create_scoreboard_window(
     std::thread::sleep(std::time::Duration::from_millis(200));
 
     // Set fullscreen
-    println!("  Setting fullscreen...");
+    log::debug!("  Setting fullscreen...");
     window.set_fullscreen(true).map_err(|e| e.to_string())?;
 
-    println!("  Scoreboard window created and shown in fullscreen at ({}, {})", final_x, final_y);
+    log::debug!("  Scoreboard window created and shown in fullscreen at ({}, {})", final_x, final_y);
 
     Ok(())
 }
@@ -292,13 +290,13 @@ pub async fn get_scoreboard_instance_data(
     store: State<'_, ScoreboardInstanceStore>,
     window_id: String,
 ) -> Result<Option<serde_json::Value>, String> {
-    println!("🎾 [RUST] get_scoreboard_instance_data for window: {}", window_id);
+    log::debug!("[RUST] get_scoreboard_instance_data for window: {}", window_id);
     let instances = store.instances.lock().map_err(|e| e.to_string())?;
     let data = instances.get(&window_id).cloned();
     if let Some(ref d) = data {
-        println!("🎾 [RUST] Returning data with scoreForgeConfig: {}", d.get("scoreForgeConfig").is_some());
+        log::debug!("[RUST] Returning data with scoreForgeConfig: {}", d.get("scoreForgeConfig").is_some());
     } else {
-        println!("🎾 [RUST] No data found for window: {}", window_id);
+        log::debug!("[RUST] No data found for window: {}", window_id);
     }
     Ok(data)
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ComponentType } from '../../../types/scoreboard';
+import { ComponentType, ComponentData } from '../../../types/scoreboard';
 import { TennisLiveData } from '../../../types/scoreboard';
 import { TeamNames } from './TeamNames';
 import { AdaptiveTeamDisplay } from './AdaptiveTeamDisplay';
@@ -7,7 +7,7 @@ import { AdaptiveTeamDisplay } from './AdaptiveTeamDisplay';
 interface TennisPlayerNameDisplayProps {
   tennisMatch: TennisLiveData | null;
   componentType: ComponentType;
-  componentData: any;
+  componentData: ComponentData;
   fallbackText?: string;
 }
 

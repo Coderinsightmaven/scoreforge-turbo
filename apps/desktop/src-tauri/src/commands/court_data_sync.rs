@@ -73,13 +73,13 @@ impl CourtDataManager {
         let expired_courts: Vec<String> = self.data
             .iter()
             .filter(|(_, entry)| {
-                now.signed_duration_since(entry.last_accessed) > ChronoDuration::from_std(max_age).unwrap()
+                now.signed_duration_since(entry.last_accessed) > ChronoDuration::from_std(max_age).unwrap_or(ChronoDuration::seconds(300))
             })
             .map(|(name, _)| name.clone())
             .collect();
 
         if !expired_courts.is_empty() {
-            println!("🧹 Cleaning up {} expired court data entries (older than 5 minutes)", expired_courts.len());
+            log::debug!("Cleaning up {} expired court data entries (older than 5 minutes)", expired_courts.len());
             for court in expired_courts {
                 self.data.remove(&court);
                 self.has_changes = true;
@@ -121,7 +121,7 @@ lazy_static! {
         match CourtDataSync::new() {
             Ok(sync) => sync,
             Err(e) => {
-                eprintln!("Failed to create CourtDataSync: {:?}", e);
+                log::error!("Failed to create CourtDataSync: {:?}", e);
                 std::process::exit(1);
             }
         }
@@ -248,7 +248,7 @@ impl CourtDataSync {
                 drop(state); // Release lock before sync
 
                 if let Err(e) = Self::perform_sync(&state_clone, &data_manager_clone).await {
-                    eprintln!("Sync error: {:?}", e);
+                    log::error!("Sync error: {:?}", e);
                     let mut state = state_clone.lock().await;
                     state.error_count += 1;
                 }
@@ -256,7 +256,7 @@ impl CourtDataSync {
         });
 
         state.sync_task = Some(handle);
-        println!("🚀 Started court data sync service (interval: {}ms)", interval_ms);
+        log::info!("Started court data sync service (interval: {}ms)", interval_ms);
         Ok(())
     }
 
@@ -273,7 +273,7 @@ impl CourtDataSync {
             handle.abort();
         }
 
-        println!("🛑 Stopped court data sync service");
+        log::info!("Stopped court data sync service");
         Ok(())
     }
 
@@ -297,7 +297,7 @@ impl CourtDataSync {
             // Store the data
             let mut manager = data_manager.lock().await;
             manager.store_court_data(court_data).await?;
-            println!("🔄 Synced active court data: {:?}", active_courts);
+            log::debug!("Synced active court data: {:?}", active_courts);
 
             // Update last sync time
             let mut state = state.lock().await;
@@ -310,7 +310,7 @@ impl CourtDataSync {
             // Cleanup expired data (older than 5 minutes)
             manager.cleanup_expired_data().await?;
         } else {
-            println!("🔄 No active court data to sync");
+            log::debug!("No active court data to sync");
         }
 
         Ok(())
@@ -319,7 +319,7 @@ impl CourtDataSync {
     async fn get_active_displayed_courts() -> Result<Vec<String>, CourtSyncError> {
         // This should be called via Tauri invoke from the frontend
         // For now, return empty vec which will fall back to all courts
-        // TODO: Implement frontend integration to get actual active courts
+        // FIXME: Implement frontend integration to get actual active courts
         Ok(Vec::new())
     }
 
@@ -342,14 +342,14 @@ impl CourtDataSync {
             .collect();
 
         if !courts_to_remove.is_empty() {
-            println!("🧹 Cleaning up data for {} undisplayed courts: {:?}", courts_to_remove.len(), courts_to_remove);
+            log::debug!("Cleaning up data for {} undisplayed courts: {:?}", courts_to_remove.len(), courts_to_remove);
             for court_name in &courts_to_remove {
                 manager.remove_court_data(court_name);
             }
             manager.persist_to_file().await?;
-            println!("🧹 Removed data for {} undisplayed courts", courts_to_remove.len());
+            log::debug!("Removed data for {} undisplayed courts", courts_to_remove.len());
         } else {
-            println!("✅ No undisplayed courts to clean up");
+            log::debug!("No undisplayed courts to clean up");
         }
 
         Ok(())

@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Id } from "@repo/convex/dataModel";
 import { getDisplayMessage } from "@/lib/errors";
+import { toast } from "sonner";
 
 type Tab = "users" | "admins" | "settings";
 
@@ -102,7 +103,7 @@ function UsersSection() {
     try {
       await toggleUserScoringLogs({ userId, enabled: !currentEnabled });
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Failed to toggle scoring logs");
+      toast.error(error instanceof Error ? error.message : "Failed to toggle scoring logs");
     } finally {
       setTogglingLogs(null);
     }
@@ -115,7 +116,7 @@ function UsersSection() {
       await updateUser({ userId, name: editName.trim() });
       setEditingUser(null);
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Failed to update user");
+      toast.error(error instanceof Error ? error.message : "Failed to update user");
     } finally {
       setSaving(false);
     }
@@ -667,7 +668,7 @@ function UnauthorizedState() {
         </div>
         <h1 className="text-title text-foreground mb-2">Access Denied</h1>
         <p className="text-body text-muted-foreground mb-6">
-          You don't have permission to access the site administration panel.
+          You don&apos;t have permission to access the site administration panel.
         </p>
         <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2">
           Back to Dashboard

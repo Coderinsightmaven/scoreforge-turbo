@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@repo/convex";
+import { Id } from "@repo/convex/dataModel";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -39,11 +40,11 @@ export default function AddParticipantPage({
   const bracketIdFromUrl = searchParams.get("bracketId");
 
   const tournament = useQuery(api.tournaments.getTournament, {
-    tournamentId: tournamentId as any,
+    tournamentId: tournamentId as Id<"tournaments">,
   });
 
   const brackets = useQuery(api.tournamentBrackets.listBrackets, {
-    tournamentId: tournamentId as any,
+    tournamentId: tournamentId as Id<"tournaments">,
   });
 
   const addParticipant = useMutation(api.tournamentParticipants.addParticipant);
@@ -118,8 +119,8 @@ export default function AddParticipantPage({
         const names = playerName.split(",").map(n => n.trim()).filter(n => n.length > 0);
         for (let i = 0; i < names.length; i++) {
           await addParticipant({
-            tournamentId: tournamentId as any,
-            bracketId: selectedBracketId as any,
+            tournamentId: tournamentId as Id<"tournaments">,
+            bracketId: selectedBracketId as Id<"tournamentBrackets">,
             playerName: names[i],
             seed: names.length === 1 ? seedValue : undefined, // Only use seed for single participant
           });
@@ -142,8 +143,8 @@ export default function AddParticipantPage({
 
         for (let i = 0; i < players1.length; i++) {
           await addParticipant({
-            tournamentId: tournamentId as any,
-            bracketId: selectedBracketId as any,
+            tournamentId: tournamentId as Id<"tournaments">,
+            bracketId: selectedBracketId as Id<"tournamentBrackets">,
             player1Name: players1[i],
             player2Name: players2[i],
             seed: players1.length === 1 ? seedValue : undefined,
@@ -159,8 +160,8 @@ export default function AddParticipantPage({
         const names = teamName.split(",").map(n => n.trim()).filter(n => n.length > 0);
         for (let i = 0; i < names.length; i++) {
           await addParticipant({
-            tournamentId: tournamentId as any,
-            bracketId: selectedBracketId as any,
+            tournamentId: tournamentId as Id<"tournaments">,
+            bracketId: selectedBracketId as Id<"tournamentBrackets">,
             teamName: names[i],
             seed: names.length === 1 ? seedValue : undefined,
           });

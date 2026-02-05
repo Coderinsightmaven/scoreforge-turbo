@@ -29,7 +29,7 @@ export interface UseTennisWorkerDataResult {
   /** Error message if processing failed */
   error: string | null;
   /** Function to process raw tennis data */
-  processData: (rawData: any) => Promise<void>;
+  processData: (rawData: RawTennisData) => Promise<void>;
   /** Timestamp of last successful update */
   lastUpdate: Date | null;
 }

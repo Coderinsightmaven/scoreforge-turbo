@@ -225,10 +225,11 @@ export interface ComponentData {
   playerNumber?: 1 | 2 | 3 | 4; // Which player (1-2 for singles, 1-4 for doubles)
   setNumber?: 1 | 2 | 3 | 4 | 5; // Which set
   teamSelection?: 0 | 1 | 2; // 0 = both, 1 = team 1, 2 = team 2
+  separator?: string; // Separator text for doubles/team names components
   scaleMode?: 'cover' | 'contain' | 'stretch' | 'original'; // For images
   visible?: boolean; // Component visibility
-  liveDataBinding?: any; // Live data binding configuration
-  [key: string]: any; // Allow additional properties for flexibility
+  liveDataBinding?: Record<string, unknown>; // Live data binding configuration
+  [key: string]: unknown; // Allow additional properties for flexibility
 }
 
 /**
@@ -328,7 +329,7 @@ export interface GameState {
   /** Sport type */
   sport: SportType;
   /** Additional metadata (flexible for sport-specific data) */
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 export interface CanvasState {
@@ -382,7 +383,7 @@ export interface ScoreboardInstance {
   };
   isActive: boolean;
   createdAt: Date;
-  scoreboardData?: any; // Saved scoreboard configuration and components
+  scoreboardData?: Record<string, unknown>; // Saved scoreboard configuration and components
   tennisApiScoreboardId?: string; // Which tennis API scoreboard to listen to for live data
 }
 

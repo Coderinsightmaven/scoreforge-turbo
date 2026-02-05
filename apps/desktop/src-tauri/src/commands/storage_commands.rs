@@ -246,7 +246,13 @@ pub fn setup_auto_save(
     let storage = storage.clone();
 
     std::thread::spawn(move || {
-        let rt = tokio::runtime::Runtime::new().unwrap();
+        let rt = match tokio::runtime::Runtime::new() {
+            Ok(rt) => rt,
+            Err(e) => {
+                log::error!("Failed to create tokio runtime for auto-save: {}", e);
+                return;
+            }
+        };
         rt.block_on(async {
             let mut interval = tokio::time::interval(std::time::Duration::from_secs(interval_seconds));
 

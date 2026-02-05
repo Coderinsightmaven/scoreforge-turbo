@@ -151,7 +151,7 @@ export class TennisWorkerManager {
    * - Request times out (5 seconds)
    * - Worker processing fails
    */
-  async processTennisData(rawData: any): Promise<ProcessedTennisMatch> {
+  async processTennisData(rawData: Record<string, unknown>): Promise<ProcessedTennisMatch> {
     if (!this.isInitialized || !this.worker) {
       throw new Error('Worker not initialized');
     }
@@ -289,7 +289,7 @@ export class TennisWorkerManager {
             if (handlers) {
               clearTimeout(handlers.timeout);
               this.pendingRequests.delete(firstRequestId);
-              handlers.resolve(payload);
+              handlers.resolve(payload as ProcessedTennisMatch);
             }
           }
         }
@@ -373,7 +373,7 @@ export class TennisWorkerManager {
    * 
    * @param args - Arguments to log
    */
-  private log(...args: any[]) {
+  private log(...args: unknown[]) {
     if (this.config.enableDebugLogging) {
       console.log('[TennisWorkerManager]', ...args);
     }

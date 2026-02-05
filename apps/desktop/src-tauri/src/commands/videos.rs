@@ -145,7 +145,7 @@ pub async fn delete_video(app: AppHandle, video_id: String) -> Result<(), String
     
     // Delete the actual file
     if let Err(e) = fs::remove_file(&video.path) {
-        eprintln!("Warning: Failed to delete video file {}: {}", video.path, e);
+        log::error!("Failed to delete video file {}: {}", video.path, e);
     }
     
     // Remove from metadata

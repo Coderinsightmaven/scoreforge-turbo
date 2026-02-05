@@ -94,14 +94,14 @@ impl StateSyncManager {
                     &format!("{}_{}", event_name, subscription_id),
                     &event
                 ) {
-                    eprintln!("Failed to emit {} to {}: {}", event_name, subscription_id, e);
+                    log::error!("Failed to emit {} to {}: {}", event_name, subscription_id, e);
                 }
             }
         }
 
         // Also emit globally for components that don't need subscription management
         if let Err(e) = self.app_handle.emit(event_name, &event) {
-            eprintln!("Failed to emit global {}: {}", event_name, e);
+            log::error!("Failed to emit global {}: {}", event_name, e);
         }
 
         Ok(())

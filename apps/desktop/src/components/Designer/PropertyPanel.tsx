@@ -93,11 +93,11 @@ export const PropertyPanel: React.FC = () => {
     });
   };
 
-  const handleStyleChange = (property: string, value: any) => {
+  const handleStyleChange = (property: string, value: string | number | boolean | Record<string, unknown>) => {
     updateComponentStyle(selectedComponent.id, { [property]: value });
   };
 
-  const handleDataChange = (property: string, value: any) => {
+  const handleDataChange = (property: string, value: string | number | boolean | Record<string, unknown>) => {
     updateComponentData(selectedComponent.id, { [property]: value });
   };
 
