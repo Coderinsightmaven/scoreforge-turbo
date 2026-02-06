@@ -21,6 +21,9 @@ impl ScoreForgeApp {
             live_data: None,
             texture_cache: TextureCache::new(),
             should_close: false,
+            fullscreen: false,
+            offset_x: 0,
+            offset_y: 0,
         }));
 
         Self {
@@ -231,6 +234,9 @@ impl ScoreForgeApp {
             ds.live_data = self.state.live_match_data.clone();
             ds.texture_cache.sync_from(&self.state.texture_cache);
             ds.should_close = false;
+            ds.fullscreen = self.state.display_fullscreen;
+            ds.offset_x = self.state.display_offset_x.parse().unwrap_or(0);
+            ds.offset_y = self.state.display_offset_y.parse().unwrap_or(0);
         }
     }
 }

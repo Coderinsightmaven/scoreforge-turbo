@@ -102,6 +102,9 @@ pub struct AppState {
 
     // Display viewport
     pub display_active: bool,
+    pub display_fullscreen: bool,
+    pub display_offset_x: String,
+    pub display_offset_y: String,
 }
 
 impl AppState {
@@ -143,6 +146,9 @@ impl AppState {
             new_height: "1080".to_string(),
             toasts: Vec::new(),
             display_active: false,
+            display_fullscreen: false,
+            display_offset_x: "0".to_string(),
+            display_offset_y: "0".to_string(),
         }
     }
 

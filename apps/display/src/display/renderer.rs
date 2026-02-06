@@ -13,18 +13,41 @@ pub struct DisplayState {
     pub live_data: Option<TennisLiveData>,
     pub texture_cache: TextureCache,
     pub should_close: bool,
+    pub fullscreen: bool,
+    pub offset_x: i32,
+    pub offset_y: i32,
 }
 
 pub fn show_display_viewport(ctx: &egui::Context, display_state: &Arc<Mutex<DisplayState>>) {
     let viewport_id = ViewportId::from_hash_of("scoreforge_display");
     let display_state = Arc::clone(display_state);
 
+    let (fullscreen, width, height, offset_x, offset_y) = {
+        let state = display_state.lock().unwrap();
+        (
+            state.fullscreen,
+            state.scoreboard.width,
+            state.scoreboard.height,
+            state.offset_x,
+            state.offset_y,
+        )
+    };
+
+    let mut builder = ViewportBuilder::default()
+        .with_title("ScoreForge Display")
+        .with_decorations(false);
+
+    if fullscreen {
+        builder = builder.with_fullscreen(true);
+    } else {
+        builder = builder
+            .with_inner_size(Vec2::new(width as f32, height as f32))
+            .with_position(Pos2::new(offset_x as f32, offset_y as f32));
+    }
+
     ctx.show_viewport_deferred(
         viewport_id,
-        ViewportBuilder::default()
-            .with_title("ScoreForge Display")
-            .with_decorations(false)
-            .with_fullscreen(true),
+        builder,
         move |ctx, _class| {
             let state = display_state.lock().unwrap();
 
