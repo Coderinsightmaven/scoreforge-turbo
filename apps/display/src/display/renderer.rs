@@ -60,7 +60,8 @@ pub fn show_display_viewport(
 
     let mut builder = ViewportBuilder::default()
         .with_title(title)
-        .with_decorations(false);
+        .with_decorations(false)
+        .with_transparent(true);
 
     if fullscreen {
         builder = builder.with_fullscreen(true);
@@ -74,6 +75,12 @@ pub fn show_display_viewport(
         viewport_id,
         builder,
         move |ctx, _class| {
+            // Transparent background to remove macOS window border
+            let mut visuals = ctx.style().visuals.clone();
+            visuals.window_shadow = egui::epaint::Shadow::NONE;
+            visuals.panel_fill = egui::Color32::TRANSPARENT;
+            ctx.set_visuals(visuals);
+
             let mut state = display_state.lock().unwrap();
 
             if state.should_close {
@@ -94,8 +101,15 @@ pub fn show_display_viewport(
             }
 
             egui::CentralPanel::default()
-                .frame(egui::Frame::NONE.fill(state.scoreboard.background_color))
+                .frame(
+                    egui::Frame::NONE
+                        .fill(state.scoreboard.background_color)
+                        .inner_margin(0.0)
+                        .outer_margin(0.0)
+                        .stroke(egui::Stroke::NONE),
+                )
                 .show(ctx, |ui| {
+                    ui.style_mut().spacing.item_spacing = egui::Vec2::ZERO;
                     render_display(ui, &state);
                 });
 
