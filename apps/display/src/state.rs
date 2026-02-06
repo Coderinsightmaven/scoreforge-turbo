@@ -52,6 +52,7 @@ pub struct MonitorInfo {
     pub y: i32,
     pub width: u32,
     pub height: u32,
+    pub scale_factor: f32,
 }
 
 /// Per-tab project state. Each open scoreboard gets its own ProjectState.
@@ -343,6 +344,7 @@ impl AppState {
                     y: d.y,
                     width: d.width,
                     height: d.height,
+                    scale_factor: d.scale_factor,
                 })
                 .collect(),
             Err(_) => Vec::new(),

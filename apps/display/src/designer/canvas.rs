@@ -89,7 +89,15 @@ pub fn show_canvas(ui: &mut egui::Ui, state: &mut AppState) {
 
     // Draw grid above components so it's always visible
     if state.grid_enabled {
-        draw_grid(&painter, &sb_rect, state.grid_size, canvas_zoom);
+        let project = state.active_project();
+        draw_grid(
+            &painter,
+            &sb_rect,
+            state.grid_size,
+            canvas_zoom,
+            project.scoreboard.width as f32,
+            project.scoreboard.height as f32,
+        );
     }
 
     // Draw resize handles for selected components
@@ -107,30 +115,46 @@ pub fn show_canvas(ui: &mut egui::Ui, state: &mut AppState) {
     handle_keyboard(ui, state);
 }
 
-fn draw_grid(painter: &egui::Painter, sb_rect: &Rect, grid_size: f32, zoom: f32) {
-    let step = grid_size * zoom;
-    if step < 4.0 {
+fn draw_grid(
+    painter: &egui::Painter,
+    sb_rect: &Rect,
+    grid_size: f32,
+    zoom: f32,
+    sb_width: f32,
+    sb_height: f32,
+) {
+    // Compute step that divides evenly into scoreboard dimensions
+    let cols = (sb_width / grid_size).round().max(1.0);
+    let rows = (sb_height / grid_size).round().max(1.0);
+    let x_step = (sb_width / cols) * zoom;
+    let y_step = (sb_height / rows) * zoom;
+
+    if x_step < 4.0 && y_step < 4.0 {
         return; // Too small to draw
     }
 
     let grid_color = Color32::from_rgba_premultiplied(255, 255, 255, 15);
 
-    let mut x = sb_rect.left();
-    while x <= sb_rect.right() {
-        painter.line_segment(
-            [Pos2::new(x, sb_rect.top()), Pos2::new(x, sb_rect.bottom())],
-            egui::Stroke::new(1.0, grid_color),
-        );
-        x += step;
+    if x_step >= 4.0 {
+        let mut x = sb_rect.left();
+        while x <= sb_rect.right() + 0.5 {
+            painter.line_segment(
+                [Pos2::new(x, sb_rect.top()), Pos2::new(x, sb_rect.bottom())],
+                egui::Stroke::new(1.0, grid_color),
+            );
+            x += x_step;
+        }
     }
 
-    let mut y = sb_rect.top();
-    while y <= sb_rect.bottom() {
-        painter.line_segment(
-            [Pos2::new(sb_rect.left(), y), Pos2::new(sb_rect.right(), y)],
-            egui::Stroke::new(1.0, grid_color),
-        );
-        y += step;
+    if y_step >= 4.0 {
+        let mut y = sb_rect.top();
+        while y <= sb_rect.bottom() + 0.5 {
+            painter.line_segment(
+                [Pos2::new(sb_rect.left(), y), Pos2::new(sb_rect.right(), y)],
+                egui::Stroke::new(1.0, grid_color),
+            );
+            y += y_step;
+        }
     }
 }
 

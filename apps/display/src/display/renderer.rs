@@ -18,6 +18,7 @@ pub struct DisplayState {
     pub offset_x: i32,
     pub offset_y: i32,
     pub needs_resize: bool,
+    pub target_scale_factor: f32,
 }
 
 impl Default for DisplayState {
@@ -32,6 +33,7 @@ impl Default for DisplayState {
             offset_x: 0,
             offset_y: 0,
             needs_resize: false,
+            target_scale_factor: 1.0,
         }
     }
 }
@@ -45,7 +47,8 @@ pub fn show_display_viewport(
     let viewport_id = ViewportId::from_hash_of(&format!("scoreforge_display_{}", project_id));
     let display_state = Arc::clone(display_state);
 
-    let (fullscreen, width, height, offset_x, offset_y) = {
+    #[allow(unused_variables)]
+    let (fullscreen, width, height, offset_x, offset_y, target_scale_factor) = {
         let state = display_state.lock().unwrap();
         (
             state.fullscreen,
@@ -53,6 +56,7 @@ pub fn show_display_viewport(
             state.scoreboard.height,
             state.offset_x,
             state.offset_y,
+            state.target_scale_factor,
         )
     };
 
@@ -66,9 +70,19 @@ pub fn show_display_viewport(
     if fullscreen {
         builder = builder.with_fullscreen(true);
     } else {
+        // On Windows, display-info returns physical pixels but with_position uses
+        // LogicalPosition which gets multiplied by scale factor. Divide to compensate.
+        #[cfg(target_os = "windows")]
+        let pos = Pos2::new(
+            offset_x as f32 / target_scale_factor,
+            offset_y as f32 / target_scale_factor,
+        );
+        #[cfg(not(target_os = "windows"))]
+        let pos = Pos2::new(offset_x as f32, offset_y as f32);
+
         builder = builder
             .with_inner_size(Vec2::new(width as f32, height as f32))
-            .with_position(Pos2::new(offset_x as f32, offset_y as f32));
+            .with_position(pos);
     }
 
     ctx.show_viewport_deferred(
@@ -94,9 +108,18 @@ pub fn show_display_viewport(
                     state.scoreboard.width as f32,
                     state.scoreboard.height as f32,
                 )));
-                ctx.send_viewport_cmd(egui::ViewportCommand::OuterPosition(
-                    egui::pos2(state.offset_x as f32, state.offset_y as f32),
-                ));
+
+                // On Windows, display-info returns physical pixels but OuterPosition
+                // multiplies by pixels_per_point. Divide to compensate.
+                #[cfg(target_os = "windows")]
+                let pos = egui::pos2(
+                    state.offset_x as f32 / ctx.pixels_per_point(),
+                    state.offset_y as f32 / ctx.pixels_per_point(),
+                );
+                #[cfg(not(target_os = "windows"))]
+                let pos = egui::pos2(state.offset_x as f32, state.offset_y as f32);
+
+                ctx.send_viewport_cmd(egui::ViewportCommand::OuterPosition(pos));
                 state.needs_resize = false;
             }
 

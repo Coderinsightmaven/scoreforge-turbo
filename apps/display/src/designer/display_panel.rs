@@ -175,7 +175,10 @@ pub fn show_display_panel(ui: &mut egui::Ui, state: &mut AppState) {
         ui.label("No monitors detected");
     } else {
         let current_label = match project.selected_monitor {
-            Some(idx) if idx < monitors.len() => monitors[idx].name.clone(),
+            Some(idx) if idx < monitors.len() => {
+                let m = &monitors[idx];
+                format!("{} ({}x{}) @{}x", m.name, m.width, m.height, m.scale_factor)
+            }
             _ => "Select monitor...".to_string(),
         };
 
@@ -184,8 +187,8 @@ pub fn show_display_panel(ui: &mut egui::Ui, state: &mut AppState) {
             .show_ui(ui, |ui| {
                 for (i, monitor) in monitors.iter().enumerate() {
                     let label = format!(
-                        "{} ({}x{})",
-                        monitor.name, monitor.width, monitor.height,
+                        "{} ({}x{}) @{}x",
+                        monitor.name, monitor.width, monitor.height, monitor.scale_factor,
                     );
                     if ui
                         .selectable_value(&mut project.selected_monitor, Some(i), label)
@@ -194,6 +197,7 @@ pub fn show_display_panel(ui: &mut egui::Ui, state: &mut AppState) {
                         project.display_offset_x = monitor.x.to_string();
                         project.display_offset_y = monitor.y.to_string();
                         if let Ok(mut ds) = project.display_state.lock() {
+                            ds.target_scale_factor = monitor.scale_factor;
                             ds.needs_resize = true;
                         }
                     }
