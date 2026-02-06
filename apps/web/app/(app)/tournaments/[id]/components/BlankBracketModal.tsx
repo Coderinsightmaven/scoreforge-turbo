@@ -245,7 +245,7 @@ export function BlankBracketModal({
             <button
               onClick={handleGenerate}
               disabled={generatingBlank}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2"
             >
               {generatingBlank ? "Generating..." : "Generate Bracket"}
             </button>

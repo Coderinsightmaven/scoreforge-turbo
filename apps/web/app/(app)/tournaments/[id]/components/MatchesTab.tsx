@@ -131,7 +131,7 @@ export function MatchesTab({
                   }`}
                 >
                   <span
-                    className={`font-medium ${match.winnerId === match.participant1?._id ? "text-amber-500" : "text-foreground"}`}
+                    className={`font-medium ${match.winnerId === match.participant1?._id ? "text-brand" : "text-foreground"}`}
                   >
                     {match.participant1?.displayName || "TBD"}
                   </span>
@@ -147,7 +147,7 @@ export function MatchesTab({
                     {match.participant2Score}
                   </span>
                   <span
-                    className={`font-medium ${match.winnerId === match.participant2?._id ? "text-amber-500" : "text-foreground"}`}
+                    className={`font-medium ${match.winnerId === match.participant2?._id ? "text-brand" : "text-foreground"}`}
                   >
                     {match.participant2?.displayName || "TBD"}
                   </span>
@@ -171,7 +171,7 @@ export function MatchesTab({
               <Link
                 key={match._id}
                 href={`/matches/${match._id}`}
-                className="flex flex-col p-4 bg-card border border-border rounded-xl hover:bg-card-hover hover:border-amber-500/30 transition-all animate-fadeInUp"
+                className="flex flex-col p-4 bg-card border border-border rounded-lg hover:bg-card-hover hover:border-brand/30 transition-all animate-fadeInUp"
                 style={{ animationDelay: `${index * 0.03}s` }}
               >
                 {content}
@@ -182,7 +182,7 @@ export function MatchesTab({
           return (
             <div
               key={match._id}
-              className="flex flex-col p-4 bg-card border border-border rounded-xl animate-fadeInUp"
+              className="flex flex-col p-4 bg-card border border-border rounded-lg animate-fadeInUp"
               style={{ animationDelay: `${index * 0.03}s` }}
             >
               {content}

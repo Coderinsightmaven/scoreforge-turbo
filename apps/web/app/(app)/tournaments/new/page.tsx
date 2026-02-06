@@ -194,14 +194,14 @@ export default function NewTournamentPage(): React.ReactNode {
                     onClick={() => setFormat(f.value as Format)}
                     className={`p-4 text-left border-2 rounded-xl transition-all ${
                       format === f.value
-                        ? "border-amber-500 bg-amber-50 dark:bg-amber-900/20"
+                        ? "border-brand bg-brand-light dark:bg-brand/20"
                         : "border-border bg-secondary hover:border-muted-foreground"
                     }`}
                   >
-                    <span className={`block font-semibold ${format === f.value ? "text-amber-700 dark:text-amber-300" : "text-foreground"}`}>
+                    <span className={`block font-semibold ${format === f.value ? "text-brand dark:text-brand" : "text-foreground"}`}>
                       {f.label}
                     </span>
-                    <span className={`block text-small mt-1 ${format === f.value ? "text-amber-600/70 dark:text-amber-400/70" : "text-muted-foreground"}`}>
+                    <span className={`block text-small mt-1 ${format === f.value ? "text-brand-hover/70 dark:text-brand/70" : "text-muted-foreground"}`}>
                       {f.desc}
                     </span>
                   </button>
@@ -228,14 +228,14 @@ export default function NewTournamentPage(): React.ReactNode {
                     onClick={() => setParticipantType(p.value as ParticipantType)}
                     className={`p-4 text-center border-2 rounded-xl transition-all ${
                       participantType === p.value
-                        ? "border-amber-500 bg-amber-50 dark:bg-amber-900/20"
+                        ? "border-brand bg-brand-light dark:bg-brand/20"
                         : "border-border bg-secondary hover:border-muted-foreground"
                     }`}
                   >
-                    <span className={`block font-semibold ${participantType === p.value ? "text-amber-700 dark:text-amber-300" : "text-foreground"}`}>
+                    <span className={`block font-semibold ${participantType === p.value ? "text-brand dark:text-brand" : "text-foreground"}`}>
                       {p.label}
                     </span>
-                    <span className={`block text-small mt-1 ${participantType === p.value ? "text-amber-600/70 dark:text-amber-400/70" : "text-muted-foreground"}`}>
+                    <span className={`block text-small mt-1 ${participantType === p.value ? "text-brand-hover/70 dark:text-brand/70" : "text-muted-foreground"}`}>
                       {p.desc}
                     </span>
                   </button>

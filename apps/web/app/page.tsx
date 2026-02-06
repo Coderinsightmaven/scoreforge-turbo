@@ -224,8 +224,8 @@ function LoadingScreen(): React.JSX.Element {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-background">
       <div className="relative">
-        <div className="absolute inset-0 blur-xl bg-amber-500/30 animate-pulse rounded-full" />
-        <Loader2 className="relative w-12 h-12 text-amber-500 animate-spin" />
+        <div className="absolute inset-0 blur-xl bg-brand/30 animate-pulse rounded-full" />
+        <Loader2 className="relative w-12 h-12 text-brand animate-spin" />
       </div>
     </div>
   );
@@ -236,7 +236,7 @@ function Logo({ size = "default" }: { size?: "default" | "small" }): React.JSX.E
   const containerSize = size === "small" ? "w-7 h-7" : "w-9 h-9";
 
   return (
-    <div className={`${containerSize} bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center shadow-lg shadow-amber-500/25`}>
+    <div className={`${containerSize} bg-gradient-to-br from-brand to-brand-hover rounded-lg flex items-center justify-center shadow-lg shadow-brand/25`}>
       <Zap className={`${iconSize} text-white drop-shadow-sm`} />
     </div>
   );
@@ -259,7 +259,7 @@ function MobileNav({ isAuthenticated }: { isAuthenticated: boolean }): React.JSX
       <div className="container flex items-center justify-between h-16">
         <Link href="/" className="flex items-center gap-3 group">
           <Logo />
-          <span className="text-lg font-semibold text-foreground group-hover:text-amber-500 transition-colors">
+          <span className="text-lg font-semibold text-foreground group-hover:text-brand transition-colors">
             ScoreForge
           </span>
         </Link>
@@ -267,7 +267,7 @@ function MobileNav({ isAuthenticated }: { isAuthenticated: boolean }): React.JSX
         {/* Desktop Navigation */}
         <div className="hidden sm:flex items-center gap-3">
           {isAuthenticated ? (
-            <Button variant="brand" className="shadow-lg shadow-amber-500/25" asChild>
+            <Button variant="brand" className="shadow-lg shadow-brand/25" asChild>
               <Link href="/dashboard">
                 Go to Dashboard
                 <ArrowRight className="w-4 h-4" />
@@ -278,7 +278,7 @@ function MobileNav({ isAuthenticated }: { isAuthenticated: boolean }): React.JSX
               <Button variant="ghost" asChild>
                 <Link href="/sign-in">Sign in</Link>
               </Button>
-              <Button variant="brand" className="shadow-lg shadow-amber-500/25" asChild>
+              <Button variant="brand" className="shadow-lg shadow-brand/25" asChild>
                 <Link href="/sign-up">Get Started</Link>
               </Button>
             </>
@@ -337,7 +337,7 @@ function LandingContent({ isAuthenticated }: { isAuthenticated: boolean }): Reac
       icon: Zap,
       title: "Live scoring",
       description: "Score matches as they happen. Made a mistake? Just hit undo.",
-      gradient: "from-amber-500 to-orange-500",
+      gradient: "from-brand to-brand-hover",
     },
     {
       icon: Users,
@@ -386,9 +386,9 @@ function LandingContent({ isAuthenticated }: { isAuthenticated: boolean }): Reac
   return (
     <div className="relative">
       {/* Background Glow Effects */}
-      <GlowOrb className="w-[600px] h-[600px] bg-amber-500 -top-48 -right-48" />
-      <GlowOrb className="w-[500px] h-[500px] bg-orange-500 top-[800px] -left-64" />
-      <GlowOrb className="w-[400px] h-[400px] bg-amber-400 top-[1600px] right-0" />
+      <GlowOrb className="w-[600px] h-[600px] bg-brand -top-48 -right-48" />
+      <GlowOrb className="w-[500px] h-[500px] bg-brand-hover top-[800px] -left-64" />
+      <GlowOrb className="w-[400px] h-[400px] bg-brand top-[1600px] right-0" />
 
       {/* Navigation */}
       <MobileNav isAuthenticated={isAuthenticated} />
@@ -398,7 +398,7 @@ function LandingContent({ isAuthenticated }: { isAuthenticated: boolean }): Reac
         <div className="container relative px-4 sm:px-6">
           <div className="max-w-3xl mx-auto text-center">
             {/* Floating badge */}
-            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs sm:text-sm font-medium mb-6 sm:mb-8 animate-fadeIn">
+            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-brand/10 border border-brand/20 text-brand-hover dark:text-brand text-xs sm:text-sm font-medium mb-6 sm:mb-8 animate-fadeIn">
               <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
               Free for small tournaments
             </div>
@@ -407,7 +407,7 @@ function LandingContent({ isAuthenticated }: { isAuthenticated: boolean }): Reac
             <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight mb-4 sm:mb-6 animate-slideUp">
               <span className="text-foreground">Run tournaments</span>
               <br />
-              <span className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-brand via-brand-hover to-brand-hover bg-clip-text text-transparent">
                 with ease
               </span>
             </h1>
@@ -422,7 +422,7 @@ function LandingContent({ isAuthenticated }: { isAuthenticated: boolean }): Reac
               <Button
                 variant="brand"
                 size="lg"
-                className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 shadow-xl shadow-amber-500/30 hover:shadow-amber-500/40 hover:scale-105 transition-all"
+                className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 shadow-xl shadow-brand/30 hover:shadow-brand/40 hover:scale-105 transition-all"
                 asChild
               >
                 <Link href={isAuthenticated ? "/dashboard" : "/sign-up"}>
@@ -472,13 +472,13 @@ function LandingContent({ isAuthenticated }: { isAuthenticated: boolean }): Reac
               >
                 {/* Connector line */}
                 {i < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-8 left-[calc(50%+40px)] w-[calc(100%-80px)] h-[2px] bg-gradient-to-r from-amber-500/50 to-transparent" />
+                  <div className="hidden md:block absolute top-8 left-[calc(50%+40px)] w-[calc(100%-80px)] h-[2px] bg-gradient-to-r from-brand/50 to-transparent" />
                 )}
 
-                <Card className="relative overflow-hidden border-2 border-transparent hover:border-amber-500/30 transition-all duration-300 bg-card/50 backdrop-blur-sm">
-                  <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Card className="relative overflow-hidden border-2 border-transparent hover:border-brand/30 transition-all duration-300 bg-card/50 backdrop-blur-sm">
+                  <div className="absolute inset-0 bg-gradient-to-br from-brand/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   <CardHeader className="text-center pb-2">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white text-2xl font-bold flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/25 group-hover:scale-110 transition-transform">
+                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-brand to-brand-hover text-white text-2xl font-bold flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand/25 group-hover:scale-110 transition-transform">
                       {item.step}
                     </div>
                     <CardTitle className="text-xl">{item.title}</CardTitle>
@@ -516,15 +516,15 @@ function LandingContent({ isAuthenticated }: { isAuthenticated: boolean }): Reac
               return (
                 <Card
                   key={feature.title}
-                  className="group relative overflow-hidden border-2 border-transparent hover:border-amber-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/10 sm:hover:-translate-y-1 animate-slideUp"
+                  className="group relative overflow-hidden border-2 border-transparent hover:border-brand/30 transition-all duration-300 hover:shadow-xl hover:shadow-brand/10 sm:hover:-translate-y-1 animate-slideUp"
                   style={{ animationDelay: `${i * 75}ms` }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-brand/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   <CardHeader className="relative pb-2 sm:pb-4">
                     <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center text-white mb-3 sm:mb-4 shadow-lg group-hover:scale-110 transition-transform`}>
                       <Icon className="w-6 h-6 sm:w-7 sm:h-7" />
                     </div>
-                    <CardTitle className="text-lg sm:text-xl group-hover:text-amber-500 transition-colors">
+                    <CardTitle className="text-lg sm:text-xl group-hover:text-brand transition-colors">
                       {feature.title}
                     </CardTitle>
                   </CardHeader>
@@ -545,7 +545,7 @@ function LandingContent({ isAuthenticated }: { isAuthenticated: boolean }): Reac
         <div className="container px-4 sm:px-6">
           <div className="relative max-w-4xl mx-auto">
             {/* Gradient border card */}
-            <div className="absolute inset-0 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 rounded-2xl sm:rounded-3xl blur-sm opacity-75" />
+            <div className="absolute inset-0 bg-gradient-to-r from-brand via-brand-hover to-brand rounded-xl sm:rounded-2xl blur-sm opacity-75" />
             <div className="relative bg-card rounded-2xl sm:rounded-3xl p-6 sm:p-12 md:p-16 text-center overflow-hidden">
               {/* Background pattern */}
               <div className="absolute inset-0 opacity-5">
@@ -556,7 +556,7 @@ function LandingContent({ isAuthenticated }: { isAuthenticated: boolean }): Reac
               </div>
 
               <div className="relative">
-                <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-white mb-4 sm:mb-6 shadow-xl shadow-amber-500/30">
+                <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-brand to-brand-hover text-white mb-4 sm:mb-6 shadow-xl shadow-brand/30">
                   <Trophy className="w-6 h-6 sm:w-8 sm:h-8" />
                 </div>
 
@@ -571,7 +571,7 @@ function LandingContent({ isAuthenticated }: { isAuthenticated: boolean }): Reac
                 <Button
                   variant="brand"
                   size="lg"
-                  className="text-base sm:text-lg px-6 sm:px-10 py-5 sm:py-6 shadow-xl shadow-amber-500/30 hover:shadow-amber-500/40 hover:scale-105 transition-all"
+                  className="text-base sm:text-lg px-6 sm:px-10 py-5 sm:py-6 shadow-xl shadow-brand/30 hover:shadow-brand/40 hover:scale-105 transition-all"
                   asChild
                 >
                   <Link href={isAuthenticated ? "/dashboard" : "/sign-up"}>

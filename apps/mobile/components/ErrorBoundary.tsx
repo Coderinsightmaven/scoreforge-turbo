@@ -42,7 +42,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             An unexpected error occurred. Please try again.
           </Text>
           <TouchableOpacity
-            className="rounded-xl bg-amber-500 px-8 py-3"
+            className="rounded-lg bg-brand px-8 py-3"
             onPress={this.handleRetry}
             activeOpacity={0.7}>
             <Text className="text-base font-semibold text-white">Retry</Text>
