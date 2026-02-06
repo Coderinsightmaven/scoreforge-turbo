@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 
 use egui::{Color32, Vec2};
 use uuid::Uuid;
@@ -9,6 +10,7 @@ use crate::data::convex::ConvexManager;
 use crate::data::live_data::{
     ConnectionStep, LiveDataMessage, MatchInfo, TennisLiveData, TournamentInfo,
 };
+use crate::display::renderer::DisplayState;
 use crate::storage::assets::AssetLibrary;
 use crate::storage::scoreboard::{AppConfig, ScoreboardFile};
 
@@ -45,6 +47,9 @@ pub struct Toast {
 
 /// Per-tab project state. Each open scoreboard gets its own ProjectState.
 pub struct ProjectState {
+    // Stable identifier for unique viewport IDs
+    pub id: Uuid,
+
     // Scoreboard
     pub scoreboard: Scoreboard,
     pub components: Vec<ScoreboardComponent>,
@@ -59,10 +64,24 @@ pub struct ProjectState {
     // Undo
     pub undo_stack: Vec<Vec<ScoreboardComponent>>,
 
-    // Live data (per-project selections)
+    // Live data connection (per-project)
+    pub convex_manager: Option<ConvexManager>,
+    pub connection_step: ConnectionStep,
+    pub tournament_list: Vec<TournamentInfo>,
+    pub match_list: Vec<MatchInfo>,
     pub selected_tournament_id: Option<String>,
     pub selected_match_id: Option<String>,
     pub live_match_data: Option<TennisLiveData>,
+
+    // Connect dialog (per-project)
+    pub show_connect_dialog: bool,
+
+    // Display viewport (per-project)
+    pub display_active: bool,
+    pub display_fullscreen: bool,
+    pub display_offset_x: String,
+    pub display_offset_y: String,
+    pub display_state: Arc<Mutex<DisplayState>>,
 
     // Persistence
     pub current_file: Option<PathBuf>,
@@ -72,6 +91,7 @@ pub struct ProjectState {
 impl ProjectState {
     pub fn new(name: String, width: u32, height: u32) -> Self {
         Self {
+            id: Uuid::new_v4(),
             scoreboard: Scoreboard {
                 name,
                 width,
@@ -85,9 +105,19 @@ impl ProjectState {
             canvas_zoom: 0.5,
             canvas_pan: Vec2::new(50.0, 50.0),
             undo_stack: Vec::new(),
+            convex_manager: None,
+            connection_step: ConnectionStep::Disconnected,
+            tournament_list: Vec::new(),
+            match_list: Vec::new(),
             selected_tournament_id: None,
             selected_match_id: None,
             live_match_data: None,
+            show_connect_dialog: false,
+            display_active: false,
+            display_fullscreen: false,
+            display_offset_x: "0".to_string(),
+            display_offset_y: "0".to_string(),
+            display_state: Arc::new(Mutex::new(DisplayState::default())),
             current_file: None,
             is_dirty: false,
         }
@@ -95,6 +125,7 @@ impl ProjectState {
 
     pub fn from_file(file: ScoreboardFile) -> Self {
         Self {
+            id: Uuid::new_v4(),
             scoreboard: Scoreboard {
                 name: file.name,
                 width: file.dimensions.0,
@@ -108,9 +139,19 @@ impl ProjectState {
             canvas_zoom: 0.5,
             canvas_pan: Vec2::new(50.0, 50.0),
             undo_stack: Vec::new(),
+            convex_manager: None,
+            connection_step: ConnectionStep::Disconnected,
+            tournament_list: Vec::new(),
+            match_list: Vec::new(),
             selected_tournament_id: None,
             selected_match_id: None,
             live_match_data: None,
+            show_connect_dialog: false,
+            display_active: false,
+            display_fullscreen: false,
+            display_offset_x: "0".to_string(),
+            display_offset_y: "0".to_string(),
+            display_state: Arc::new(Mutex::new(DisplayState::default())),
             current_file: None,
             is_dirty: false,
         }
@@ -142,6 +183,49 @@ impl ProjectState {
         }
     }
 
+    /// Process Convex messages for this project's connection.
+    pub fn process_convex_messages(&mut self, toasts: &mut Vec<Toast>) {
+        let messages: Vec<LiveDataMessage> = if let Some(manager) = &mut self.convex_manager {
+            let mut msgs = Vec::new();
+            while let Some(msg) = manager.try_recv() {
+                msgs.push(msg);
+            }
+            msgs
+        } else {
+            return;
+        };
+
+        for msg in messages {
+            match msg {
+                LiveDataMessage::Connected => {
+                    self.connection_step = ConnectionStep::SelectTournament;
+                }
+                LiveDataMessage::TournamentList(list) => {
+                    self.tournament_list = list;
+                    self.connection_step = ConnectionStep::SelectTournament;
+                }
+                LiveDataMessage::MatchList(list) => {
+                    self.match_list = list;
+                    self.connection_step = ConnectionStep::SelectMatch;
+                }
+                LiveDataMessage::MatchDataUpdated(data) => {
+                    self.live_match_data = Some(data);
+                    self.connection_step = ConnectionStep::Live;
+                }
+                LiveDataMessage::Error(err) => {
+                    toasts.push(Toast {
+                        message: err,
+                        is_error: true,
+                        created_at: std::time::Instant::now(),
+                    });
+                }
+                LiveDataMessage::Disconnected => {
+                    self.connection_step = ConnectionStep::Disconnected;
+                    self.live_match_data = None;
+                }
+            }
+        }
+    }
 }
 
 pub struct AppState {
@@ -161,20 +245,14 @@ pub struct AppState {
     pub asset_library: AssetLibrary,
     pub texture_cache: TextureCache,
 
-    // Live data connection (global)
-    pub convex_manager: Option<ConvexManager>,
-    pub connection_step: ConnectionStep,
-    pub tournament_list: Vec<TournamentInfo>,
-    pub match_list: Vec<MatchInfo>,
-
     // Persistence
     pub config: AppConfig,
 
     // UI dialogs
-    pub show_connect_dialog: bool,
     pub show_new_dialog: bool,
+    pub show_connect_dialog: bool,
 
-    // Connect dialog fields
+    // Connect credentials (global — entered once, shared by all tabs)
     pub connect_url: String,
     pub connect_api_key: String,
 
@@ -185,12 +263,6 @@ pub struct AppState {
 
     // Toasts
     pub toasts: Vec<Toast>,
-
-    // Display viewport
-    pub display_active: bool,
-    pub display_fullscreen: bool,
-    pub display_offset_x: String,
-    pub display_offset_y: String,
 }
 
 impl AppState {
@@ -207,23 +279,15 @@ impl AppState {
             clipboard: Vec::new(),
             asset_library: AssetLibrary::new(),
             texture_cache: TextureCache::new(),
-            convex_manager: None,
-            connection_step: ConnectionStep::Disconnected,
-            tournament_list: Vec::new(),
-            match_list: Vec::new(),
             config,
-            show_connect_dialog: false,
             show_new_dialog: false,
+            show_connect_dialog: false,
             connect_url,
             connect_api_key: String::new(),
             new_name: "Untitled".to_string(),
             new_width: "1920".to_string(),
             new_height: "1080".to_string(),
             toasts: Vec::new(),
-            display_active: false,
-            display_fullscreen: false,
-            display_offset_x: "0".to_string(),
-            display_offset_y: "0".to_string(),
         }
     }
 
@@ -271,47 +335,10 @@ impl AppState {
         }
     }
 
-    pub fn process_convex_messages(&mut self) {
-        // Collect messages first to avoid borrow conflict
-        let messages: Vec<LiveDataMessage> = if let Some(manager) = &mut self.convex_manager {
-            let mut msgs = Vec::new();
-            while let Some(msg) = manager.try_recv() {
-                msgs.push(msg);
-            }
-            msgs
-        } else {
-            return;
-        };
-
-        for msg in messages {
-            match msg {
-                LiveDataMessage::Connected => {
-                    self.connection_step = ConnectionStep::SelectTournament;
-                }
-                LiveDataMessage::TournamentList(list) => {
-                    self.tournament_list = list;
-                    self.connection_step = ConnectionStep::SelectTournament;
-                }
-                LiveDataMessage::MatchList(list) => {
-                    self.match_list = list;
-                    self.connection_step = ConnectionStep::SelectMatch;
-                }
-                LiveDataMessage::MatchDataUpdated(data) => {
-                    if !self.projects.is_empty() {
-                        self.projects[self.active_index].live_match_data = Some(data);
-                    }
-                    self.connection_step = ConnectionStep::Live;
-                }
-                LiveDataMessage::Error(err) => {
-                    self.push_toast(err, true);
-                }
-                LiveDataMessage::Disconnected => {
-                    self.connection_step = ConnectionStep::Disconnected;
-                    if !self.projects.is_empty() {
-                        self.projects[self.active_index].live_match_data = None;
-                    }
-                }
-            }
+    /// Process Convex messages for all projects.
+    pub fn process_all_convex_messages(&mut self) {
+        for project in &mut self.projects {
+            project.process_convex_messages(&mut self.toasts);
         }
     }
 }

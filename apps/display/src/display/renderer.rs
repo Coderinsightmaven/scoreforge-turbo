@@ -1,6 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use egui::{Pos2, Rect, Vec2, ViewportBuilder, ViewportId};
+use uuid::Uuid;
 
 use crate::components::{RenderContext, ScoreboardComponent, TextureCache, render_component};
 use crate::data::live_data::TennisLiveData;
@@ -18,8 +19,28 @@ pub struct DisplayState {
     pub offset_y: i32,
 }
 
-pub fn show_display_viewport(ctx: &egui::Context, display_state: &Arc<Mutex<DisplayState>>) {
-    let viewport_id = ViewportId::from_hash_of("scoreforge_display");
+impl Default for DisplayState {
+    fn default() -> Self {
+        Self {
+            scoreboard: Scoreboard::default(),
+            components: Vec::new(),
+            live_data: None,
+            texture_cache: TextureCache::new(),
+            should_close: false,
+            fullscreen: false,
+            offset_x: 0,
+            offset_y: 0,
+        }
+    }
+}
+
+pub fn show_display_viewport(
+    ctx: &egui::Context,
+    display_state: &Arc<Mutex<DisplayState>>,
+    project_id: Uuid,
+    project_name: &str,
+) {
+    let viewport_id = ViewportId::from_hash_of(&format!("scoreforge_display_{}", project_id));
     let display_state = Arc::clone(display_state);
 
     let (fullscreen, width, height, offset_x, offset_y) = {
@@ -33,8 +54,10 @@ pub fn show_display_viewport(ctx: &egui::Context, display_state: &Arc<Mutex<Disp
         )
     };
 
+    let title = format!("Display - {}", project_name);
+
     let mut builder = ViewportBuilder::default()
-        .with_title("ScoreForge Display")
+        .with_title(title)
         .with_decorations(false);
 
     if fullscreen {

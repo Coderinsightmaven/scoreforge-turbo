@@ -1,40 +1,26 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
-use crate::components::{ComponentData, TextureCache};
+use crate::components::ComponentData;
 use crate::data::convex::ConvexManager;
 use crate::data::live_data::{ConnectionStep, LiveDataCommand};
-use crate::designer::{canvas, component_library, property_panel, toolbar};
-use crate::display::renderer::{DisplayState, show_display_viewport};
-use crate::state::{AppState, ProjectState, Scoreboard};
+use crate::designer::{canvas, component_library, display_panel, property_panel, toolbar};
+use crate::display::renderer::show_display_viewport;
+use crate::state::{AppState, ProjectState};
 
 pub struct ScoreForgeApp {
     state: AppState,
-    display_state: Arc<Mutex<DisplayState>>,
 }
 
 impl ScoreForgeApp {
     pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
         let state = AppState::new();
-        let display_state = Arc::new(Mutex::new(DisplayState {
-            scoreboard: Scoreboard::default(),
-            components: Vec::new(),
-            live_data: None,
-            texture_cache: TextureCache::new(),
-            should_close: false,
-            fullscreen: false,
-            offset_x: 0,
-            offset_y: 0,
-        }));
-
-        Self {
-            state,
-            display_state,
-        }
+        Self { state }
     }
 
     fn show_dialogs(&mut self, ctx: &egui::Context) {
         self.show_new_dialog(ctx);
         self.show_connect_dialog(ctx);
+        self.show_match_select_dialog(ctx);
     }
 
     fn show_new_dialog(&mut self, ctx: &egui::Context) {
@@ -76,104 +62,163 @@ impl ScoreForgeApp {
             });
     }
 
+    /// Global credentials dialog — enter Convex URL and API key once.
     fn show_connect_dialog(&mut self, ctx: &egui::Context) {
         if !self.state.show_connect_dialog {
             return;
         }
 
-        egui::Window::new("Connect to ScoreForge")
+        egui::Window::new("ScoreForge Connection")
             .collapsible(false)
             .resizable(false)
             .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
-            .show(ctx, |ui| match &self.state.connection_step {
-                ConnectionStep::Disconnected | ConnectionStep::Connecting => {
-                    ui.label("Enter your Convex deployment URL and API key:");
-                    ui.horizontal(|ui| {
-                        ui.label("URL:");
-                        ui.text_edit_singleline(&mut self.state.connect_url);
-                    });
-                    ui.horizontal(|ui| {
-                        ui.label("API Key:");
-                        ui.text_edit_singleline(&mut self.state.connect_api_key);
-                    });
-                    ui.horizontal(|ui| {
-                        if ui.button("Connect").clicked() {
-                            let manager = ConvexManager::new();
-                            manager.send_command(LiveDataCommand::Connect {
-                                url: self.state.connect_url.clone(),
-                                api_key: self.state.connect_api_key.clone(),
-                            });
-                            self.state.convex_manager = Some(manager);
-                            self.state.connection_step = ConnectionStep::Connecting;
-                            self.state.config.last_convex_url =
-                                Some(self.state.connect_url.clone());
-                            self.state.config.save();
+            .show(ctx, |ui| {
+                ui.label("Enter your Convex deployment URL and API key:");
+                ui.label("These credentials are shared by all scoreboards.");
+                ui.add_space(8.0);
+                ui.horizontal(|ui| {
+                    ui.label("URL:");
+                    ui.text_edit_singleline(&mut self.state.connect_url);
+                });
+                ui.horizontal(|ui| {
+                    ui.label("API Key:");
+                    ui.text_edit_singleline(&mut self.state.connect_api_key);
+                });
+                ui.add_space(4.0);
+                ui.horizontal(|ui| {
+                    if ui.button("Save").clicked() {
+                        self.state.config.last_convex_url =
+                            Some(self.state.connect_url.clone());
+                        self.state.config.save();
+                        self.state.show_connect_dialog = false;
+                        self.state
+                            .push_toast("Connection settings saved".to_string(), false);
+                    }
+                    if ui.button("Cancel").clicked() {
+                        self.state.show_connect_dialog = false;
+                    }
+                });
+            });
+    }
+
+    /// Per-tab match selection dialog — shown when a project's show_connect_dialog is true.
+    /// Uses global credentials; skips URL/key entry entirely.
+    fn show_match_select_dialog(&mut self, ctx: &egui::Context) {
+        if !self.state.has_projects() {
+            return;
+        }
+
+        if !self.state.active_project().show_connect_dialog {
+            return;
+        }
+
+        // Snapshot data before egui closure to avoid borrow issues
+        let connection_step = self.state.active_project().connection_step.clone();
+        let tournament_list = self.state.active_project().tournament_list.clone();
+        let match_list = self.state.active_project().match_list.clone();
+
+        egui::Window::new("Select Match")
+            .collapsible(false)
+            .resizable(true)
+            .default_height(400.0)
+            .anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0])
+            .show(ctx, |ui| match &connection_step {
+                ConnectionStep::Disconnected => {
+                    // No credentials configured yet
+                    if self.state.connect_url.is_empty() || self.state.connect_api_key.is_empty() {
+                        ui.label("No connection configured.");
+                        ui.label("Set your Convex URL and API key first.");
+                        if ui.button("Open Settings").clicked() {
+                            self.state.active_project_mut().show_connect_dialog = false;
+                            self.state.show_connect_dialog = true;
                         }
                         if ui.button("Cancel").clicked() {
-                            self.state.show_connect_dialog = false;
+                            self.state.active_project_mut().show_connect_dialog = false;
                         }
-                    });
+                    } else {
+                        // Auto-connect using global credentials
+                        ui.label("Connecting...");
+                        ui.spinner();
+                        let url = self.state.connect_url.clone();
+                        let api_key = self.state.connect_api_key.clone();
+                        let manager = ConvexManager::new();
+                        manager.send_command(LiveDataCommand::Connect { url, api_key });
+                        let project = self.state.active_project_mut();
+                        project.convex_manager = Some(manager);
+                        project.connection_step = ConnectionStep::Connecting;
+                    }
+                }
+                ConnectionStep::Connecting => {
+                    ui.label("Connecting...");
+                    ui.spinner();
+                    if ui.button("Cancel").clicked() {
+                        let project = self.state.active_project_mut();
+                        if let Some(manager) = &project.convex_manager {
+                            manager.send_command(LiveDataCommand::Disconnect);
+                        }
+                        project.show_connect_dialog = false;
+                    }
                 }
                 ConnectionStep::SelectTournament => {
                     ui.label("Select a tournament:");
-                    if self.state.tournament_list.is_empty() {
+                    if tournament_list.is_empty() {
                         ui.spinner();
                         ui.label("Loading tournaments...");
                     }
-                    for t in self.state.tournament_list.clone() {
-                        if ui.button(format!("{} ({})", t.name, t.status)).clicked() {
-                            if let Some(manager) = &self.state.convex_manager {
-                                manager
-                                    .send_command(LiveDataCommand::SelectTournament(t.id.clone()));
-                            }
-                            if self.state.has_projects() {
-                                self.state.active_project_mut().selected_tournament_id =
-                                    Some(t.id);
+                    egui::ScrollArea::vertical().max_height(350.0).show(ui, |ui| {
+                        for t in &tournament_list {
+                            if ui.button(format!("{} ({})", t.name, t.status)).clicked() {
+                                let project = self.state.active_project_mut();
+                                if let Some(manager) = &project.convex_manager {
+                                    manager.send_command(LiveDataCommand::SelectTournament(
+                                        t.id.clone(),
+                                    ));
+                                }
+                                project.selected_tournament_id = Some(t.id.clone());
                             }
                         }
-                    }
-                    if ui.button("Back").clicked() {
-                        self.state.connection_step = ConnectionStep::Disconnected;
+                    });
+                    if ui.button("Cancel").clicked() {
+                        self.state.active_project_mut().show_connect_dialog = false;
                     }
                 }
                 ConnectionStep::SelectMatch => {
                     ui.label("Select a match:");
-                    if self.state.match_list.is_empty() {
+                    if match_list.is_empty() {
                         ui.spinner();
                         ui.label("Loading matches...");
                     }
-                    for m in self.state.match_list.clone() {
-                        let court_str = m
-                            .court
-                            .as_deref()
-                            .map(|c| format!(" - Court {c}"))
-                            .unwrap_or_default();
-                        let label = format!(
-                            "{} vs {} ({}){}",
-                            m.player1_name, m.player2_name, m.status, court_str
-                        );
-                        if ui.button(&label).clicked() {
-                            if let Some(manager) = &self.state.convex_manager {
-                                manager.send_command(LiveDataCommand::SelectMatch(m.id.clone()));
+                    egui::ScrollArea::vertical().max_height(350.0).show(ui, |ui| {
+                        for m in &match_list {
+                            let court_str = m
+                                .court
+                                .as_deref()
+                                .map(|c| format!(" - Court {c}"))
+                                .unwrap_or_default();
+                            let label = format!(
+                                "{} vs {} ({}){}",
+                                m.player1_name, m.player2_name, m.status, court_str
+                            );
+                            if ui.button(&label).clicked() {
+                                let project = self.state.active_project_mut();
+                                if let Some(manager) = &project.convex_manager {
+                                    manager
+                                        .send_command(LiveDataCommand::SelectMatch(m.id.clone()));
+                                }
+                                project.selected_match_id = Some(m.id.clone());
+                                project.show_connect_dialog = false;
                             }
-                            if self.state.has_projects() {
-                                self.state.active_project_mut().selected_match_id = Some(m.id);
-                            }
-                            self.state.show_connect_dialog = false;
                         }
-                    }
+                    });
                     if ui.button("Back").clicked() {
-                        self.state.connection_step = ConnectionStep::SelectTournament;
+                        self.state.active_project_mut().connection_step =
+                            ConnectionStep::SelectTournament;
                     }
                 }
                 ConnectionStep::Live => {
                     ui.colored_label(egui::Color32::GREEN, "Connected - receiving live data");
-                    if ui.button("Disconnect").clicked() {
-                        if let Some(manager) = &self.state.convex_manager {
-                            manager.send_command(LiveDataCommand::Disconnect);
-                        }
-                        self.state.connection_step = ConnectionStep::Disconnected;
-                        self.state.show_connect_dialog = false;
+                    if ui.button("Close").clicked() {
+                        self.state.active_project_mut().show_connect_dialog = false;
                     }
                 }
             });
@@ -229,20 +274,21 @@ impl ScoreForgeApp {
         }
     }
 
-    fn sync_display_state(&mut self) {
-        if self.state.display_active
-            && self.state.has_projects()
-            && let Ok(mut ds) = self.display_state.lock()
-        {
-            let project = self.state.active_project();
-            ds.scoreboard = project.scoreboard.clone();
-            ds.components = project.components.clone();
-            ds.live_data = project.live_match_data.clone();
-            ds.texture_cache.sync_from(&self.state.texture_cache);
-            ds.should_close = false;
-            ds.fullscreen = self.state.display_fullscreen;
-            ds.offset_x = self.state.display_offset_x.parse().unwrap_or(0);
-            ds.offset_y = self.state.display_offset_y.parse().unwrap_or(0);
+    /// Sync display state for all projects that have an active display.
+    fn sync_all_display_states(&self) {
+        for project in &self.state.projects {
+            if project.display_active {
+                if let Ok(mut ds) = project.display_state.lock() {
+                    ds.scoreboard = project.scoreboard.clone();
+                    ds.components = project.components.clone();
+                    ds.live_data = project.live_match_data.clone();
+                    ds.texture_cache.sync_from(&self.state.texture_cache);
+                    ds.should_close = false;
+                    ds.fullscreen = project.display_fullscreen;
+                    ds.offset_x = project.display_offset_x.parse().unwrap_or(0);
+                    ds.offset_y = project.display_offset_y.parse().unwrap_or(0);
+                }
+            }
         }
     }
 
@@ -427,6 +473,15 @@ impl ScoreForgeApp {
                     }
 
                     if let Some(idx) = close_idx {
+                        // Clean up display and connection for the closing tab
+                        let project = &self.state.projects[idx];
+                        if let Ok(mut ds) = project.display_state.lock() {
+                            ds.should_close = true;
+                        }
+                        if let Some(manager) = &project.convex_manager {
+                            manager.send_command(LiveDataCommand::Disconnect);
+                        }
+
                         self.state.projects.remove(idx);
                         if self.state.projects.is_empty() {
                             self.state.active_index = 0;
@@ -441,8 +496,8 @@ impl ScoreForgeApp {
 
 impl eframe::App for ScoreForgeApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // Process Convex messages
-        self.state.process_convex_messages();
+        // Process Convex messages for all projects
+        self.state.process_all_convex_messages();
 
         if !self.state.has_projects() {
             self.show_start_screen(ctx);
@@ -453,12 +508,21 @@ impl eframe::App for ScoreForgeApp {
         // Load textures for any components that reference assets
         self.ensure_textures_loaded(ctx);
 
-        // Sync display state
-        self.sync_display_state();
+        // Sync display state for all active displays
+        self.sync_all_display_states();
 
-        // Show display viewport if active
-        if self.state.display_active {
-            show_display_viewport(ctx, &self.display_state);
+        // Show display viewport for each project that has display_active
+        // Collect data needed first to avoid borrow issues
+        let display_infos: Vec<_> = self
+            .state
+            .projects
+            .iter()
+            .filter(|p| p.display_active)
+            .map(|p| (Arc::clone(&p.display_state), p.id, p.scoreboard.name.clone()))
+            .collect();
+
+        for (ds, project_id, project_name) in display_infos {
+            show_display_viewport(ctx, &ds, project_id, &project_name);
         }
 
         // Top toolbar
@@ -474,6 +538,15 @@ impl eframe::App for ScoreForgeApp {
             .default_width(160.0)
             .show(ctx, |ui| {
                 component_library::show_component_library(ui, &mut self.state);
+            });
+
+        // Right sidebar - display panel (before property panel so it's to the left)
+        egui::SidePanel::right("display_panel")
+            .default_width(200.0)
+            .show(ctx, |ui| {
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    display_panel::show_display_panel(ui, &mut self.state);
+                });
             });
 
         // Right sidebar - property panel
@@ -498,8 +571,11 @@ impl eframe::App for ScoreForgeApp {
         // Toasts
         self.show_toasts(ctx);
 
-        // Request continuous repaint when live data is active
-        if self.state.connection_step == ConnectionStep::Live || self.state.display_active {
+        // Request continuous repaint when any project has live data or active display
+        let needs_repaint = self.state.projects.iter().any(|p| {
+            p.connection_step == ConnectionStep::Live || p.display_active
+        });
+        if needs_repaint {
             ctx.request_repaint();
         }
     }

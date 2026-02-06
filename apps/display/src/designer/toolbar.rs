@@ -16,43 +16,6 @@ pub fn show_toolbar(ui: &mut egui::Ui, state: &mut AppState) {
 
         ui.separator();
 
-        if ui.button("Connect").clicked() {
-            state.show_connect_dialog = true;
-        }
-
-        ui.checkbox(&mut state.display_fullscreen, "Fullscreen");
-
-        if !state.display_fullscreen {
-            ui.label("X:");
-            let offset_x_response = ui.add(
-                egui::TextEdit::singleline(&mut state.display_offset_x)
-                    .desired_width(50.0),
-            );
-            if offset_x_response.changed() {
-                // Strip non-numeric chars except leading minus
-                state.display_offset_x = sanitize_int_input(&state.display_offset_x);
-            }
-            ui.label("Y:");
-            let offset_y_response = ui.add(
-                egui::TextEdit::singleline(&mut state.display_offset_y)
-                    .desired_width(50.0),
-            );
-            if offset_y_response.changed() {
-                state.display_offset_y = sanitize_int_input(&state.display_offset_y);
-            }
-        }
-
-        if state.display_active {
-            if ui.button("Close Display").clicked() {
-                state.display_active = false;
-            }
-            ui.colored_label(egui::Color32::GREEN, "●");
-        } else if ui.button("Launch Display").clicked() {
-            state.display_active = true;
-        }
-
-        ui.separator();
-
         // Grid controls
         ui.checkbox(&mut state.grid_enabled, "Grid");
         ui.checkbox(&mut state.snap_to_grid, "Snap");
@@ -95,18 +58,6 @@ fn save_scoreboard(state: &mut AppState) {
             }
         }
     }
-}
-
-fn sanitize_int_input(input: &str) -> String {
-    let mut result = String::new();
-    for (i, c) in input.chars().enumerate() {
-        if c == '-' && i == 0 {
-            result.push(c);
-        } else if c.is_ascii_digit() {
-            result.push(c);
-        }
-    }
-    result
 }
 
 fn load_scoreboard(state: &mut AppState) {
