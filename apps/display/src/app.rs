@@ -371,6 +371,32 @@ impl ScoreForgeApp {
                         }
                     }
 
+                    // --- Import Bundle ---
+                    if ui.button("Import Scoreboard Bundle...").clicked() {
+                        let path = rfd::FileDialog::new()
+                            .set_title("Import Scoreboard Bundle")
+                            .add_filter("ScoreForge Board Zip", &["sfbz"])
+                            .pick_file();
+                        if let Some(path) = path {
+                            match crate::storage::scoreboard::import_sfbz(
+                                &path,
+                                &mut self.state.asset_library,
+                            ) {
+                                Ok(file) => {
+                                    let project = ProjectState::from_file(file);
+                                    self.state.projects.push(project);
+                                    self.state.active_index = self.state.projects.len() - 1;
+                                    self.state
+                                        .push_toast("Scoreboard imported".to_string(), false);
+                                }
+                                Err(e) => {
+                                    self.state
+                                        .push_toast(format!("Import failed: {e}"), true);
+                                }
+                            }
+                        }
+                    }
+
                     // --- Recent Files ---
                     let recent: Vec<_> = self
                         .state
