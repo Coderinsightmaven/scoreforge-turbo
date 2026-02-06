@@ -6,7 +6,8 @@ use futures::StreamExt;
 use tokio::sync::mpsc;
 
 use super::live_data::{
-    LiveDataCommand, LiveDataMessage, MatchInfo, SetScore, TennisLiveData, TournamentInfo,
+    BracketInfo, LiveDataCommand, LiveDataMessage, MatchInfo, SetScore, TennisLiveData,
+    TournamentInfo,
 };
 
 /// Manages the background tokio runtime and Convex client communication.
@@ -49,6 +50,7 @@ async fn convex_task(
 
     let mut client: Option<ConvexClient> = None;
     let mut api_key: Option<String> = None;
+    let mut selected_tournament_id: Option<String> = None;
 
     while let Some(cmd) = command_rx.recv().await {
         match cmd {
@@ -93,10 +95,39 @@ async fn convex_task(
             }
             LiveDataCommand::SelectTournament(tournament_id) => {
                 tracing::info!("Selected tournament: {}", tournament_id);
+                selected_tournament_id = Some(tournament_id.clone());
                 if let (Some(c), Some(key)) = (&mut client, &api_key) {
                     let args: BTreeMap<String, Value> = maplit::btreemap! {
                         "apiKey".into() => key.clone().into(),
                         "tournamentId".into() => tournament_id.into(),
+                    };
+                    match c.mutation("publicApi:listBrackets", args).await {
+                        Ok(FunctionResult::Value(val)) => {
+                            let brackets = parse_bracket_list(&val);
+                            let _ = message_tx.send(LiveDataMessage::BracketList(brackets));
+                        }
+                        Ok(FunctionResult::ErrorMessage(e)) => {
+                            let _ = message_tx.send(LiveDataMessage::Error(e));
+                        }
+                        Ok(FunctionResult::ConvexError(e)) => {
+                            let _ = message_tx.send(LiveDataMessage::Error(format!("{:?}", e)));
+                        }
+                        Err(e) => {
+                            let _ = message_tx
+                                .send(LiveDataMessage::Error(format!("Fetch error: {e}")));
+                        }
+                    }
+                }
+            }
+            LiveDataCommand::SelectBracket(bracket_id) => {
+                tracing::info!("Selected bracket: {}", bracket_id);
+                if let (Some(c), Some(key), Some(tid)) =
+                    (&mut client, &api_key, &selected_tournament_id)
+                {
+                    let args: BTreeMap<String, Value> = maplit::btreemap! {
+                        "apiKey".into() => key.clone().into(),
+                        "tournamentId".into() => tid.clone().into(),
+                        "bracketId".into() => bracket_id.into(),
                     };
                     match c.mutation("publicApi:listMatches", args).await {
                         Ok(FunctionResult::Value(val)) => {
@@ -232,6 +263,42 @@ fn parse_tournament_list(val: &Value) -> Vec<TournamentInfo> {
         .collect()
 }
 
+fn parse_bracket_list(val: &Value) -> Vec<BracketInfo> {
+    let Value::Object(obj) = val else {
+        return vec![];
+    };
+
+    if get_str(obj, "error").is_some() {
+        return vec![];
+    }
+
+    let Some(brackets) = get_array(obj, "brackets") else {
+        return vec![];
+    };
+
+    brackets
+        .iter()
+        .filter_map(|b| {
+            let Value::Object(b_obj) = b else {
+                return None;
+            };
+            let match_count = match b_obj.get("matchCount") {
+                Some(Value::Int64(n)) => *n as usize,
+                Some(Value::Float64(n)) => *n as usize,
+                _ => 0,
+            };
+            Some(BracketInfo {
+                id: get_str(b_obj, "id")?,
+                name: get_str(b_obj, "name")?,
+                status: get_str(b_obj, "status").unwrap_or_else(|| "unknown".to_string()),
+                match_count,
+                participant_type: get_str(b_obj, "participantType")
+                    .unwrap_or_else(|| "individual".to_string()),
+            })
+        })
+        .collect()
+}
+
 fn parse_match_list(val: &Value) -> Vec<MatchInfo> {
     let Value::Object(obj) = val else {
         return vec![];
@@ -251,12 +318,11 @@ fn parse_match_list(val: &Value) -> Vec<MatchInfo> {
             let Value::Object(m_obj) = m else {
                 return None;
             };
+            // Filter out matches where either participant is missing (TBD)
             let p1_name = get_obj(m_obj, "participant1")
-                .and_then(|p| get_str(p, "displayName"))
-                .unwrap_or_else(|| "TBD".to_string());
+                .and_then(|p| get_str(p, "displayName"))?;
             let p2_name = get_obj(m_obj, "participant2")
-                .and_then(|p| get_str(p, "displayName"))
-                .unwrap_or_else(|| "TBD".to_string());
+                .and_then(|p| get_str(p, "displayName"))?;
 
             Some(MatchInfo {
                 id: get_str(m_obj, "id")?,

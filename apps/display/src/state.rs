@@ -5,10 +5,10 @@ use std::sync::{Arc, Mutex};
 use egui::{Color32, Vec2};
 use uuid::Uuid;
 
-use crate::components::{ComponentData, ScoreboardComponent, TextureCache};
+use crate::components::{ComponentData, ComponentType, ScoreboardComponent, TextureCache};
 use crate::data::convex::ConvexManager;
 use crate::data::live_data::{
-    ConnectionStep, LiveDataMessage, MatchInfo, TennisLiveData, TournamentInfo,
+    BracketInfo, ConnectionStep, LiveDataMessage, MatchInfo, TennisLiveData, TournamentInfo,
 };
 use crate::display::renderer::DisplayState;
 use crate::storage::assets::AssetLibrary;
@@ -78,8 +78,10 @@ pub struct ProjectState {
     pub convex_manager: Option<ConvexManager>,
     pub connection_step: ConnectionStep,
     pub tournament_list: Vec<TournamentInfo>,
+    pub bracket_list: Vec<BracketInfo>,
     pub match_list: Vec<MatchInfo>,
     pub selected_tournament_id: Option<String>,
+    pub selected_bracket_id: Option<String>,
     pub selected_match_id: Option<String>,
     pub live_match_data: Option<TennisLiveData>,
 
@@ -120,8 +122,10 @@ impl ProjectState {
             convex_manager: None,
             connection_step: ConnectionStep::Disconnected,
             tournament_list: Vec::new(),
+            bracket_list: Vec::new(),
             match_list: Vec::new(),
             selected_tournament_id: None,
+            selected_bracket_id: None,
             selected_match_id: None,
             live_match_data: None,
             show_connect_dialog: false,
@@ -156,8 +160,10 @@ impl ProjectState {
             convex_manager: None,
             connection_step: ConnectionStep::Disconnected,
             tournament_list: Vec::new(),
+            bracket_list: Vec::new(),
             match_list: Vec::new(),
             selected_tournament_id: None,
+            selected_bracket_id: None,
             selected_match_id: None,
             live_match_data: None,
             show_connect_dialog: false,
@@ -198,6 +204,13 @@ impl ProjectState {
         }
     }
 
+    /// Returns true if this scoreboard contains any TennisDoublesName component.
+    pub fn is_doubles_scoreboard(&self) -> bool {
+        self.components
+            .iter()
+            .any(|c| c.component_type == ComponentType::TennisDoublesName)
+    }
+
     /// Process Convex messages for this project's connection.
     pub fn process_convex_messages(&mut self, toasts: &mut Vec<Toast>) {
         let messages: Vec<LiveDataMessage> = if let Some(manager) = &mut self.convex_manager {
@@ -218,6 +231,10 @@ impl ProjectState {
                 LiveDataMessage::TournamentList(list) => {
                     self.tournament_list = list;
                     self.connection_step = ConnectionStep::SelectTournament;
+                }
+                LiveDataMessage::BracketList(list) => {
+                    self.bracket_list = list;
+                    self.connection_step = ConnectionStep::SelectBracket;
                 }
                 LiveDataMessage::MatchList(list) => {
                     self.match_list = list;

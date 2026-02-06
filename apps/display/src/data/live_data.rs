@@ -29,6 +29,15 @@ pub struct TournamentInfo {
 }
 
 #[derive(Debug, Clone)]
+pub struct BracketInfo {
+    pub id: String,
+    pub name: String,
+    pub status: String,
+    pub match_count: usize,
+    pub participant_type: String,
+}
+
+#[derive(Debug, Clone)]
 pub struct MatchInfo {
     pub id: String,
     pub player1_name: String,
@@ -41,6 +50,7 @@ pub struct MatchInfo {
 pub enum LiveDataCommand {
     Connect { url: String, api_key: String },
     SelectTournament(String),
+    SelectBracket(String),
     SelectMatch(String),
     Disconnect,
 }
@@ -49,6 +59,7 @@ pub enum LiveDataCommand {
 pub enum LiveDataMessage {
     Connected,
     TournamentList(Vec<TournamentInfo>),
+    BracketList(Vec<BracketInfo>),
     MatchList(Vec<MatchInfo>),
     MatchDataUpdated(TennisLiveData),
     Error(String),
@@ -60,6 +71,7 @@ pub enum ConnectionStep {
     Disconnected,
     Connecting,
     SelectTournament,
+    SelectBracket,
     SelectMatch,
     Live,
 }

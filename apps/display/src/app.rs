@@ -115,6 +115,21 @@ impl ScoreForgeApp {
         // Snapshot data before egui closure to avoid borrow issues
         let connection_step = self.state.active_project().connection_step.clone();
         let tournament_list = self.state.active_project().tournament_list.clone();
+        let is_doubles = self.state.active_project().is_doubles_scoreboard();
+        let bracket_list: Vec<_> = self
+            .state
+            .active_project()
+            .bracket_list
+            .iter()
+            .filter(|b| {
+                if is_doubles {
+                    b.participant_type == "doubles"
+                } else {
+                    b.participant_type == "individual"
+                }
+            })
+            .cloned()
+            .collect();
         let match_list = self.state.active_project().match_list.clone();
 
         egui::Window::new("Select Match")
@@ -182,6 +197,34 @@ impl ScoreForgeApp {
                         self.state.active_project_mut().show_connect_dialog = false;
                     }
                 }
+                ConnectionStep::SelectBracket => {
+                    ui.label("Select a bracket:");
+                    if bracket_list.is_empty() {
+                        ui.spinner();
+                        ui.label("Loading brackets...");
+                    }
+                    egui::ScrollArea::vertical().max_height(350.0).show(ui, |ui| {
+                        for b in &bracket_list {
+                            let label = format!(
+                                "{} ({}) - {} matches",
+                                b.name, b.status, b.match_count
+                            );
+                            if ui.button(&label).clicked() {
+                                let project = self.state.active_project_mut();
+                                if let Some(manager) = &project.convex_manager {
+                                    manager.send_command(LiveDataCommand::SelectBracket(
+                                        b.id.clone(),
+                                    ));
+                                }
+                                project.selected_bracket_id = Some(b.id.clone());
+                            }
+                        }
+                    });
+                    if ui.button("Back").clicked() {
+                        self.state.active_project_mut().connection_step =
+                            ConnectionStep::SelectTournament;
+                    }
+                }
                 ConnectionStep::SelectMatch => {
                     ui.label("Select a match:");
                     if match_list.is_empty() {
@@ -212,7 +255,7 @@ impl ScoreForgeApp {
                     });
                     if ui.button("Back").clicked() {
                         self.state.active_project_mut().connection_step =
-                            ConnectionStep::SelectTournament;
+                            ConnectionStep::SelectBracket;
                     }
                 }
                 ConnectionStep::Live => {

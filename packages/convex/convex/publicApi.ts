@@ -4,6 +4,7 @@ import {
   matchStatus,
   presetSports,
   tournamentFormats,
+  participantTypes,
   tennisState,
   tennisConfig,
 } from "./schema";
@@ -765,6 +766,7 @@ export const listBrackets = mutation({
           displayOrder: v.number(),
           participantCount: v.number(),
           matchCount: v.number(),
+          participantType: participantTypes,
         })
       ),
     }),
@@ -833,6 +835,7 @@ export const listBrackets = mutation({
           displayOrder: bracket.displayOrder,
           participantCount: participants.length,
           matchCount: matches.length,
+          participantType: bracket.participantType ?? tournament.participantType,
         };
       })
     );
