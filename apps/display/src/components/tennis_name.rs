@@ -13,24 +13,20 @@ pub fn render_tennis_name(
     zoom: f32,
 ) {
     let display_text = if let Some(data) = live_data {
-        if player_number == 1 {
-            if is_doubles {
-                if let Some(partner) = &data.player1_partner {
-                    format!("{} / {}", data.player1_name, partner)
-                } else {
-                    data.player1_name.clone()
-                }
+        if is_doubles {
+            // Use the full display name which already includes both partners
+            if player_number == 1 {
+                data.player1_display_name.clone()
             } else {
-                data.player1_name.clone()
+                data.player2_display_name.clone()
             }
-        } else if is_doubles {
-            if let Some(partner) = &data.player2_partner {
-                format!("{} / {}", data.player2_name, partner)
+        } else {
+            // Use the individual player name
+            if player_number == 1 {
+                data.player1_name.clone()
             } else {
                 data.player2_name.clone()
             }
-        } else {
-            data.player2_name.clone()
         }
     } else {
         // Placeholder
@@ -41,13 +37,5 @@ pub fn render_tennis_name(
         }
     };
 
-    let font = egui::FontId::proportional(style.font_size * zoom);
-    let center = rect.center();
-    painter.text(
-        center,
-        egui::Align2::CENTER_CENTER,
-        &display_text,
-        font,
-        style.font_color,
-    );
+    super::text::render_aligned_text(painter, rect, &display_text, style, zoom);
 }

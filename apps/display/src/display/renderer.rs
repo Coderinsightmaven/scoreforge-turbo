@@ -17,6 +17,7 @@ pub struct DisplayState {
     pub fullscreen: bool,
     pub offset_x: i32,
     pub offset_y: i32,
+    pub needs_resize: bool,
 }
 
 impl Default for DisplayState {
@@ -30,6 +31,7 @@ impl Default for DisplayState {
             fullscreen: false,
             offset_x: 0,
             offset_y: 0,
+            needs_resize: false,
         }
     }
 }
@@ -72,11 +74,23 @@ pub fn show_display_viewport(
         viewport_id,
         builder,
         move |ctx, _class| {
-            let state = display_state.lock().unwrap();
+            let mut state = display_state.lock().unwrap();
 
             if state.should_close {
                 ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                 return;
+            }
+
+            // Resize and reposition window when scoreboard or monitor changes
+            if state.needs_resize && !state.fullscreen {
+                ctx.send_viewport_cmd(egui::ViewportCommand::InnerSize(Vec2::new(
+                    state.scoreboard.width as f32,
+                    state.scoreboard.height as f32,
+                )));
+                ctx.send_viewport_cmd(egui::ViewportCommand::OuterPosition(
+                    egui::pos2(state.offset_x as f32, state.offset_y as f32),
+                ));
+                state.needs_resize = false;
             }
 
             egui::CentralPanel::default()
@@ -89,6 +103,9 @@ pub fn show_display_viewport(
             if ctx.input(|i| i.key_pressed(egui::Key::Escape)) {
                 ctx.send_viewport_cmd(egui::ViewportCommand::Close);
             }
+
+            // Continuously repaint so live data updates appear immediately
+            ctx.request_repaint();
         },
     );
 }

@@ -115,14 +115,18 @@ pub fn show_property_panel(ui: &mut egui::Ui, state: &mut AppState) {
     // Style
     ui.label("Style");
 
-    ui.horizontal(|ui| {
-        ui.label("Font Size:");
-        ui.add(
-            egui::DragValue::new(&mut comp.style.font_size)
-                .speed(0.5)
-                .range(1.0..=200.0),
-        );
-    });
+    ui.checkbox(&mut comp.style.auto_fit_text, "Auto-fit text");
+
+    if !comp.style.auto_fit_text {
+        ui.horizontal(|ui| {
+            ui.label("Font Size:");
+            ui.add(
+                egui::DragValue::new(&mut comp.style.font_size)
+                    .speed(0.5)
+                    .range(1.0..=200.0),
+            );
+        });
+    }
 
     // Font color
     ui.horizontal(|ui| {
@@ -208,8 +212,19 @@ pub fn show_property_panel(ui: &mut egui::Ui, state: &mut AppState) {
             });
             action = show_asset_picker(ui, asset_id, &asset_list);
         }
-        ComponentData::TennisScore { player_number } => {
+        ComponentData::TennisScore { player_number, set_number } => {
             show_player_picker(ui, player_number);
+            if comp.component_type == crate::components::ComponentType::TennisSetScore {
+                ui.horizontal(|ui| {
+                    ui.label("Set:");
+                    ui.selectable_value(set_number, 0, "Current");
+                    ui.selectable_value(set_number, 1, "1");
+                    ui.selectable_value(set_number, 2, "2");
+                    ui.selectable_value(set_number, 3, "3");
+                    ui.selectable_value(set_number, 4, "4");
+                    ui.selectable_value(set_number, 5, "5");
+                });
+            }
         }
         ComponentData::TennisName { player_number } => {
             show_player_picker(ui, player_number);

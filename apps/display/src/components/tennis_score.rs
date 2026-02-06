@@ -18,6 +18,7 @@ pub fn render_tennis_score(
     rect: Rect,
     score_type: &ComponentType,
     player_number: u8,
+    set_number: u8,
     style: &ComponentStyle,
     live_data: Option<&TennisLiveData>,
     zoom: f32,
@@ -30,15 +31,17 @@ pub fn render_tennis_score(
                 points_to_display(data.current_game_points[idx]).to_string()
             }
             ComponentType::TennisSetScore => {
-                if let Some(current_set) = data.sets.last() {
-                    let games = if idx == 0 {
-                        current_set.player1_games
-                    } else {
-                        current_set.player2_games
-                    };
+                // set_number 0 = current (last) set, 1+ = specific set
+                let set = if set_number == 0 {
+                    data.sets.last()
+                } else {
+                    data.sets.get((set_number - 1) as usize)
+                };
+                if let Some(s) = set {
+                    let games = if idx == 0 { s.player1_games } else { s.player2_games };
                     games.to_string()
                 } else {
-                    "0".to_string()
+                    String::new()
                 }
             }
             ComponentType::TennisMatchScore => {
@@ -67,13 +70,5 @@ pub fn render_tennis_score(
         }
     };
 
-    let font = egui::FontId::proportional(style.font_size * zoom);
-    let center = rect.center();
-    painter.text(
-        center,
-        egui::Align2::CENTER_CENTER,
-        &display_text,
-        font,
-        style.font_color,
-    );
+    super::text::render_aligned_text(painter, rect, &display_text, style, zoom);
 }

@@ -2,10 +2,12 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TennisLiveData {
+    /// Individual player name (from playerName or player1Name)
     pub player1_name: String,
     pub player2_name: String,
-    pub player1_partner: Option<String>,
-    pub player2_partner: Option<String>,
+    /// Full display name including partner for doubles (from displayName)
+    pub player1_display_name: String,
+    pub player2_display_name: String,
     pub sets: Vec<SetScore>,
     pub current_game_points: [u32; 2],
     pub serving_player: u8,

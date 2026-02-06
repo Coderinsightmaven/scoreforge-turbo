@@ -113,6 +113,8 @@ pub struct ComponentStyle {
     pub border_color: Option<Color32>,
     pub border_width: f32,
     pub horizontal_align: HorizontalAlign,
+    #[serde(default)]
+    pub auto_fit_text: bool,
 }
 
 impl Default for ComponentStyle {
@@ -124,6 +126,7 @@ impl Default for ComponentStyle {
             border_color: None,
             border_width: 0.0,
             horizontal_align: HorizontalAlign::Center,
+            auto_fit_text: false,
         }
     }
 }
@@ -152,6 +155,8 @@ pub enum ComponentData {
     },
     TennisScore {
         player_number: u8,
+        #[serde(default)]
+        set_number: u8,
     },
     TennisName {
         player_number: u8,
@@ -197,7 +202,10 @@ impl ScoreboardComponent {
             },
             ComponentType::TennisGameScore
             | ComponentType::TennisSetScore
-            | ComponentType::TennisMatchScore => ComponentData::TennisScore { player_number: 1 },
+            | ComponentType::TennisMatchScore => ComponentData::TennisScore {
+                player_number: 1,
+                set_number: 0,
+            },
             ComponentType::TennisPlayerName => ComponentData::TennisName { player_number: 1 },
             ComponentType::TennisDoublesName => ComponentData::TennisDoubles { player_number: 1 },
             ComponentType::TennisServingIndicator => ComponentData::TennisServing {
@@ -276,12 +284,13 @@ pub fn render_component(
         ComponentData::Background { asset_id, color } => {
             background::render_background(painter, rect, asset_id, *color, texture_cache);
         }
-        ComponentData::TennisScore { player_number } => {
+        ComponentData::TennisScore { player_number, set_number } => {
             tennis_score::render_tennis_score(
                 painter,
                 rect,
                 &component.component_type,
                 *player_number,
+                *set_number,
                 &component.style,
                 live_data,
                 zoom,

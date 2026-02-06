@@ -45,6 +45,15 @@ pub struct Toast {
     pub created_at: std::time::Instant,
 }
 
+#[derive(Debug, Clone)]
+pub struct MonitorInfo {
+    pub name: String,
+    pub x: i32,
+    pub y: i32,
+    pub width: u32,
+    pub height: u32,
+}
+
 /// Per-tab project state. Each open scoreboard gets its own ProjectState.
 pub struct ProjectState {
     // Stable identifier for unique viewport IDs
@@ -60,6 +69,7 @@ pub struct ProjectState {
     pub drag_state: Option<DragState>,
     pub canvas_zoom: f32,
     pub canvas_pan: Vec2,
+    pub needs_fit_to_view: bool,
 
     // Undo
     pub undo_stack: Vec<Vec<ScoreboardComponent>>,
@@ -81,6 +91,7 @@ pub struct ProjectState {
     pub display_fullscreen: bool,
     pub display_offset_x: String,
     pub display_offset_y: String,
+    pub selected_monitor: Option<usize>,
     pub display_state: Arc<Mutex<DisplayState>>,
 
     // Persistence
@@ -104,6 +115,7 @@ impl ProjectState {
             drag_state: None,
             canvas_zoom: 0.5,
             canvas_pan: Vec2::new(50.0, 50.0),
+            needs_fit_to_view: true,
             undo_stack: Vec::new(),
             convex_manager: None,
             connection_step: ConnectionStep::Disconnected,
@@ -117,6 +129,7 @@ impl ProjectState {
             display_fullscreen: false,
             display_offset_x: "0".to_string(),
             display_offset_y: "0".to_string(),
+            selected_monitor: None,
             display_state: Arc::new(Mutex::new(DisplayState::default())),
             current_file: None,
             is_dirty: false,
@@ -138,6 +151,7 @@ impl ProjectState {
             drag_state: None,
             canvas_zoom: 0.5,
             canvas_pan: Vec2::new(50.0, 50.0),
+            needs_fit_to_view: true,
             undo_stack: Vec::new(),
             convex_manager: None,
             connection_step: ConnectionStep::Disconnected,
@@ -151,6 +165,7 @@ impl ProjectState {
             display_fullscreen: false,
             display_offset_x: "0".to_string(),
             display_offset_y: "0".to_string(),
+            selected_monitor: None,
             display_state: Arc::new(Mutex::new(DisplayState::default())),
             current_file: None,
             is_dirty: false,
@@ -263,12 +278,16 @@ pub struct AppState {
 
     // Toasts
     pub toasts: Vec<Toast>,
+
+    // Monitor list (global)
+    pub monitors: Vec<MonitorInfo>,
 }
 
 impl AppState {
     pub fn new() -> Self {
         let config = AppConfig::load();
         let connect_url = config.last_convex_url.clone().unwrap_or_default();
+        let monitors = Self::detect_monitors();
 
         Self {
             projects: Vec::new(),
@@ -288,6 +307,28 @@ impl AppState {
             new_width: "1920".to_string(),
             new_height: "1080".to_string(),
             toasts: Vec::new(),
+            monitors,
+        }
+    }
+
+    pub fn detect_monitors() -> Vec<MonitorInfo> {
+        match display_info::DisplayInfo::all() {
+            Ok(displays) => displays
+                .into_iter()
+                .enumerate()
+                .map(|(i, d)| MonitorInfo {
+                    name: if d.name.is_empty() {
+                        format!("Display {}", i + 1)
+                    } else {
+                        d.name
+                    },
+                    x: d.x,
+                    y: d.y,
+                    width: d.width,
+                    height: d.height,
+                })
+                .collect(),
+            Err(_) => Vec::new(),
         }
     }
 

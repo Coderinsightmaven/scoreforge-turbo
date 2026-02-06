@@ -280,16 +280,20 @@ fn parse_match_data(val: &Value) -> Option<TennisLiveData> {
     let p1 = get_obj(match_obj, "participant1");
     let p2 = get_obj(match_obj, "participant2");
 
-    let player1_name = p1
+    let player1_display_name = p1
         .and_then(|p| get_str(p, "displayName"))
         .unwrap_or_else(|| "Player 1".to_string());
-    let player2_name = p2
+    let player2_display_name = p2
         .and_then(|p| get_str(p, "displayName"))
         .unwrap_or_else(|| "Player 2".to_string());
 
-    // Doubles partners
-    let player1_partner = p1.and_then(|p| get_str(p, "player2Name"));
-    let player2_partner = p2.and_then(|p| get_str(p, "player2Name"));
+    // Individual name: playerName (singles) or player1Name (doubles), falling back to displayName
+    let player1_name = p1
+        .and_then(|p| get_str(p, "playerName").or_else(|| get_str(p, "player1Name")))
+        .unwrap_or_else(|| player1_display_name.clone());
+    let player2_name = p2
+        .and_then(|p| get_str(p, "playerName").or_else(|| get_str(p, "player1Name")))
+        .unwrap_or_else(|| player2_display_name.clone());
 
     // Tennis state
     let tennis_state = get_obj(match_obj, "tennisState");
@@ -309,8 +313,8 @@ fn parse_match_data(val: &Value) -> Option<TennisLiveData> {
     Some(TennisLiveData {
         player1_name,
         player2_name,
-        player1_partner,
-        player2_partner,
+        player1_display_name,
+        player2_display_name,
         sets,
         current_game_points,
         serving_player,
@@ -319,42 +323,37 @@ fn parse_match_data(val: &Value) -> Option<TennisLiveData> {
     })
 }
 
+fn value_to_u32(v: &Value) -> Option<u32> {
+    match v {
+        Value::Int64(n) => Some(*n as u32),
+        Value::Float64(n) => Some(*n as u32),
+        _ => None,
+    }
+}
+
 fn parse_sets(ts: &BTreeMap<String, Value>) -> Vec<SetScore> {
     let mut result = Vec::new();
 
-    // sets is an array of numbers like [6, 4, 7, 5] meaning set1: 6-4, set2: 7-5
+    // sets is an array of [p1Games, p2Games] arrays, e.g. [[6, 4], [7, 5]]
     if let Some(sets_arr) = get_array(ts, "sets") {
-        let nums: Vec<u32> = sets_arr
-            .iter()
-            .filter_map(|v| match v {
-                Value::Int64(n) => Some(*n as u32),
-                Value::Float64(n) => Some(*n as u32),
-                _ => None,
-            })
-            .collect();
-
-        for chunk in nums.chunks(2) {
-            if chunk.len() == 2 {
-                result.push(SetScore {
-                    player1_games: chunk[0],
-                    player2_games: chunk[1],
-                });
+        for set_val in sets_arr {
+            if let Value::Array(pair) = set_val {
+                let p1 = pair.first().and_then(value_to_u32);
+                let p2 = pair.get(1).and_then(value_to_u32);
+                if let (Some(g1), Some(g2)) = (p1, p2) {
+                    result.push(SetScore {
+                        player1_games: g1,
+                        player2_games: g2,
+                    });
+                }
             }
         }
     }
 
-    // Add current set from currentSetGames
+    // Add current set from currentSetGames [p1Games, p2Games]
     if let Some(current) = get_array(ts, "currentSetGames") {
-        let p1 = current.first().and_then(|v| match v {
-            Value::Int64(n) => Some(*n as u32),
-            Value::Float64(n) => Some(*n as u32),
-            _ => None,
-        });
-        let p2 = current.get(1).and_then(|v| match v {
-            Value::Int64(n) => Some(*n as u32),
-            Value::Float64(n) => Some(*n as u32),
-            _ => None,
-        });
+        let p1 = current.first().and_then(value_to_u32);
+        let p2 = current.get(1).and_then(value_to_u32);
         if let (Some(g1), Some(g2)) = (p1, p2) {
             result.push(SetScore {
                 player1_games: g1,
@@ -368,16 +367,8 @@ fn parse_sets(ts: &BTreeMap<String, Value>) -> Vec<SetScore> {
 
 fn parse_game_points(ts: &BTreeMap<String, Value>) -> [u32; 2] {
     if let Some(points) = get_array(ts, "currentGamePoints") {
-        let p1 = points.first().and_then(|v| match v {
-            Value::Int64(n) => Some(*n as u32),
-            Value::Float64(n) => Some(*n as u32),
-            _ => None,
-        });
-        let p2 = points.get(1).and_then(|v| match v {
-            Value::Int64(n) => Some(*n as u32),
-            Value::Float64(n) => Some(*n as u32),
-            _ => None,
-        });
+        let p1 = points.first().and_then(value_to_u32);
+        let p2 = points.get(1).and_then(value_to_u32);
         [p1.unwrap_or(0), p2.unwrap_or(0)]
     } else {
         [0, 0]
@@ -386,7 +377,8 @@ fn parse_game_points(ts: &BTreeMap<String, Value>) -> [u32; 2] {
 
 fn parse_serving_player(ts: &BTreeMap<String, Value>) -> u8 {
     match ts.get("servingParticipant") {
-        Some(Value::String(s)) if s == "participant2" => 2,
+        Some(Value::Int64(n)) => *n as u8,
+        Some(Value::Float64(n)) => *n as u8,
         _ => 1,
     }
 }

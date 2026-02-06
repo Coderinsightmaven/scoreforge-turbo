@@ -95,6 +95,57 @@ pub fn show_display_panel(ui: &mut egui::Ui, state: &mut AppState) {
         ui.separator();
     }
 
+    // --- Scoreboard swap ---
+    ui.label(egui::RichText::new("Scoreboard").strong());
+
+    {
+        let project = state.active_project();
+        if let Some(path) = &project.current_file {
+            ui.label(
+                path.file_name()
+                    .map(|n| n.to_string_lossy().to_string())
+                    .unwrap_or_else(|| "Untitled".to_string()),
+            );
+        } else {
+            ui.label(&project.scoreboard.name);
+        }
+    }
+
+    if ui.button("Swap Scoreboard").clicked() {
+        if let Some(path) = rfd::FileDialog::new()
+            .set_title("Swap Scoreboard")
+            .add_filter("ScoreForge Board", &["sfb"])
+            .pick_file()
+        {
+            match crate::storage::scoreboard::load_scoreboard(&path) {
+                Ok(file) => {
+                    let project = state.active_project_mut();
+                    project.scoreboard.name = file.name;
+                    project.scoreboard.width = file.dimensions.0;
+                    project.scoreboard.height = file.dimensions.1;
+                    project.scoreboard.background_color = file.background_color;
+                    project.components = file.components;
+                    project.component_bindings = file.bindings;
+                    project.selected_ids.clear();
+                    project.undo_stack.clear();
+                    project.current_file = Some(path.clone());
+                    project.is_dirty = false;
+                    project.needs_fit_to_view = true;
+                    if let Ok(mut ds) = project.display_state.lock() {
+                        ds.needs_resize = true;
+                    }
+                    state.config.add_recent_file(path);
+                    state.push_toast("Scoreboard swapped".to_string(), false);
+                }
+                Err(e) => {
+                    state.push_toast(format!("Swap failed: {e}"), true);
+                }
+            }
+        }
+    }
+
+    ui.separator();
+
     // --- Display section ---
     ui.label(egui::RichText::new("Display Window").strong());
 
@@ -116,7 +167,46 @@ pub fn show_display_panel(ui: &mut egui::Ui, state: &mut AppState) {
 
     ui.checkbox(&mut project.display_fullscreen, "Fullscreen");
 
-    if !project.display_fullscreen {
+    // Monitor selector
+    let monitors = state.monitors.clone();
+    let project = state.active_project_mut();
+
+    if monitors.is_empty() {
+        ui.label("No monitors detected");
+    } else {
+        let current_label = match project.selected_monitor {
+            Some(idx) if idx < monitors.len() => monitors[idx].name.clone(),
+            _ => "Select monitor...".to_string(),
+        };
+
+        egui::ComboBox::from_label("Monitor")
+            .selected_text(current_label)
+            .show_ui(ui, |ui| {
+                for (i, monitor) in monitors.iter().enumerate() {
+                    let label = format!(
+                        "{} ({}x{})",
+                        monitor.name, monitor.width, monitor.height,
+                    );
+                    if ui
+                        .selectable_value(&mut project.selected_monitor, Some(i), label)
+                        .clicked()
+                    {
+                        project.display_offset_x = monitor.x.to_string();
+                        project.display_offset_y = monitor.y.to_string();
+                        if let Ok(mut ds) = project.display_state.lock() {
+                            ds.needs_resize = true;
+                        }
+                    }
+                }
+            });
+    }
+
+    if ui.small_button("Refresh monitors").clicked() {
+        state.monitors = AppState::detect_monitors();
+    }
+
+    if !state.active_project().display_fullscreen {
+        let project = state.active_project_mut();
         ui.horizontal(|ui| {
             ui.label("X:");
             let offset_x_response = ui.add(

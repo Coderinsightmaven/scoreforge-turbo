@@ -8,6 +8,11 @@ pub fn show_canvas(ui: &mut egui::Ui, state: &mut AppState) {
     let (response, painter) = ui.allocate_painter(available, Sense::click_and_drag());
     let canvas_origin = response.rect.min.to_vec2();
 
+    // Auto-fit scoreboard to canvas on first view
+    if state.active_project().needs_fit_to_view {
+        fit_to_view(state, available);
+    }
+
     let project = state.active_project();
 
     // Adjust pan to include canvas widget offset
@@ -18,7 +23,7 @@ pub fn show_canvas(ui: &mut egui::Ui, state: &mut AppState) {
     if scroll_delta != 0.0 && response.hovered() {
         let zoom_factor = if scroll_delta > 0.0 { 1.1 } else { 1.0 / 1.1 };
         let project = state.active_project_mut();
-        let new_zoom = (project.canvas_zoom * zoom_factor).clamp(0.1, 5.0);
+        let new_zoom = (project.canvas_zoom * zoom_factor).clamp(0.02, 20.0);
 
         // Zoom toward cursor
         if let Some(pointer) = ui.input(|i| i.pointer.hover_pos()) {
@@ -391,8 +396,38 @@ fn handle_keyboard(ui: &egui::Ui, state: &mut AppState) {
         }
     }
 
+    // Ctrl+0 - Fit to view
+    if ui.input(|i| i.modifiers.command && i.key_pressed(egui::Key::Num0)) {
+        state.active_project_mut().needs_fit_to_view = true;
+    }
+
     // Escape - clear selection
     if ui.input(|i| i.key_pressed(egui::Key::Escape)) {
         state.active_project_mut().selected_ids.clear();
     }
+}
+
+fn fit_to_view(state: &mut AppState, available: Vec2) {
+    let project = state.active_project();
+    let sb_width = project.scoreboard.width as f32;
+    let sb_height = project.scoreboard.height as f32;
+
+    if sb_width <= 0.0 || sb_height <= 0.0 || available.x <= 0.0 || available.y <= 0.0 {
+        state.active_project_mut().needs_fit_to_view = false;
+        return;
+    }
+
+    let padding = 0.9; // 90% of available space
+    let zoom_x = available.x / sb_width * padding;
+    let zoom_y = available.y / sb_height * padding;
+    let zoom = zoom_x.min(zoom_y).clamp(0.02, 20.0);
+
+    // Center the scoreboard in the available space
+    let pan_x = (available.x - sb_width * zoom) / 2.0;
+    let pan_y = (available.y - sb_height * zoom) / 2.0;
+
+    let project = state.active_project_mut();
+    project.canvas_zoom = zoom;
+    project.canvas_pan = Vec2::new(pan_x, pan_y);
+    project.needs_fit_to_view = false;
 }
