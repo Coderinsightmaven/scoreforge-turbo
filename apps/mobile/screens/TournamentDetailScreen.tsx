@@ -52,8 +52,8 @@ export function TournamentDetailScreen({ tournamentId, onBack, onSelectMatch }: 
 
   if (tournament === undefined || matches === undefined) {
     return (
-      <View className="flex-1 items-center justify-center bg-gray-50">
-        <ActivityIndicator size="large" color="#f59e0b" />
+      <View className="flex-1 items-center justify-center bg-editorial-page">
+        <ActivityIndicator size="large" color="#D4A017" />
       </View>
     );
   }
@@ -63,7 +63,7 @@ export function TournamentDetailScreen({ tournamentId, onBack, onSelectMatch }: 
       <View className="flex-1 items-center justify-center bg-gray-50 px-6">
         <Text className="text-lg font-semibold text-gray-900">Tournament not found</Text>
         <TouchableOpacity className="mt-4" onPress={onBack}>
-          <Text className="text-amber-500">Go back</Text>
+          <Text className="text-brand">Go back</Text>
         </TouchableOpacity>
       </View>
     );
@@ -91,7 +91,7 @@ export function TournamentDetailScreen({ tournamentId, onBack, onSelectMatch }: 
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-editorial-page">
       {/* Header */}
       <View className="border-b border-gray-200 bg-white px-4 pb-4">
         <View className="mb-3 flex-row items-center">
@@ -99,7 +99,7 @@ export function TournamentDetailScreen({ tournamentId, onBack, onSelectMatch }: 
             <Text className="text-2xl text-gray-400">←</Text>
           </TouchableOpacity>
           <View className="flex-1">
-            <Text className="text-xl font-bold text-gray-900" numberOfLines={1}>
+            <Text className="text-xl font-display-bold text-gray-900" numberOfLines={1}>
               {tournament.name}
             </Text>
             <Text className="text-sm capitalize text-gray-500">
@@ -117,7 +117,7 @@ export function TournamentDetailScreen({ tournamentId, onBack, onSelectMatch }: 
           renderItem={({ item }) => (
             <TouchableOpacity
               className={`mr-2 rounded-full px-4 py-2 ${
-                statusFilter === item.value ? 'bg-amber-500' : 'bg-gray-100'
+                statusFilter === item.value ? 'bg-brand' : 'bg-gray-100'
               }`}
               onPress={() => setStatusFilter(item.value)}>
               <Text
@@ -150,11 +150,11 @@ export function TournamentDetailScreen({ tournamentId, onBack, onSelectMatch }: 
           maxToRenderPerBatch={10}
           windowSize={5}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f59e0b" />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D4A017" />
           }
           renderItem={({ item }) => (
             <TouchableOpacity
-              className="mb-3 rounded-2xl bg-white p-4 shadow-sm"
+              className="mb-3 rounded-xl bg-white p-4 shadow-sm"
               onPress={() => onSelectMatch(item._id)}
               activeOpacity={0.7}
               disabled={item.status === 'bye'}>

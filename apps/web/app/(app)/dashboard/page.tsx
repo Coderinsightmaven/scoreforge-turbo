@@ -46,7 +46,7 @@ export default function DashboardPage(): React.ReactNode {
       <div className="container">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-title text-foreground mb-2">
+          <h1 className="text-title text-foreground mb-2 font-[family-name:var(--font-display)]">
             Welcome back, {firstName}
           </h1>
           <p className="text-body text-muted-foreground">
@@ -58,7 +58,7 @@ export default function DashboardPage(): React.ReactNode {
 
         {/* Live matches alert */}
         {liveMatchCount > 0 && (
-          <div className="mb-8 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-4">
+          <div className="mb-8 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-4">
             <div className="live-dot" />
             <div>
               <p className="font-medium text-foreground">
@@ -75,18 +75,21 @@ export default function DashboardPage(): React.ReactNode {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           {/* Filters */}
           {tournaments.length > 0 && (
-            <div className="flex gap-2" role="tablist">
+            <div className="flex gap-4" role="tablist">
               {filters.map((f) => (
-                <Button
+                <button
                   key={f.value}
                   onClick={() => setFilter(f.value)}
-                  variant={filter === f.value ? "default" : "secondary"}
-                  size="sm"
                   role="tab"
                   aria-selected={filter === f.value}
+                  className={`pb-1 text-sm transition-colors ${
+                    filter === f.value
+                      ? "border-b-2 border-brand text-brand font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
                 >
                   {f.label}
-                </Button>
+                </button>
               ))}
             </div>
           )}
@@ -114,15 +117,21 @@ export default function DashboardPage(): React.ReactNode {
             <p className="text-muted-foreground">No {filter} tournaments</p>
             <button
               onClick={() => setFilter("all")}
-              className="mt-2 text-amber-500 hover:underline"
+              className="mt-2 text-brand hover:underline"
             >
               Show all tournaments
             </button>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredTournaments?.map((tournament) => (
-              <TournamentCard key={tournament._id} tournament={tournament} />
+            {filteredTournaments?.map((tournament, index) => (
+              <div
+                key={tournament._id}
+                className="animate-staggerIn"
+                style={{ animationDelay: `${index * 60}ms` }}
+              >
+                <TournamentCard tournament={tournament} />
+              </div>
             ))}
           </div>
         )}
@@ -177,7 +186,7 @@ function TournamentCard({
           </div>
 
           {/* Title */}
-          <h3 className="text-heading text-foreground mb-2 truncate">
+          <h3 className="text-heading text-foreground mb-2 truncate font-[family-name:var(--font-display)]">
             {tournament.name}
           </h3>
 
@@ -208,7 +217,7 @@ function EmptyState({ canCreate }: { canCreate: boolean }) {
       <div className="w-16 h-16 mx-auto mb-6 bg-secondary rounded-2xl flex items-center justify-center">
         <Trophy className="w-8 h-8 text-muted-foreground" />
       </div>
-      <h2 className="text-heading text-foreground mb-2">No tournaments yet</h2>
+      <h2 className="text-heading text-foreground mb-2 font-[family-name:var(--font-display)]">No tournaments yet</h2>
       <p className="text-body text-muted-foreground mb-6 max-w-sm mx-auto">
         Create your first tournament to start managing competitions
       </p>

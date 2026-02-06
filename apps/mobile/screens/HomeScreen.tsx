@@ -24,8 +24,8 @@ export function HomeScreen() {
 
   if (user === undefined) {
     return (
-      <View className="flex-1 items-center justify-center bg-gray-50">
-        <ActivityIndicator size="large" color="#f59e0b" />
+      <View className="flex-1 items-center justify-center bg-editorial-page">
+        <ActivityIndicator size="large" color="#D4A017" />
       </View>
     );
   }
@@ -33,7 +33,7 @@ export function HomeScreen() {
   // Render the appropriate screen based on navigation state
   if (screen.type === 'tournament') {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
+      <SafeAreaView className="flex-1 bg-editorial-page" edges={['top']}>
         <TournamentDetailScreen
           tournamentId={screen.tournamentId}
           onBack={() => setScreen({ type: 'tournaments' })}
@@ -72,14 +72,14 @@ export function HomeScreen() {
         {/* Header */}
         <View className="flex-row items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
           <View>
-            <Text className="text-xl font-bold text-gray-900">
+            <Text className="text-xl font-display-bold text-gray-900">
               {user?.name ? `Hi, ${user.name.split(' ')[0]}` : 'Tournaments'}
             </Text>
-            <Text className="text-sm text-gray-500">ScoreForge Mobile</Text>
+            <Text className="font-sans text-sm text-gray-500">ScoreForge Mobile</Text>
           </View>
           <View className="flex-row items-center">
             <TouchableOpacity
-              className="h-10 w-10 items-center justify-center rounded-full bg-amber-500"
+              className="h-10 w-10 items-center justify-center rounded-full bg-brand"
               onPress={() => signOut()}>
               <Text className="text-lg font-bold text-white">
                 {user?.name?.[0]?.toUpperCase() ?? '?'}
@@ -89,7 +89,7 @@ export function HomeScreen() {
         </View>
 
         {/* Tournaments List */}
-        <View className="flex-1 bg-gray-50">
+        <View className="flex-1 bg-editorial-page">
           <TournamentsScreen
             onSelectTournament={(tournamentId) => setScreen({ type: 'tournament', tournamentId })}
           />

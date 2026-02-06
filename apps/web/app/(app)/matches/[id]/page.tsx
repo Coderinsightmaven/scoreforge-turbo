@@ -95,7 +95,7 @@ export default function MatchDetailPage({
           <span>←</span> Back to Tournament
         </Link>
 
-        <div className="relative bg-bg-card border border-border rounded-2xl overflow-hidden">
+        <div className="relative bg-bg-card border border-border rounded-xl overflow-hidden">
           {/* Match Header */}
           <div className="flex items-center justify-between p-6 bg-bg-secondary border-b border-border">
             <div className="flex items-center gap-3">
@@ -124,7 +124,7 @@ export default function MatchDetailPage({
               <div className="mb-6">
                 <span className="text-6xl">🎫</span>
               </div>
-              <h2 className="text-heading text-text-primary mb-2">
+              <h2 className="text-heading text-text-primary mb-2 font-[family-name:var(--font-display)]">
                 Bye Match
               </h2>
               <p className="text-text-secondary mb-6">
@@ -182,13 +182,13 @@ export default function MatchDetailPage({
           {match.tournamentStatus === "draft" && canScore && !isByeMatch &&
             match.participant1 && match.participant2 &&
             (match.status === "pending" || match.status === "scheduled") && (
-            <div className="bg-bg-card border border-border rounded-2xl p-6 text-center">
-              <div className="w-12 h-12 mx-auto flex items-center justify-center bg-warning/10 rounded-xl mb-4">
+            <div className="bg-bg-card border border-border rounded-xl p-6 text-center">
+              <div className="w-12 h-12 mx-auto flex items-center justify-center bg-warning/10 rounded-lg mb-4">
                 <svg className="w-6 h-6 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                 </svg>
               </div>
-              <h3 className="text-heading text-text-primary mb-2">Tournament Not Started</h3>
+              <h3 className="text-heading text-text-primary mb-2 font-[family-name:var(--font-display)]">Tournament Not Started</h3>
               <p className="text-text-secondary text-sm">
                 This tournament is still in draft mode. Start the tournament to begin scoring matches.
               </p>
@@ -344,7 +344,7 @@ function Scoreboard({
     <div className="flex items-center justify-center gap-4 p-8">
       {/* Participant 1 */}
       <div
-        className={`flex-1 flex flex-col items-center gap-4 p-6 rounded-xl border transition-all ${
+        className={`flex-1 flex flex-col items-center gap-4 p-6 rounded-lg border transition-all ${
           match.winnerId === match.participant1?._id
             ? "bg-brand/10 border-brand"
             : "bg-bg-secondary border-border"
@@ -356,7 +356,7 @@ function Scoreboard({
               #{match.participant1.seed}
             </span>
           )}
-          <span className="block text-xl font-bold text-text-primary mb-1">
+          <span className="block text-xl font-bold text-text-primary mb-1 font-[family-name:var(--font-display)]">
             {match.participant1?.displayName || "TBD"}
           </span>
           {match.participant1 && (
@@ -406,7 +406,7 @@ function Scoreboard({
 
       {/* Participant 2 */}
       <div
-        className={`flex-1 flex flex-col items-center gap-4 p-6 rounded-xl border transition-all ${
+        className={`flex-1 flex flex-col items-center gap-4 p-6 rounded-lg border transition-all ${
           match.winnerId === match.participant2?._id
             ? "bg-brand/10 border-brand"
             : "bg-bg-secondary border-border"
@@ -418,7 +418,7 @@ function Scoreboard({
               #{match.participant2.seed}
             </span>
           )}
-          <span className="block text-xl font-bold text-text-primary mb-1">
+          <span className="block text-xl font-bold text-text-primary mb-1 font-[family-name:var(--font-display)]">
             {match.participant2?.displayName || "TBD"}
           </span>
           {match.participant2 && (
@@ -524,7 +524,7 @@ function MatchActions({
         <button
           onClick={handleComplete}
           disabled={loading}
-          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2 px-6 py-3"
+          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2 px-6 py-3"
         >
           {loading ? "Completing..." : "Complete Match"}
         </button>
@@ -551,13 +551,13 @@ function MatchPreview({
   return (
     <div className="flex items-center justify-center gap-6 p-8">
       {/* Participant 1 */}
-      <div className="flex-1 flex flex-col items-center gap-2 p-6 rounded-xl bg-bg-secondary border border-border">
+      <div className="flex-1 flex flex-col items-center gap-2 p-6 rounded-lg bg-bg-secondary border border-border">
         {participant1?.seed && (
           <span className="text-xs font-semibold text-brand">
             #{participant1.seed}
           </span>
         )}
-        <span className="text-xl font-bold text-text-primary text-center">
+        <span className="text-xl font-bold text-text-primary text-center font-[family-name:var(--font-display)]">
           {participant1?.displayName || "TBD"}
         </span>
       </div>
@@ -568,13 +568,13 @@ function MatchPreview({
       </div>
 
       {/* Participant 2 */}
-      <div className="flex-1 flex flex-col items-center gap-2 p-6 rounded-xl bg-bg-secondary border border-border">
+      <div className="flex-1 flex flex-col items-center gap-2 p-6 rounded-lg bg-bg-secondary border border-border">
         {participant2?.seed && (
           <span className="text-xs font-semibold text-brand">
             #{participant2.seed}
           </span>
         )}
-        <span className="text-xl font-bold text-text-primary text-center">
+        <span className="text-xl font-bold text-text-primary text-center font-[family-name:var(--font-display)]">
           {participant2?.displayName || "TBD"}
         </span>
       </div>
@@ -617,7 +617,7 @@ function InlineFirstServerSetup({
   return (
     <div className="p-6 border-t border-border">
       <div className="text-center mb-4">
-        <h3 className="text-heading text-text-primary mb-1">
+        <h3 className="text-heading text-text-primary mb-1 font-[family-name:var(--font-display)]">
           Match Setup
         </h3>
         <p className="text-sm text-text-secondary">
@@ -645,7 +645,7 @@ function InlineFirstServerSetup({
         <div className="flex gap-3">
           <button
             onClick={() => setSelectedServer(1)}
-            className={`flex-1 flex items-center justify-center gap-3 p-3 rounded-xl border-2 transition-all ${
+            className={`flex-1 flex items-center justify-center gap-3 p-3 rounded-lg border-2 transition-all ${
               selectedServer === 1
                 ? "border-success bg-success/10"
                 : "border-border bg-bg-secondary hover:border-border-hover"
@@ -668,7 +668,7 @@ function InlineFirstServerSetup({
 
           <button
             onClick={() => setSelectedServer(2)}
-            className={`flex-1 flex items-center justify-center gap-3 p-3 rounded-xl border-2 transition-all ${
+            className={`flex-1 flex items-center justify-center gap-3 p-3 rounded-lg border-2 transition-all ${
               selectedServer === 2
                 ? "border-success bg-success/10"
                 : "border-border bg-bg-secondary hover:border-border-hover"
@@ -695,7 +695,7 @@ function InlineFirstServerSetup({
       <button
         onClick={handleStart}
         disabled={loading}
-        className="w-full py-3 font-semibold text-text-inverse bg-success rounded-xl hover:opacity-90 transition-all disabled:opacity-50"
+        className="w-full py-3 font-semibold text-text-inverse bg-success rounded-lg hover:opacity-90 transition-all disabled:opacity-50"
       >
         {loading ? "Starting..." : "Start Tennis Match"}
       </button>
@@ -838,7 +838,7 @@ function LoadingSkeleton() {
     <div className="min-h-screen flex items-start justify-center px-6 py-12">
       <div className="w-full max-w-2xl">
         <Skeleton className="w-40 h-5 mb-8" />
-        <div className="relative bg-bg-card border border-border rounded-2xl overflow-hidden">
+        <div className="relative bg-bg-card border border-border rounded-xl overflow-hidden">
           {/* Match Header */}
           <div className="flex items-center justify-between p-6 bg-bg-secondary border-b border-border">
             <div className="flex items-center gap-3">
@@ -880,12 +880,12 @@ function LoadingSkeleton() {
 function NotFound() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-center px-6">
-      <div className="w-16 h-16 flex items-center justify-center bg-bg-card rounded-2xl mb-6">
+      <div className="w-16 h-16 flex items-center justify-center bg-bg-card rounded-xl mb-6">
         <svg className="w-8 h-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
         </svg>
       </div>
-      <h1 className="text-title text-text-primary mb-3">
+      <h1 className="text-title text-text-primary mb-3 font-[family-name:var(--font-display)]">
         Match Not Found
       </h1>
       <p className="text-text-secondary mb-8">

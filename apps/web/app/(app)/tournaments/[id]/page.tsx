@@ -84,12 +84,12 @@ export default function TournamentDetailPage({
         <div className="max-w-[var(--content-max)] mx-auto animate-fadeIn">
           <Link
             href="/tournaments"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-amber-500 transition-colors mb-6"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-brand transition-colors mb-6"
           >
             <span>←</span> Tournaments
           </Link>
           <div className="flex flex-col md:flex-row md:items-start gap-6">
-            <div className="w-[100px] h-[100px] flex items-center justify-center text-6xl bg-card border border-border rounded-2xl shadow-lg flex-shrink-0">
+            <div className="w-[100px] h-[100px] flex items-center justify-center text-6xl bg-card border border-border rounded-xl shadow-lg flex-shrink-0">
               {sportIcons[tournament.sport] || "🏆"}
             </div>
             <div className="flex-1">
@@ -106,7 +106,7 @@ export default function TournamentDetailPage({
                   {formatLabels[tournament.format] || tournament.format}
                 </span>
               </div>
-              <h1 className="text-title text-foreground mb-2">
+              <h1 className="text-title text-foreground mb-2 font-[family-name:var(--font-display)]">
                 {tournament.name}
               </h1>
               {tournament.description && (
@@ -116,7 +116,7 @@ export default function TournamentDetailPage({
               )}
               {tournament.startDate && (
                 <div className="flex items-baseline gap-1">
-                  <span className="text-heading text-amber-500">
+                  <span className="text-heading text-brand">
                     {new Date(tournament.startDate).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -156,8 +156,8 @@ export default function TournamentDetailPage({
               aria-selected={activeTab === tab.id}
               className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium -mb-px border-b-2 transition-colors ${
                 activeTab === tab.id
-                  ? "text-foreground border-amber-500"
-                  : "text-muted-foreground border-transparent hover:text-foreground"
+                  ? "border-b-2 border-brand text-brand font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <span>{tab.label}</span>
@@ -235,7 +235,7 @@ function TournamentIdDisplay({ tournamentId }: { tournamentId: string }) {
       </code>
       <button
         onClick={handleCopy}
-        className="p-1.5 text-muted-foreground hover:text-amber-500 hover:bg-brand/10 rounded transition-all"
+        className="p-1.5 text-muted-foreground hover:text-brand hover:bg-brand/10 rounded transition-all"
         title="Copy tournament ID"
       >
         {copied ? (
@@ -432,7 +432,7 @@ function TournamentActions({
         {tournament.status === "draft" && supportsBlankBracket && (
           <button
             onClick={() => setShowBlankBracketModal(true)}
-            className="px-4 py-2 text-xs font-semibold tracking-wide text-amber-500 bg-brand/10 border border-amber-500/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
+            className="px-4 py-2 text-xs font-semibold tracking-wide text-brand bg-brand/10 border border-brand/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
           >
             Blank Bracket
           </button>
@@ -441,7 +441,7 @@ function TournamentActions({
           <button
             onClick={handleStart}
             disabled={loading || tournament.participantCount < 2}
-            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2 text-xs"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2 text-xs"
           >
             {loading ? "..." : "Start Tournament"}
           </button>
@@ -503,7 +503,7 @@ function TournamentActions({
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setErrorMessage(null)}
           />
-          <div className="relative bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-fadeIn">
+          <div className="relative bg-card border border-border rounded-xl shadow-2xl max-w-md w-full overflow-hidden animate-fadeIn">
             <div className="p-6">
               <div className="flex items-center justify-center w-14 h-14 mx-auto bg-red/10 rounded-full mb-4">
                 <svg className="w-7 h-7 text-red" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -518,7 +518,7 @@ function TournamentActions({
               </p>
               <button
                 onClick={() => setErrorMessage(null)}
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2 w-full"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2 w-full"
               >
                 Got it
               </button>
@@ -558,7 +558,7 @@ function LoadingSkeleton() {
         <div className="max-w-[var(--content-max)] mx-auto">
           <Skeleton className="w-28 h-5 mb-6" />
           <div className="flex flex-col md:flex-row md:items-start gap-6">
-            <Skeleton className="w-[100px] h-[100px] rounded-2xl flex-shrink-0" />
+            <Skeleton className="w-[100px] h-[100px] rounded-xl flex-shrink-0" />
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <Skeleton className="h-6 w-20 rounded" />
@@ -603,12 +603,12 @@ function LoadingSkeleton() {
 function NotFound() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-center px-6">
-      <div className="w-16 h-16 flex items-center justify-center bg-card rounded-2xl mb-6">
+      <div className="w-16 h-16 flex items-center justify-center bg-card rounded-xl mb-6">
         <svg className="w-8 h-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
         </svg>
       </div>
-      <h1 className="text-title text-foreground mb-3">
+      <h1 className="text-title text-foreground mb-3 font-[family-name:var(--font-display)]">
         Tournament Not Found
       </h1>
       <p className="text-muted-foreground mb-8">
@@ -616,7 +616,7 @@ function NotFound() {
       </p>
       <Link
         href="/tournaments"
-        className="text-amber-500 hover:text-amber-500-hover transition-colors"
+        className="text-brand hover:text-brand-hover transition-colors"
       >
         ← Back to Tournaments
       </Link>

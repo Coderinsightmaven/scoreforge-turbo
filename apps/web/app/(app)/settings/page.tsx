@@ -109,7 +109,7 @@ export default function SettingsPage(): React.ReactNode {
             <ChevronLeft className="w-4 h-4" />
             Back to dashboard
           </Link>
-          <h1 className="text-title text-foreground mb-2">Settings</h1>
+          <h1 className="text-title text-foreground mb-2 font-[family-name:var(--font-display)]">Settings</h1>
           <p className="text-body text-muted-foreground">
             Manage your profile and account preferences
           </p>
@@ -127,7 +127,7 @@ export default function SettingsPage(): React.ReactNode {
                 <form onSubmit={handleSave} className="space-y-6">
                   {/* Avatar */}
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 flex items-center justify-center text-xl font-semibold text-white bg-amber-500 rounded-full">
+                    <div className="w-16 h-16 flex items-center justify-center text-xl font-semibold text-white bg-brand rounded-full">
                       {initials}
                     </div>
                     <div>
@@ -486,7 +486,7 @@ function ApiKeysSection() {
                         onClick={() => handleRevoke(key._id)}
                         variant="outline"
                         size="sm"
-                        className="text-amber-600 border-amber-200 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/20"
+                        className="text-brand-hover border-brand hover:bg-brand-light dark:text-brand dark:border-brand dark:hover:bg-brand-light"
                       >
                         Revoke
                       </Button>

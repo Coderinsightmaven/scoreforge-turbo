@@ -44,9 +44,9 @@ export function ConfirmDialog({
         onClick={onCancel}
       />
       {/* Dialog */}
-      <div className="relative bg-card border border-border rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden animate-fadeIn">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold text-foreground text-center mb-2">
+      <div className="relative bg-card border border-border rounded-lg shadow-2xl max-w-sm w-full overflow-hidden animate-fadeIn">
+        <div className="p-8">
+          <h3 className="text-lg font-semibold text-foreground text-center mb-2 font-[family-name:var(--font-display)]">
             {title}
           </h3>
           <p className="text-sm text-muted-foreground text-center mb-6">
@@ -56,16 +56,16 @@ export function ConfirmDialog({
             <button
               onClick={onCancel}
               autoFocus
-              className="flex-1 h-9 px-4 py-2 rounded-md text-sm font-medium transition-all border border-border bg-background text-foreground hover:bg-accent"
+              className="flex-1 h-10 px-4 py-2 rounded-[6px] text-sm font-medium transition-all border border-border bg-background text-foreground hover:bg-accent active:scale-[0.98]"
             >
               Cancel
             </button>
             <button
               onClick={onConfirm}
-              className={`flex-1 h-9 px-4 py-2 rounded-md text-sm font-medium transition-all shadow-sm text-white ${
+              className={`flex-1 h-10 px-4 py-2 rounded-[6px] text-sm font-medium transition-all shadow-sm text-white active:scale-[0.98] ${
                 variant === "danger"
-                  ? "bg-red hover:bg-red/90"
-                  : "bg-amber-500 hover:bg-amber-600"
+                  ? "bg-destructive hover:bg-destructive/90"
+                  : "bg-brand hover:bg-brand-hover"
               }`}
             >
               {confirmLabel}

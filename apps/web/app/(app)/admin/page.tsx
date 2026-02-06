@@ -36,7 +36,7 @@ export default function AdminPage(): React.ReactNode {
             </svg>
             Back to dashboard
           </Link>
-          <h1 className="text-title text-foreground mb-2">Site Administration</h1>
+          <h1 className="text-title text-foreground mb-2 font-[family-name:var(--font-display)]">Site Administration</h1>
           <p className="text-body text-muted-foreground">
             Manage users, admins, and system settings
           </p>
@@ -57,7 +57,7 @@ export default function AdminPage(): React.ReactNode {
                 onClick={() => setActiveTab(tab.id)}
                 className={`py-4 text-body font-medium border-b-2 transition-colors ${
                   activeTab === tab.id
-                    ? "border-amber-500 text-amber-500"
+                    ? "border-brand text-brand"
                     : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -277,7 +277,7 @@ function UsersSection() {
                             setEditingUser(user._id);
                             setEditName(user.name || "");
                           }}
-                          className="px-3 py-1.5 text-small text-muted-foreground hover:text-amber-500"
+                          className="px-3 py-1.5 text-small text-muted-foreground hover:text-brand"
                         >
                           Edit
                         </button>
@@ -346,14 +346,14 @@ function AdminsSection() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-heading text-foreground">Site Administrators</h2>
+          <h2 className="text-heading text-foreground font-[family-name:var(--font-display)]">Site Administrators</h2>
           <p className="text-small text-muted-foreground mt-1">
             Users with full access to site administration
           </p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2"
+          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2"
         >
           Add Admin
         </button>
@@ -419,9 +419,9 @@ function AdminsSection() {
       {/* Add Admin Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-card border border-border rounded-xl w-full max-w-md">
+          <div className="bg-card border border-border rounded-lg w-full max-w-md">
             <div className="p-6 border-b border-border">
-              <h3 className="text-heading text-foreground">Add Site Admin</h3>
+              <h3 className="text-heading text-foreground font-[family-name:var(--font-display)]">Add Site Admin</h3>
               <p className="text-small text-muted-foreground mt-1">
                 Search for a user to grant admin access
               </p>
@@ -447,7 +447,7 @@ function AdminsSection() {
                         key={user._id}
                         onClick={() => handleGrant(user._id)}
                         disabled={granting}
-                        className="w-full flex items-center gap-3 p-3 text-left hover:bg-bg-secondary rounded-xl transition-colors disabled:opacity-50"
+                        className="w-full flex items-center gap-3 p-3 text-left hover:bg-bg-secondary rounded-lg transition-colors disabled:opacity-50"
                       >
                         <div className="w-10 h-10 flex items-center justify-center text-small font-semibold text-white bg-brand rounded-full flex-shrink-0">
                           {user.name
@@ -527,7 +527,7 @@ function SettingsSection() {
 
   if (settings === undefined || settings === null) {
     return (
-      <div className="bg-card text-card-foreground rounded-xl border p-6 shadow-sm">
+      <div className="bg-card text-card-foreground rounded-lg border p-6 shadow-sm">
         <div className="h-6 w-40 bg-bg-secondary rounded animate-pulse mb-6" />
         <div className="space-y-6">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -542,8 +542,8 @@ function SettingsSection() {
   }
 
   return (
-    <form onSubmit={handleSave} className="bg-card text-card-foreground rounded-xl border p-6 shadow-sm">
-      <h2 className="text-heading text-foreground mb-2">System Settings</h2>
+    <form onSubmit={handleSave} className="bg-card text-card-foreground rounded-lg border p-6 shadow-sm">
+      <h2 className="text-heading text-foreground mb-2 font-[family-name:var(--font-display)]">System Settings</h2>
       <p className="text-small text-muted-foreground mb-6">Configure global platform settings</p>
 
       <div className="space-y-8">
@@ -650,7 +650,7 @@ function SettingsSection() {
       </div>
 
       <div className="flex justify-end pt-6 mt-6 border-t border-border">
-        <button type="submit" disabled={saving} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2">
+        <button type="submit" disabled={saving} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2">
           {saving ? "Saving..." : "Save Settings"}
         </button>
       </div>
@@ -667,11 +667,11 @@ function UnauthorizedState() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
           </svg>
         </div>
-        <h1 className="text-title text-foreground mb-2">Access Denied</h1>
+        <h1 className="text-title text-foreground mb-2 font-[family-name:var(--font-display)]">Access Denied</h1>
         <p className="text-body text-muted-foreground mb-6">
           You don&apos;t have permission to access the site administration panel.
         </p>
-        <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2">
+        <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2">
           Back to Dashboard
         </Link>
       </div>

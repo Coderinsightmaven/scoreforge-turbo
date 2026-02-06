@@ -15,7 +15,7 @@ export function Providers({ children }: { children: ReactNode }): ReactNode {
       <ConvexAuthProvider client={convex}>
         <ThemeSyncProvider>
           {children}
-          <Toaster richColors closeButton />
+          <Toaster richColors closeButton toastOptions={{ style: { borderRadius: '6px' } }} />
         </ThemeSyncProvider>
       </ConvexAuthProvider>
     </ThemeProvider>

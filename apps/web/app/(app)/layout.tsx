@@ -13,14 +13,14 @@ export default function AppLayout({
   children: React.ReactNode;
 }): React.ReactNode {
   return (
-    <div className="min-h-screen bg-bg-primary">
+    <div className="min-h-screen bg-bg-page">
       <Navigation />
 
       <AuthLoading>
-        <div className="flex items-center justify-center min-h-screen bg-bg-primary">
-          <div className="flex flex-col items-center gap-4 animate-fadeIn">
+        <div className="flex items-center justify-center min-h-screen bg-bg-page">
+          <div className="flex flex-col items-center gap-4 animate-editorialReveal">
             <Image src="/logo.png" alt="ScoreForge" width={64} height={64} className="w-16 h-16 object-contain animate-pulse" />
-            <div className="text-xl font-semibold tracking-tight text-text-primary">
+            <div className="text-xl font-semibold tracking-tight text-text-primary font-[family-name:var(--font-display)]">
               ScoreForge
             </div>
           </div>
@@ -50,7 +50,7 @@ function RedirectToSignIn() {
   }, [router]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-bg-primary">
+    <div className="flex items-center justify-center min-h-screen bg-bg-page">
       <Image src="/logo.png" alt="ScoreForge" width={64} height={64} className="w-16 h-16 object-contain animate-pulse" />
     </div>
   );

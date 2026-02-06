@@ -84,15 +84,15 @@ export default function SignUpPage(): React.ReactNode {
   return (
     <div className="w-full min-h-screen flex">
       {/* Left side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative bg-[#1f2937]">
+      <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative bg-[#141414]">
         <div className="flex flex-col justify-between p-12 xl:p-16 w-full">
           <Link href="/" className="inline-flex items-center gap-3">
-            <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-brand rounded-lg flex items-center justify-center">
               <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M13 3L4 14h7v7l9-11h-7V3z" />
               </svg>
             </div>
-            <span className="text-xl font-semibold text-white">ScoreForge</span>
+            <span className="text-xl font-semibold text-white font-[family-name:var(--font-display)]">ScoreForge</span>
           </Link>
 
           <div className="max-w-lg">
@@ -129,12 +129,12 @@ export default function SignUpPage(): React.ReactNode {
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-10">
             <Link href="/" className="inline-flex items-center gap-3">
-              <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-brand rounded-lg flex items-center justify-center">
                 <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M13 3L4 14h7v7l9-11h-7V3z" />
                 </svg>
               </div>
-              <span className="text-xl font-semibold text-foreground">ScoreForge</span>
+              <span className="text-xl font-semibold text-foreground font-[family-name:var(--font-display)]">ScoreForge</span>
             </Link>
           </div>
 
@@ -255,7 +255,7 @@ export default function SignUpPage(): React.ReactNode {
               <div className="mt-10 pt-8 border-t border-border">
                 <p className="text-center text-muted-foreground">
                   Already have an account?{" "}
-                  <Link href="/sign-in" className="font-semibold text-amber-500 hover:text-amber-600 transition-colors">
+                  <Link href="/sign-in" className="font-semibold text-brand hover:text-brand-hover transition-colors">
                     Sign in
                   </Link>
                 </p>

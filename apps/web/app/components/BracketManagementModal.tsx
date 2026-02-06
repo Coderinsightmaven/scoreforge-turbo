@@ -108,7 +108,7 @@ export function BracketManagementModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-card border border-border rounded-2xl shadow-xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+      <div className="bg-card border border-border rounded-xl shadow-xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border">
           <h2 className="text-xl font-semibold">Manage Brackets</h2>
@@ -224,7 +224,7 @@ export function BracketManagementModal({
                     value={newBracketName}
                     onChange={(e) => setNewBracketName(e.target.value)}
                     placeholder="e.g., Men's Singles"
-                    className="w-full px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:border-brand"
                   />
                 </div>
 
@@ -235,7 +235,7 @@ export function BracketManagementModal({
                   <select
                     value={newBracketFormat}
                     onChange={(e) => setNewBracketFormat(e.target.value as TournamentFormat | "")}
-                    className="w-full px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:border-brand"
                   >
                     <option value="">Use tournament default</option>
                     <option value="single_elimination">Single Elimination</option>
@@ -251,7 +251,7 @@ export function BracketManagementModal({
                   <select
                     value={newBracketParticipantType}
                     onChange={(e) => setNewBracketParticipantType(e.target.value as ParticipantType | "")}
-                    className="w-full px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:border-brand"
                   >
                     <option value="">Use tournament default</option>
                     <option value="individual">Individual</option>
@@ -270,7 +270,7 @@ export function BracketManagementModal({
                     value={newBracketMaxParticipants}
                     onChange={(e) => setNewBracketMaxParticipants(e.target.value)}
                     placeholder="e.g., 8, 16, 32"
-                    className="w-full px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:border-amber-500"
+                    className="w-full px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:border-brand"
                   />
                   <span className="block text-xs text-muted-foreground mt-1">
                     Leave empty for unlimited participants
@@ -282,7 +282,7 @@ export function BracketManagementModal({
                 <button
                   onClick={handleCreateBracket}
                   disabled={!newBracketName.trim() || isSubmitting}
-                  className="flex-1 px-4 py-2 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-500/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-brand text-white rounded-lg font-medium hover:bg-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? "Creating..." : "Create Bracket"}
                 </button>
@@ -303,7 +303,7 @@ export function BracketManagementModal({
           ) : (
             <button
               onClick={() => setIsCreating(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-border rounded-lg text-muted-foreground hover:text-amber-500 hover:border-amber-500 transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-border rounded-lg text-muted-foreground hover:text-brand hover:border-brand transition-colors"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />

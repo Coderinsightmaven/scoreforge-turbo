@@ -38,8 +38,8 @@ export function TournamentsScreen({ onSelectTournament }: Props) {
 
   if (tournaments === undefined) {
     return (
-      <View className="flex-1 items-center justify-center bg-gray-50">
-        <ActivityIndicator size="large" color="#f59e0b" />
+      <View className="flex-1 items-center justify-center bg-editorial-page">
+        <ActivityIndicator size="large" color="#D4A017" />
       </View>
     );
   }
@@ -47,10 +47,10 @@ export function TournamentsScreen({ onSelectTournament }: Props) {
   if (tournaments.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-gray-50 px-6">
-        <View className="mb-4 h-20 w-20 items-center justify-center rounded-2xl bg-gray-200">
+        <View className="mb-4 h-20 w-20 items-center justify-center rounded-xl bg-gray-200">
           <Text className="text-4xl">🏆</Text>
         </View>
-        <Text className="mb-2 text-lg font-semibold text-gray-900">No Tournaments</Text>
+        <Text className="mb-2 text-lg font-display-semibold text-gray-900">No Tournaments</Text>
         <Text className="text-center text-gray-500">
           {
             "You don't have access to any tournaments yet. Ask a tournament organizer to add you as a scorer."
@@ -61,7 +61,7 @@ export function TournamentsScreen({ onSelectTournament }: Props) {
   }
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-editorial-page">
       <FlatList
         data={tournaments}
         keyExtractor={(item) => item._id}
@@ -70,18 +70,18 @@ export function TournamentsScreen({ onSelectTournament }: Props) {
         maxToRenderPerBatch={10}
         windowSize={5}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f59e0b" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D4A017" />
         }
         renderItem={({ item }) => (
           <TouchableOpacity
-            className="mb-3 rounded-2xl bg-white p-4 shadow-sm"
+            className="mb-3 rounded-xl bg-white p-4 shadow-sm"
             onPress={() => onSelectTournament(item._id)}
             activeOpacity={0.7}>
             <View className="mb-3 flex-row items-start justify-between">
               <View className="flex-1">
                 <View className="mb-1 flex-row items-center">
                   <Text className="mr-2 text-xl">{sportEmoji[item.sport]}</Text>
-                  <Text className="flex-1 text-lg font-semibold text-gray-900" numberOfLines={1}>
+                  <Text className="flex-1 text-lg font-display-semibold text-gray-900" numberOfLines={1}>
                     {item.name}
                   </Text>
                 </View>
@@ -103,8 +103,8 @@ export function TournamentsScreen({ onSelectTournament }: Props) {
                   </Text>
                 </View>
                 {item.isOwner && (
-                  <View className="rounded-full bg-amber-100 px-2.5 py-1">
-                    <Text className="text-xs font-medium text-amber-700">Owner</Text>
+                  <View className="rounded-full bg-brand-light px-2.5 py-1">
+                    <Text className="text-xs font-medium text-brand-text">Owner</Text>
                   </View>
                 )}
               </View>

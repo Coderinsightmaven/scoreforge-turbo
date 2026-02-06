@@ -67,7 +67,7 @@ export function SkeletonCard({
   children?: ReactNode;
 }): ReactNode {
   return (
-    <div className={`bg-bg-card border border-border rounded-xl p-4 ${className}`}>
+    <div className={`bg-bg-card border border-border rounded-lg p-4 ${className}`}>
       {children || (
         <>
           <Skeleton className="h-12 w-12 rounded-lg mb-4" />
@@ -82,7 +82,7 @@ export function SkeletonCard({
 // Skeleton for stat cards
 export function SkeletonStatCard({ className = "" }: { className?: string }): ReactNode {
   return (
-    <div className={`bg-bg-card border border-border rounded-xl p-4 ${className}`}>
+    <div className={`bg-bg-card border border-border rounded-lg p-4 ${className}`}>
       <div className="flex items-center gap-3 mb-3">
         <Skeleton className="w-10 h-10 rounded-lg" />
         <Skeleton className="h-4 w-20" />
@@ -117,7 +117,7 @@ export function SkeletonTable({
   className?: string;
 }): ReactNode {
   return (
-    <div className={`bg-bg-card border border-border rounded-xl overflow-hidden ${className}`}>
+    <div className={`bg-bg-card border border-border rounded-lg overflow-hidden ${className}`}>
       {/* Header */}
       <div className="flex gap-4 p-4 border-b border-border bg-bg-secondary">
         {Array.from({ length: cols }).map((_, i) => (
@@ -177,7 +177,7 @@ export function SkeletonScoreboard({ className = "" }: { className?: string }): 
   return (
     <div className={`flex items-center justify-center gap-4 p-8 ${className}`}>
       {/* Team 1 */}
-      <div className="flex-1 flex flex-col items-center gap-4 p-6 bg-bg-secondary border border-border rounded-xl">
+      <div className="flex-1 flex flex-col items-center gap-4 p-6 bg-bg-secondary border border-border rounded-lg">
         <Skeleton className="h-5 w-8 mb-1" />
         <Skeleton className="h-6 w-32 mb-1" />
         <Skeleton className="h-4 w-16" />
@@ -190,7 +190,7 @@ export function SkeletonScoreboard({ className = "" }: { className?: string }): 
       </div>
 
       {/* Team 2 */}
-      <div className="flex-1 flex flex-col items-center gap-4 p-6 bg-bg-secondary border border-border rounded-xl">
+      <div className="flex-1 flex flex-col items-center gap-4 p-6 bg-bg-secondary border border-border rounded-lg">
         <Skeleton className="h-5 w-8 mb-1" />
         <Skeleton className="h-6 w-32 mb-1" />
         <Skeleton className="h-4 w-16" />

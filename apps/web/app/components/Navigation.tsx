@@ -17,26 +17,40 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Home, Settings, LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export function Navigation(): React.ReactNode {
   const { signOut } = useAuthActions();
   const user = useQuery(api.users.currentUser);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const initials = user?.name
     ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
     : "?";
 
   return (
-    <nav className="sticky top-0 z-50 bg-background border-b border-border">
-      <div className="container flex items-center justify-between h-16">
+    <nav
+      className={`sticky top-0 z-50 border-b border-border transition-all duration-300 ${
+        scrolled
+          ? "bg-bg-page/80 backdrop-blur-md"
+          : "bg-background"
+      }`}
+    >
+      <div className="container flex items-center justify-between" style={{ height: "var(--nav-height)" }}>
         {/* Logo */}
-        <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-amber-500 rounded-lg flex items-center justify-center">
-            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+        <Link href="/dashboard" className="flex items-center gap-3 group">
+          <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center transition-transform group-hover:scale-105">
+            <svg className="w-4.5 h-4.5 text-white" viewBox="0 0 24 24" fill="currentColor">
               <path d="M13 3L4 14h7v7l9-11h-7V3z" />
             </svg>
           </div>
-          <span className="text-lg font-semibold text-foreground">
+          <span className="text-lg font-semibold text-foreground font-[family-name:var(--font-display)]">
             ScoreForge
           </span>
         </Link>
@@ -51,7 +65,7 @@ export function Navigation(): React.ReactNode {
 
           <Unauthenticated>
             <Button variant="ghost" asChild>
-              <Link href="/sign-in">Sign in</Link>
+              <Link href="/sign-in" className="editorial-link">Sign in</Link>
             </Button>
             <Button variant="brand" asChild>
               <Link href="/sign-up">Get Started</Link>
@@ -67,7 +81,7 @@ export function Navigation(): React.ReactNode {
                   className="rounded-full w-10 h-10 p-0"
                   aria-label="Open user menu"
                 >
-                  <div className="w-9 h-9 flex items-center justify-center text-sm font-semibold text-white bg-amber-500 rounded-full">
+                  <div className="w-9 h-9 flex items-center justify-center text-sm font-semibold text-white bg-brand rounded-full">
                     {initials}
                   </div>
                 </Button>

@@ -3,6 +3,7 @@ import { View, ActivityIndicator, Text } from 'react-native';
 import { Authenticated, Unauthenticated, AuthLoading } from 'convex/react';
 import { useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import { useFonts } from 'expo-font';
 
 import { ConvexProvider } from './providers/ConvexProvider';
 import { SignInScreen } from './screens/SignInScreen';
@@ -25,11 +26,11 @@ const TEMP_SCORER_SESSION_KEY = 'tempScorerSession';
 
 function LoadingScreen() {
   return (
-    <View className="flex-1 items-center justify-center bg-gray-900">
-      <View className="mb-6 h-16 w-16 items-center justify-center rounded-2xl bg-amber-500">
-        <Text className="text-3xl font-bold text-white">S</Text>
+    <View className="flex-1 items-center justify-center bg-editorial-charcoal">
+      <View className="mb-6 h-16 w-16 items-center justify-center rounded-xl bg-brand">
+        <Text className="font-display-bold text-3xl text-white">S</Text>
       </View>
-      <ActivityIndicator size="large" color="#f59e0b" />
+      <ActivityIndicator size="large" color="#D4A017" />
     </View>
   );
 }
@@ -116,6 +117,25 @@ function AppContent() {
 }
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    'ClashDisplay-Regular': require('./assets/fonts/ClashDisplay-Regular.ttf'),
+    'ClashDisplay-Medium': require('./assets/fonts/ClashDisplay-Medium.ttf'),
+    'ClashDisplay-Semibold': require('./assets/fonts/ClashDisplay-Semibold.ttf'),
+    'ClashDisplay-Bold': require('./assets/fonts/ClashDisplay-Bold.ttf'),
+    'DMSans-Regular': require('./assets/fonts/DMSans-Regular.ttf'),
+    'DMSans-Medium': require('./assets/fonts/DMSans-Medium.ttf'),
+    'DMSans-SemiBold': require('./assets/fonts/DMSans-SemiBold.ttf'),
+    'DMSans-Bold': require('./assets/fonts/DMSans-Bold.ttf'),
+  });
+
+  if (!fontsLoaded) {
+    return (
+      <View className="flex-1 items-center justify-center bg-editorial-charcoal">
+        <ActivityIndicator size="large" color="#D4A017" />
+      </View>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <ConvexProvider>

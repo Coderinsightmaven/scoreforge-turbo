@@ -188,7 +188,7 @@ export function TennisScoreboard({
         const gridCols = `1fr repeat(${totalSetColumns}, 48px) 64px`;
 
         return (
-          <div className="bg-bg-secondary rounded-xl overflow-hidden border border-border">
+          <div className="bg-bg-secondary rounded-lg overflow-hidden border border-border">
             {/* Header Row */}
             <div
               className="gap-1 p-2 bg-bg-secondary text-xs font-semibold text-text-muted"
@@ -337,14 +337,14 @@ export function TennisScoreboard({
             <button
               onClick={() => handleScorePoint(1)}
               disabled={loading}
-              className="flex-1 py-4 text-lg font-bold text-text-inverse bg-brand rounded-xl hover:bg-brand-hover transition-all disabled:opacity-50"
+              className="flex-1 py-4 text-lg font-bold text-text-inverse bg-brand rounded-lg hover:bg-brand-hover transition-all disabled:opacity-50"
             >
               {p1Name.split(" ")[0]}
             </button>
             <button
               onClick={() => handleScorePoint(2)}
               disabled={loading}
-              className="flex-1 py-4 text-lg font-bold text-text-inverse bg-brand rounded-xl hover:bg-brand-hover transition-all disabled:opacity-50"
+              className="flex-1 py-4 text-lg font-bold text-text-inverse bg-brand rounded-lg hover:bg-brand-hover transition-all disabled:opacity-50"
             >
               {p2Name.split(" ")[0]}
             </button>
@@ -500,7 +500,7 @@ export function TennisMatchSetup({
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-4 font-semibold text-text-inverse bg-brand rounded-xl hover:bg-brand-hover transition-all disabled:opacity-50"
+        className="w-full py-4 font-semibold text-text-inverse bg-brand rounded-lg hover:bg-brand-hover transition-all disabled:opacity-50"
       >
         {loading ? "Starting..." : "Start Match"}
       </button>

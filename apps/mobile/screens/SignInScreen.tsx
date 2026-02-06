@@ -149,7 +149,7 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-editorial-page">
       <SafeAreaView className="flex-1">
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -159,10 +159,10 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
             keyboardShouldPersistTaps="always">
             {/* Logo & Branding */}
             <View className="mb-8 items-center">
-              <View className="mb-4 h-16 w-16 items-center justify-center rounded-2xl bg-amber-500 shadow-lg">
-                <Text className="text-3xl font-bold text-white">S</Text>
+              <View className="mb-4 h-16 w-16 items-center justify-center rounded-xl bg-brand shadow-lg">
+                <Text className="text-3xl font-display-bold text-white">S</Text>
               </View>
-              <Text className="text-sm text-gray-500">Tournament Scoring Made Simple</Text>
+              <Text className="font-sans text-sm text-gray-500">Tournament Scoring Made Simple</Text>
             </View>
 
             {/* Login Type Tabs */}
@@ -221,13 +221,13 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
             </View>
 
             {/* Login Card */}
-            <View className="rounded-3xl bg-white p-6 shadow-xl">
+            <View className="rounded-xl bg-white p-6 shadow-xl">
               {loginType === 'regular' ? (
                 <>
-                  <Text className="mb-1 text-center text-xl font-bold text-gray-900">
+                  <Text className="mb-1 text-center text-xl font-display-bold text-gray-900">
                     Welcome Back
                   </Text>
-                  <Text className="mb-6 text-center text-sm text-gray-500">
+                  <Text className="mb-6 text-center font-sans text-sm text-gray-500">
                     Sign in with your account
                   </Text>
 
@@ -271,7 +271,7 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
 
                     <TouchableOpacity
                       className={`mt-2 w-full items-center rounded-xl py-4 ${
-                        loading ? 'bg-amber-400' : 'bg-amber-500'
+                        loading ? 'bg-brand' : 'bg-brand'
                       }`}
                       onPress={handleRegularSubmit}
                       disabled={loading}
@@ -286,10 +286,10 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
                 </>
               ) : (
                 <>
-                  <Text className="mb-1 text-center text-xl font-bold text-gray-900">
+                  <Text className="mb-1 text-center text-xl font-display-bold text-gray-900">
                     Scorer Login
                   </Text>
-                  <Text className="mb-6 text-center text-sm text-gray-500">
+                  <Text className="mb-6 text-center font-sans text-sm text-gray-500">
                     Sign in with your tournament credentials
                   </Text>
 
@@ -308,8 +308,8 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
                         maxLength={6}
                       />
                       {tournamentInfo && (
-                        <View className="mt-2 rounded-lg bg-amber-50 p-2">
-                          <Text className="text-center text-sm text-amber-700">
+                        <View className="mt-2 rounded-lg bg-brand-light p-2">
+                          <Text className="text-center text-sm text-brand-text">
                             {tournamentInfo.name}
                           </Text>
                         </View>
@@ -362,7 +362,7 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
 
                     <TouchableOpacity
                       className={`mt-2 w-full items-center rounded-xl py-4 ${
-                        loading ? 'bg-amber-400' : 'bg-amber-500'
+                        loading ? 'bg-brand' : 'bg-brand'
                       }`}
                       onPress={handleScorerSubmit}
                       disabled={loading}
@@ -380,7 +380,7 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
 
             {/* Footer */}
             <View className="mt-6 items-center">
-              <Text className="text-center text-xs text-gray-500">
+              <Text className="text-center font-sans text-xs text-gray-500">
                 {loginType === 'regular'
                   ? 'Scorer access only. Contact your tournament organizer for credentials.'
                   : 'Get your code, username, and PIN from the tournament organizer.'}

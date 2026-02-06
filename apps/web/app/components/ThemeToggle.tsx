@@ -28,7 +28,7 @@ export function ThemeToggle(): React.ReactNode {
   return (
     <button
       onClick={toggleTheme}
-      className="w-10 h-10 rounded-lg bg-bg-secondary hover:bg-bg-tertiary flex items-center justify-center transition-colors"
+      className="w-10 h-10 rounded-lg bg-bg-secondary hover:bg-bg-tertiary flex items-center justify-center transition-all active:scale-95"
       aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
     >
       {isDark ? (
