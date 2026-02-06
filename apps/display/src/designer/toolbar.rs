@@ -20,6 +20,16 @@ pub fn show_toolbar(ui: &mut egui::Ui, state: &mut AppState) {
 
         ui.separator();
 
+        if ui.button("Export").clicked() {
+            export_sfbz(state);
+        }
+
+        if ui.button("Import").clicked() {
+            import_sfbz(state);
+        }
+
+        ui.separator();
+
         // Grid controls
         ui.checkbox(&mut state.grid_enabled, "Grid");
         ui.checkbox(&mut state.snap_to_grid, "Snap");
@@ -107,6 +117,48 @@ fn load_scoreboard(state: &mut AppState) {
             }
             Err(e) => {
                 state.push_toast(format!("Load failed: {e}"), true);
+            }
+        }
+    }
+}
+
+fn export_sfbz(state: &mut AppState) {
+    let project = state.active_project();
+    let file = project.to_scoreboard_file();
+
+    let path = rfd::FileDialog::new()
+        .set_title("Export Scoreboard Bundle")
+        .add_filter("ScoreForge Board Zip", &["sfbz"])
+        .save_file();
+
+    if let Some(path) = path {
+        match crate::storage::scoreboard::export_sfbz(&file, &state.asset_library, &path) {
+            Ok(()) => {
+                state.push_toast("Scoreboard exported".to_string(), false);
+            }
+            Err(e) => {
+                state.push_toast(format!("Export failed: {e}"), true);
+            }
+        }
+    }
+}
+
+fn import_sfbz(state: &mut AppState) {
+    let path = rfd::FileDialog::new()
+        .set_title("Import Scoreboard Bundle")
+        .add_filter("ScoreForge Board Zip", &["sfbz"])
+        .pick_file();
+
+    if let Some(path) = path {
+        match crate::storage::scoreboard::import_sfbz(&path, &mut state.asset_library) {
+            Ok(file) => {
+                let project = ProjectState::from_file(file);
+                state.projects.push(project);
+                state.active_index = state.projects.len() - 1;
+                state.push_toast("Scoreboard imported".to_string(), false);
+            }
+            Err(e) => {
+                state.push_toast(format!("Import failed: {e}"), true);
             }
         }
     }

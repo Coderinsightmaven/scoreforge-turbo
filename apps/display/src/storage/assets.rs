@@ -116,6 +116,44 @@ impl AssetLibrary {
             .map(|entry| self.base_dir.join(&entry.filename))
     }
 
+    pub fn import_image_with_id(&mut self, id: Uuid, source_path: &Path) -> Result<(), String> {
+        if self.index.assets.contains_key(&id) {
+            return Ok(());
+        }
+
+        let img = image::open(source_path).map_err(|e| format!("Failed to open image: {e}"))?;
+        let (width, height) = (img.width(), img.height());
+
+        let ext = source_path
+            .extension()
+            .and_then(|e| e.to_str())
+            .unwrap_or("png");
+        let filename = format!("{id}.{ext}");
+        let dest = self.base_dir.join(&filename);
+
+        fs::copy(source_path, &dest).map_err(|e| format!("Failed to copy image: {e}"))?;
+
+        let original_name = source_path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("unknown")
+            .to_string();
+
+        self.index.assets.insert(
+            id,
+            AssetEntry {
+                id,
+                filename,
+                original_name,
+                width,
+                height,
+            },
+        );
+
+        self.save_index();
+        Ok(())
+    }
+
     pub fn list_assets(&self) -> Vec<&AssetEntry> {
         self.index.assets.values().collect()
     }
