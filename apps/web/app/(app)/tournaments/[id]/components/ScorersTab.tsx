@@ -17,7 +17,7 @@ function TabSkeleton() {
         {[1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
-            className="flex flex-col p-4 bg-card border border-border rounded-xl"
+            className="flex flex-col p-4 bg-card border border-border rounded-lg"
             style={{ animationDelay: `${i * 0.05}s` }}
           >
             <div className="flex items-center gap-3 mb-2">
@@ -220,7 +220,7 @@ export function ScorersTab({
     <div className="animate-fadeIn space-y-8">
       {/* Tournament Scorer Code */}
       {scorerCode && (
-        <div className="p-4 bg-secondary border border-border rounded-xl">
+        <div className="p-4 bg-secondary border border-border rounded-lg">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-semibold text-foreground mb-1">Tournament Scorer Code</h3>
@@ -229,12 +229,12 @@ export function ScorersTab({
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <code className="px-4 py-2 text-lg font-mono font-bold text-amber-500 bg-card border border-border rounded-lg tracking-widest">
+              <code className="px-4 py-2 text-lg font-mono font-bold text-brand bg-card border border-border rounded-lg tracking-widest">
                 {scorerCode}
               </code>
               <button
                 onClick={() => copyToClipboard(scorerCode, "code")}
-                className="p-2 text-muted-foreground hover:text-amber-500 hover:bg-brand/10 rounded transition-all"
+                className="p-2 text-muted-foreground hover:text-brand hover:bg-brand/10 rounded transition-all"
                 title="Copy code"
               >
                 {copiedCode ? (
@@ -255,12 +255,12 @@ export function ScorersTab({
       {/* Temporary Scorers Section */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-heading text-foreground">
+          <h2 className="text-heading text-foreground font-[family-name:var(--font-display)]">
             Temporary Scorers ({tempScorers?.length || 0})
           </h2>
           <button
             onClick={() => setShowTempScorerModal(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-amber-500 bg-brand/10 border border-amber-500/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-brand bg-brand/10 border border-brand/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
           >
             <span>+</span> Create Temporary Scorer
           </button>
@@ -275,10 +275,10 @@ export function ScorersTab({
             {tempScorers.map((scorer, index) => (
               <div
                 key={scorer._id}
-                className={`flex items-center gap-4 p-4 bg-card border border-border rounded-xl animate-fadeInUp ${!scorer.isActive ? "opacity-60" : ""}`}
+                className={`flex items-center gap-4 p-4 bg-card border border-border rounded-lg animate-fadeInUp ${!scorer.isActive ? "opacity-60" : ""}`}
                 style={{ animationDelay: `${index * 0.03}s` }}
               >
-                <div className={`w-10 h-10 flex items-center justify-center text-sm font-bold rounded-full flex-shrink-0 ${scorer.isActive ? "text-amber-500 bg-brand/10" : "text-muted-foreground bg-secondary"}`}>
+                <div className={`w-10 h-10 flex items-center justify-center text-sm font-bold rounded-full flex-shrink-0 ${scorer.isActive ? "text-brand bg-brand/10" : "text-muted-foreground bg-secondary"}`}>
                   {scorer.displayName.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1">
@@ -302,7 +302,7 @@ export function ScorersTab({
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => handleResetPin(scorer._id)}
-                    className="px-3 py-1.5 text-xs font-semibold text-muted-foreground bg-secondary border border-border rounded-lg hover:text-foreground hover:border-amber-500/30 transition-all"
+                    className="px-3 py-1.5 text-xs font-semibold text-muted-foreground bg-secondary border border-border rounded-lg hover:text-foreground hover:border-brand/30 transition-all"
                     title="Reset PIN"
                   >
                     Reset PIN
@@ -333,7 +333,7 @@ export function ScorersTab({
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center py-12 text-center bg-secondary border border-dashed border-border rounded-2xl mb-8">
+          <div className="flex flex-col items-center py-12 text-center bg-secondary border border-dashed border-border rounded-lg mb-8">
             <span className="text-4xl text-muted-foreground mb-3 opacity-50">🔑</span>
             <p className="text-sm text-muted-foreground">
               No temporary scorers yet. Create one to allow scoring without an account.
@@ -345,12 +345,12 @@ export function ScorersTab({
       {/* Regular Scorers Section */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-heading text-foreground">
+          <h2 className="text-heading text-foreground font-[family-name:var(--font-display)]">
             Account Scorers ({scorers.length})
           </h2>
           <button
             onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-amber-500 bg-brand/10 border border-amber-500/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-brand bg-brand/10 border border-brand/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
           >
             <span>+</span> Assign by Email
           </button>
@@ -361,7 +361,7 @@ export function ScorersTab({
         </p>
 
         {scorers.length === 0 ? (
-          <div className="flex flex-col items-center py-12 text-center bg-secondary border border-dashed border-border rounded-2xl">
+          <div className="flex flex-col items-center py-12 text-center bg-secondary border border-dashed border-border rounded-lg">
             <span className="text-4xl text-muted-foreground mb-3 opacity-50">👤</span>
             <p className="text-sm text-muted-foreground">
               No account scorers assigned yet.
@@ -372,10 +372,10 @@ export function ScorersTab({
             {scorers.map((scorer, index) => (
               <div
                 key={scorer._id}
-                className="flex items-center gap-4 p-4 bg-card border border-border rounded-xl animate-fadeInUp"
+                className="flex items-center gap-4 p-4 bg-card border border-border rounded-lg animate-fadeInUp"
                 style={{ animationDelay: `${index * 0.03}s` }}
               >
-                <div className="w-10 h-10 flex items-center justify-center text-sm font-bold text-amber-500 bg-brand/10 rounded-full flex-shrink-0">
+                <div className="w-10 h-10 flex items-center justify-center text-sm font-bold text-brand bg-brand/10 rounded-full flex-shrink-0">
                   {(scorer.userName || scorer.userEmail || "?").charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1">
@@ -405,9 +405,9 @@ export function ScorersTab({
       {/* Add Account Scorer Modal */}
       {showAddModal && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl animate-scaleIn">
+          <div className="w-full max-w-lg bg-card border border-border rounded-lg shadow-2xl animate-scaleIn">
             <div className="flex items-center justify-between p-6 border-b border-border">
-              <h3 className="text-heading text-foreground">
+              <h3 className="text-heading text-foreground font-[family-name:var(--font-display)]">
                 Assign scorer by email
               </h3>
               <button
@@ -462,7 +462,7 @@ export function ScorersTab({
               <button
                 onClick={handleAssign}
                 disabled={!email.trim() || loading}
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2"
               >
                 {loading ? "Assigning..." : "Assign Scorer"}
               </button>
@@ -475,9 +475,9 @@ export function ScorersTab({
       {/* Create Temporary Scorer Modal */}
       {showTempScorerModal && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl animate-scaleIn">
+          <div className="w-full max-w-lg bg-card border border-border rounded-lg shadow-2xl animate-scaleIn">
             <div className="flex items-center justify-between p-6 border-b border-border">
-              <h3 className="text-heading text-foreground">
+              <h3 className="text-heading text-foreground font-[family-name:var(--font-display)]">
                 {createdCredentials ? "Scorer Created" : "Create Temporary Scorer"}
               </h3>
               <button
@@ -508,12 +508,12 @@ export function ScorersTab({
                         Tournament Code
                       </label>
                       <div className="flex items-center gap-2 mt-1">
-                        <code className="flex-1 px-3 py-2 text-lg font-mono font-bold text-amber-500 bg-secondary border border-border rounded-lg tracking-widest">
+                        <code className="flex-1 px-3 py-2 text-lg font-mono font-bold text-brand bg-secondary border border-border rounded-lg tracking-widest">
                           {createdCredentials.scorerCode}
                         </code>
                         <button
                           onClick={() => copyToClipboard(createdCredentials.scorerCode, "code")}
-                          className="p-2 text-muted-foreground hover:text-amber-500 rounded transition-all"
+                          className="p-2 text-muted-foreground hover:text-brand rounded transition-all"
                         >
                           {copiedCode ? "Copied!" : "Copy"}
                         </button>
@@ -539,7 +539,7 @@ export function ScorersTab({
                         </code>
                         <button
                           onClick={() => copyToClipboard(createdCredentials.pin, "pin")}
-                          className="p-2 text-muted-foreground hover:text-amber-500 rounded transition-all"
+                          className="p-2 text-muted-foreground hover:text-brand rounded transition-all"
                         >
                           {copiedPin ? "Copied!" : "Copy"}
                         </button>
@@ -605,7 +605,7 @@ export function ScorersTab({
                     setTempDisplayName("");
                     setCreatedCredentials(null);
                   }}
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2"
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2"
                 >
                   Done
                 </button>
@@ -625,7 +625,7 @@ export function ScorersTab({
                   <button
                     onClick={handleCreateTempScorer}
                     disabled={!tempUsername.trim() || loading}
-                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2"
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2"
                   >
                     {loading ? "Creating..." : "Create Scorer"}
                   </button>
@@ -640,9 +640,9 @@ export function ScorersTab({
       {/* Reset PIN Result Modal */}
       {resetPinResult && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-sm bg-card border border-border rounded-2xl shadow-2xl animate-scaleIn">
+          <div className="w-full max-w-sm bg-card border border-border rounded-lg shadow-2xl animate-scaleIn">
             <div className="p-6">
-              <h3 className="text-lg font-semibold text-foreground mb-4 text-center">
+              <h3 className="text-lg font-semibold text-foreground mb-4 text-center font-[family-name:var(--font-display)]">
                 PIN Reset
               </h3>
               <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg mb-4">
@@ -656,7 +656,7 @@ export function ScorersTab({
                 </code>
                 <button
                   onClick={() => copyToClipboard(resetPinResult.pin, "pin")}
-                  className="p-2 text-muted-foreground hover:text-amber-500 rounded transition-all"
+                  className="p-2 text-muted-foreground hover:text-brand rounded transition-all"
                 >
                   {copiedPin ? "Copied!" : "Copy"}
                 </button>
@@ -665,7 +665,7 @@ export function ScorersTab({
             <div className="flex justify-center p-6 border-t border-border">
               <button
                 onClick={() => setResetPinResult(null)}
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-6 py-2"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-6 py-2"
               >
                 Done
               </button>

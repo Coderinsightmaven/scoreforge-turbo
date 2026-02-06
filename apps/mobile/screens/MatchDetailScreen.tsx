@@ -24,19 +24,19 @@ export function MatchDetailScreen({ matchId, tempScorerToken, onBack, onStartSco
 
   if (match === undefined) {
     return (
-      <View className="flex-1 items-center justify-center bg-gray-50">
-        <ActivityIndicator size="large" color="#f59e0b" />
+      <View className="flex-1 items-center justify-center bg-editorial-page">
+        <ActivityIndicator size="large" color="#D4A017" />
       </View>
     );
   }
 
   if (match === null) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50">
+      <SafeAreaView className="flex-1 bg-editorial-page">
         <View className="flex-1 items-center justify-center px-6">
-          <Text className="text-lg font-semibold text-gray-900">Match not found</Text>
+          <Text className="text-lg font-display-semibold text-gray-900">Match not found</Text>
           <TouchableOpacity className="mt-4" onPress={onBack}>
-            <Text className="text-amber-500">Go back</Text>
+            <Text className="text-brand">Go back</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -72,14 +72,14 @@ export function MatchDetailScreen({ matchId, tempScorerToken, onBack, onStartSco
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-editorial-page">
       {/* Header */}
       <View className="flex-row items-center border-b border-gray-200 bg-white px-4 py-3">
         <TouchableOpacity onPress={onBack} className="mr-3 p-1">
           <Text className="text-2xl text-gray-400">←</Text>
         </TouchableOpacity>
         <View className="flex-1">
-          <Text className="text-lg font-semibold text-gray-900">Match Details</Text>
+          <Text className="text-lg font-display-semibold text-gray-900">Match Details</Text>
           <Text className="text-sm text-gray-500">
             Round {match.round} • Match {match.matchNumber}
           </Text>
@@ -95,7 +95,7 @@ export function MatchDetailScreen({ matchId, tempScorerToken, onBack, onStartSco
 
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
         {/* Score Card */}
-        <View className="mb-4 rounded-2xl bg-white p-6 shadow-sm">
+        <View className="mb-4 rounded-xl bg-white p-6 shadow-sm">
           <View className="mb-4 flex-row items-center justify-center">
             <Text className="text-3xl">🎾</Text>
           </View>
@@ -118,14 +118,14 @@ export function MatchDetailScreen({ matchId, tempScorerToken, onBack, onStartSco
             <Text
               className={`text-3xl ${
                 match.winnerId === match.participant1?._id
-                  ? 'font-bold text-amber-500'
+                  ? 'font-bold text-brand'
                   : 'text-gray-600'
               }`}>
               {match.participant1Score}
             </Text>
           </View>
 
-          <View className="my-2 h-px bg-gray-100" />
+          <View className="my-2 h-px bg-brand-light" />
 
           {/* Participant 2 */}
           <View className="mt-4 flex-row items-center justify-between">
@@ -145,7 +145,7 @@ export function MatchDetailScreen({ matchId, tempScorerToken, onBack, onStartSco
             <Text
               className={`text-3xl ${
                 match.winnerId === match.participant2?._id
-                  ? 'font-bold text-amber-500'
+                  ? 'font-bold text-brand'
                   : 'text-gray-600'
               }`}>
               {match.participant2Score}
@@ -154,7 +154,7 @@ export function MatchDetailScreen({ matchId, tempScorerToken, onBack, onStartSco
 
           {/* Detailed Score */}
           {match.tennisState && (
-            <View className="mt-4 rounded-lg bg-gray-50 p-3">
+            <View className="mt-4 rounded-lg bg-editorial-page p-3">
               <Text className="text-center text-sm font-medium text-gray-600">
                 {getScoreDisplay()}
               </Text>
@@ -163,8 +163,8 @@ export function MatchDetailScreen({ matchId, tempScorerToken, onBack, onStartSco
         </View>
 
         {/* Match Info */}
-        <View className="mb-4 rounded-2xl bg-white p-4 shadow-sm">
-          <Text className="mb-3 text-sm font-semibold uppercase text-gray-400">Match Info</Text>
+        <View className="mb-4 rounded-xl bg-white p-4 shadow-sm">
+          <Text className="mb-3 text-sm font-display-semibold uppercase text-gray-400">Match Info</Text>
 
           {match.court && (
             <View className="mb-2 flex-row justify-between">
@@ -196,14 +196,14 @@ export function MatchDetailScreen({ matchId, tempScorerToken, onBack, onStartSco
 
           <View className="mt-2 flex-row justify-between">
             <Text className="text-gray-500">Your Role</Text>
-            <Text className="font-medium capitalize text-amber-600">{match.myRole}</Text>
+            <Text className="font-medium capitalize text-brand-hover">{match.myRole}</Text>
           </View>
         </View>
 
         {/* Score Button */}
         {canScore && (
           <TouchableOpacity
-            className="rounded-xl bg-amber-500 py-4"
+            className="rounded-xl bg-brand py-4"
             onPress={() => onStartScoring(matchId)}
             activeOpacity={0.8}>
             <Text className="text-center text-lg font-bold text-white">

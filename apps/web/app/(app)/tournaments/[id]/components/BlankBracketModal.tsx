@@ -148,7 +148,7 @@ export function BlankBracketModal({
                     {unassignedParticipants.map(p => (
                       <div
                         key={p._id}
-                        className="px-3 py-1.5 text-sm bg-brand/10 text-amber-500 border border-amber-500/30 rounded-lg"
+                        className="px-3 py-1.5 text-sm bg-brand/10 text-brand border border-brand/30 rounded-lg"
                       >
                         {p.displayName}
                       </div>
@@ -178,8 +178,8 @@ export function BlankBracketModal({
                     key={seed}
                     className={`relative p-3 border rounded-lg transition-all ${
                       assigned
-                        ? "bg-brand/10 border-amber-500/30"
-                        : "bg-secondary border-border hover:border-amber-500/30"
+                        ? "bg-brand/10 border-brand/30"
+                        : "bg-secondary border-border hover:border-brand/30"
                     }`}
                   >
                     <div className="text-xs font-medium text-muted-foreground mb-1">
@@ -245,7 +245,7 @@ export function BlankBracketModal({
             <button
               onClick={handleGenerate}
               disabled={generatingBlank}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-amber-500 text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-amber-600 shadow-sm h-9 px-4 py-2"
             >
               {generatingBlank ? "Generating..." : "Generate Bracket"}
             </button>

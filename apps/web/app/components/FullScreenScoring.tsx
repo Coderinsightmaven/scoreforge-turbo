@@ -128,17 +128,17 @@ function ScoringZone({
         {isDoubles ? (
           // Stacked layout for doubles names
           <div className="flex flex-col items-center gap-1">
-            <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-text-primary">
+            <span className="text-3xl sm:text-4xl md:text-5xl font-bold font-[family-name:var(--font-display)] text-text-primary">
               {player1}
             </span>
             <span className="text-2xl text-text-muted">/</span>
-            <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-text-primary">
+            <span className="text-3xl sm:text-4xl md:text-5xl font-bold font-[family-name:var(--font-display)] text-text-primary">
               {player2}
             </span>
           </div>
         ) : (
           // Single line layout for singles/teams
-          <span className="text-4xl sm:text-5xl md:text-6xl font-bold text-text-primary">
+          <span className="text-4xl sm:text-5xl md:text-6xl font-bold font-[family-name:var(--font-display)] text-text-primary">
             {playerName}
           </span>
         )}
@@ -230,7 +230,7 @@ export function FullScreenScoring({
 
           {/* Tennis Scoreboard */}
           {tennisState && (
-            <div className="bg-bg-card border border-border rounded-2xl p-4 shadow-lg">
+            <div className="bg-bg-card border border-border rounded-xl p-4 shadow-lg">
               {/* Tiebreak indicator */}
               {tennisState.isTiebreak && (
                 <div className="flex justify-center mb-3">
@@ -308,7 +308,7 @@ export function FullScreenScoring({
         <button
           onClick={handleUndo}
           disabled={isUpdating}
-          className="absolute left-1/2 -translate-x-1/2 bottom-4 sm:bottom-6 md:bottom-8 flex items-center gap-2 sm:gap-3 px-4 py-2 sm:px-5 sm:py-3 md:px-6 md:py-4 bg-bg-card border border-border rounded-xl sm:rounded-2xl shadow-md hover:bg-bg-secondary transition-colors disabled:opacity-50 z-20"
+          className="absolute left-1/2 -translate-x-1/2 bottom-4 sm:bottom-6 md:bottom-8 flex items-center gap-2 sm:gap-3 px-4 py-2 sm:px-5 sm:py-3 md:px-6 md:py-4 bg-bg-card border border-border rounded-lg sm:rounded-xl shadow-md hover:bg-bg-secondary transition-colors disabled:opacity-50 z-20"
         >
           <svg className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
@@ -381,9 +381,9 @@ export function FirstServerSetup({
         </svg>
       </Link>
 
-      <div className="max-w-md w-full bg-bg-card border border-border rounded-2xl p-8">
+      <div className="max-w-md w-full bg-bg-card border border-border rounded-xl p-8">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-text-primary mb-2">
+          <h2 className="text-2xl font-bold font-[family-name:var(--font-display)] text-text-primary mb-2">
             Select First Server
           </h2>
           <p className="text-sm text-text-secondary">
@@ -407,7 +407,7 @@ export function FirstServerSetup({
         <div className="space-y-3 mb-6">
           <button
             onClick={() => setSelectedServer(1)}
-            className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${
+            className={`w-full flex items-center gap-4 p-4 rounded-lg border-2 transition-all ${
               selectedServer === 1
                 ? "border-success bg-success/10"
                 : "border-border bg-bg-secondary hover:border-text-muted"
@@ -420,7 +420,7 @@ export function FirstServerSetup({
                 {participant1Name.charAt(0).toUpperCase()}
               </span>
             </div>
-            <span className={`flex-1 text-left font-semibold ${
+            <span className={`flex-1 text-left font-semibold font-[family-name:var(--font-display)] ${
               selectedServer === 1 ? "text-success" : "text-text-primary"
             }`}>
               {participant1Name}
@@ -434,7 +434,7 @@ export function FirstServerSetup({
 
           <button
             onClick={() => setSelectedServer(2)}
-            className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${
+            className={`w-full flex items-center gap-4 p-4 rounded-lg border-2 transition-all ${
               selectedServer === 2
                 ? "border-success bg-success/10"
                 : "border-border bg-bg-secondary hover:border-text-muted"
@@ -464,7 +464,7 @@ export function FirstServerSetup({
         <button
           onClick={handleStart}
           disabled={loading}
-          className="w-full py-4 font-semibold text-text-inverse bg-success rounded-xl hover:opacity-90 transition-all disabled:opacity-50"
+          className="w-full py-4 font-semibold text-text-inverse bg-success rounded-lg hover:opacity-90 transition-all disabled:opacity-50"
         >
           {loading ? "Starting..." : "Start Tennis Match"}
         </button>
@@ -492,19 +492,19 @@ export function MatchCompleteScreen({
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-bg-primary z-50 p-6">
-      <div className="max-w-md w-full bg-bg-card border border-brand rounded-2xl p-8">
+      <div className="max-w-md w-full bg-bg-card border border-brand rounded-xl p-8">
         {/* Winner Banner */}
         <div className="flex items-center justify-center gap-3 mb-6">
           <svg className="w-10 h-10 text-brand" fill="currentColor" viewBox="0 0 24 24">
             <path fillRule="evenodd" d="M5.166 2.621v.858c-1.035.148-2.059.33-3.071.543a.75.75 0 00-.584.859 6.753 6.753 0 006.138 5.6 6.73 6.73 0 002.743 1.346A6.707 6.707 0 019.279 15H8.54c-1.036 0-1.875.84-1.875 1.875V19.5h-.75a2.25 2.25 0 00-2.25 2.25c0 .414.336.75.75.75h15.19a.75.75 0 00.75-.75 2.25 2.25 0 00-2.25-2.25h-.75v-2.625c0-1.036-.84-1.875-1.875-1.875h-.739a6.706 6.706 0 00-1.112-3.173 6.73 6.73 0 002.743-1.347 6.753 6.753 0 006.139-5.6.75.75 0 00-.585-.858 47.077 47.077 0 00-3.07-.543V2.62a.75.75 0 00-.658-.744 49.22 49.22 0 00-6.093-.377c-2.063 0-4.096.128-6.093.377a.75.75 0 00-.657.744zm0 2.629c0 1.196.312 2.32.857 3.294A5.266 5.266 0 013.16 5.337a45.6 45.6 0 012.006-.343v.256zm13.5 0v-.256c.674.1 1.343.214 2.006.343a5.265 5.265 0 01-2.863 3.207 6.72 6.72 0 00.857-3.294z" clipRule="evenodd" />
           </svg>
-          <span className="text-2xl font-bold text-brand">
+          <span className="text-2xl font-bold font-[family-name:var(--font-display)] text-brand">
             {winnerName} Wins!
           </span>
         </div>
 
         {/* Final Score Table */}
-        <div className="bg-bg-secondary rounded-xl overflow-hidden mb-6">
+        <div className="bg-bg-secondary rounded-lg overflow-hidden mb-6">
           {/* Player 1 */}
           <div className="flex items-center px-4 py-3 border-b border-border">
             <span className="flex-1 font-semibold text-text-primary truncate">{participant1Name}</span>
@@ -532,7 +532,7 @@ export function MatchCompleteScreen({
         {/* Back to Tournament Button */}
         <Link
           href={`/tournaments/${tournamentId}`}
-          className="block w-full py-4 text-center font-semibold text-text-inverse bg-brand rounded-xl hover:bg-brand-hover transition-all"
+          className="block w-full py-4 text-center font-semibold text-text-inverse bg-brand rounded-lg hover:bg-brand-hover transition-all"
         >
           Back to Tournament
         </Link>

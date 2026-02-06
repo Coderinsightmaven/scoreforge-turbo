@@ -13,7 +13,7 @@ function TabSkeleton() {
         {[1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
-            className="flex flex-col p-4 bg-card border border-border rounded-xl"
+            className="flex flex-col p-4 bg-card border border-border rounded-lg"
             style={{ animationDelay: `${i * 0.05}s` }}
           >
             <div className="flex items-center gap-3 mb-2">
@@ -55,7 +55,7 @@ export function StandingsTab({
 
   if (standings.length === 0) {
     return (
-      <div className="flex flex-col items-center py-16 text-center bg-secondary border border-dashed border-border rounded-2xl">
+      <div className="flex flex-col items-center py-16 text-center bg-secondary border border-dashed border-border rounded-xl">
         <span className="text-5xl text-muted-foreground mb-4 opacity-50">📊</span>
         <p className="text-muted-foreground">
           Standings will appear when matches are played
@@ -66,7 +66,7 @@ export function StandingsTab({
 
   return (
     <div className="animate-fadeIn">
-      <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
         <div className="grid grid-cols-[40px_1fr_40px_40px_40px_50px_60px] gap-2 p-4 text-xs font-semibold tracking-wide uppercase text-muted-foreground bg-secondary border-b border-border">
           <span className="text-center">#</span>
           <span>Participant</span>
@@ -99,7 +99,7 @@ export function StandingsTab({
             <span className="text-center text-emerald-600 dark:text-emerald-400">{participant.wins}</span>
             <span className="text-center text-red">{participant.losses}</span>
             <span className="text-center text-muted-foreground">{participant.draws}</span>
-            <span className="text-center font-bold text-amber-500">
+            <span className="text-center font-bold text-brand">
               {participant.points}
             </span>
             <span
