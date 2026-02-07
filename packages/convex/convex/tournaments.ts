@@ -188,9 +188,7 @@ export const getBracket = query({
       if (match.participant2Id) participantIds.add(match.participant2Id);
     }
 
-    const participantDocs = await Promise.all(
-      [...participantIds].map((id) => ctx.db.get(id))
-    );
+    const participantDocs = await Promise.all([...participantIds].map((id) => ctx.db.get(id)));
     const participantMap = new Map<string, Doc<"tournamentParticipants">>();
     for (const doc of participantDocs) {
       if (doc) participantMap.set(doc._id, doc);
@@ -302,9 +300,8 @@ export const canCreateTournament = query({
       .withIndex("by_key", (q) => q.eq("key", "global"))
       .first();
 
-    // Handle both old and new field names for backwards compatibility
-    const settingsAny = settings as any;
-    const maxTournaments = settingsAny?.maxTournamentsPerUser ?? settingsAny?.maxOrganizationsPerUser ?? 50;
+    const maxTournaments =
+      settings?.maxTournamentsPerUser ?? settings?.maxOrganizationsPerUser ?? 50;
 
     // Count user's existing tournaments
     const existingTournaments = await ctx.db
@@ -611,7 +608,8 @@ export const createTournament = mutation({
 
       // Handle both old and new field names for backwards compatibility
       const settingsAny = settings as any;
-      const maxTournaments = settingsAny?.maxTournamentsPerUser ?? settingsAny?.maxOrganizationsPerUser ?? 50;
+      const maxTournaments =
+        settingsAny?.maxTournamentsPerUser ?? settingsAny?.maxOrganizationsPerUser ?? 50;
 
       // Count user's existing tournaments
       const existingTournaments = await ctx.db
@@ -707,11 +705,9 @@ export const updateTournament = mutation({
     const updates: Partial<typeof tournament> = {};
     if (args.name !== undefined) updates.name = args.name;
     if (args.description !== undefined) updates.description = args.description;
-    if (args.maxParticipants !== undefined)
-      updates.maxParticipants = args.maxParticipants;
+    if (args.maxParticipants !== undefined) updates.maxParticipants = args.maxParticipants;
     if (args.startDate !== undefined) updates.startDate = args.startDate;
-    if (args.scoringConfig !== undefined)
-      updates.scoringConfig = args.scoringConfig;
+    if (args.scoringConfig !== undefined) updates.scoringConfig = args.scoringConfig;
 
     await ctx.db.patch(args.tournamentId, updates);
     return null;
@@ -932,7 +928,8 @@ export async function generateBracketMatches(
               );
 
               if (allFeedersComplete && feederMatches.length > 0) {
-                const byeWinner = updatedNextMatch.participant1Id || updatedNextMatch.participant2Id;
+                const byeWinner =
+                  updatedNextMatch.participant1Id || updatedNextMatch.participant2Id;
                 if (byeWinner) {
                   await ctx.db.patch(fullMatch.nextMatchId, {
                     winnerId: byeWinner,
@@ -1011,7 +1008,9 @@ export const generateBracket = mutation({
     const participants = allParticipants.filter((p) => !p.bracketId);
 
     if (participants.length < 2) {
-      throw errors.invalidInput("Need at least 2 participants to generate bracket. For multi-bracket tournaments, generate matches for each bracket individually");
+      throw errors.invalidInput(
+        "Need at least 2 participants to generate bracket. For multi-bracket tournaments, generate matches for each bracket individually"
+      );
     }
 
     // Delete any existing matches (for regeneration)
@@ -1095,13 +1094,10 @@ export const startTournament = mutation({
           if (!existingBracketMatches) {
             // Generate matches for this bracket
             const format = bracket.format || tournament.format;
-            await generateBracketMatches(
-              ctx,
-              args.tournamentId,
-              tournament,
-              bracketParticipants,
-              { bracketId: bracket._id, format }
-            );
+            await generateBracketMatches(ctx, args.tournamentId, tournament, bracketParticipants, {
+              bracketId: bracket._id,
+              format,
+            });
           }
 
           // Update bracket status to active
@@ -1110,7 +1106,9 @@ export const startTournament = mutation({
       }
 
       if (totalParticipants < 2) {
-        throw errors.invalidInput("Need at least 2 participants across all brackets to start tournament");
+        throw errors.invalidInput(
+          "Need at least 2 participants across all brackets to start tournament"
+        );
       }
     } else {
       // Single-bracket tournament: use tournament-level participants
@@ -1236,13 +1234,15 @@ export const generateBlankBracket = mutation({
       const seenSeeds = new Set<number>();
       for (const assignment of args.seedAssignments) {
         if (seenSeeds.has(assignment.seed)) {
-          throw new Error(`Duplicate seed assignment: seed ${assignment.seed} is assigned more than once`);
+          throw new Error(
+            `Duplicate seed assignment: seed ${assignment.seed} is assigned more than once`
+          );
         }
         seenSeeds.add(assignment.seed);
 
         if (assignment.seed >= 1 && assignment.seed <= actualSize) {
           // Verify this participant exists and belongs to this tournament
-          const participant = existingParticipants.find(p => p._id === assignment.participantId);
+          const participant = existingParticipants.find((p) => p._id === assignment.participantId);
           if (participant) {
             seedToParticipantId.set(assignment.seed, assignment.participantId);
             assignedParticipantIds.add(assignment.participantId);
@@ -1356,9 +1356,7 @@ export const checkAndCompleteTournament = internalMutation({
     }
 
     // Check if all matches are completed or bye
-    const allComplete = matches.every(
-      (m) => m.status === "completed" || m.status === "bye"
-    );
+    const allComplete = matches.every((m) => m.status === "completed" || m.status === "bye");
 
     if (!allComplete) {
       return false;

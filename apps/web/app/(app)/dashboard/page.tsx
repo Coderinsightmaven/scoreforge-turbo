@@ -7,7 +7,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/app/components/Skeleton";
 import { Plus, Trophy } from "lucide-react";
 import { FORMAT_LABELS, type TournamentFormat } from "@/app/lib/constants";
 
@@ -115,10 +115,7 @@ export default function DashboardPage(): React.ReactNode {
         ) : filteredTournaments?.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-muted-foreground">No {filter} tournaments</p>
-            <button
-              onClick={() => setFilter("all")}
-              className="mt-2 text-brand hover:underline"
-            >
+            <button onClick={() => setFilter("all")} className="mt-2 text-brand hover:underline">
               Show all tournaments
             </button>
           </div>
@@ -172,7 +169,9 @@ function TournamentCard({
 
   return (
     <Link href={`/tournaments/${tournament._id}`} className="block">
-      <Card className={`h-full transition-all hover:border-border hover:shadow-md ${hasLive ? "ring-2 ring-red-500/30" : ""}`}>
+      <Card
+        className={`h-full transition-all hover:border-border hover:shadow-md ${hasLive ? "ring-2 ring-red-500/30" : ""}`}
+      >
         <CardContent className="pt-6">
           {/* Header */}
           <div className="flex items-start justify-between mb-3">
@@ -194,7 +193,9 @@ function TournamentCard({
           <div className="space-y-1 text-small text-muted-foreground">
             <p>{sportLabels[tournament.sport] || tournament.sport}</p>
             <p>{formatLabels[tournament.format as TournamentFormat] || tournament.format}</p>
-            <p>{tournament.participantCount} of {tournament.maxParticipants} players</p>
+            <p>
+              {tournament.participantCount} of {tournament.maxParticipants} players
+            </p>
           </div>
 
           {/* Live indicator */}
@@ -217,7 +218,9 @@ function EmptyState({ canCreate }: { canCreate: boolean }) {
       <div className="w-16 h-16 mx-auto mb-6 bg-secondary rounded-2xl flex items-center justify-center">
         <Trophy className="w-8 h-8 text-muted-foreground" />
       </div>
-      <h2 className="text-heading text-foreground mb-2 font-[family-name:var(--font-display)]">No tournaments yet</h2>
+      <h2 className="text-heading text-foreground mb-2 font-[family-name:var(--font-display)]">
+        No tournaments yet
+      </h2>
       <p className="text-body text-muted-foreground mb-6 max-w-sm mx-auto">
         Create your first tournament to start managing competitions
       </p>

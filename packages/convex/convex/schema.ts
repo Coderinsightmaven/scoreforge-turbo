@@ -35,9 +35,7 @@ export const matchStatus = v.union(
 /**
  * Preset sports
  */
-export const presetSports = v.union(
-  v.literal("tennis")
-);
+export const presetSports = v.union(v.literal("tennis"));
 
 /**
  * Participant types
@@ -48,7 +46,6 @@ export const participantTypes = v.union(
   v.literal("doubles")
 );
 
-
 /**
  * Tennis tournament configuration (set at tournament level)
  */
@@ -58,7 +55,6 @@ export const tennisConfig = v.object({
   // Best of 3 (setsToWin=2) or Best of 5 (setsToWin=3)
   setsToWin: v.number(),
 });
-
 
 /**
  * Tennis match state snapshot (for history)
@@ -103,15 +99,10 @@ export const tennisState = v.object({
   history: v.optional(v.array(tennisStateSnapshot)),
 });
 
-
 /**
  * Theme preference values
  */
-export const themePreference = v.union(
-  v.literal("light"),
-  v.literal("dark"),
-  v.literal("system")
-);
+export const themePreference = v.union(v.literal("light"), v.literal("dark"), v.literal("system"));
 
 /**
  * Scoring log action types
@@ -134,6 +125,11 @@ export const bracketStatus = v.union(
 
 export default defineSchema({
   ...authTables,
+
+  // Override users table from authTables to add search index
+  users: authTables.users
+    .searchIndex("search_name", { searchField: "name", filterFields: [] })
+    .searchIndex("search_email", { searchField: "email", filterFields: [] }),
 
   // User preferences - stores user settings like theme
   userPreferences: defineTable({

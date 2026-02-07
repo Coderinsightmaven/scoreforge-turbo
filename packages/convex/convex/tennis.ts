@@ -1,5 +1,5 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, type MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { tennisState } from "./schema";
 import type { Id, Doc } from "./_generated/dataModel";
@@ -16,6 +16,79 @@ import {
   getNextServer,
 } from "./lib/tennisScoring";
 export { pointToString } from "./lib/tennisScoring";
+
+// ============================================
+// Match Completion Helpers
+// ============================================
+
+function countSetsWon(sets: number[][]): { p1Sets: number; p2Sets: number } {
+  return {
+    p1Sets: sets.filter((s) => (s[0] ?? 0) > (s[1] ?? 0)).length,
+    p2Sets: sets.filter((s) => (s[1] ?? 0) > (s[0] ?? 0)).length,
+  };
+}
+
+async function updateParticipantStats(
+  ctx: MutationCtx,
+  match: Doc<"matches">,
+  matchWinner: 1 | 2,
+  p1Sets: number,
+  p2Sets: number
+) {
+  if (match.participant1Id) {
+    const p1 = await ctx.db.get(match.participant1Id);
+    if (p1) {
+      await ctx.db.patch(match.participant1Id, {
+        wins: p1.wins + (matchWinner === 1 ? 1 : 0),
+        losses: p1.losses + (matchWinner === 2 ? 1 : 0),
+        pointsFor: p1.pointsFor + p1Sets,
+        pointsAgainst: p1.pointsAgainst + p2Sets,
+      });
+    }
+  }
+  if (match.participant2Id) {
+    const p2 = await ctx.db.get(match.participant2Id);
+    if (p2) {
+      await ctx.db.patch(match.participant2Id, {
+        wins: p2.wins + (matchWinner === 2 ? 1 : 0),
+        losses: p2.losses + (matchWinner === 1 ? 1 : 0),
+        pointsFor: p2.pointsFor + p2Sets,
+        pointsAgainst: p2.pointsAgainst + p1Sets,
+      });
+    }
+  }
+}
+
+async function advanceBracket(ctx: MutationCtx, match: Doc<"matches">, matchWinner: 1 | 2) {
+  const winnerId = matchWinner === 1 ? match.participant1Id : match.participant2Id;
+  const loserId = matchWinner === 1 ? match.participant2Id : match.participant1Id;
+
+  // Advance winner
+  if (winnerId && match.nextMatchId) {
+    const nextMatch = await ctx.db.get(match.nextMatchId);
+    if (nextMatch) {
+      const slot = match.nextMatchSlot;
+      if (slot === 1) {
+        await ctx.db.patch(match.nextMatchId, { participant1Id: winnerId });
+      } else if (slot === 2) {
+        await ctx.db.patch(match.nextMatchId, { participant2Id: winnerId });
+      }
+    }
+  }
+
+  // Advance loser (double elimination)
+  if (loserId && match.loserNextMatchId) {
+    const loserNextMatch = await ctx.db.get(match.loserNextMatchId);
+    if (loserNextMatch) {
+      const loserSlot = match.loserNextMatchSlot;
+      if (loserSlot === 1) {
+        await ctx.db.patch(match.loserNextMatchId, { participant1Id: loserId });
+      } else if (loserSlot === 2) {
+        await ctx.db.patch(match.loserNextMatchId, { participant2Id: loserId });
+      }
+    }
+  }
+}
 
 // ============================================
 // Queries
@@ -54,11 +127,7 @@ export const getTennisMatch = query({
       winnerId: v.optional(v.id("tournamentParticipants")),
       status: v.string(),
       tennisState: v.optional(tennisState),
-      myRole: v.union(
-        v.literal("owner"),
-        v.literal("scorer"),
-        v.literal("temp_scorer")
-      ),
+      myRole: v.union(v.literal("owner"), v.literal("scorer"), v.literal("temp_scorer")),
       sport: v.string(),
     }),
     v.null()
@@ -177,7 +246,9 @@ export const initTennisMatch = mutation({
 
     // Get tennis config from tournament
     if (!tournament.tennisConfig) {
-      throw errors.invalidState("Tournament does not have tennis configuration. Please update the tournament settings");
+      throw errors.invalidState(
+        "Tournament does not have tennis configuration. Please update the tournament settings"
+      );
     }
 
     const { isAdScoring, setsToWin } = tournament.tennisConfig;
@@ -360,10 +431,8 @@ export const scoreTennisPoint = mutation({
 
         if (matchOver) {
           state.isMatchComplete = true;
-          // Update match winner and scores
           const winnerId = matchWinner === 1 ? match.participant1Id : match.participant2Id;
-          const p1Sets = newSets.filter(s => (s[0] ?? 0) > (s[1] ?? 0)).length;
-          const p2Sets = newSets.filter(s => (s[1] ?? 0) > (s[0] ?? 0)).length;
+          const { p1Sets, p2Sets } = countSetsWon(newSets);
 
           await ctx.db.patch(args.matchId, {
             tennisState: state,
@@ -374,60 +443,10 @@ export const scoreTennisPoint = mutation({
             completedAt: Date.now(),
           });
 
-          // Update participant stats
-          if (match.participant1Id) {
-            const p1 = await ctx.db.get(match.participant1Id);
-            if (p1) {
-              await ctx.db.patch(match.participant1Id, {
-                wins: p1.wins + (matchWinner === 1 ? 1 : 0),
-                losses: p1.losses + (matchWinner === 2 ? 1 : 0),
-                pointsFor: p1.pointsFor + p1Sets,
-                pointsAgainst: p1.pointsAgainst + p2Sets,
-              });
-            }
-          }
-          if (match.participant2Id) {
-            const p2 = await ctx.db.get(match.participant2Id);
-            if (p2) {
-              await ctx.db.patch(match.participant2Id, {
-                wins: p2.wins + (matchWinner === 2 ? 1 : 0),
-                losses: p2.losses + (matchWinner === 1 ? 1 : 0),
-                pointsFor: p2.pointsFor + p2Sets,
-                pointsAgainst: p2.pointsAgainst + p1Sets,
-              });
-            }
-          }
-
-          // Handle bracket advancement (winner)
-          if (winnerId && match.nextMatchId) {
-            const nextMatch = await ctx.db.get(match.nextMatchId);
-            if (nextMatch) {
-              const slot = match.nextMatchSlot;
-              if (slot === 1) {
-                await ctx.db.patch(match.nextMatchId, { participant1Id: winnerId });
-              } else if (slot === 2) {
-                await ctx.db.patch(match.nextMatchId, { participant2Id: winnerId });
-              }
-            }
-          }
-
-          // Handle loser bracket advancement (double elimination)
-          const loserId = matchWinner === 1 ? match.participant2Id : match.participant1Id;
-          if (loserId && match.loserNextMatchId) {
-            const loserNextMatch = await ctx.db.get(match.loserNextMatchId);
-            if (loserNextMatch) {
-              const loserSlot = match.loserNextMatchSlot;
-              if (loserSlot === 1) {
-                await ctx.db.patch(match.loserNextMatchId, { participant1Id: loserId });
-              } else if (loserSlot === 2) {
-                await ctx.db.patch(match.loserNextMatchId, { participant2Id: loserId });
-              }
-            }
-          }
-
+          await updateParticipantStats(ctx, match, matchWinner as 1 | 2, p1Sets, p2Sets);
+          await advanceBracket(ctx, match, matchWinner as 1 | 2);
           await logAction(state);
 
-          // Check if tournament is now complete (deactivates temp scorers)
           await ctx.runMutation(internal.tournaments.checkAndCompleteTournament, {
             tournamentId: match.tournamentId,
           });
@@ -445,7 +464,10 @@ export const scoreTennisPoint = mutation({
         const totalPoints = (newPoints[0] ?? 0) + (newPoints[1] ?? 0);
         if (totalPoints > 0) {
           const pointsSinceFirst = totalPoints;
-          if (pointsSinceFirst === 1 || (pointsSinceFirst > 1 && (pointsSinceFirst - 1) % 2 === 0)) {
+          if (
+            pointsSinceFirst === 1 ||
+            (pointsSinceFirst > 1 && (pointsSinceFirst - 1) % 2 === 0)
+          ) {
             state.servingParticipant = state.servingParticipant === 1 ? 2 : 1;
           }
         }
@@ -471,7 +493,7 @@ export const scoreTennisPoint = mutation({
           const { matchOver, matchWinner, newSets } = processMatchSet(
             state,
             setWinner,
-            state.currentSetGames.map((g, i) => i === setWinner - 1 ? g + 1 : g)
+            state.currentSetGames.map((g, i) => (i === setWinner - 1 ? g + 1 : g))
           );
 
           state.sets = newSets;
@@ -481,8 +503,7 @@ export const scoreTennisPoint = mutation({
           if (matchOver && matchWinner) {
             state.isMatchComplete = true;
             const winnerId = matchWinner === 1 ? match.participant1Id : match.participant2Id;
-            const p1Sets = newSets.filter(s => (s[0] ?? 0) > (s[1] ?? 0)).length;
-            const p2Sets = newSets.filter(s => (s[1] ?? 0) > (s[0] ?? 0)).length;
+            const { p1Sets, p2Sets } = countSetsWon(newSets);
 
             await ctx.db.patch(args.matchId, {
               tennisState: state,
@@ -493,60 +514,10 @@ export const scoreTennisPoint = mutation({
               completedAt: Date.now(),
             });
 
-            // Update participant stats
-            if (match.participant1Id) {
-              const p1 = await ctx.db.get(match.participant1Id);
-              if (p1) {
-                await ctx.db.patch(match.participant1Id, {
-                  wins: p1.wins + (matchWinner === 1 ? 1 : 0),
-                  losses: p1.losses + (matchWinner === 2 ? 1 : 0),
-                  pointsFor: p1.pointsFor + p1Sets,
-                  pointsAgainst: p1.pointsAgainst + p2Sets,
-                });
-              }
-            }
-            if (match.participant2Id) {
-              const p2 = await ctx.db.get(match.participant2Id);
-              if (p2) {
-                await ctx.db.patch(match.participant2Id, {
-                  wins: p2.wins + (matchWinner === 2 ? 1 : 0),
-                  losses: p2.losses + (matchWinner === 1 ? 1 : 0),
-                  pointsFor: p2.pointsFor + p2Sets,
-                  pointsAgainst: p2.pointsAgainst + p1Sets,
-                });
-              }
-            }
-
-            // Handle bracket advancement (winner)
-            if (winnerId && match.nextMatchId) {
-              const nextMatch = await ctx.db.get(match.nextMatchId);
-              if (nextMatch) {
-                const slot = match.nextMatchSlot;
-                if (slot === 1) {
-                  await ctx.db.patch(match.nextMatchId, { participant1Id: winnerId });
-                } else if (slot === 2) {
-                  await ctx.db.patch(match.nextMatchId, { participant2Id: winnerId });
-                }
-              }
-            }
-
-            // Handle loser bracket advancement (double elimination)
-            const loserId = matchWinner === 1 ? match.participant2Id : match.participant1Id;
-            if (loserId && match.loserNextMatchId) {
-              const loserNextMatch = await ctx.db.get(match.loserNextMatchId);
-              if (loserNextMatch) {
-                const loserSlot = match.loserNextMatchSlot;
-                if (loserSlot === 1) {
-                  await ctx.db.patch(match.loserNextMatchId, { participant1Id: loserId });
-                } else if (loserSlot === 2) {
-                  await ctx.db.patch(match.loserNextMatchId, { participant2Id: loserId });
-                }
-              }
-            }
-
+            await updateParticipantStats(ctx, match, matchWinner as 1 | 2, p1Sets, p2Sets);
+            await advanceBracket(ctx, match, matchWinner as 1 | 2);
             await logAction(state);
 
-            // Check if tournament is now complete (deactivates temp scorers)
             await ctx.runMutation(internal.tournaments.checkAndCompleteTournament, {
               tournamentId: match.tournamentId,
             });
@@ -570,8 +541,7 @@ export const scoreTennisPoint = mutation({
     }
 
     // Update match with new state
-    const p1Sets = state.sets.filter(s => (s[0] ?? 0) > (s[1] ?? 0)).length;
-    const p2Sets = state.sets.filter(s => (s[1] ?? 0) > (s[0] ?? 0)).length;
+    const { p1Sets, p2Sets } = countSetsWon(state.sets);
 
     await ctx.db.patch(args.matchId, {
       tennisState: state,
@@ -640,8 +610,8 @@ export const undoTennisPoint = mutation({
     };
 
     // Calculate sets won for score display
-    const p1Sets = restoredState.sets.filter(s => (s[0] ?? 0) > (s[1] ?? 0)).length;
-    const p2Sets = restoredState.sets.filter(s => (s[1] ?? 0) > (s[0] ?? 0)).length;
+    const p1Sets = restoredState.sets.filter((s) => (s[0] ?? 0) > (s[1] ?? 0)).length;
+    const p2Sets = restoredState.sets.filter((s) => (s[1] ?? 0) > (s[0] ?? 0)).length;
 
     await ctx.db.patch(args.matchId, {
       tennisState: restoredState,

@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/app/components/Skeleton";
 import { Home, Settings, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -31,18 +31,24 @@ export function Navigation(): React.ReactNode {
   }, []);
 
   const initials = user?.name
-    ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
     : "?";
 
   return (
     <nav
       className={`sticky top-0 z-50 border-b border-border transition-all duration-300 ${
-        scrolled
-          ? "bg-bg-page/80 backdrop-blur-md"
-          : "bg-background"
+        scrolled ? "bg-bg-page/80 backdrop-blur-md" : "bg-background"
       }`}
     >
-      <div className="container flex items-center justify-between" style={{ height: "var(--nav-height)" }}>
+      <div
+        className="container flex items-center justify-between"
+        style={{ height: "var(--nav-height)" }}
+      >
         {/* Logo */}
         <Link href="/dashboard" className="flex items-center gap-3 group">
           <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center transition-transform group-hover:scale-105">
@@ -65,7 +71,9 @@ export function Navigation(): React.ReactNode {
 
           <Unauthenticated>
             <Button variant="ghost" asChild>
-              <Link href="/sign-in" className="editorial-link">Sign in</Link>
+              <Link href="/sign-in" className="editorial-link">
+                Sign in
+              </Link>
             </Button>
             <Button variant="brand" asChild>
               <Link href="/sign-up">Get Started</Link>
@@ -89,12 +97,8 @@ export function Navigation(): React.ReactNode {
               <DropdownMenuContent align="end" className="w-64">
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="font-medium text-foreground truncate">
-                      {user?.name || "User"}
-                    </p>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {user?.email}
-                    </p>
+                    <p className="font-medium text-foreground truncate">{user?.name || "User"}</p>
+                    <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />

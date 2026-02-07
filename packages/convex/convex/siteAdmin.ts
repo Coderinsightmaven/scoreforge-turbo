@@ -1,10 +1,5 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import {
-  query,
-  mutation,
-  internalMutation,
-  QueryCtx,
-} from "./_generated/server";
+import { query, mutation, internalMutation, QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
 import { errors } from "./lib/errors";
@@ -12,10 +7,7 @@ import { errors } from "./lib/errors";
 /**
  * Helper to check if a user is a site admin
  */
-export async function isSiteAdmin(
-  ctx: QueryCtx,
-  userId: Id<"users">
-): Promise<boolean> {
+export async function isSiteAdmin(ctx: QueryCtx, userId: Id<"users">): Promise<boolean> {
   const admin = await ctx.db
     .query("siteAdmins")
     .withIndex("by_user", (q) => q.eq("userId", userId))
@@ -157,37 +149,44 @@ export const listUsers = query({
       };
     }
 
-    // Legacy path with in-memory search and cursor by ID
-    const allUsers = await ctx.db.query("users").collect();
+    // Search using full-text search indexes (name and email)
+    const [nameMatches, emailMatches] = await Promise.all([
+      ctx.db
+        .query("users")
+        .withSearchIndex("search_name", (q) => q.search("name", search || ""))
+        .take(limit * 2),
+      ctx.db
+        .query("users")
+        .withSearchIndex("search_email", (q) => q.search("email", search || ""))
+        .take(limit * 2),
+    ]);
 
-    // Filter by search if provided
-    let filteredUsers = allUsers;
-    if (search) {
-      filteredUsers = allUsers.filter((user) => {
-        const name = user.name?.toLowerCase() ?? "";
-        const email = user.email?.toLowerCase() ?? "";
-        return name.includes(search) || email.includes(search);
-      });
+    // Deduplicate and merge results
+    const seen = new Set<string>();
+    const mergedUsers = [];
+    for (const user of [...nameMatches, ...emailMatches]) {
+      if (!seen.has(user._id)) {
+        seen.add(user._id);
+        mergedUsers.push(user);
+      }
     }
 
     // Sort by creation time (newest first)
-    filteredUsers.sort((a, b) => b._creationTime - a._creationTime);
+    mergedUsers.sort((a, b) => b._creationTime - a._creationTime);
 
     // Handle cursor-based pagination
     let startIndex = 0;
     if (args.cursor) {
-      const cursorIndex = filteredUsers.findIndex(
-        (u) => u._id === args.cursor
-      );
+      const cursorIndex = mergedUsers.findIndex((u) => u._id === args.cursor);
       if (cursorIndex !== -1) {
         startIndex = cursorIndex + 1;
       }
     }
 
-    const paginatedUsers = filteredUsers.slice(startIndex, startIndex + limit);
+    const paginatedUsers = mergedUsers.slice(startIndex, startIndex + limit);
     const nextCursor =
-      startIndex + limit < filteredUsers.length
-        ? paginatedUsers[paginatedUsers.length - 1]?._id ?? null
+      startIndex + limit < mergedUsers.length
+        ? (paginatedUsers[paginatedUsers.length - 1]?._id ?? null)
         : null;
 
     // Enrich with admin status, tournament count, and scoring logs status
@@ -380,7 +379,8 @@ export const getSystemSettings = query({
     }
 
     // Handle both old and new field names
-    const maxTournamentsPerUser = settings.maxTournamentsPerUser ?? settings.maxOrganizationsPerUser ?? 50;
+    const maxTournamentsPerUser =
+      settings.maxTournamentsPerUser ?? settings.maxOrganizationsPerUser ?? 50;
 
     return {
       maxTournamentsPerUser,
@@ -634,7 +634,10 @@ export const migrateSystemSettings = internalMutation({
     const legacySettings = settings as any;
 
     // Check if already migrated (has new field with a value)
-    if (legacySettings.maxTournamentsPerUser !== undefined && legacySettings.maxTournamentsPerUser !== null) {
+    if (
+      legacySettings.maxTournamentsPerUser !== undefined &&
+      legacySettings.maxTournamentsPerUser !== null
+    ) {
       return null;
     }
 

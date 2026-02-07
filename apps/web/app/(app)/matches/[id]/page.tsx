@@ -1,18 +1,27 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "@repo/convex";
-import { useState } from "react";
 import Link from "next/link";
 import { use } from "react";
-import { Skeleton, SkeletonScoreboard } from "@/app/components/Skeleton";
 import { TennisScoreboard } from "@/app/components/TennisScoreboard";
 import dynamic from "next/dynamic";
-const FullScreenScoring = dynamic(() => import("@/app/components/FullScreenScoring").then(m => ({ default: m.FullScreenScoring })));
-const MatchCompleteScreen = dynamic(() => import("@/app/components/FullScreenScoring").then(m => ({ default: m.MatchCompleteScreen })));
-import { getDisplayMessage } from "@/lib/errors";
-import { toast } from "sonner";
+const FullScreenScoring = dynamic(() =>
+  import("@/app/components/FullScreenScoring").then((m) => ({ default: m.FullScreenScoring }))
+);
+const MatchCompleteScreen = dynamic(() =>
+  import("@/app/components/FullScreenScoring").then((m) => ({ default: m.MatchCompleteScreen }))
+);
 import type { Id } from "@repo/convex/dataModel";
+
+import { MatchStatusBadge } from "./components/MatchStatusBadge";
+import { Scoreboard } from "./components/Scoreboard";
+import { MatchActions } from "./components/MatchActions";
+import { MatchPreview } from "./components/MatchPreview";
+import { InlineFirstServerSetup } from "./components/InlineFirstServerSetup";
+import { CourtInfo } from "./components/CourtInfo";
+import { LoadingSkeleton } from "./components/LoadingSkeleton";
+import { NotFound } from "./components/NotFound";
 
 export default function MatchDetailPage({
   params,
@@ -31,9 +40,7 @@ export default function MatchDetailPage({
   }
 
   const canScore =
-    match.myRole === "owner" ||
-    match.myRole === "scorer" ||
-    match.myRole === "temp_scorer";
+    match.myRole === "owner" || match.myRole === "scorer" || match.myRole === "temp_scorer";
 
   // Check if this is a bye match (only one participant)
   const isByeMatch =
@@ -41,9 +48,7 @@ export default function MatchDetailPage({
     (!match.participant1 && match.participant2) ||
     match.status === "bye";
 
-  const byeWinner = isByeMatch
-    ? match.participant1 || match.participant2
-    : null;
+  const byeWinner = isByeMatch ? match.participant1 || match.participant2 : null;
 
   // Sport detection for full-screen scoring
   const isTennis = match.sport === "tennis";
@@ -70,9 +75,10 @@ export default function MatchDetailPage({
 
   // Match complete screen for tennis
   if (isMatchComplete && match.tennisState) {
-    const winnerName = match.winnerId === match.participant1?._id
-      ? match.participant1?.displayName || "Player 1"
-      : match.participant2?.displayName || "Player 2";
+    const winnerName =
+      match.winnerId === match.participant1?._id
+        ? match.participant1?.displayName || "Player 1"
+        : match.participant2?.displayName || "Player 2";
 
     return (
       <MatchCompleteScreen
@@ -103,15 +109,11 @@ export default function MatchDetailPage({
                 Round {match.round}
               </span>
               <span className="text-text-muted">|</span>
-              <span className="text-sm text-text-muted">
-                Match {match.matchNumber}
-              </span>
+              <span className="text-sm text-text-muted">Match {match.matchNumber}</span>
               {match.court && (
                 <>
                   <span className="text-text-muted">|</span>
-                  <span className="text-sm text-brand">
-                    {match.court}
-                  </span>
+                  <span className="text-sm text-brand">{match.court}</span>
                 </>
               )}
             </div>
@@ -148,10 +150,7 @@ export default function MatchDetailPage({
                 status={match.status}
               />
             ) : (
-              <MatchPreview
-                participant1={match.participant1}
-                participant2={match.participant2}
-              />
+              <MatchPreview participant1={match.participant1} participant2={match.participant2} />
             )
           ) : (
             <Scoreboard
@@ -166,42 +165,60 @@ export default function MatchDetailPage({
           )}
 
           {/* First Server Setup - For tennis matches that need setup */}
-          {needsSetup && canScore && !isByeMatch && match.participant1 && match.participant2 &&
+          {needsSetup &&
+            canScore &&
+            !isByeMatch &&
+            match.participant1 &&
+            match.participant2 &&
             (match.status === "pending" || match.status === "scheduled") &&
             match.tournamentStatus === "active" && (
-            <InlineFirstServerSetup
-              matchId={match._id}
-              participant1Name={match.participant1.displayName}
-              participant2Name={match.participant2.displayName}
-              tennisConfig={match.tennisConfig}
-              matchStatus={match.status}
-            />
-          )}
+              <InlineFirstServerSetup
+                matchId={match._id}
+                participant1Name={match.participant1.displayName}
+                participant2Name={match.participant2.displayName}
+                tennisConfig={match.tennisConfig}
+                matchStatus={match.status}
+              />
+            )}
 
           {/* Draft mode notice */}
-          {match.tournamentStatus === "draft" && canScore && !isByeMatch &&
-            match.participant1 && match.participant2 &&
+          {match.tournamentStatus === "draft" &&
+            canScore &&
+            !isByeMatch &&
+            match.participant1 &&
+            match.participant2 &&
             (match.status === "pending" || match.status === "scheduled") && (
-            <div className="bg-bg-card border border-border rounded-xl p-6 text-center">
-              <div className="w-12 h-12 mx-auto flex items-center justify-center bg-warning/10 rounded-lg mb-4">
-                <svg className="w-6 h-6 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                </svg>
+              <div className="bg-bg-card border border-border rounded-xl p-6 text-center">
+                <div className="w-12 h-12 mx-auto flex items-center justify-center bg-warning/10 rounded-lg mb-4">
+                  <svg
+                    className="w-6 h-6 text-warning"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-heading text-text-primary mb-2 font-[family-name:var(--font-display)]">
+                  Tournament Not Started
+                </h3>
+                <p className="text-text-secondary text-sm">
+                  This tournament is still in draft mode. Start the tournament to begin scoring
+                  matches.
+                </p>
               </div>
-              <h3 className="text-heading text-text-primary mb-2 font-[family-name:var(--font-display)]">Tournament Not Started</h3>
-              <p className="text-text-secondary text-sm">
-                This tournament is still in draft mode. Start the tournament to begin scoring matches.
-              </p>
-            </div>
-          )}
+            )}
 
           {/* Match Actions - For generic sports (not tennis with state) */}
           {canScore &&
             !isByeMatch &&
             (match.sport !== "tennis" || !match.tennisState) &&
-            !needsSetup && (
-            <MatchActions match={match} tournamentStatus={match.tournamentStatus} />
-          )}
+            !needsSetup && <MatchActions match={match} tournamentStatus={match.tournamentStatus} />}
 
           {/* Match Info */}
           <div className="flex flex-wrap gap-6 p-6 border-t border-border">
@@ -224,7 +241,9 @@ export default function MatchDetailPage({
             <CourtInfo
               matchId={match._id}
               court={match.court}
-              canEdit={match.myRole === "owner" && match.status !== "completed" && match.status !== "bye"}
+              canEdit={
+                match.myRole === "owner" && match.status !== "completed" && match.status !== "bye"
+              }
               availableCourts={match.availableCourts}
             />
             {match.startedAt && (
@@ -259,644 +278,6 @@ export default function MatchDetailPage({
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-brand" />
         </div>
       </div>
-    </div>
-  );
-}
-
-function MatchStatusBadge({ status }: { status: string }) {
-  const statusConfig: Record<string, { label: string; className: string; pulse: boolean }> = {
-    pending: { label: "Pending", className: "text-text-muted bg-bg-secondary", pulse: false },
-    scheduled: { label: "Scheduled", className: "text-info bg-info/10", pulse: false },
-    live: { label: "Live", className: "text-success bg-success/10", pulse: true },
-    completed: { label: "Completed", className: "text-gold bg-gold/10", pulse: false },
-    bye: { label: "Bye", className: "text-text-muted bg-bg-secondary", pulse: false },
-  };
-
-  const config = statusConfig[status] ?? { label: "Pending", className: "text-text-muted bg-bg-secondary", pulse: false };
-
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold uppercase rounded ${config.className}`}
-    >
-      {config.pulse && (
-        <span className="w-1.5 h-1.5 bg-current rounded-full animate-pulse" />
-      )}
-      {config.label}
-    </span>
-  );
-}
-
-function Scoreboard({
-  match,
-  canScore,
-}: {
-  match: {
-    _id: string;
-    participant1?: {
-      _id: string;
-      displayName: string;
-      seed?: number;
-      wins: number;
-      losses: number;
-    };
-    participant2?: {
-      _id: string;
-      displayName: string;
-      seed?: number;
-      wins: number;
-      losses: number;
-    };
-    participant1Score: number;
-    participant2Score: number;
-    winnerId?: string;
-    status: string;
-  };
-  canScore: boolean;
-}) {
-  const updateScore = useMutation(api.matches.updateScore);
-  const [p1Score, setP1Score] = useState(match.participant1Score);
-  const [p2Score, setP2Score] = useState(match.participant2Score);
-  const [saving, setSaving] = useState(false);
-
-  const handleScoreChange = async (participant: 1 | 2, delta: number) => {
-    const newP1 = participant === 1 ? Math.max(0, p1Score + delta) : p1Score;
-    const newP2 = participant === 2 ? Math.max(0, p2Score + delta) : p2Score;
-
-    setP1Score(newP1);
-    setP2Score(newP2);
-
-    setSaving(true);
-    try {
-      await updateScore({
-        matchId: match._id as Id<"matches">,
-        participant1Score: newP1,
-        participant2Score: newP2,
-      });
-    } catch (err) {
-      toast.error(getDisplayMessage(err) || "Failed to update score");
-      setP1Score(match.participant1Score);
-      setP2Score(match.participant2Score);
-    }
-    setSaving(false);
-  };
-
-  return (
-    <div className="flex items-center justify-center gap-4 p-8">
-      {/* Participant 1 */}
-      <div
-        className={`flex-1 flex flex-col items-center gap-4 p-6 rounded-lg border transition-all ${
-          match.winnerId === match.participant1?._id
-            ? "bg-brand/10 border-brand"
-            : "bg-bg-secondary border-border"
-        }`}
-      >
-        <div className="text-center">
-          {match.participant1?.seed && (
-            <span className="block text-xs font-semibold text-brand mb-1">
-              #{match.participant1.seed}
-            </span>
-          )}
-          <span className="block text-xl font-bold text-text-primary mb-1 font-[family-name:var(--font-display)]">
-            {match.participant1?.displayName || "TBD"}
-          </span>
-          {match.participant1 && (
-            <span className="block text-xs text-text-muted">
-              {match.participant1.wins}W - {match.participant1.losses}L
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {canScore && (
-            <button
-              onClick={() => handleScoreChange(1, -1)}
-              disabled={saving || p1Score === 0}
-              className="w-10 h-10 flex items-center justify-center text-xl font-bold text-text-secondary bg-bg-secondary border border-border rounded-lg hover:bg-bg-card hover:text-text-primary transition-all disabled:opacity-30"
-            >
-              −
-            </button>
-          )}
-          <span
-            className={`text-5xl font-bold ${
-              p1Score > p2Score ? "text-brand" : "text-text-primary"
-            }`}
-          >
-            {p1Score}
-          </span>
-          {canScore && (
-            <button
-              onClick={() => handleScoreChange(1, 1)}
-              disabled={saving}
-              className="w-10 h-10 flex items-center justify-center text-xl font-bold text-text-secondary bg-bg-secondary border border-border rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
-            >
-              +
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* VS */}
-      <div className="flex flex-col items-center gap-2 flex-shrink-0">
-        <span className="text-2xl font-bold text-text-muted">VS</span>
-        {match.status === "live" && (
-          <span className="px-2 py-1 text-[10px] font-bold tracking-wider text-white bg-success rounded animate-pulse">
-            LIVE
-          </span>
-        )}
-      </div>
-
-      {/* Participant 2 */}
-      <div
-        className={`flex-1 flex flex-col items-center gap-4 p-6 rounded-lg border transition-all ${
-          match.winnerId === match.participant2?._id
-            ? "bg-brand/10 border-brand"
-            : "bg-bg-secondary border-border"
-        }`}
-      >
-        <div className="text-center">
-          {match.participant2?.seed && (
-            <span className="block text-xs font-semibold text-brand mb-1">
-              #{match.participant2.seed}
-            </span>
-          )}
-          <span className="block text-xl font-bold text-text-primary mb-1 font-[family-name:var(--font-display)]">
-            {match.participant2?.displayName || "TBD"}
-          </span>
-          {match.participant2 && (
-            <span className="block text-xs text-text-muted">
-              {match.participant2.wins}W - {match.participant2.losses}L
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {canScore && (
-            <button
-              onClick={() => handleScoreChange(2, -1)}
-              disabled={saving || p2Score === 0}
-              className="w-10 h-10 flex items-center justify-center text-xl font-bold text-text-secondary bg-bg-secondary border border-border rounded-lg hover:bg-bg-card hover:text-text-primary transition-all disabled:opacity-30"
-            >
-              −
-            </button>
-          )}
-          <span
-            className={`text-5xl font-bold ${
-              p2Score > p1Score ? "text-brand" : "text-text-primary"
-            }`}
-          >
-            {p2Score}
-          </span>
-          {canScore && (
-            <button
-              onClick={() => handleScoreChange(2, 1)}
-              disabled={saving}
-              className="w-10 h-10 flex items-center justify-center text-xl font-bold text-text-secondary bg-bg-secondary border border-border rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
-            >
-              +
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MatchActions({
-  match,
-  tournamentStatus,
-}: {
-  match: {
-    _id: string;
-    status: string;
-    participant1?: { _id: string };
-    participant2?: { _id: string };
-    participant1Score: number;
-    participant2Score: number;
-  };
-  tournamentStatus: string;
-}) {
-  const startMatch = useMutation(api.matches.startMatch);
-  const completeMatch = useMutation(api.matches.completeMatch);
-  const [loading, setLoading] = useState(false);
-
-  const handleStart = async () => {
-    setLoading(true);
-    try {
-      await startMatch({ matchId: match._id as Id<"matches"> });
-    } catch (err) {
-      toast.error(getDisplayMessage(err) || "Failed to start match");
-    }
-    setLoading(false);
-  };
-
-  const handleComplete = async () => {
-    if (match.participant1Score === match.participant2Score) {
-      toast.error("Cannot complete match with tied score in elimination format");
-      return;
-    }
-    setLoading(true);
-    try {
-      await completeMatch({ matchId: match._id as Id<"matches"> });
-    } catch (err) {
-      toast.error(getDisplayMessage(err) || "Failed to complete match");
-    }
-    setLoading(false);
-  };
-
-  const canStart =
-    (match.status === "pending" || match.status === "scheduled") &&
-    match.participant1 &&
-    match.participant2 &&
-    tournamentStatus === "active";
-
-  const canComplete = match.status === "live";
-
-  return (
-    <div className="flex justify-center gap-4 px-6 pb-6">
-      {canStart && (
-        <button
-          onClick={handleStart}
-          disabled={loading}
-          className="px-6 py-3 font-semibold text-text-inverse bg-success rounded-lg hover:opacity-90 transition-all disabled:opacity-50"
-        >
-          {loading ? "Starting..." : "Start Match"}
-        </button>
-      )}
-      {canComplete && (
-        <button
-          onClick={handleComplete}
-          disabled={loading}
-          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2 px-6 py-3"
-        >
-          {loading ? "Completing..." : "Complete Match"}
-        </button>
-      )}
-    </div>
-  );
-}
-
-function MatchPreview({
-  participant1,
-  participant2,
-}: {
-  participant1?: {
-    _id: string;
-    displayName: string;
-    seed?: number;
-  };
-  participant2?: {
-    _id: string;
-    displayName: string;
-    seed?: number;
-  };
-}) {
-  return (
-    <div className="flex items-center justify-center gap-6 p-8">
-      {/* Participant 1 */}
-      <div className="flex-1 flex flex-col items-center gap-2 p-6 rounded-lg bg-bg-secondary border border-border">
-        {participant1?.seed && (
-          <span className="text-xs font-semibold text-brand">
-            #{participant1.seed}
-          </span>
-        )}
-        <span className="text-xl font-bold text-text-primary text-center font-[family-name:var(--font-display)]">
-          {participant1?.displayName || "TBD"}
-        </span>
-      </div>
-
-      {/* VS */}
-      <div className="flex-shrink-0">
-        <span className="text-2xl font-bold text-text-muted">VS</span>
-      </div>
-
-      {/* Participant 2 */}
-      <div className="flex-1 flex flex-col items-center gap-2 p-6 rounded-lg bg-bg-secondary border border-border">
-        {participant2?.seed && (
-          <span className="text-xs font-semibold text-brand">
-            #{participant2.seed}
-          </span>
-        )}
-        <span className="text-xl font-bold text-text-primary text-center font-[family-name:var(--font-display)]">
-          {participant2?.displayName || "TBD"}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function InlineFirstServerSetup({
-  matchId,
-  participant1Name,
-  participant2Name,
-  tennisConfig,
-  matchStatus,
-}: {
-  matchId: string;
-  participant1Name: string;
-  participant2Name: string;
-  tennisConfig?: { isAdScoring: boolean; setsToWin: number };
-  matchStatus?: string;
-}) {
-  const [selectedServer, setSelectedServer] = useState<1 | 2>(1);
-  const [loading, setLoading] = useState(false);
-
-  const initTennisMatch = useMutation(api.tennis.initTennisMatch);
-  const startMatch = useMutation(api.matches.startMatch);
-
-  const handleStart = async () => {
-    setLoading(true);
-    try {
-      await initTennisMatch({ matchId: matchId as Id<"matches">, firstServer: selectedServer });
-      if (matchStatus === "pending" || matchStatus === "scheduled") {
-        await startMatch({ matchId: matchId as Id<"matches"> });
-      }
-    } catch (err) {
-      toast.error(getDisplayMessage(err) || "Failed to start match");
-    }
-    setLoading(false);
-  };
-
-  return (
-    <div className="p-6 border-t border-border">
-      <div className="text-center mb-4">
-        <h3 className="text-heading text-text-primary mb-1 font-[family-name:var(--font-display)]">
-          Match Setup
-        </h3>
-        <p className="text-sm text-text-secondary">
-          Configure the match before starting
-        </p>
-      </div>
-
-      {/* Config Badges */}
-      {tennisConfig && (
-        <div className="flex justify-center gap-3 mb-6">
-          <span className="px-3 py-1 text-xs font-semibold text-brand bg-brand/10 rounded-full">
-            Best of {tennisConfig.setsToWin * 2 - 1}
-          </span>
-          <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-secondary rounded-full">
-            {tennisConfig.isAdScoring ? "Ad Scoring" : "No-Ad"}
-          </span>
-        </div>
-      )}
-
-      {/* First Server Selection */}
-      <div className="mb-6">
-        <label className="block text-xs font-medium uppercase tracking-wide text-text-muted mb-2">
-          First Server
-        </label>
-        <div className="flex gap-3">
-          <button
-            onClick={() => setSelectedServer(1)}
-            className={`flex-1 flex items-center justify-center gap-3 p-3 rounded-lg border-2 transition-all ${
-              selectedServer === 1
-                ? "border-success bg-success/10"
-                : "border-border bg-bg-secondary hover:border-border-hover"
-            }`}
-          >
-            <div className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold ${
-              selectedServer === 1 ? "bg-success/20 text-success" : "bg-bg-secondary text-text-secondary"
-            }`}>
-              {participant1Name.charAt(0).toUpperCase()}
-            </div>
-            <span className={`font-semibold truncate ${selectedServer === 1 ? "text-success" : "text-text-primary"}`}>
-              {participant1Name}
-            </span>
-            {selectedServer === 1 && (
-              <svg className="w-5 h-5 text-success flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-            )}
-          </button>
-
-          <button
-            onClick={() => setSelectedServer(2)}
-            className={`flex-1 flex items-center justify-center gap-3 p-3 rounded-lg border-2 transition-all ${
-              selectedServer === 2
-                ? "border-success bg-success/10"
-                : "border-border bg-bg-secondary hover:border-border-hover"
-            }`}
-          >
-            <div className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold ${
-              selectedServer === 2 ? "bg-success/20 text-success" : "bg-bg-secondary text-text-secondary"
-            }`}>
-              {participant2Name.charAt(0).toUpperCase()}
-            </div>
-            <span className={`font-semibold truncate ${selectedServer === 2 ? "text-success" : "text-text-primary"}`}>
-              {participant2Name}
-            </span>
-            {selectedServer === 2 && (
-              <svg className="w-5 h-5 text-success flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Start Button */}
-      <button
-        onClick={handleStart}
-        disabled={loading}
-        className="w-full py-3 font-semibold text-text-inverse bg-success rounded-lg hover:opacity-90 transition-all disabled:opacity-50"
-      >
-        {loading ? "Starting..." : "Start Tennis Match"}
-      </button>
-    </div>
-  );
-}
-
-function CourtInfo({
-  matchId,
-  court,
-  canEdit,
-  availableCourts,
-}: {
-  matchId: string;
-  court?: string;
-  canEdit: boolean;
-  availableCourts?: string[];
-}) {
-  const updateMatchCourt = useMutation(api.matches.updateMatchCourt);
-  const [isEditing, setIsEditing] = useState(false);
-  const [courtValue, setCourtValue] = useState(court || "");
-  const [saving, setSaving] = useState(false);
-
-  const handleSave = async (value?: string) => {
-    const newValue = value !== undefined ? value : courtValue;
-    setSaving(true);
-    try {
-      await updateMatchCourt({
-        matchId: matchId as Id<"matches">,
-        court: newValue.trim() || undefined,
-      });
-      setCourtValue(newValue);
-      setIsEditing(false);
-    } catch (err) {
-      toast.error(getDisplayMessage(err) || "Failed to update court");
-    }
-    setSaving(false);
-  };
-
-  const handleCancel = () => {
-    setCourtValue(court || "");
-    setIsEditing(false);
-  };
-
-  if (isEditing) {
-    return (
-      <div className="flex flex-col gap-1">
-        <span className="text-xs font-medium uppercase tracking-wide text-text-muted">
-          Court
-        </span>
-        {availableCourts && availableCourts.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-2">
-            {availableCourts.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => handleSave(c)}
-                disabled={saving}
-                className={`px-2 py-1 text-xs rounded border transition-all ${
-                  courtValue === c
-                    ? "border-brand bg-brand text-white font-semibold"
-                    : "border-border bg-bg-secondary text-text-secondary hover:border-text-muted"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => handleSave("")}
-              disabled={saving}
-              className={`px-2 py-1 text-xs rounded border transition-all ${
-                courtValue === ""
-                  ? "border-brand bg-brand text-white font-semibold"
-                  : "border-border bg-bg-secondary text-text-secondary hover:border-text-muted"
-              }`}
-            >
-              None
-            </button>
-            <button
-              onClick={handleCancel}
-              className="px-2 py-1 text-xs font-medium text-text-muted hover:text-text-primary transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={courtValue}
-              onChange={(e) => setCourtValue(e.target.value)}
-              placeholder="e.g. Court 1"
-              className="w-32 px-2 py-1 text-sm bg-bg-secondary border border-border rounded focus:border-brand focus:outline-none text-text-primary"
-              autoFocus
-            />
-            <button
-              onClick={() => handleSave()}
-              disabled={saving}
-              className="px-2 py-1 text-xs font-medium text-text-inverse bg-brand rounded hover:bg-brand-hover transition-colors disabled:opacity-50"
-            >
-              {saving ? "..." : "Save"}
-            </button>
-            <button
-              onClick={handleCancel}
-              className="px-2 py-1 text-xs font-medium text-text-muted hover:text-text-primary transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs font-medium uppercase tracking-wide text-text-muted">
-        Court
-      </span>
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-text-primary">
-          {court || "Not assigned"}
-        </span>
-        {canEdit && (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="text-xs text-brand hover:text-brand-hover transition-colors"
-          >
-            Edit
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function LoadingSkeleton() {
-  return (
-    <div className="min-h-screen flex items-start justify-center px-6 py-12">
-      <div className="w-full max-w-2xl">
-        <Skeleton className="w-40 h-5 mb-8" />
-        <div className="relative bg-bg-card border border-border rounded-xl overflow-hidden">
-          {/* Match Header */}
-          <div className="flex items-center justify-between p-6 bg-bg-secondary border-b border-border">
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-5 w-20" />
-              <Skeleton className="h-5 w-2" />
-              <Skeleton className="h-5 w-20" />
-            </div>
-            <Skeleton className="h-7 w-24 rounded" />
-          </div>
-
-          {/* Scoreboard */}
-          <SkeletonScoreboard />
-
-          {/* Match Actions */}
-          <div className="flex justify-center gap-4 px-6 pb-6">
-            <Skeleton className="h-12 w-32 rounded-lg" />
-          </div>
-
-          {/* Match Info */}
-          <div className="flex flex-wrap gap-6 p-6 border-t border-border">
-            <div className="flex flex-col gap-1">
-              <Skeleton className="h-3 w-20" />
-              <Skeleton className="h-5 w-32 mt-1" />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Skeleton className="h-3 w-16" />
-              <Skeleton className="h-5 w-20 mt-1" />
-            </div>
-          </div>
-
-          {/* Accent bar */}
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-brand" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function NotFound() {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center text-center px-6">
-      <div className="w-16 h-16 flex items-center justify-center bg-bg-card rounded-xl mb-6">
-        <svg className="w-8 h-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-        </svg>
-      </div>
-      <h1 className="text-title text-text-primary mb-3 font-[family-name:var(--font-display)]">
-        Match Not Found
-      </h1>
-      <p className="text-text-secondary mb-8">
-        This match doesn&apos;t exist or you don&apos;t have access.
-      </p>
-      <Link
-        href="/tournaments"
-        className="text-brand hover:text-brand-hover transition-colors"
-      >
-        ← Back to Tournaments
-      </Link>
     </div>
   );
 }
