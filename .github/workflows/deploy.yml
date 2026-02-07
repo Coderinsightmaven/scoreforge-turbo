@@ -1,0 +1,47 @@
+name: Deploy Mobile
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/mobile/**"
+      - "packages/convex/**"
+
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "Platform to build"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - ios
+          - android
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.2"
+
+      - run: bun install --frozen-lockfile
+
+      - name: Build mobile app
+        working-directory: apps/mobile
+        run: |
+          PLATFORM="${{ github.event.inputs.platform || 'all' }}"
+          eas build --platform "$PLATFORM" --profile production --non-interactive --no-wait

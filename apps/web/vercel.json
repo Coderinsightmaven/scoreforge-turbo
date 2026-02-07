@@ -1,0 +1,4 @@
+{
+  "installCommand": "cd ../.. && bun install",
+  "buildCommand": "cd ../../packages/convex && npx convex deploy --cmd 'cd ../../apps/web && npx next build'"
+}

@@ -45,17 +45,20 @@ bun run dev
 ```
 
 This starts:
+
 - Web app at http://localhost:3000
 - Convex backend with real-time sync
 
 ### Environment Variables
 
 Create `.env.local` in `apps/web`:
+
 ```
 NEXT_PUBLIC_CONVEX_URL=<your-convex-url>
 ```
 
 For mobile, create `.env` in `apps/mobile`:
+
 ```
 EXPO_PUBLIC_CONVEX_URL=<your-convex-url>
 ```
@@ -65,6 +68,7 @@ EXPO_PUBLIC_CONVEX_URL=<your-convex-url>
 Generate tournament brackets with placeholder slots that can be filled in later:
 
 ### Tournament Blank Bracket
+
 1. Create a tournament and optionally add participants
 2. Click **"Blank Bracket"** button
 3. Select bracket size (4, 8, 16, 32, or 64)
@@ -74,7 +78,9 @@ Generate tournament brackets with placeholder slots that can be filled in later:
 7. Use the **Print** button for a printable version
 
 ### Quick Bracket (Standalone)
+
 Visit `/brackets/quick` to create a printable bracket without saving to the database:
+
 - Select bracket size and format (single/double elimination)
 - Fill in participant names by clicking slots
 - Print directly from the browser
@@ -96,6 +102,7 @@ When creating a tournament, you can name the initial bracket. Additional bracket
 A native Rust application for designing and displaying live scoreboards on external monitors during tournaments.
 
 ### Features
+
 - **Multi-Monitor Support** - Display scoreboards on any connected monitor
 - **Custom Layouts** - Design scoreboards with a built-in editor
 - **Live Data** - Real-time score updates via Convex Rust SDK
@@ -103,6 +110,7 @@ A native Rust application for designing and displaying live scoreboards on exter
 - **Image/Video Assets** - Manage media for scoreboard designs
 
 ### Getting Started
+
 ```bash
 cd apps/display
 bun run dev      # Start with cargo watch (auto-reload)
@@ -131,3 +139,85 @@ bun run lint        # Lint (zero warnings)
 bun run check-types # Type check
 bun run format      # Format with Prettier
 ```
+
+## Deployment
+
+### Overview
+
+| App                         | Platform   | Trigger                                                                               |
+| --------------------------- | ---------- | ------------------------------------------------------------------------------------- |
+| Backend (`packages/convex`) | Convex     | Deployed as part of Vercel build                                                      |
+| Web (`apps/web`)            | Vercel     | Auto-deploys on push to `main`                                                        |
+| Mobile (`apps/mobile`)      | EAS (Expo) | GitHub Actions on push to `main` (when mobile/convex files change), or manual trigger |
+
+### Convex (Backend)
+
+Convex deploys automatically as part of the Vercel build — `npx convex deploy` runs before `next build` (configured in `apps/web/vercel.json`). This keeps the backend and web app in sync on every deploy.
+
+**First-time setup:**
+
+1. Generate a deploy key:
+   ```bash
+   cd packages/convex && npx convex deploy-key
+   ```
+2. Add `CONVEX_DEPLOY_KEY` as an environment variable in Vercel
+
+### Vercel (Web)
+
+The web app deploys via Vercel's GitHub integration.
+
+**First-time setup:**
+
+1. Import the repository on [vercel.com](https://vercel.com/new)
+2. Set **Root Directory** to `apps/web`
+3. Add environment variables:
+   - `CONVEX_DEPLOY_KEY` — from the step above
+   - `NEXT_PUBLIC_CONVEX_URL` — your Convex deployment URL (find in Convex dashboard)
+
+Vercel will auto-deploy on every push to `main`. Preview deploys are created for pull requests.
+
+### EAS (Mobile)
+
+Mobile builds run on EAS Build via a GitHub Actions workflow (`.github/workflows/deploy.yml`).
+
+**First-time setup:**
+
+1. Initialize the EAS project:
+
+   ```bash
+   cd apps/mobile && npx eas init
+   ```
+
+   This fills in the `projectId` in `app.json`.
+
+2. Fill in `EXPO_PUBLIC_CONVEX_URL` for each build profile in `apps/mobile/eas.json`
+
+3. Generate an Expo access token at [expo.dev/settings/access-tokens](https://expo.dev/settings/access-tokens)
+
+4. Add `EXPO_TOKEN` as a secret in your GitHub repository settings
+
+**Build profiles:**
+
+| Profile       | Use case                                         |
+| ------------- | ------------------------------------------------ |
+| `development` | Dev client with debugging, internal distribution |
+| `preview`     | Test builds, internal distribution               |
+| `production`  | App Store / Play Store submission                |
+
+**Triggering builds:**
+
+- **Automatic**: Pushes to `main` that change `apps/mobile/` or `packages/convex/`
+- **Manual**: Go to Actions > "Deploy Mobile" > Run workflow (choose platform: ios, android, or all)
+
+### Required Secrets
+
+| Secret                   | Where                 | Purpose                                        |
+| ------------------------ | --------------------- | ---------------------------------------------- |
+| `CONVEX_DEPLOY_KEY`      | Vercel env vars       | Authenticates `npx convex deploy` during build |
+| `NEXT_PUBLIC_CONVEX_URL` | Vercel env vars       | Convex URL for the web client                  |
+| `EXPO_TOKEN`             | GitHub repo secrets   | Authenticates EAS CLI in GitHub Actions        |
+| `EXPO_PUBLIC_CONVEX_URL` | `eas.json` env blocks | Convex URL for the mobile client               |
+
+## CI
+
+Linting, type checking, and tests run on every push and PR to `main` via GitHub Actions (`.github/workflows/ci.yml`).
