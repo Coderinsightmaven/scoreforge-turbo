@@ -1,34 +1,10 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { query, action } from "./_generated/server";
 import { v } from "convex/values";
-import type { Id, Doc } from "./_generated/dataModel";
+import type { Doc } from "./_generated/dataModel";
 import { api } from "./_generated/api";
 import { errors } from "./lib/errors";
-
-// ============================================
-// Access Control Helpers
-// ============================================
-
-/**
- * Get user's role for a tournament
- */
-async function getTournamentRole(
-  ctx: { db: any },
-  tournamentId: Id<"tournaments">,
-  userId: Id<"users">
-): Promise<"owner" | "scorer" | null> {
-  const tournament = await ctx.db.get(tournamentId);
-  if (!tournament) return null;
-  if (tournament.createdBy === userId) return "owner";
-
-  const scorer = await ctx.db
-    .query("tournamentScorers")
-    .withIndex("by_tournament_and_user", (q: any) =>
-      q.eq("tournamentId", tournamentId).eq("userId", userId)
-    )
-    .first();
-  return scorer ? "scorer" : null;
-}
+import { getTournamentRole } from "./lib/accessControl";
 
 // ============================================
 // Types
@@ -83,7 +59,7 @@ export const getTournamentMatchScores = query({
     }
 
     // Check if user has access
-    const role = await getTournamentRole(ctx, args.tournamentId, userId);
+    const role = await getTournamentRole(ctx, tournament, userId);
     if (!role) {
       throw errors.unauthorized();
     }
@@ -191,7 +167,7 @@ export const hasCompletedTennisMatches = query({
     }
 
     // Check if user has access
-    const role = await getTournamentRole(ctx, args.tournamentId, userId);
+    const role = await getTournamentRole(ctx, tournament, userId);
     if (!role) {
       return { hasMatches: false, matchCount: 0, isTennis: true };
     }

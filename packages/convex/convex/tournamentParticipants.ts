@@ -5,40 +5,7 @@ import { participantTypes } from "./schema";
 import type { Id, Doc } from "./_generated/dataModel";
 import { errors } from "./lib/errors";
 import { validateStringLength, MAX_LENGTHS } from "./lib/validation";
-
-// ============================================
-// Access Control Helpers
-// ============================================
-
-/**
- * Check if user can manage tournament (owner only)
- */
-async function canManageTournament(
-  tournament: Doc<"tournaments">,
-  userId: Id<"users">
-): Promise<boolean> {
-  return tournament.createdBy === userId;
-}
-
-/**
- * Check if user can view tournament (owner or scorer)
- */
-async function canViewTournament(
-  ctx: { db: any },
-  tournament: Doc<"tournaments">,
-  userId: Id<"users">
-): Promise<boolean> {
-  if (tournament.createdBy === userId) {
-    return true;
-  }
-  const scorer = await ctx.db
-    .query("tournamentScorers")
-    .withIndex("by_tournament_and_user", (q: any) =>
-      q.eq("tournamentId", tournament._id).eq("userId", userId)
-    )
-    .first();
-  return scorer !== null;
-}
+import { canManageTournament, canViewTournament } from "./lib/accessControl";
 
 // ============================================
 // Helpers

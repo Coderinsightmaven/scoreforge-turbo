@@ -1,0 +1,21 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.2"
+      - run: bun install --frozen-lockfile
+      - name: Lint
+        run: bun run lint
+        continue-on-error: true # 322 pre-existing lint errors in packages/convex
+      - run: bun run check-types
+      - run: bun run test
+      - run: bun run build

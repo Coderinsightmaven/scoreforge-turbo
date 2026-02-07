@@ -74,7 +74,7 @@ export function BracketTab({
 }): React.ReactNode {
   const [generating, setGenerating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const generateBracketMatches = useMutation(api.tournamentBrackets.generateBracketMatches);
+  const generateBracketMatches = useMutation(api.tournamentBrackets.generateBracketMatchesForBracket);
   const generateTournamentBracket = useMutation(api.tournaments.generateBracket);
 
   // Use bracket-specific query if a bracket is selected, otherwise tournament-level

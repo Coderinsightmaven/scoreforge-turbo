@@ -1,5 +1,5 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { query, mutation, type MutationCtx } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import type { Id, Doc } from "./_generated/dataModel";
 import {
@@ -9,49 +9,9 @@ import {
   tennisConfig,
   tennisState,
 } from "./schema";
-import {
-  generateSingleEliminationBracket,
-  generateDoubleEliminationBracket,
-  generateRoundRobinSchedule,
-} from "./lib/bracketGenerator";
 import { errors } from "./lib/errors";
-
-// ============================================
-// Access Control Helpers
-// ============================================
-
-/**
- * Check if user can manage tournament (owner only)
- */
-async function canManageTournament(
-  ctx: { db: any },
-  tournamentId: Id<"tournaments">,
-  userId: Id<"users">
-): Promise<boolean> {
-  const tournament = await ctx.db.get(tournamentId);
-  return tournament?.createdBy === userId;
-}
-
-/**
- * Check if user can view tournament (owner or scorer)
- */
-async function canViewTournament(
-  ctx: { db: any },
-  tournamentId: Id<"tournaments">,
-  userId: Id<"users">
-): Promise<boolean> {
-  const tournament = await ctx.db.get(tournamentId);
-  if (!tournament) return false;
-  if (tournament.createdBy === userId) return true;
-
-  const scorer = await ctx.db
-    .query("tournamentScorers")
-    .withIndex("by_tournament_and_user", (q: any) =>
-      q.eq("tournamentId", tournamentId).eq("userId", userId)
-    )
-    .first();
-  return scorer !== null;
-}
+import { canManageTournament, canViewTournament } from "./lib/accessControl";
+import { generateBracketMatches } from "./tournaments";
 
 // ============================================
 // Queries
@@ -85,9 +45,13 @@ export const listBrackets = query({
       return [];
     }
 
-    const hasAccess = await canViewTournament(ctx, args.tournamentId, userId);
+    const tournament = await ctx.db.get(args.tournamentId);
+    if (!tournament) {
+      return [];
+    }
+
+    const hasAccess = await canViewTournament(ctx, tournament, userId);
     if (!hasAccess) {
-      // Return empty array if tournament doesn't exist or user doesn't have access
       return [];
     }
 
@@ -171,13 +135,13 @@ export const getBracket = query({
       return null;
     }
 
-    const hasAccess = await canViewTournament(ctx, bracket.tournamentId, userId);
-    if (!hasAccess) {
+    const tournament = await ctx.db.get(bracket.tournamentId);
+    if (!tournament) {
       return null;
     }
 
-    const tournament = await ctx.db.get(bracket.tournamentId);
-    if (!tournament) {
+    const hasAccess = await canViewTournament(ctx, tournament, userId);
+    if (!hasAccess) {
       return null;
     }
 
@@ -273,13 +237,13 @@ export const getBracketMatches = query({
       return null;
     }
 
-    const hasAccess = await canViewTournament(ctx, bracket.tournamentId, userId);
-    if (!hasAccess) {
+    const tournament = await ctx.db.get(bracket.tournamentId);
+    if (!tournament) {
       return null;
     }
 
-    const tournament = await ctx.db.get(bracket.tournamentId);
-    if (!tournament) {
+    const hasAccess = await canViewTournament(ctx, tournament, userId);
+    if (!hasAccess) {
       return null;
     }
 
@@ -386,14 +350,13 @@ export const createBracket = mutation({
       throw errors.unauthenticated();
     }
 
-    const canManage = await canManageTournament(ctx, args.tournamentId, userId);
-    if (!canManage) {
-      throw errors.unauthorized("Only the tournament owner can create brackets");
-    }
-
     const tournament = await ctx.db.get(args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
+    }
+
+    if (!canManageTournament(tournament, userId)) {
+      throw errors.unauthorized("Only the tournament owner can create brackets");
     }
 
     // Only allow creating brackets in draft or active tournaments
@@ -454,8 +417,8 @@ export const updateBracket = mutation({
       throw errors.notFound("Bracket");
     }
 
-    const canManage = await canManageTournament(ctx, bracket.tournamentId, userId);
-    if (!canManage) {
+    const tournament = await ctx.db.get(bracket.tournamentId);
+    if (!tournament || !canManageTournament(tournament, userId)) {
       throw errors.unauthorized("Only the tournament owner can update brackets");
     }
 
@@ -495,8 +458,8 @@ export const deleteBracket = mutation({
       throw errors.notFound("Bracket");
     }
 
-    const canManage = await canManageTournament(ctx, bracket.tournamentId, userId);
-    if (!canManage) {
+    const tournament = await ctx.db.get(bracket.tournamentId);
+    if (!tournament || !canManageTournament(tournament, userId)) {
       throw errors.unauthorized("Only the tournament owner can delete brackets");
     }
 
@@ -555,8 +518,8 @@ export const reorderBrackets = mutation({
       throw errors.unauthenticated();
     }
 
-    const canManage = await canManageTournament(ctx, args.tournamentId, userId);
-    if (!canManage) {
+    const tournament = await ctx.db.get(args.tournamentId);
+    if (!tournament || !canManageTournament(tournament, userId)) {
       throw errors.unauthorized("Only the tournament owner can reorder brackets");
     }
 
@@ -593,18 +556,17 @@ export const startBracket = mutation({
       throw errors.notFound("Bracket");
     }
 
-    const canManage = await canManageTournament(ctx, bracket.tournamentId, userId);
-    if (!canManage) {
+    const tournament = await ctx.db.get(bracket.tournamentId);
+    if (!tournament) {
+      throw errors.notFound("Tournament");
+    }
+
+    if (!canManageTournament(tournament, userId)) {
       throw errors.unauthorized("Only the tournament owner can start brackets");
     }
 
     if (bracket.status !== "draft") {
       throw errors.invalidState("Bracket has already started or is completed");
-    }
-
-    const tournament = await ctx.db.get(bracket.tournamentId);
-    if (!tournament) {
-      throw errors.notFound("Tournament");
     }
 
     // Tournament must be active to start brackets
@@ -630,7 +592,11 @@ export const startBracket = mutation({
 
     // Generate matches if they don't exist
     if (!existingMatches) {
-      await generateBracketMatchesInternal(ctx, args.bracketId, bracket, tournament, participants);
+      const format = bracket.format || tournament.format;
+      await generateBracketMatches(ctx, tournament._id, tournament, participants, {
+        bracketId: args.bracketId,
+        format,
+      });
     }
 
     // Update bracket status
@@ -645,7 +611,7 @@ export const startBracket = mutation({
 /**
  * Generate matches for a bracket while still in draft mode
  */
-export const generateBracketMatches = mutation({
+export const generateBracketMatchesForBracket = mutation({
   args: { bracketId: v.id("tournamentBrackets") },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -659,18 +625,17 @@ export const generateBracketMatches = mutation({
       throw errors.notFound("Bracket");
     }
 
-    const canManage = await canManageTournament(ctx, bracket.tournamentId, userId);
-    if (!canManage) {
+    const tournament = await ctx.db.get(bracket.tournamentId);
+    if (!tournament) {
+      throw errors.notFound("Tournament");
+    }
+
+    if (!canManageTournament(tournament, userId)) {
       throw errors.unauthorized("Only the tournament owner can generate matches");
     }
 
     if (bracket.status !== "draft") {
       throw errors.invalidState("Can only generate matches for draft brackets");
-    }
-
-    const tournament = await ctx.db.get(bracket.tournamentId);
-    if (!tournament) {
-      throw errors.notFound("Tournament");
     }
 
     // Get participants in this bracket
@@ -694,124 +659,13 @@ export const generateBracketMatches = mutation({
     }
 
     // Generate new matches
-    await generateBracketMatchesInternal(ctx, args.bracketId, bracket, tournament, participants);
+    const format = bracket.format || tournament.format;
+    await generateBracketMatches(ctx, tournament._id, tournament, participants, {
+      bracketId: args.bracketId,
+      format,
+    });
 
     return null;
   },
 });
 
-/**
- * Internal helper to generate bracket matches
- */
-async function generateBracketMatchesInternal(
-  ctx: MutationCtx,
-  bracketId: Id<"tournamentBrackets">,
-  bracket: Doc<"tournamentBrackets">,
-  tournament: Doc<"tournaments">,
-  participants: Doc<"tournamentParticipants">[]
-) {
-  // Sort by seed (if set) or creation order
-  participants.sort((a, b) => {
-    if (a.seed && b.seed) return a.seed - b.seed;
-    if (a.seed) return -1;
-    if (b.seed) return 1;
-    return a.createdAt - b.createdAt;
-  });
-
-  const participantIds = participants.map((p) => p._id);
-  const format = bracket.format || tournament.format;
-
-  // Generate matches based on format
-  let matchData;
-  switch (format) {
-    case "single_elimination":
-      matchData = generateSingleEliminationBracket(participantIds);
-      break;
-    case "double_elimination":
-      matchData = generateDoubleEliminationBracket(participantIds);
-      break;
-    case "round_robin":
-      matchData = generateRoundRobinSchedule(participantIds);
-      break;
-    default:
-      throw errors.invalidInput("Unknown tournament format");
-  }
-
-  // Insert matches and build ID map for next match linking
-  const matchIdMap = new Map<number, Id<"matches">>();
-
-  for (let i = 0; i < matchData.length; i++) {
-    const match = matchData[i]!;
-    const matchId = await ctx.db.insert("matches", {
-      tournamentId: tournament._id,
-      bracketId,
-      round: match.round,
-      matchNumber: match.matchNumber,
-      bracketType: match.bracketType,
-      bracketPosition: match.bracketPosition,
-      participant1Id: match.participant1Id,
-      participant2Id: match.participant2Id,
-      participant1Score: match.participant1Score,
-      participant2Score: match.participant2Score,
-      status: match.status,
-      nextMatchSlot: match.nextMatchSlot,
-      loserNextMatchSlot: match.loserNextMatchSlot,
-    });
-    matchIdMap.set(i, matchId);
-  }
-
-  // Update next match IDs
-  for (let i = 0; i < matchData.length; i++) {
-    const match = matchData[i] as any;
-    const matchId = matchIdMap.get(i)!;
-    const updates: { nextMatchId?: Id<"matches">; loserNextMatchId?: Id<"matches"> } = {};
-
-    if (match._nextMatchIndex !== undefined) {
-      updates.nextMatchId = matchIdMap.get(match._nextMatchIndex);
-    }
-    if (match._loserNextMatchIndex !== undefined) {
-      updates.loserNextMatchId = matchIdMap.get(match._loserNextMatchIndex);
-    }
-
-    if (Object.keys(updates).length > 0) {
-      await ctx.db.patch(matchId, updates);
-    }
-  }
-
-  // Process bye matches - auto-advance winners
-  const byeMatches = matchData
-    .map((match, index) => ({ match, index }))
-    .filter(({ match }) => match.status === "bye")
-    .sort((a, b) => a.match.round - b.match.round);
-
-  for (const { match, index } of byeMatches) {
-    const matchId = matchIdMap.get(index)!;
-    const fullMatch = await ctx.db.get(matchId);
-    if (!fullMatch) continue;
-
-    const winnerId = match.participant1Id || match.participant2Id;
-    if (winnerId) {
-      await ctx.db.patch(matchId, {
-        winnerId,
-        status: "completed",
-        completedAt: Date.now(),
-      });
-
-      if (fullMatch.nextMatchId) {
-        const nextMatch = await ctx.db.get(fullMatch.nextMatchId);
-        if (nextMatch) {
-          const slot = fullMatch.nextMatchSlot;
-          if (slot === 1) {
-            await ctx.db.patch(fullMatch.nextMatchId, {
-              participant1Id: winnerId,
-            });
-          } else if (slot === 2) {
-            await ctx.db.patch(fullMatch.nextMatchId, {
-              participant2Id: winnerId,
-            });
-          }
-        }
-      }
-    }
-  }
-}

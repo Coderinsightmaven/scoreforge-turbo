@@ -530,6 +530,13 @@ export const listMatches = mutation({
           q.eq("tournamentId", tournamentId).eq("status", args.status!)
         )
         .collect();
+    } else if (args.court !== undefined) {
+      matches = await ctx.db
+        .query("matches")
+        .withIndex("by_tournament_and_court", (q) =>
+          q.eq("tournamentId", tournamentId).eq("court", args.court!)
+        )
+        .collect();
     } else {
       matches = await ctx.db
         .query("matches")
@@ -537,7 +544,7 @@ export const listMatches = mutation({
         .collect();
     }
 
-    // Filter by court if specified
+    // Filter by court if specified (for cases where court is combined with other filters)
     if (args.court !== undefined) {
       matches = matches.filter((m) => m.court === args.court);
     }

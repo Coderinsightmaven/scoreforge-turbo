@@ -5,6 +5,7 @@ import { tennisState } from "./schema";
 import type { Id, Doc } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 import { errors } from "./lib/errors";
+import { canScoreTournament, getTournamentRole } from "./lib/accessControl";
 import {
   type TennisState,
   addToHistory,
@@ -15,94 +16,6 @@ import {
   getNextServer,
 } from "./lib/tennisScoring";
 export { pointToString } from "./lib/tennisScoring";
-
-// ============================================
-// Access Control Helpers
-// ============================================
-
-/**
- * Check if user can score tournament matches (owner, assigned scorer, or temp scorer)
- */
-async function canScoreTournament(
-  ctx: { db: any },
-  tournament: Doc<"tournaments">,
-  userId: Id<"users"> | null,
-  tempScorerToken?: string
-): Promise<boolean> {
-  // Check temp scorer token if provided
-  if (tempScorerToken) {
-    const session = await ctx.db
-      .query("temporaryScorerSessions")
-      .withIndex("by_token", (q: any) => q.eq("token", tempScorerToken))
-      .first();
-
-    if (session && session.expiresAt > Date.now()) {
-      const tempScorer = await ctx.db.get(session.scorerId);
-      if (tempScorer && tempScorer.isActive && tempScorer.tournamentId === tournament._id) {
-        return true;
-      }
-    }
-    // Invalid token - fall through to check regular auth
-  }
-
-  // No userId means not authenticated
-  if (!userId) {
-    return false;
-  }
-
-  // Owner can always score
-  if (tournament.createdBy === userId) {
-    return true;
-  }
-  // Check if user is assigned as a scorer
-  const scorer = await ctx.db
-    .query("tournamentScorers")
-    .withIndex("by_tournament_and_user", (q: any) =>
-      q.eq("tournamentId", tournament._id).eq("userId", userId)
-    )
-    .first();
-  return scorer !== null;
-}
-
-/**
- * Get user's role for a tournament
- */
-async function getTournamentRole(
-  ctx: { db: any },
-  tournament: Doc<"tournaments">,
-  userId: Id<"users"> | null,
-  tempScorerToken?: string
-): Promise<"owner" | "scorer" | "temp_scorer" | null> {
-  // Check temp scorer token if provided
-  if (tempScorerToken) {
-    const session = await ctx.db
-      .query("temporaryScorerSessions")
-      .withIndex("by_token", (q: any) => q.eq("token", tempScorerToken))
-      .first();
-
-    if (session && session.expiresAt > Date.now()) {
-      const tempScorer = await ctx.db.get(session.scorerId);
-      if (tempScorer && tempScorer.isActive && tempScorer.tournamentId === tournament._id) {
-        return "temp_scorer";
-      }
-    }
-  }
-
-  if (!userId) {
-    return null;
-  }
-
-  if (tournament.createdBy === userId) {
-    return "owner";
-  }
-  const scorer = await ctx.db
-    .query("tournamentScorers")
-    .withIndex("by_tournament_and_user", (q: any) =>
-      q.eq("tournamentId", tournament._id).eq("userId", userId)
-    )
-    .first();
-  return scorer ? "scorer" : null;
-}
 
 // ============================================
 // Queries
@@ -485,7 +398,7 @@ export const scoreTennisPoint = mutation({
             }
           }
 
-          // Handle bracket advancement
+          // Handle bracket advancement (winner)
           if (winnerId && match.nextMatchId) {
             const nextMatch = await ctx.db.get(match.nextMatchId);
             if (nextMatch) {
@@ -494,6 +407,20 @@ export const scoreTennisPoint = mutation({
                 await ctx.db.patch(match.nextMatchId, { participant1Id: winnerId });
               } else if (slot === 2) {
                 await ctx.db.patch(match.nextMatchId, { participant2Id: winnerId });
+              }
+            }
+          }
+
+          // Handle loser bracket advancement (double elimination)
+          const loserId = matchWinner === 1 ? match.participant2Id : match.participant1Id;
+          if (loserId && match.loserNextMatchId) {
+            const loserNextMatch = await ctx.db.get(match.loserNextMatchId);
+            if (loserNextMatch) {
+              const loserSlot = match.loserNextMatchSlot;
+              if (loserSlot === 1) {
+                await ctx.db.patch(match.loserNextMatchId, { participant1Id: loserId });
+              } else if (loserSlot === 2) {
+                await ctx.db.patch(match.loserNextMatchId, { participant2Id: loserId });
               }
             }
           }
@@ -590,7 +517,7 @@ export const scoreTennisPoint = mutation({
               }
             }
 
-            // Handle bracket advancement
+            // Handle bracket advancement (winner)
             if (winnerId && match.nextMatchId) {
               const nextMatch = await ctx.db.get(match.nextMatchId);
               if (nextMatch) {
@@ -599,6 +526,20 @@ export const scoreTennisPoint = mutation({
                   await ctx.db.patch(match.nextMatchId, { participant1Id: winnerId });
                 } else if (slot === 2) {
                   await ctx.db.patch(match.nextMatchId, { participant2Id: winnerId });
+                }
+              }
+            }
+
+            // Handle loser bracket advancement (double elimination)
+            const loserId = matchWinner === 1 ? match.participant2Id : match.participant1Id;
+            if (loserId && match.loserNextMatchId) {
+              const loserNextMatch = await ctx.db.get(match.loserNextMatchId);
+              if (loserNextMatch) {
+                const loserSlot = match.loserNextMatchSlot;
+                if (loserSlot === 1) {
+                  await ctx.db.patch(match.loserNextMatchId, { participant1Id: loserId });
+                } else if (loserSlot === 2) {
+                  await ctx.db.patch(match.loserNextMatchId, { participant2Id: loserId });
                 }
               }
             }

@@ -5,31 +5,7 @@ import type { Id } from "./_generated/dataModel";
 import { api } from "./_generated/api";
 import { scoringLogAction, presetSports } from "./schema";
 import { errors } from "./lib/errors";
-
-// ============================================
-// Access Control Helpers
-// ============================================
-
-/**
- * Get user's role for a tournament
- */
-async function getTournamentRole(
-  ctx: { db: any },
-  tournamentId: Id<"tournaments">,
-  userId: Id<"users">
-): Promise<"owner" | "scorer" | null> {
-  const tournament = await ctx.db.get(tournamentId);
-  if (!tournament) return null;
-  if (tournament.createdBy === userId) return "owner";
-
-  const scorer = await ctx.db
-    .query("tournamentScorers")
-    .withIndex("by_tournament_and_user", (q: any) =>
-      q.eq("tournamentId", tournamentId).eq("userId", userId)
-    )
-    .first();
-  return scorer ? "scorer" : null;
-}
+import { getTournamentRole } from "./lib/accessControl";
 
 // ============================================
 // Internal Mutation - Logging Helper
@@ -124,8 +100,13 @@ export const getTournamentLogs = query({
       throw errors.unauthenticated();
     }
 
+    const tournament = await ctx.db.get(args.tournamentId);
+    if (!tournament) {
+      throw errors.notFound("Tournament");
+    }
+
     // Check if user has access
-    const role = await getTournamentRole(ctx, args.tournamentId, userId);
+    const role = await getTournamentRole(ctx, tournament, userId);
     if (!role) {
       throw errors.unauthorized();
     }
@@ -197,7 +178,7 @@ export const hasScoringLogs = query({
     }
 
     // Check if user has access
-    const role = await getTournamentRole(ctx, args.tournamentId, userId);
+    const role = await getTournamentRole(ctx, tournament, userId);
     if (!role) {
       return { enabled: false, logCount: 0 };
     }

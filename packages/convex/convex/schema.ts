@@ -329,7 +329,8 @@ export default defineSchema({
     .index("by_bracket", ["bracketId"])
     .index("by_bracket_and_round", ["bracketId", "round"])
     .index("by_bracket_and_status", ["bracketId", "status"])
-    .index("by_next_match", ["nextMatchId"]),
+    .index("by_next_match", ["nextMatchId"])
+    .index("by_tournament_and_court", ["tournamentId", "court"]),
 
   // Scoring input logs - audit log for all scoring actions
   scoringInputLogs: defineTable({
