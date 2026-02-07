@@ -144,11 +144,11 @@ bun run format      # Format with Prettier
 
 ### Overview
 
-| App                         | Platform   | Trigger                                                                               |
-| --------------------------- | ---------- | ------------------------------------------------------------------------------------- |
-| Backend (`packages/convex`) | Convex     | Deployed as part of Vercel build                                                      |
-| Web (`apps/web`)            | Vercel     | Auto-deploys on push to `main`                                                        |
-| Mobile (`apps/mobile`)      | EAS (Expo) | GitHub Actions on push to `main` (when mobile/convex files change), or manual trigger |
+| App                         | Platform   | Trigger                                                   |
+| --------------------------- | ---------- | --------------------------------------------------------- |
+| Backend (`packages/convex`) | Convex     | Deployed as part of Vercel build                          |
+| Web (`apps/web`)            | Vercel     | Auto-deploys on push to `main`                            |
+| Mobile (`apps/mobile`)      | EAS (Expo) | Auto-builds via Expo GitHub integration on push to `main` |
 
 ### Convex (Backend)
 
@@ -178,23 +178,12 @@ Vercel will auto-deploy on every push to `main`. Preview deploys are created for
 
 ### EAS (Mobile)
 
-Mobile builds run on EAS Build via a GitHub Actions workflow (`.github/workflows/deploy.yml`).
+Mobile builds run via Expo's GitHub integration, which auto-builds on push to `main`. Build configuration is managed in `apps/mobile/eas.json`.
 
 **First-time setup:**
 
-1. Initialize the EAS project:
-
-   ```bash
-   cd apps/mobile && npx eas init
-   ```
-
-   This fills in the `projectId` in `app.json`.
-
+1. Connect the repo on [expo.dev](https://expo.dev) and set **Root Directory** to `apps/mobile`
 2. Fill in `EXPO_PUBLIC_CONVEX_URL` for each build profile in `apps/mobile/eas.json`
-
-3. Generate an Expo access token at [expo.dev/settings/access-tokens](https://expo.dev/settings/access-tokens)
-
-4. Add `EXPO_TOKEN` as a secret in your GitHub repository settings
 
 **Build profiles:**
 
@@ -204,20 +193,10 @@ Mobile builds run on EAS Build via a GitHub Actions workflow (`.github/workflows
 | `preview`     | Test builds, internal distribution               |
 | `production`  | App Store / Play Store submission                |
 
-**Triggering builds:**
-
-- **Automatic**: Pushes to `main` that change `apps/mobile/` or `packages/convex/`
-- **Manual**: Go to Actions > "Deploy Mobile" > Run workflow (choose platform: ios, android, or all)
-
 ### Required Secrets
 
 | Secret                   | Where                 | Purpose                                        |
 | ------------------------ | --------------------- | ---------------------------------------------- |
 | `CONVEX_DEPLOY_KEY`      | Vercel env vars       | Authenticates `npx convex deploy` during build |
 | `NEXT_PUBLIC_CONVEX_URL` | Vercel env vars       | Convex URL for the web client                  |
-| `EXPO_TOKEN`             | GitHub repo secrets   | Authenticates EAS CLI in GitHub Actions        |
 | `EXPO_PUBLIC_CONVEX_URL` | `eas.json` env blocks | Convex URL for the mobile client               |
-
-## CI
-
-Linting, type checking, and tests run on every push and PR to `main` via GitHub Actions (`.github/workflows/ci.yml`).
