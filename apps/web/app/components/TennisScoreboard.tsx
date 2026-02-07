@@ -5,6 +5,7 @@ import { api } from "@repo/convex";
 import type { Id } from "@repo/convex/dataModel";
 import { useState } from "react";
 import { getDisplayMessage } from "@/lib/errors";
+import { getPointDisplay, getGameStatus } from "@/lib/tennis";
 import { toast } from "sonner";
 
 type TennisState = {
@@ -34,81 +35,6 @@ type Props = {
   canScore: boolean;
   status: string;
 };
-
-/**
- * Convert numeric point to tennis terminology
- */
-function getPointDisplay(
-  points: number[],
-  playerIndex: 0 | 1,
-  isAdScoring: boolean,
-  isTiebreak: boolean
-): string {
-  if (isTiebreak) {
-    return (points[playerIndex] ?? 0).toString();
-  }
-
-  const p1 = points[0] ?? 0;
-  const p2 = points[1] ?? 0;
-  const myPoints = points[playerIndex] ?? 0;
-  const oppPoints = points[1 - playerIndex] ?? 0;
-
-  // At deuce or beyond (3-3 or higher)
-  if (p1 >= 3 && p2 >= 3) {
-    if (p1 === p2) {
-      return "40"; // Deuce
-    }
-    if (isAdScoring) {
-      if (myPoints > oppPoints) return "Ad";
-      return "40";
-    } else {
-      // No-Ad: showing 40 for both at deuce
-      return "40";
-    }
-  }
-
-  const pointNames = ["0", "15", "30", "40"];
-  return pointNames[Math.min(myPoints, 3)] ?? "40";
-}
-
-/**
- * Get the game status text (e.g., "Deuce", "Advantage Player 1")
- */
-function getGameStatus(
-  points: number[],
-  isAdScoring: boolean,
-  isTiebreak: boolean,
-  participant1Name: string,
-  participant2Name: string,
-  servingParticipant: number
-): string | null {
-  if (isTiebreak) {
-    return "Tiebreak";
-  }
-
-  const p1 = points[0] ?? 0;
-  const p2 = points[1] ?? 0;
-
-  if (p1 >= 3 && p2 >= 3 && p1 === p2) {
-    return "Deuce";
-  }
-
-  if (isAdScoring && (p1 >= 3 && p2 >= 3)) {
-    if (p1 > p2) {
-      return `Advantage ${participant1Name.split(" ")[0]}`;
-    }
-    if (p2 > p1) {
-      return `Advantage ${participant2Name.split(" ")[0]}`;
-    }
-  }
-
-  if (!isAdScoring && p1 === 3 && p2 === 3) {
-    const receiver = servingParticipant === 1 ? participant2Name : participant1Name;
-    return `Deciding Point (${receiver.split(" ")[0]} chooses side)`;
-  }
-
-  return null;
-}
 
 export function TennisScoreboard({
   matchId,
@@ -180,7 +106,8 @@ export function TennisScoreboard({
       {/* Main Scoreboard */}
       {(() => {
         // Determine which sets to display
-        const hasCurrentSetGames = (tennisState.currentSetGames[0] ?? 0) > 0 || (tennisState.currentSetGames[1] ?? 0) > 0;
+        const hasCurrentSetGames =
+          (tennisState.currentSetGames[0] ?? 0) > 0 || (tennisState.currentSetGames[1] ?? 0) > 0;
         const showCurrentSet = !tennisState.isMatchComplete && hasCurrentSetGames;
         const totalSetColumns = tennisState.sets.length + (showCurrentSet ? 1 : 0);
 
@@ -192,7 +119,7 @@ export function TennisScoreboard({
             {/* Header Row */}
             <div
               className="gap-1 p-2 bg-bg-secondary text-xs font-semibold text-text-muted"
-              style={{ display: 'grid', gridTemplateColumns: gridCols }}
+              style={{ display: "grid", gridTemplateColumns: gridCols }}
             >
               <div className="px-3">Player</div>
               {tennisState.sets.map((_, idx) => (
@@ -201,23 +128,17 @@ export function TennisScoreboard({
                 </div>
               ))}
               {showCurrentSet && (
-                <div className="text-center text-brand">
-                  Set {tennisState.sets.length + 1}
-                </div>
+                <div className="text-center text-brand">Set {tennisState.sets.length + 1}</div>
               )}
-              <div className="text-center">
-                {tennisState.isTiebreak ? "TB" : "Game"}
-              </div>
+              <div className="text-center">{tennisState.isTiebreak ? "TB" : "Game"}</div>
             </div>
 
             {/* Player 1 Row */}
             <div
               className={`gap-1 p-2 items-center border-b border-border ${
-                tennisState.isMatchComplete && p1SetsWon > p2SetsWon
-                  ? "bg-brand/10"
-                  : ""
+                tennisState.isMatchComplete && p1SetsWon > p2SetsWon ? "bg-brand/10" : ""
               }`}
-              style={{ display: 'grid', gridTemplateColumns: gridCols }}
+              style={{ display: "grid", gridTemplateColumns: gridCols }}
             >
               <div className="flex items-center gap-2 px-3">
                 {tennisState.servingParticipant === 1 && (
@@ -261,11 +182,9 @@ export function TennisScoreboard({
             {/* Player 2 Row */}
             <div
               className={`gap-1 p-2 items-center ${
-                tennisState.isMatchComplete && p2SetsWon > p1SetsWon
-                  ? "bg-brand/10"
-                  : ""
+                tennisState.isMatchComplete && p2SetsWon > p1SetsWon ? "bg-brand/10" : ""
               }`}
-              style={{ display: 'grid', gridTemplateColumns: gridCols }}
+              style={{ display: "grid", gridTemplateColumns: gridCols }}
             >
               <div className="flex items-center gap-2 px-3">
                 {tennisState.servingParticipant === 2 && (
@@ -435,7 +354,12 @@ export function TennisMatchSetup({
       <div className="p-6 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-3 bg-gold/10 text-gold rounded-lg">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
           </svg>
           <span className="font-medium">Tournament must be started before matches can begin</span>
         </div>
@@ -446,12 +370,8 @@ export function TennisMatchSetup({
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-6">
       <div className="text-center">
-        <h3 className="text-xl font-bold text-text-primary mb-2">
-          Start Tennis Match
-        </h3>
-        <p className="text-sm text-text-secondary">
-          Select who will serve first
-        </p>
+        <h3 className="text-xl font-bold text-text-primary mb-2">Start Tennis Match</h3>
+        <p className="text-sm text-text-secondary">Select who will serve first</p>
       </div>
 
       {/* Tournament Rules Display */}

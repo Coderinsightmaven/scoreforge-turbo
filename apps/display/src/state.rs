@@ -402,3 +402,133 @@ impl AppState {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn project_state_new_defaults() {
+        let state = ProjectState::new("Test".to_string(), 1920, 1080);
+        assert_eq!(state.scoreboard.name, "Test");
+        assert_eq!(state.scoreboard.width, 1920);
+        assert_eq!(state.scoreboard.height, 1080);
+        assert_eq!(state.scoreboard.background_color, Color32::BLACK);
+        assert!(state.components.is_empty());
+        assert!(state.selected_ids.is_empty());
+        assert!(state.undo_stack.is_empty());
+        assert_eq!(state.canvas_zoom, 0.5);
+        assert!(!state.is_dirty);
+        assert!(state.current_file.is_none());
+        assert_eq!(state.connection_step, ConnectionStep::Disconnected);
+    }
+
+    #[test]
+    fn push_undo_stores_state() {
+        let mut state = ProjectState::new("Test".to_string(), 800, 600);
+        assert_eq!(state.undo_stack.len(), 0);
+
+        state.push_undo();
+        assert_eq!(state.undo_stack.len(), 1);
+
+        state.push_undo();
+        assert_eq!(state.undo_stack.len(), 2);
+    }
+
+    #[test]
+    fn push_undo_caps_at_50() {
+        let mut state = ProjectState::new("Test".to_string(), 800, 600);
+        for _ in 0..60 {
+            state.push_undo();
+        }
+        assert_eq!(state.undo_stack.len(), 50);
+    }
+
+    #[test]
+    fn undo_restores_previous_components() {
+        let mut state = ProjectState::new("Test".to_string(), 800, 600);
+
+        // Push initial state (empty components)
+        state.push_undo();
+
+        // Add a component
+        let comp = ScoreboardComponent::new(
+            ComponentType::Text,
+            Vec2::new(10.0, 20.0),
+            Vec2::new(100.0, 50.0),
+        );
+        state.components.push(comp);
+        assert_eq!(state.components.len(), 1);
+
+        // Undo should restore to empty
+        state.undo();
+        assert!(state.components.is_empty());
+        assert!(state.is_dirty);
+    }
+
+    #[test]
+    fn undo_with_empty_stack_does_nothing() {
+        let mut state = ProjectState::new("Test".to_string(), 800, 600);
+        let comp = ScoreboardComponent::new(
+            ComponentType::Text,
+            Vec2::new(0.0, 0.0),
+            Vec2::new(50.0, 50.0),
+        );
+        state.components.push(comp);
+
+        state.undo(); // empty stack, should be a no-op
+        assert_eq!(state.components.len(), 1);
+        assert!(!state.is_dirty);
+    }
+
+    #[test]
+    fn undo_clears_selection() {
+        let mut state = ProjectState::new("Test".to_string(), 800, 600);
+        state.push_undo();
+
+        let id = Uuid::new_v4();
+        state.selected_ids.insert(id);
+
+        state.undo();
+        assert!(state.selected_ids.is_empty());
+    }
+
+    #[test]
+    fn to_scoreboard_file_preserves_data() {
+        let mut state = ProjectState::new("My Scoreboard".to_string(), 1280, 720);
+        let comp = ScoreboardComponent::new(
+            ComponentType::TennisGameScore,
+            Vec2::new(100.0, 200.0),
+            Vec2::new(80.0, 40.0),
+        );
+        state.components.push(comp);
+
+        let file = state.to_scoreboard_file();
+        assert_eq!(file.version, 1);
+        assert_eq!(file.name, "My Scoreboard");
+        assert_eq!(file.dimensions, (1280, 720));
+        assert_eq!(file.components.len(), 1);
+    }
+
+    #[test]
+    fn is_doubles_scoreboard_false_when_no_doubles() {
+        let mut state = ProjectState::new("Test".to_string(), 800, 600);
+        state.components.push(ScoreboardComponent::new(
+            ComponentType::TennisPlayerName,
+            Vec2::new(0.0, 0.0),
+            Vec2::new(200.0, 30.0),
+        ));
+        assert!(!state.is_doubles_scoreboard());
+    }
+
+    #[test]
+    fn is_doubles_scoreboard_true_when_doubles_present() {
+        let mut state = ProjectState::new("Test".to_string(), 800, 600);
+        state.components.push(ScoreboardComponent::new(
+            ComponentType::TennisDoublesName,
+            Vec2::new(0.0, 0.0),
+            Vec2::new(200.0, 30.0),
+        ));
+        assert!(state.is_doubles_scoreboard());
+    }
+}

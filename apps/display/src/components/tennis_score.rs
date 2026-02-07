@@ -72,3 +72,35 @@ pub fn render_tennis_score(
 
     super::text::render_aligned_text(painter, rect, &display_text, style, zoom);
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn points_to_display_zero() {
+        assert_eq!(points_to_display(0), "0");
+    }
+
+    #[test]
+    fn points_to_display_fifteen() {
+        assert_eq!(points_to_display(1), "15");
+    }
+
+    #[test]
+    fn points_to_display_thirty() {
+        assert_eq!(points_to_display(2), "30");
+    }
+
+    #[test]
+    fn points_to_display_forty() {
+        assert_eq!(points_to_display(3), "40");
+    }
+
+    #[test]
+    fn points_to_display_advantage() {
+        assert_eq!(points_to_display(4), "AD");
+        assert_eq!(points_to_display(5), "AD");
+        assert_eq!(points_to_display(100), "AD");
+    }
+}

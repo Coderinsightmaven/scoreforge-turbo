@@ -230,3 +230,128 @@ impl AppConfig {
         self.save();
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::components::{ComponentData, ComponentType, ScoreboardComponent};
+    use egui::{Color32, Vec2};
+
+    fn make_test_file() -> ScoreboardFile {
+        ScoreboardFile {
+            version: 1,
+            name: "Test Board".to_string(),
+            dimensions: (1920, 1080),
+            background_color: Color32::BLACK,
+            components: vec![],
+            bindings: HashMap::new(),
+        }
+    }
+
+    #[test]
+    fn collect_asset_ids_empty() {
+        let ids = collect_asset_ids(&[]);
+        assert!(ids.is_empty());
+    }
+
+    #[test]
+    fn collect_asset_ids_with_image_assets() {
+        let id1 = Uuid::new_v4();
+        let id2 = Uuid::new_v4();
+        let mut comp1 = ScoreboardComponent::new(
+            ComponentType::Image,
+            Vec2::new(0.0, 0.0),
+            Vec2::new(100.0, 100.0),
+        );
+        comp1.data = ComponentData::Image { asset_id: Some(id1) };
+
+        let mut comp2 = ScoreboardComponent::new(
+            ComponentType::Background,
+            Vec2::new(0.0, 0.0),
+            Vec2::new(100.0, 100.0),
+        );
+        comp2.data = ComponentData::Background {
+            asset_id: Some(id2),
+            color: Color32::GREEN,
+        };
+
+        let ids = collect_asset_ids(&[comp1, comp2]);
+        assert_eq!(ids.len(), 2);
+        assert!(ids.contains(&id1));
+        assert!(ids.contains(&id2));
+    }
+
+    #[test]
+    fn collect_asset_ids_skips_non_asset_components() {
+        let comp = ScoreboardComponent::new(
+            ComponentType::Text,
+            Vec2::new(0.0, 0.0),
+            Vec2::new(100.0, 100.0),
+        );
+        let ids = collect_asset_ids(&[comp]);
+        assert!(ids.is_empty());
+    }
+
+    #[test]
+    fn collect_asset_ids_skips_none_assets() {
+        let comp = ScoreboardComponent::new(
+            ComponentType::Image,
+            Vec2::new(0.0, 0.0),
+            Vec2::new(100.0, 100.0),
+        );
+        // Default Image has asset_id: None
+        let ids = collect_asset_ids(&[comp]);
+        assert!(ids.is_empty());
+    }
+
+    #[test]
+    fn save_and_load_round_trip() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("test.json");
+
+        let file = make_test_file();
+        save_scoreboard(&file, &path).unwrap();
+        let loaded = load_scoreboard(&path).unwrap();
+
+        assert_eq!(loaded.version, 1);
+        assert_eq!(loaded.name, "Test Board");
+        assert_eq!(loaded.dimensions, (1920, 1080));
+        assert!(loaded.components.is_empty());
+    }
+
+    #[test]
+    fn load_rejects_unsupported_version() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("test.json");
+
+        let mut file = make_test_file();
+        file.version = 99;
+        let json = serde_json::to_string_pretty(&file).unwrap();
+        fs::write(&path, json).unwrap();
+
+        let result = load_scoreboard(&path);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Unsupported file version"));
+    }
+
+    #[test]
+    fn app_config_add_recent_file_deduplicates() {
+        let mut config = AppConfig::default();
+        let path1 = PathBuf::from("/tmp/a.json");
+        let path2 = PathBuf::from("/tmp/b.json");
+
+        // We don't call add_recent_file because it calls save() which writes to disk.
+        // Instead test the logic directly.
+        config.recent_files.push(path1.clone());
+        config.recent_files.push(path2.clone());
+
+        // Simulate add_recent_file logic without save()
+        config.recent_files.retain(|p| p != &path1);
+        config.recent_files.insert(0, path1.clone());
+        config.recent_files.truncate(10);
+
+        assert_eq!(config.recent_files.len(), 2);
+        assert_eq!(config.recent_files[0], path1);
+        assert_eq!(config.recent_files[1], path2);
+    }
+}
