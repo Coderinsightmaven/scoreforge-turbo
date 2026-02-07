@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Id } from "@repo/convex/dataModel";
-import { useRef, useCallback } from "react";
+import { useRef } from "react";
 import { getDisplayMessage } from "../utils/errors";
 
 type Props = {
@@ -36,14 +36,14 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
   const flash1 = useRef(new Animated.Value(0)).current;
   const flash2 = useRef(new Animated.Value(0)).current;
 
-  const triggerFlash = useCallback((flashAnim: Animated.Value) => {
+  const triggerFlash = (flashAnim: Animated.Value) => {
     flashAnim.setValue(1);
     Animated.timing(flashAnim, {
       toValue: 0,
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, []);
+  };
 
   if (match === undefined) {
     return (

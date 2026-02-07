@@ -1,6 +1,6 @@
 import { useQuery } from "convex/react";
 import { api } from "@repo/convex";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -95,10 +95,10 @@ export function TempScorerHomeScreen() {
     tempScorerToken: session?.token,
   });
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = () => {
     setRefreshing(true);
     setTimeout(() => setRefreshing(false), 500);
-  }, []);
+  };
 
   const handleSignOut = () => {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [

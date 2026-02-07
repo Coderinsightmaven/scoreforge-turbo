@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Id } from "@repo/convex/dataModel";
 
 type Props = {
@@ -46,11 +46,11 @@ export function TournamentsScreen({ onSelectTournament }: Props) {
   const tournaments = useQuery(api.tournaments.listMyTournaments, {});
   const [refreshing, setRefreshing] = useState(false);
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = () => {
     setRefreshing(true);
     // The query will automatically refetch, just show the spinner briefly
     setTimeout(() => setRefreshing(false), 500);
-  }, []);
+  };
 
   if (tournaments === undefined) {
     return (

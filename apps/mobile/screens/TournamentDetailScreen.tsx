@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Id } from "@repo/convex/dataModel";
 
 type Props = {
@@ -65,10 +65,10 @@ export function TournamentDetailScreen({ tournamentId, onBack, onSelectMatch }: 
     status: statusFilter === "all" ? undefined : statusFilter,
   });
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = () => {
     setRefreshing(true);
     setTimeout(() => setRefreshing(false), 500);
-  }, []);
+  };
 
   if (tournament === undefined || matches === undefined) {
     return (

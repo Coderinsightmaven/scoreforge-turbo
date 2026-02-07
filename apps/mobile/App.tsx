@@ -18,10 +18,6 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 
 import "./global.css";
 
-// Re-export for backwards compatibility
-export type { TempScorerSession } from "./contexts/TempScorerContext";
-export { useTempScorer } from "./contexts/TempScorerContext";
-
 const TEMP_SCORER_SESSION_KEY = "tempScorerSession";
 
 function LoadingScreen() {
@@ -93,16 +89,16 @@ function AppContent() {
   // If we have a temp scorer session, show temp scorer UI
   if (tempScorerSession) {
     return (
-      <TempScorerContext.Provider value={contextValue}>
+      <TempScorerContext value={contextValue}>
         <TempScorerHomeScreen />
         <StatusBar style="light" />
-      </TempScorerContext.Provider>
+      </TempScorerContext>
     );
   }
 
   // Otherwise, show regular auth flow
   return (
-    <TempScorerContext.Provider value={contextValue}>
+    <TempScorerContext value={contextValue}>
       <AuthLoading>
         <LoadingScreen />
       </AuthLoading>
@@ -113,7 +109,7 @@ function AppContent() {
         <HomeScreen />
       </Authenticated>
       <StatusBar style="light" />
-    </TempScorerContext.Provider>
+    </TempScorerContext>
   );
 }
 
