@@ -256,18 +256,33 @@ describe("processMatchSet", () => {
     const result = processMatchSet(state, 1, [6, 2]);
     expect(result.matchOver).toBe(true);
     expect(result.matchWinner).toBe(1);
-    expect(result.newSets).toEqual([[6, 4], [6, 2]]);
+    expect(result.newSets).toEqual([
+      [6, 4],
+      [6, 2],
+    ]);
   });
 
   it("best of 3 (setsToWin=2): 2-1 win", () => {
-    const state = makeState({ sets: [[6, 4], [4, 6]], setsToWin: 2 });
+    const state = makeState({
+      sets: [
+        [6, 4],
+        [4, 6],
+      ],
+      setsToWin: 2,
+    });
     const result = processMatchSet(state, 1, [7, 5]);
     expect(result.matchOver).toBe(true);
     expect(result.matchWinner).toBe(1);
   });
 
   it("best of 5 (setsToWin=3): 3-0 win", () => {
-    const state = makeState({ sets: [[6, 0], [6, 0]], setsToWin: 3 });
+    const state = makeState({
+      sets: [
+        [6, 0],
+        [6, 0],
+      ],
+      setsToWin: 3,
+    });
     const result = processMatchSet(state, 1, [6, 0]);
     expect(result.matchOver).toBe(true);
     expect(result.matchWinner).toBe(1);
@@ -275,7 +290,12 @@ describe("processMatchSet", () => {
 
   it("best of 5 (setsToWin=3): 3-2 win", () => {
     const state = makeState({
-      sets: [[6, 4], [4, 6], [6, 3], [3, 6]],
+      sets: [
+        [6, 4],
+        [4, 6],
+        [6, 3],
+        [3, 6],
+      ],
       setsToWin: 3,
     });
     const result = processMatchSet(state, 1, [7, 5]);
@@ -377,9 +397,7 @@ describe("addToHistory", () => {
   });
 
   it("caps history at 50 entries", () => {
-    const snapshots = Array.from({ length: 50 }, () =>
-      createSnapshot(makeState())
-    );
+    const snapshots = Array.from({ length: 50 }, () => createSnapshot(makeState()));
     const state = makeState({ history: snapshots });
     const history = addToHistory(state);
     expect(history).toHaveLength(50);

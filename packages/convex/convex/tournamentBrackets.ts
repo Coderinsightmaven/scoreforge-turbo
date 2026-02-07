@@ -45,7 +45,7 @@ export const listBrackets = query({
       return [];
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       return [];
     }
@@ -130,12 +130,12 @@ export const getBracket = query({
       return null;
     }
 
-    const bracket = await ctx.db.get(args.bracketId);
+    const bracket = await ctx.db.get("tournamentBrackets", args.bracketId);
     if (!bracket) {
       return null;
     }
 
-    const tournament = await ctx.db.get(bracket.tournamentId);
+    const tournament = await ctx.db.get("tournaments", bracket.tournamentId);
     if (!tournament) {
       return null;
     }
@@ -232,12 +232,12 @@ export const getBracketMatches = query({
       return null;
     }
 
-    const bracket = await ctx.db.get(args.bracketId);
+    const bracket = await ctx.db.get("tournamentBrackets", args.bracketId);
     if (!bracket) {
       return null;
     }
 
-    const tournament = await ctx.db.get(bracket.tournamentId);
+    const tournament = await ctx.db.get("tournaments", bracket.tournamentId);
     if (!tournament) {
       return null;
     }
@@ -261,7 +261,7 @@ export const getBracketMatches = query({
     }
 
     const participantDocs = await Promise.all(
-      [...participantIds].map((id) => ctx.db.get(id))
+      [...participantIds].map((id) => ctx.db.get("tournamentParticipants", id))
     );
     const participantMap = new Map<string, Doc<"tournamentParticipants">>();
     for (const doc of participantDocs) {
@@ -350,7 +350,7 @@ export const createBracket = mutation({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -412,12 +412,12 @@ export const updateBracket = mutation({
       throw errors.unauthenticated();
     }
 
-    const bracket = await ctx.db.get(args.bracketId);
+    const bracket = await ctx.db.get("tournamentBrackets", args.bracketId);
     if (!bracket) {
       throw errors.notFound("Bracket");
     }
 
-    const tournament = await ctx.db.get(bracket.tournamentId);
+    const tournament = await ctx.db.get("tournaments", bracket.tournamentId);
     if (!tournament || !canManageTournament(tournament, userId)) {
       throw errors.unauthorized("Only the tournament owner can update brackets");
     }
@@ -435,7 +435,7 @@ export const updateBracket = mutation({
     if (args.maxParticipants !== undefined) updates.maxParticipants = args.maxParticipants;
     if (args.tennisConfig !== undefined) updates.tennisConfig = args.tennisConfig;
 
-    await ctx.db.patch(args.bracketId, updates);
+    await ctx.db.patch("tournamentBrackets", args.bracketId, updates);
     return null;
   },
 });
@@ -453,12 +453,12 @@ export const deleteBracket = mutation({
       throw errors.unauthenticated();
     }
 
-    const bracket = await ctx.db.get(args.bracketId);
+    const bracket = await ctx.db.get("tournamentBrackets", args.bracketId);
     if (!bracket) {
       throw errors.notFound("Bracket");
     }
 
-    const tournament = await ctx.db.get(bracket.tournamentId);
+    const tournament = await ctx.db.get("tournaments", bracket.tournamentId);
     if (!tournament || !canManageTournament(tournament, userId)) {
       throw errors.unauthorized("Only the tournament owner can delete brackets");
     }
@@ -475,7 +475,9 @@ export const deleteBracket = mutation({
       .collect();
 
     if (allBrackets.length <= 1) {
-      throw errors.invalidState("Cannot delete the last bracket. Every tournament must have at least one bracket");
+      throw errors.invalidState(
+        "Cannot delete the last bracket. Every tournament must have at least one bracket"
+      );
     }
 
     // Check if bracket has participants
@@ -485,7 +487,9 @@ export const deleteBracket = mutation({
       .first();
 
     if (participants) {
-      throw errors.invalidState("Cannot delete bracket with participants. Remove participants first");
+      throw errors.invalidState(
+        "Cannot delete bracket with participants. Remove participants first"
+      );
     }
 
     // Check if bracket has matches
@@ -498,7 +502,7 @@ export const deleteBracket = mutation({
       throw errors.invalidState("Cannot delete bracket with matches. Delete matches first");
     }
 
-    await ctx.db.delete(args.bracketId);
+    await ctx.db.delete("tournamentBrackets", args.bracketId);
     return null;
   },
 });
@@ -518,19 +522,19 @@ export const reorderBrackets = mutation({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament || !canManageTournament(tournament, userId)) {
       throw errors.unauthorized("Only the tournament owner can reorder brackets");
     }
 
     // Verify all brackets belong to this tournament
     for (let i = 0; i < args.bracketIds.length; i++) {
-      const bracket = await ctx.db.get(args.bracketIds[i]!);
+      const bracket = await ctx.db.get("tournamentBrackets", args.bracketIds[i]!);
       if (!bracket || bracket.tournamentId !== args.tournamentId) {
         throw errors.invalidInput("Invalid bracket ID");
       }
 
-      await ctx.db.patch(args.bracketIds[i]!, {
+      await ctx.db.patch("tournamentBrackets", args.bracketIds[i]!, {
         displayOrder: i + 1,
       });
     }
@@ -551,12 +555,12 @@ export const startBracket = mutation({
       throw errors.unauthenticated();
     }
 
-    const bracket = await ctx.db.get(args.bracketId);
+    const bracket = await ctx.db.get("tournamentBrackets", args.bracketId);
     if (!bracket) {
       throw errors.notFound("Bracket");
     }
 
-    const tournament = await ctx.db.get(bracket.tournamentId);
+    const tournament = await ctx.db.get("tournaments", bracket.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -600,7 +604,7 @@ export const startBracket = mutation({
     }
 
     // Update bracket status
-    await ctx.db.patch(args.bracketId, {
+    await ctx.db.patch("tournamentBrackets", args.bracketId, {
       status: "active",
     });
 
@@ -620,12 +624,12 @@ export const generateBracketMatchesForBracket = mutation({
       throw errors.unauthenticated();
     }
 
-    const bracket = await ctx.db.get(args.bracketId);
+    const bracket = await ctx.db.get("tournamentBrackets", args.bracketId);
     if (!bracket) {
       throw errors.notFound("Bracket");
     }
 
-    const tournament = await ctx.db.get(bracket.tournamentId);
+    const tournament = await ctx.db.get("tournaments", bracket.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -655,7 +659,7 @@ export const generateBracketMatchesForBracket = mutation({
       .collect();
 
     for (const match of existingMatches) {
-      await ctx.db.delete(match._id);
+      await ctx.db.delete("matches", match._id);
     }
 
     // Generate new matches
@@ -668,4 +672,3 @@ export const generateBracketMatchesForBracket = mutation({
     return null;
   },
 });
-

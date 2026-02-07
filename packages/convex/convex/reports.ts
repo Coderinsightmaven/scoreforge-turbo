@@ -49,7 +49,7 @@ export const getTournamentMatchScores = query({
     }
 
     // Verify tournament exists and is tennis
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -85,9 +85,7 @@ export const getTournamentMatchScores = query({
     // Get participants for name lookup
     const participants = await ctx.db
       .query("tournamentParticipants")
-      .withIndex("by_tournament", (q: any) =>
-        q.eq("tournamentId", args.tournamentId)
-      )
+      .withIndex("by_tournament", (q: any) => q.eq("tournamentId", args.tournamentId))
       .collect();
 
     const participantMap = new Map(
@@ -98,15 +96,9 @@ export const getTournamentMatchScores = query({
     const results = matches
       .filter((m: Doc<"matches">) => m.tennisState)
       .map((match: Doc<"matches">) => {
-        const p1 = match.participant1Id
-          ? participantMap.get(match.participant1Id)
-          : null;
-        const p2 = match.participant2Id
-          ? participantMap.get(match.participant2Id)
-          : null;
-        const winner = match.winnerId
-          ? participantMap.get(match.winnerId)
-          : null;
+        const p1 = match.participant1Id ? participantMap.get(match.participant1Id) : null;
+        const p2 = match.participant2Id ? participantMap.get(match.participant2Id) : null;
+        const winner = match.winnerId ? participantMap.get(match.winnerId) : null;
         const tennisState = match.tennisState!;
 
         // Extract set scores from tennisState.sets
@@ -130,8 +122,7 @@ export const getTournamentMatchScores = query({
         };
       })
       .sort(
-        (a: { completedAt: number }, b: { completedAt: number }) =>
-          a.completedAt - b.completedAt
+        (a: { completedAt: number }, b: { completedAt: number }) => a.completedAt - b.completedAt
       );
 
     return results;
@@ -157,7 +148,7 @@ export const hasCompletedTennisMatches = query({
       return { hasMatches: false, matchCount: 0, isTennis: false };
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       return { hasMatches: false, matchCount: 0, isTennis: false };
     }
@@ -190,9 +181,7 @@ export const hasCompletedTennisMatches = query({
         .collect();
     }
 
-    const tennisMatches = matches.filter(
-      (m: Doc<"matches">) => m.tennisState
-    ).length;
+    const tennisMatches = matches.filter((m: Doc<"matches">) => m.tennisState).length;
 
     return {
       hasMatches: tennisMatches > 0,
@@ -248,13 +237,10 @@ export const generateMatchScoresCSV = action({
   }),
   handler: async (ctx, args): Promise<{ csv: string; filename: string; matchCount: number }> => {
     // Get match scores using the query
-    const matches: MatchScore[] = await ctx.runQuery(
-      api.reports.getTournamentMatchScores,
-      {
-        tournamentId: args.tournamentId,
-        bracketId: args.bracketId,
-      }
-    );
+    const matches: MatchScore[] = await ctx.runQuery(api.reports.getTournamentMatchScores, {
+      tournamentId: args.tournamentId,
+      bracketId: args.bracketId,
+    });
 
     // Get tournament info for filename
     const tournament = await ctx.runQuery(api.tournaments.getTournament, {
@@ -316,10 +302,7 @@ export const generateMatchScoresCSV = action({
     });
 
     // Combine into CSV string
-    const csv: string = [
-      headers.join(","),
-      ...rows.map((r: string[]) => r.join(",")),
-    ].join("\n");
+    const csv: string = [headers.join(","), ...rows.map((r: string[]) => r.join(","))].join("\n");
 
     // Generate filename
     const tournamentName: string = tournament?.name || "tournament";

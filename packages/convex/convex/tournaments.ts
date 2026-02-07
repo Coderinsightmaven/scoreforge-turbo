@@ -64,7 +64,7 @@ export const getTournament = query({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       return null;
     }
@@ -164,7 +164,7 @@ export const getBracket = query({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -188,7 +188,9 @@ export const getBracket = query({
       if (match.participant2Id) participantIds.add(match.participant2Id);
     }
 
-    const participantDocs = await Promise.all([...participantIds].map((id) => ctx.db.get(id)));
+    const participantDocs = await Promise.all(
+      [...participantIds].map((id) => ctx.db.get("tournamentParticipants", id))
+    );
     const participantMap = new Map<string, Doc<"tournamentParticipants">>();
     for (const doc of participantDocs) {
       if (doc) participantMap.set(doc._id, doc);
@@ -394,7 +396,7 @@ export const listMyTournaments = query({
     const scorerTournamentDocs = await Promise.all(
       scorerAssignments
         .filter((a) => !ownedIds.has(a.tournamentId))
-        .map((a) => ctx.db.get(a.tournamentId))
+        .map((a) => ctx.db.get("tournaments", a.tournamentId))
     );
     const scorerTournaments = scorerTournamentDocs.filter(
       (t): t is Doc<"tournaments"> => t !== null
@@ -492,7 +494,7 @@ export const getStandings = query({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -683,7 +685,7 @@ export const updateTournament = mutation({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -709,7 +711,7 @@ export const updateTournament = mutation({
     if (args.startDate !== undefined) updates.startDate = args.startDate;
     if (args.scoringConfig !== undefined) updates.scoringConfig = args.scoringConfig;
 
-    await ctx.db.patch(args.tournamentId, updates);
+    await ctx.db.patch("tournaments", args.tournamentId, updates);
     return null;
   },
 });
@@ -726,7 +728,7 @@ export const deleteTournament = mutation({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -756,7 +758,7 @@ export const deleteTournament = mutation({
       .collect();
 
     for (const match of matches) {
-      await ctx.db.delete(match._id);
+      await ctx.db.delete("matches", match._id);
     }
 
     // Delete all participants
@@ -766,7 +768,7 @@ export const deleteTournament = mutation({
       .collect();
 
     for (const participant of participants) {
-      await ctx.db.delete(participant._id);
+      await ctx.db.delete("tournamentParticipants", participant._id);
     }
 
     // Delete all scorers
@@ -776,7 +778,7 @@ export const deleteTournament = mutation({
       .collect();
 
     for (const scorer of scorers) {
-      await ctx.db.delete(scorer._id);
+      await ctx.db.delete("tournamentScorers", scorer._id);
     }
 
     // Delete all brackets
@@ -786,11 +788,11 @@ export const deleteTournament = mutation({
       .collect();
 
     for (const bracket of brackets) {
-      await ctx.db.delete(bracket._id);
+      await ctx.db.delete("tournamentBrackets", bracket._id);
     }
 
     // Delete the tournament
-    await ctx.db.delete(args.tournamentId);
+    await ctx.db.delete("tournaments", args.tournamentId);
     return null;
   },
 });
@@ -874,7 +876,7 @@ export async function generateBracketMatches(
     }
 
     if (Object.keys(updates).length > 0) {
-      await ctx.db.patch(matchId, updates);
+      await ctx.db.patch("matches", matchId, updates);
     }
   }
 
@@ -886,33 +888,33 @@ export async function generateBracketMatches(
 
   for (const { match, index } of byeMatches) {
     const matchId = matchIdMap.get(index)!;
-    const fullMatch = await ctx.db.get(matchId);
+    const fullMatch = await ctx.db.get("matches", matchId);
     if (!fullMatch) continue;
 
     const winnerId = match.participant1Id || match.participant2Id;
     if (winnerId) {
-      await ctx.db.patch(matchId, {
+      await ctx.db.patch("matches", matchId, {
         winnerId,
         status: "completed",
         completedAt: Date.now(),
       });
 
       if (fullMatch.nextMatchId) {
-        const nextMatch = await ctx.db.get(fullMatch.nextMatchId);
+        const nextMatch = await ctx.db.get("matches", fullMatch.nextMatchId);
         if (nextMatch) {
           const slot = fullMatch.nextMatchSlot;
           if (slot === 1) {
-            await ctx.db.patch(fullMatch.nextMatchId, {
+            await ctx.db.patch("matches", fullMatch.nextMatchId, {
               participant1Id: winnerId,
             });
           } else if (slot === 2) {
-            await ctx.db.patch(fullMatch.nextMatchId, {
+            await ctx.db.patch("matches", fullMatch.nextMatchId, {
               participant2Id: winnerId,
             });
           }
 
           // Check if the next match is also a bye (only one participant after all feeders complete)
-          const updatedNextMatch = await ctx.db.get(fullMatch.nextMatchId);
+          const updatedNextMatch = await ctx.db.get("matches", fullMatch.nextMatchId);
           if (updatedNextMatch && updatedNextMatch.status === "pending") {
             const hasP1 = !!updatedNextMatch.participant1Id;
             const hasP2 = !!updatedNextMatch.participant2Id;
@@ -931,22 +933,22 @@ export async function generateBracketMatches(
                 const byeWinner =
                   updatedNextMatch.participant1Id || updatedNextMatch.participant2Id;
                 if (byeWinner) {
-                  await ctx.db.patch(fullMatch.nextMatchId, {
+                  await ctx.db.patch("matches", fullMatch.nextMatchId, {
                     winnerId: byeWinner,
                     status: "completed",
                     completedAt: Date.now(),
                   });
 
                   if (updatedNextMatch.nextMatchId) {
-                    const nextNextMatch = await ctx.db.get(updatedNextMatch.nextMatchId);
+                    const nextNextMatch = await ctx.db.get("matches", updatedNextMatch.nextMatchId);
                     if (nextNextMatch) {
                       const nextSlot = updatedNextMatch.nextMatchSlot;
                       if (nextSlot === 1) {
-                        await ctx.db.patch(updatedNextMatch.nextMatchId, {
+                        await ctx.db.patch("matches", updatedNextMatch.nextMatchId, {
                           participant1Id: byeWinner,
                         });
                       } else if (nextSlot === 2) {
-                        await ctx.db.patch(updatedNextMatch.nextMatchId, {
+                        await ctx.db.patch("matches", updatedNextMatch.nextMatchId, {
                           participant2Id: byeWinner,
                         });
                       }
@@ -975,7 +977,7 @@ export const generateBracket = mutation({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -993,7 +995,7 @@ export const generateBracket = mutation({
     // Optimistic concurrency control: increment version before making changes
     // If another call is racing, Convex OCC will retry one of them
     const newVersion = (tournament.bracketVersion ?? 0) + 1;
-    await ctx.db.patch(args.tournamentId, {
+    await ctx.db.patch("tournaments", args.tournamentId, {
       bracketVersion: newVersion,
     });
 
@@ -1020,7 +1022,7 @@ export const generateBracket = mutation({
       .collect();
 
     for (const match of existingMatches) {
-      await ctx.db.delete(match._id);
+      await ctx.db.delete("matches", match._id);
     }
 
     // Generate the bracket
@@ -1044,7 +1046,7 @@ export const startTournament = mutation({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -1062,7 +1064,7 @@ export const startTournament = mutation({
     // Optimistic concurrency control: increment version before making changes
     // If another call is racing, Convex OCC will retry one of them
     const newVersion = (tournament.bracketVersion ?? 0) + 1;
-    await ctx.db.patch(args.tournamentId, {
+    await ctx.db.patch("tournaments", args.tournamentId, {
       bracketVersion: newVersion,
     });
 
@@ -1101,7 +1103,7 @@ export const startTournament = mutation({
           }
 
           // Update bracket status to active
-          await ctx.db.patch(bracket._id, { status: "active" });
+          await ctx.db.patch("tournamentBrackets", bracket._id, { status: "active" });
         }
       }
 
@@ -1134,7 +1136,7 @@ export const startTournament = mutation({
     }
 
     // Update tournament status
-    await ctx.db.patch(args.tournamentId, {
+    await ctx.db.patch("tournaments", args.tournamentId, {
       status: "active",
       startDate: Date.now(),
     });
@@ -1181,7 +1183,7 @@ export const generateBlankBracket = mutation({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -1199,7 +1201,7 @@ export const generateBlankBracket = mutation({
     // Optimistic concurrency control: increment version before making changes
     // If another call is racing, Convex OCC will retry one of them
     const newVersion = (tournament.bracketVersion ?? 0) + 1;
-    await ctx.db.patch(args.tournamentId, {
+    await ctx.db.patch("tournaments", args.tournamentId, {
       bracketVersion: newVersion,
     });
 
@@ -1258,13 +1260,13 @@ export const generateBlankBracket = mutation({
       .collect();
 
     for (const match of existingMatches) {
-      await ctx.db.delete(match._id);
+      await ctx.db.delete("matches", match._id);
     }
 
     // Delete participants that are not assigned to a seed
     for (const participant of existingParticipants) {
       if (!assignedParticipantIds.has(participant._id)) {
-        await ctx.db.delete(participant._id);
+        await ctx.db.delete("tournamentParticipants", participant._id);
       }
     }
 
@@ -1275,11 +1277,11 @@ export const generateBlankBracket = mutation({
 
       if (assignedParticipantId) {
         // Update existing participant with the seed and mark as not placeholder
-        await ctx.db.patch(assignedParticipantId, {
+        await ctx.db.patch("tournamentParticipants", assignedParticipantId, {
           seed: i,
           isPlaceholder: false,
         });
-        const participant = await ctx.db.get(assignedParticipantId);
+        const participant = await ctx.db.get("tournamentParticipants", assignedParticipantId);
         if (participant) {
           participants.push(participant);
         }
@@ -1299,7 +1301,7 @@ export const generateBlankBracket = mutation({
           isPlaceholder: true,
         });
 
-        const participant = await ctx.db.get(participantId);
+        const participant = await ctx.db.get("tournamentParticipants", participantId);
         if (participant) {
           participants.push(participant);
         }
@@ -1308,7 +1310,7 @@ export const generateBlankBracket = mutation({
 
     // Update tournament maxParticipants if needed
     if (tournament.maxParticipants < actualSize) {
-      await ctx.db.patch(args.tournamentId, {
+      await ctx.db.patch("tournaments", args.tournamentId, {
         maxParticipants: actualSize,
       });
     }
@@ -1335,7 +1337,7 @@ export const checkAndCompleteTournament = internalMutation({
   args: { tournamentId: v.id("tournaments") },
   returns: v.boolean(),
   handler: async (ctx, args) => {
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       return false;
     }
@@ -1363,7 +1365,7 @@ export const checkAndCompleteTournament = internalMutation({
     }
 
     // Mark tournament as completed
-    await ctx.db.patch(args.tournamentId, {
+    await ctx.db.patch("tournaments", args.tournamentId, {
       status: "completed",
       endDate: Date.now(),
     });
@@ -1389,7 +1391,7 @@ export const cancelTournament = mutation({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -1403,7 +1405,7 @@ export const cancelTournament = mutation({
       throw errors.invalidState("Tournament is already completed or cancelled");
     }
 
-    await ctx.db.patch(args.tournamentId, {
+    await ctx.db.patch("tournaments", args.tournamentId, {
       status: "cancelled",
     });
 

@@ -1,29 +1,27 @@
-import React from 'react';
-import { TextInput, TextInputProps, View, Text } from 'react-native';
+import React from "react";
+import { TextInput, TextInputProps, View, Text } from "react-native";
 
 interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
 }
 
-export function Input({ label, error, className = '', ...props }: InputProps) {
+export function Input({ label, error, className = "", ...props }: InputProps) {
   return (
     <View>
       {label && (
-        <Text className="font-sans-semibold text-sm text-editorial-text-secondary mb-1.5 tracking-wide">
+        <Text className="mb-1.5 font-sans-semibold text-sm tracking-wide text-editorial-text-secondary">
           {label}
         </Text>
       )}
       <TextInput
-        className={`font-sans text-base text-editorial-text-primary bg-white border border-editorial-border rounded-lg px-4 py-3 ${
-          error ? 'border-editorial-error' : 'focus:border-brand'
+        className={`rounded-lg border border-editorial-border bg-white px-4 py-3 font-sans text-base text-editorial-text-primary ${
+          error ? "border-editorial-error" : "focus:border-brand"
         } ${className}`}
         placeholderTextColor="#737373"
         {...props}
       />
-      {error && (
-        <Text className="font-sans text-sm text-editorial-error mt-1">{error}</Text>
-      )}
+      {error && <Text className="mt-1 font-sans text-sm text-editorial-error">{error}</Text>}
     </View>
   );
 }

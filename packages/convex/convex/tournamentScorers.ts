@@ -24,7 +24,7 @@ export const listScorers = query({
       return [];
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       return [];
     }
@@ -41,7 +41,7 @@ export const listScorers = query({
 
     const results = await Promise.all(
       scorers.map(async (scorer) => {
-        const user = await ctx.db.get(scorer.userId);
+        const user = await ctx.db.get("users", scorer.userId);
         return {
           _id: scorer._id,
           userId: scorer.userId,
@@ -72,7 +72,7 @@ export const assignScorer = mutation({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -91,12 +91,16 @@ export const assignScorer = mutation({
 
     if (!targetUser) {
       // Use generic error to prevent email enumeration
-      throw errors.invalidInput("Could not assign scorer. Please verify the email address is correct and the user has created an account.");
+      throw errors.invalidInput(
+        "Could not assign scorer. Please verify the email address is correct and the user has created an account."
+      );
     }
 
     // Cannot assign yourself
     if (targetUser._id === currentUserId) {
-      throw errors.invalidInput("You don't need to assign yourself - you already have full access as the owner");
+      throw errors.invalidInput(
+        "You don't need to assign yourself - you already have full access as the owner"
+      );
     }
 
     // Check if already assigned
@@ -137,7 +141,7 @@ export const assignScorerById = mutation({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -148,14 +152,16 @@ export const assignScorerById = mutation({
     }
 
     // Verify user exists
-    const targetUser = await ctx.db.get(args.userId);
+    const targetUser = await ctx.db.get("users", args.userId);
     if (!targetUser) {
       throw errors.notFound("User");
     }
 
     // Cannot assign yourself
     if (args.userId === currentUserId) {
-      throw errors.invalidInput("You don't need to assign yourself - you already have full access as the owner");
+      throw errors.invalidInput(
+        "You don't need to assign yourself - you already have full access as the owner"
+      );
     }
 
     // Check if already assigned
@@ -196,7 +202,7 @@ export const removeScorer = mutation({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -218,7 +224,7 @@ export const removeScorer = mutation({
       throw errors.notFound("User assignment for this tournament");
     }
 
-    await ctx.db.delete(assignment._id);
+    await ctx.db.delete("tournamentScorers", assignment._id);
     return null;
   },
 });

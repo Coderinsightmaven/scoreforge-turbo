@@ -1,5 +1,5 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { query, mutation, internalMutation } from "./_generated/server";
+import { query, mutation, internalMutation, type MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { errors } from "./lib/errors";
 import { validateStringLength, MAX_LENGTHS } from "./lib/validation";
@@ -116,7 +116,7 @@ function hashPinLegacy(pin: string): string {
   const str = pin + "scoreforge_salt_2024";
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32bit integer
   }
   return Math.abs(hash).toString(36);
@@ -132,15 +132,11 @@ function hashPin(pin: string): string {
 /**
  * Legacy PBKDF2 hash function for backward compatibility
  */
-async function hashPinPbkdf2(pin: string): Promise<string> {
+async function _hashPinPbkdf2(pin: string): Promise<string> {
   const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(pin),
-    { name: "PBKDF2" },
-    false,
-    ["deriveBits"]
-  );
+  const key = await crypto.subtle.importKey("raw", encoder.encode(pin), { name: "PBKDF2" }, false, [
+    "deriveBits",
+  ]);
 
   const salt = new Uint8Array(PIN_SALT_BYTES);
   crypto.getRandomValues(salt);
@@ -160,7 +156,9 @@ async function hashPinPbkdf2(pin: string): Promise<string> {
   return `${PIN_HASH_PREFIX}$${PIN_HASH_ITERATIONS}$${bytesToHex(salt)}$${bytesToHex(hashBytes)}`;
 }
 
-function parsePinHash(hash: string): { iterations: number; salt: Uint8Array; hash: Uint8Array } | null {
+function parsePinHash(
+  hash: string
+): { iterations: number; salt: Uint8Array; hash: Uint8Array } | null {
   if (!hash.startsWith(`${PIN_HASH_PREFIX}$`)) {
     return null;
   }
@@ -193,7 +191,7 @@ function isBcryptHash(hash: string): boolean {
 /**
  * Check if hash is a legacy simple hash (not PBKDF2 or bcrypt)
  */
-function isLegacySimpleHash(hash: string): boolean {
+function _isLegacySimpleHash(hash: string): boolean {
   return !hash.startsWith(`${PIN_HASH_PREFIX}$`) && !isBcryptHash(hash);
 }
 
@@ -255,7 +253,7 @@ async function verifyPin(pin: string, hash: string): Promise<boolean> {
  * Check if an identifier is rate limited for login attempts
  */
 async function checkLoginRateLimit(
-  ctx: { db: any },
+  ctx: MutationCtx,
   identifier: string
 ): Promise<{ allowed: boolean; retryAfter?: number }> {
   const now = Date.now();
@@ -263,7 +261,7 @@ async function checkLoginRateLimit(
 
   const rateLimit = await ctx.db
     .query("loginRateLimits")
-    .withIndex("by_identifier", (q: any) => q.eq("identifier", identifier))
+    .withIndex("by_identifier", (q) => q.eq("identifier", identifier))
     .first();
 
   if (!rateLimit) {
@@ -291,13 +289,13 @@ async function checkLoginRateLimit(
 /**
  * Record a failed login attempt
  */
-async function recordFailedLogin(ctx: { db: any }, identifier: string): Promise<void> {
+async function recordFailedLogin(ctx: MutationCtx, identifier: string): Promise<void> {
   const now = Date.now();
   const windowStart = now - LOGIN_RATE_LIMIT.windowMs;
 
   const rateLimit = await ctx.db
     .query("loginRateLimits")
-    .withIndex("by_identifier", (q: any) => q.eq("identifier", identifier))
+    .withIndex("by_identifier", (q) => q.eq("identifier", identifier))
     .first();
 
   if (!rateLimit) {
@@ -308,7 +306,7 @@ async function recordFailedLogin(ctx: { db: any }, identifier: string): Promise<
     });
   } else if (rateLimit.windowStart < windowStart) {
     // Window expired, reset
-    await ctx.db.patch(rateLimit._id, {
+    await ctx.db.patch("loginRateLimits", rateLimit._id, {
       attemptCount: 1,
       windowStart: now,
       lockedUntil: undefined,
@@ -316,7 +314,7 @@ async function recordFailedLogin(ctx: { db: any }, identifier: string): Promise<
   } else {
     // Increment attempt count
     const newCount = rateLimit.attemptCount + 1;
-    const update: any = {
+    const update: { attemptCount: number; lockedUntil?: number } = {
       attemptCount: newCount,
     };
 
@@ -325,29 +323,29 @@ async function recordFailedLogin(ctx: { db: any }, identifier: string): Promise<
       update.lockedUntil = now + LOGIN_RATE_LIMIT.lockoutMs;
     }
 
-    await ctx.db.patch(rateLimit._id, update);
+    await ctx.db.patch("loginRateLimits", rateLimit._id, update);
   }
 }
 
 /**
  * Clear login rate limit on successful login
  */
-async function clearLoginRateLimit(ctx: { db: any }, identifier: string): Promise<void> {
+async function clearLoginRateLimit(ctx: MutationCtx, identifier: string): Promise<void> {
   const rateLimit = await ctx.db
     .query("loginRateLimits")
-    .withIndex("by_identifier", (q: any) => q.eq("identifier", identifier))
+    .withIndex("by_identifier", (q) => q.eq("identifier", identifier))
     .first();
 
   if (rateLimit) {
-    await ctx.db.delete(rateLimit._id);
+    await ctx.db.delete("loginRateLimits", rateLimit._id);
   }
 }
 
 /**
  * Check rate limit for tournament code lookups
  */
-async function checkCodeLookupRateLimit(
-  ctx: { db: any },
+async function _checkCodeLookupRateLimit(
+  ctx: MutationCtx,
   code: string
 ): Promise<{ allowed: boolean; retryAfter?: number }> {
   const now = Date.now();
@@ -356,7 +354,7 @@ async function checkCodeLookupRateLimit(
 
   const rateLimit = await ctx.db
     .query("loginRateLimits")
-    .withIndex("by_identifier", (q: any) => q.eq("identifier", identifier))
+    .withIndex("by_identifier", (q) => q.eq("identifier", identifier))
     .first();
 
   if (!rateLimit) {
@@ -369,7 +367,10 @@ async function checkCodeLookupRateLimit(
   }
 
   if (rateLimit.attemptCount >= CODE_LOOKUP_RATE_LIMIT.maxAttempts) {
-    return { allowed: false, retryAfter: rateLimit.windowStart + CODE_LOOKUP_RATE_LIMIT.windowMs - now };
+    return {
+      allowed: false,
+      retryAfter: rateLimit.windowStart + CODE_LOOKUP_RATE_LIMIT.windowMs - now,
+    };
   }
 
   return { allowed: true };
@@ -378,14 +379,14 @@ async function checkCodeLookupRateLimit(
 /**
  * Record a code lookup attempt
  */
-async function recordCodeLookup(ctx: { db: any }, code: string): Promise<void> {
+async function _recordCodeLookup(ctx: MutationCtx, code: string): Promise<void> {
   const now = Date.now();
   const windowStart = now - CODE_LOOKUP_RATE_LIMIT.windowMs;
   const identifier = `code_lookup:${code}`;
 
   const rateLimit = await ctx.db
     .query("loginRateLimits")
-    .withIndex("by_identifier", (q: any) => q.eq("identifier", identifier))
+    .withIndex("by_identifier", (q) => q.eq("identifier", identifier))
     .first();
 
   if (!rateLimit) {
@@ -395,12 +396,12 @@ async function recordCodeLookup(ctx: { db: any }, code: string): Promise<void> {
       windowStart: now,
     });
   } else if (rateLimit.windowStart < windowStart) {
-    await ctx.db.patch(rateLimit._id, {
+    await ctx.db.patch("loginRateLimits", rateLimit._id, {
       attemptCount: 1,
       windowStart: now,
     });
   } else {
-    await ctx.db.patch(rateLimit._id, {
+    await ctx.db.patch("loginRateLimits", rateLimit._id, {
       attemptCount: rateLimit.attemptCount + 1,
     });
   }
@@ -465,7 +466,7 @@ export const listTemporaryScorers = query({
       return [];
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       return [];
     }
@@ -503,7 +504,7 @@ export const getScorerCode = query({
       return null;
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       return null;
     }
@@ -549,12 +550,12 @@ export const verifySession = query({
       return null;
     }
 
-    const scorer = await ctx.db.get(session.scorerId);
+    const scorer = await ctx.db.get("temporaryScorers", session.scorerId);
     if (!scorer || !scorer.isActive) {
       return null;
     }
 
-    const tournament = await ctx.db.get(scorer.tournamentId);
+    const tournament = await ctx.db.get("tournaments", scorer.tournamentId);
     if (!tournament) {
       return null;
     }
@@ -586,7 +587,7 @@ export const generateTournamentScorerCode = mutation({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -612,7 +613,7 @@ export const generateTournamentScorerCode = mutation({
       throw errors.internal("Failed to generate unique scorer code. Please try again");
     }
 
-    await ctx.db.patch(args.tournamentId, { scorerCode: code });
+    await ctx.db.patch("tournaments", args.tournamentId, { scorerCode: code });
     return code;
   },
 });
@@ -638,7 +639,7 @@ export const createTemporaryScorer = mutation({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -657,7 +658,9 @@ export const createTemporaryScorer = mutation({
     }
 
     if (!/^[a-z0-9_-]+$/.test(normalizedUsername)) {
-      throw errors.invalidInput("Username can only contain letters, numbers, underscores, and hyphens");
+      throw errors.invalidInput(
+        "Username can only contain letters, numbers, underscores, and hyphens"
+      );
     }
 
     // Check for duplicate username in this tournament
@@ -686,7 +689,7 @@ export const createTemporaryScorer = mutation({
         scorerCode = generateScorerCode();
         attempts++;
       }
-      await ctx.db.patch(args.tournamentId, { scorerCode });
+      await ctx.db.patch("tournaments", args.tournamentId, { scorerCode });
     }
 
     // Generate PIN and hash it
@@ -723,12 +726,12 @@ export const deactivateTemporaryScorer = mutation({
       throw errors.unauthenticated();
     }
 
-    const scorer = await ctx.db.get(args.scorerId);
+    const scorer = await ctx.db.get("temporaryScorers", args.scorerId);
     if (!scorer) {
       throw errors.notFound("Scorer");
     }
 
-    const tournament = await ctx.db.get(scorer.tournamentId);
+    const tournament = await ctx.db.get("tournaments", scorer.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -737,7 +740,7 @@ export const deactivateTemporaryScorer = mutation({
       throw errors.unauthorized("Only the tournament owner can deactivate scorers");
     }
 
-    await ctx.db.patch(args.scorerId, { isActive: false });
+    await ctx.db.patch("temporaryScorers", args.scorerId, { isActive: false });
 
     // Delete all sessions for this scorer
     const sessions = await ctx.db
@@ -746,7 +749,7 @@ export const deactivateTemporaryScorer = mutation({
       .collect();
 
     for (const session of sessions) {
-      await ctx.db.delete(session._id);
+      await ctx.db.delete("temporaryScorerSessions", session._id);
     }
 
     return null;
@@ -765,12 +768,12 @@ export const reactivateTemporaryScorer = mutation({
       throw errors.unauthenticated();
     }
 
-    const scorer = await ctx.db.get(args.scorerId);
+    const scorer = await ctx.db.get("temporaryScorers", args.scorerId);
     if (!scorer) {
       throw errors.notFound("Scorer");
     }
 
-    const tournament = await ctx.db.get(scorer.tournamentId);
+    const tournament = await ctx.db.get("tournaments", scorer.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -779,7 +782,7 @@ export const reactivateTemporaryScorer = mutation({
       throw errors.unauthorized("Only the tournament owner can reactivate scorers");
     }
 
-    await ctx.db.patch(args.scorerId, { isActive: true });
+    await ctx.db.patch("temporaryScorers", args.scorerId, { isActive: true });
     return null;
   },
 });
@@ -797,12 +800,12 @@ export const resetTemporaryScorerPin = mutation({
       throw errors.unauthenticated();
     }
 
-    const scorer = await ctx.db.get(args.scorerId);
+    const scorer = await ctx.db.get("temporaryScorers", args.scorerId);
     if (!scorer) {
       throw errors.notFound("Scorer");
     }
 
-    const tournament = await ctx.db.get(scorer.tournamentId);
+    const tournament = await ctx.db.get("tournaments", scorer.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -815,7 +818,7 @@ export const resetTemporaryScorerPin = mutation({
     const pin = generatePin();
     const pinHash = hashPin(pin);
 
-    await ctx.db.patch(args.scorerId, { pinHash });
+    await ctx.db.patch("temporaryScorers", args.scorerId, { pinHash });
 
     // Invalidate all existing sessions
     const sessions = await ctx.db
@@ -824,7 +827,7 @@ export const resetTemporaryScorerPin = mutation({
       .collect();
 
     for (const session of sessions) {
-      await ctx.db.delete(session._id);
+      await ctx.db.delete("temporaryScorerSessions", session._id);
     }
 
     return pin;
@@ -843,12 +846,12 @@ export const deleteTemporaryScorer = mutation({
       throw errors.unauthenticated();
     }
 
-    const scorer = await ctx.db.get(args.scorerId);
+    const scorer = await ctx.db.get("temporaryScorers", args.scorerId);
     if (!scorer) {
       throw errors.notFound("Scorer");
     }
 
-    const tournament = await ctx.db.get(scorer.tournamentId);
+    const tournament = await ctx.db.get("tournaments", scorer.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -864,10 +867,10 @@ export const deleteTemporaryScorer = mutation({
       .collect();
 
     for (const session of sessions) {
-      await ctx.db.delete(session._id);
+      await ctx.db.delete("temporaryScorerSessions", session._id);
     }
 
-    await ctx.db.delete(args.scorerId);
+    await ctx.db.delete("temporaryScorers", args.scorerId);
     return null;
   },
 });
@@ -954,7 +957,7 @@ export const signIn = mutation({
     // Upgrade hash to bcrypt if needed
     if (needsHashUpgrade(scorer.pinHash)) {
       const upgradedHash = hashPin(args.pin);
-      await ctx.db.patch(scorer._id, { pinHash: upgradedHash });
+      await ctx.db.patch("temporaryScorers", scorer._id, { pinHash: upgradedHash });
     }
 
     // Create session
@@ -993,7 +996,7 @@ export const signOut = mutation({
       .first();
 
     if (session) {
-      await ctx.db.delete(session._id);
+      await ctx.db.delete("temporaryScorerSessions", session._id);
     }
 
     return null;
@@ -1015,7 +1018,7 @@ export const cleanupExpiredSessions = internalMutation({
 
     let deleted = 0;
     for (const session of sessions) {
-      await ctx.db.delete(session._id);
+      await ctx.db.delete("temporaryScorerSessions", session._id);
       deleted++;
     }
 
@@ -1041,7 +1044,7 @@ export const cleanupExpiredRateLimits = internalMutation({
       const lockoutExpired = !record.lockedUntil || now > record.lockedUntil;
 
       if (windowExpired && lockoutExpired) {
-        await ctx.db.delete(record._id);
+        await ctx.db.delete("loginRateLimits", record._id);
         deleted++;
       }
     }
@@ -1071,7 +1074,7 @@ export const cleanupAllExpiredData = internalMutation({
 
     let sessionsDeleted = 0;
     for (const session of sessions) {
-      await ctx.db.delete(session._id);
+      await ctx.db.delete("temporaryScorerSessions", session._id);
       sessionsDeleted++;
     }
 
@@ -1084,7 +1087,7 @@ export const cleanupAllExpiredData = internalMutation({
       const lockoutExpired = !record.lockedUntil || now > record.lockedUntil;
 
       if (windowExpired && lockoutExpired) {
-        await ctx.db.delete(record._id);
+        await ctx.db.delete("loginRateLimits", record._id);
         rateLimitsDeleted++;
       }
     }
@@ -1114,7 +1117,7 @@ export const deactivateAllForTournament = internalMutation({
     for (const scorer of scorers) {
       if (scorer.isActive) {
         // Deactivate the scorer
-        await ctx.db.patch(scorer._id, { isActive: false });
+        await ctx.db.patch("temporaryScorers", scorer._id, { isActive: false });
         deactivated++;
       }
 
@@ -1125,7 +1128,7 @@ export const deactivateAllForTournament = internalMutation({
         .collect();
 
       for (const session of sessions) {
-        await ctx.db.delete(session._id);
+        await ctx.db.delete("temporaryScorerSessions", session._id);
       }
     }
 

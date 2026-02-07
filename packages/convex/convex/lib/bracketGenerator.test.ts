@@ -136,9 +136,7 @@ describe("generateDoubleEliminationBracket", () => {
     const matches = generateDoubleEliminationBracket(ids);
 
     // Winners round 1 matches should have loser routing
-    const winnersRound1 = matches.filter(
-      (m) => m.bracketType === "winners" && m.round === 1
-    );
+    const winnersRound1 = matches.filter((m) => m.bracketType === "winners" && m.round === 1);
 
     for (const match of winnersRound1) {
       expect(match.loserNextMatchSlot).toBeDefined();
@@ -154,9 +152,7 @@ describe("generateDoubleEliminationBracket", () => {
     const grandFinalIndex = matches.indexOf(grandFinal);
 
     // Find matches that point to grand final
-    const feeders = matches.filter(
-      (m) => (m as any)._nextMatchIndex === grandFinalIndex
-    );
+    const feeders = matches.filter((m) => (m as any)._nextMatchIndex === grandFinalIndex);
     expect(feeders).toHaveLength(2);
 
     // One should be from winners, one from losers

@@ -39,9 +39,7 @@ export function validateStringLength(
   maxLength: number
 ): void {
   if (value && value.length > maxLength) {
-    throw errors.invalidInput(
-      `${fieldName} must be ${maxLength} characters or less`
-    );
+    throw errors.invalidInput(`${fieldName} must be ${maxLength} characters or less`);
   }
 }
 
@@ -63,9 +61,7 @@ export function validateStringArrayLength(
 
   for (const value of values) {
     if (value.length > maxItemLength) {
-      throw errors.invalidInput(
-        `Each ${fieldName} must be ${maxItemLength} characters or less`
-      );
+      throw errors.invalidInput(`Each ${fieldName} must be ${maxItemLength} characters or less`);
     }
   }
 }

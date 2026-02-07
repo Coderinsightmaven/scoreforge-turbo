@@ -2,7 +2,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { query, mutation, type MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { tennisState } from "./schema";
-import type { Id, Doc } from "./_generated/dataModel";
+import type { Doc } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 import { errors } from "./lib/errors";
 import { canScoreTournament, getTournamentRole } from "./lib/accessControl";
@@ -36,9 +36,9 @@ async function updateParticipantStats(
   p2Sets: number
 ) {
   if (match.participant1Id) {
-    const p1 = await ctx.db.get(match.participant1Id);
+    const p1 = await ctx.db.get("tournamentParticipants", match.participant1Id);
     if (p1) {
-      await ctx.db.patch(match.participant1Id, {
+      await ctx.db.patch("tournamentParticipants", match.participant1Id, {
         wins: p1.wins + (matchWinner === 1 ? 1 : 0),
         losses: p1.losses + (matchWinner === 2 ? 1 : 0),
         pointsFor: p1.pointsFor + p1Sets,
@@ -47,9 +47,9 @@ async function updateParticipantStats(
     }
   }
   if (match.participant2Id) {
-    const p2 = await ctx.db.get(match.participant2Id);
+    const p2 = await ctx.db.get("tournamentParticipants", match.participant2Id);
     if (p2) {
-      await ctx.db.patch(match.participant2Id, {
+      await ctx.db.patch("tournamentParticipants", match.participant2Id, {
         wins: p2.wins + (matchWinner === 2 ? 1 : 0),
         losses: p2.losses + (matchWinner === 1 ? 1 : 0),
         pointsFor: p2.pointsFor + p2Sets,
@@ -65,26 +65,26 @@ async function advanceBracket(ctx: MutationCtx, match: Doc<"matches">, matchWinn
 
   // Advance winner
   if (winnerId && match.nextMatchId) {
-    const nextMatch = await ctx.db.get(match.nextMatchId);
+    const nextMatch = await ctx.db.get("matches", match.nextMatchId);
     if (nextMatch) {
       const slot = match.nextMatchSlot;
       if (slot === 1) {
-        await ctx.db.patch(match.nextMatchId, { participant1Id: winnerId });
+        await ctx.db.patch("matches", match.nextMatchId, { participant1Id: winnerId });
       } else if (slot === 2) {
-        await ctx.db.patch(match.nextMatchId, { participant2Id: winnerId });
+        await ctx.db.patch("matches", match.nextMatchId, { participant2Id: winnerId });
       }
     }
   }
 
   // Advance loser (double elimination)
   if (loserId && match.loserNextMatchId) {
-    const loserNextMatch = await ctx.db.get(match.loserNextMatchId);
+    const loserNextMatch = await ctx.db.get("matches", match.loserNextMatchId);
     if (loserNextMatch) {
       const loserSlot = match.loserNextMatchSlot;
       if (loserSlot === 1) {
-        await ctx.db.patch(match.loserNextMatchId, { participant1Id: loserId });
+        await ctx.db.patch("matches", match.loserNextMatchId, { participant1Id: loserId });
       } else if (loserSlot === 2) {
-        await ctx.db.patch(match.loserNextMatchId, { participant2Id: loserId });
+        await ctx.db.patch("matches", match.loserNextMatchId, { participant2Id: loserId });
       }
     }
   }
@@ -135,12 +135,12 @@ export const getTennisMatch = query({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
 
-    const match = await ctx.db.get(args.matchId);
+    const match = await ctx.db.get("matches", args.matchId);
     if (!match) {
       return null;
     }
 
-    const tournament = await ctx.db.get(match.tournamentId);
+    const tournament = await ctx.db.get("tournaments", match.tournamentId);
     if (!tournament) {
       return null;
     }
@@ -156,7 +156,7 @@ export const getTennisMatch = query({
     let participant2 = undefined;
 
     if (match.participant1Id) {
-      const p1 = await ctx.db.get(match.participant1Id);
+      const p1 = await ctx.db.get("tournamentParticipants", match.participant1Id);
       if (p1) {
         participant1 = {
           _id: p1._id,
@@ -167,7 +167,7 @@ export const getTennisMatch = query({
     }
 
     if (match.participant2Id) {
-      const p2 = await ctx.db.get(match.participant2Id);
+      const p2 = await ctx.db.get("tournamentParticipants", match.participant2Id);
       if (p2) {
         participant2 = {
           _id: p2._id,
@@ -213,12 +213,12 @@ export const initTennisMatch = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
 
-    const match = await ctx.db.get(args.matchId);
+    const match = await ctx.db.get("matches", args.matchId);
     if (!match) {
       throw errors.notFound("Match");
     }
 
-    const tournament = await ctx.db.get(match.tournamentId);
+    const tournament = await ctx.db.get("tournaments", match.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -267,7 +267,7 @@ export const initTennisMatch = mutation({
       isMatchComplete: false,
     };
 
-    await ctx.db.patch(args.matchId, {
+    await ctx.db.patch("matches", args.matchId, {
       tennisState,
       participant1Score: 0,
       participant2Score: 0,
@@ -285,11 +285,11 @@ export const initTennisMatch = mutation({
       let participant1Name: string | undefined;
       let participant2Name: string | undefined;
       if (match.participant1Id) {
-        const p1 = await ctx.db.get(match.participant1Id);
+        const p1 = await ctx.db.get("tournamentParticipants", match.participant1Id);
         participant1Name = p1?.displayName;
       }
       if (match.participant2Id) {
-        const p2 = await ctx.db.get(match.participant2Id);
+        const p2 = await ctx.db.get("tournamentParticipants", match.participant2Id);
         participant2Name = p2?.displayName;
       }
 
@@ -325,12 +325,12 @@ export const scoreTennisPoint = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
 
-    const match = await ctx.db.get(args.matchId);
+    const match = await ctx.db.get("matches", args.matchId);
     if (!match) {
       throw errors.notFound("Match");
     }
 
-    const tournament = await ctx.db.get(match.tournamentId);
+    const tournament = await ctx.db.get("tournaments", match.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -378,11 +378,11 @@ export const scoreTennisPoint = mutation({
       let participant1Name: string | undefined;
       let participant2Name: string | undefined;
       if (match.participant1Id) {
-        const p1 = await ctx.db.get(match.participant1Id);
+        const p1 = await ctx.db.get("tournamentParticipants", match.participant1Id);
         participant1Name = p1?.displayName;
       }
       if (match.participant2Id) {
-        const p2 = await ctx.db.get(match.participant2Id);
+        const p2 = await ctx.db.get("tournamentParticipants", match.participant2Id);
         participant2Name = p2?.displayName;
       }
 
@@ -402,7 +402,7 @@ export const scoreTennisPoint = mutation({
       });
     };
 
-    let state: TennisState = { ...match.tennisState };
+    const state: TennisState = { ...match.tennisState };
 
     // Save current state to history before making changes
     state.history = addToHistory(state);
@@ -434,7 +434,7 @@ export const scoreTennisPoint = mutation({
           const winnerId = matchWinner === 1 ? match.participant1Id : match.participant2Id;
           const { p1Sets, p2Sets } = countSetsWon(newSets);
 
-          await ctx.db.patch(args.matchId, {
+          await ctx.db.patch("matches", args.matchId, {
             tennisState: state,
             participant1Score: p1Sets,
             participant2Score: p2Sets,
@@ -505,7 +505,7 @@ export const scoreTennisPoint = mutation({
             const winnerId = matchWinner === 1 ? match.participant1Id : match.participant2Id;
             const { p1Sets, p2Sets } = countSetsWon(newSets);
 
-            await ctx.db.patch(args.matchId, {
+            await ctx.db.patch("matches", args.matchId, {
               tennisState: state,
               participant1Score: p1Sets,
               participant2Score: p2Sets,
@@ -514,8 +514,8 @@ export const scoreTennisPoint = mutation({
               completedAt: Date.now(),
             });
 
-            await updateParticipantStats(ctx, match, matchWinner as 1 | 2, p1Sets, p2Sets);
-            await advanceBracket(ctx, match, matchWinner as 1 | 2);
+            await updateParticipantStats(ctx, match, matchWinner, p1Sets, p2Sets);
+            await advanceBracket(ctx, match, matchWinner);
             await logAction(state);
 
             await ctx.runMutation(internal.tournaments.checkAndCompleteTournament, {
@@ -543,7 +543,7 @@ export const scoreTennisPoint = mutation({
     // Update match with new state
     const { p1Sets, p2Sets } = countSetsWon(state.sets);
 
-    await ctx.db.patch(args.matchId, {
+    await ctx.db.patch("matches", args.matchId, {
       tennisState: state,
       participant1Score: p1Sets,
       participant2Score: p2Sets,
@@ -566,12 +566,12 @@ export const undoTennisPoint = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
 
-    const match = await ctx.db.get(args.matchId);
+    const match = await ctx.db.get("matches", args.matchId);
     if (!match) {
       throw errors.notFound("Match");
     }
 
-    const tournament = await ctx.db.get(match.tournamentId);
+    const tournament = await ctx.db.get("tournaments", match.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -613,7 +613,7 @@ export const undoTennisPoint = mutation({
     const p1Sets = restoredState.sets.filter((s) => (s[0] ?? 0) > (s[1] ?? 0)).length;
     const p2Sets = restoredState.sets.filter((s) => (s[1] ?? 0) > (s[0] ?? 0)).length;
 
-    await ctx.db.patch(args.matchId, {
+    await ctx.db.patch("matches", args.matchId, {
       tennisState: restoredState,
       participant1Score: p1Sets,
       participant2Score: p2Sets,
@@ -630,11 +630,11 @@ export const undoTennisPoint = mutation({
       let participant1Name: string | undefined;
       let participant2Name: string | undefined;
       if (match.participant1Id) {
-        const p1 = await ctx.db.get(match.participant1Id);
+        const p1 = await ctx.db.get("tournamentParticipants", match.participant1Id);
         participant1Name = p1?.displayName;
       }
       if (match.participant2Id) {
-        const p2 = await ctx.db.get(match.participant2Id);
+        const p2 = await ctx.db.get("tournamentParticipants", match.participant2Id);
         participant2Name = p2?.displayName;
       }
 
@@ -671,12 +671,12 @@ export const setTennisServer = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
 
-    const match = await ctx.db.get(args.matchId);
+    const match = await ctx.db.get("matches", args.matchId);
     if (!match) {
       throw errors.notFound("Match");
     }
 
-    const tournament = await ctx.db.get(match.tournamentId);
+    const tournament = await ctx.db.get("tournaments", match.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -700,7 +700,7 @@ export const setTennisServer = mutation({
       servingParticipant: args.servingParticipant,
     };
 
-    await ctx.db.patch(args.matchId, {
+    await ctx.db.patch("matches", args.matchId, {
       tennisState: newState,
     });
 
@@ -715,11 +715,11 @@ export const setTennisServer = mutation({
       let participant1Name: string | undefined;
       let participant2Name: string | undefined;
       if (match.participant1Id) {
-        const p1 = await ctx.db.get(match.participant1Id);
+        const p1 = await ctx.db.get("tournamentParticipants", match.participant1Id);
         participant1Name = p1?.displayName;
       }
       if (match.participant2Id) {
-        const p2 = await ctx.db.get(match.participant2Id);
+        const p2 = await ctx.db.get("tournamentParticipants", match.participant2Id);
         participant2Name = p2?.displayName;
       }
 

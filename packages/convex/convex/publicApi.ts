@@ -85,13 +85,21 @@ async function checkRateLimit(
 
   if (!rateLimit) {
     // No rate limit record - this is the first request
-    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - 1, resetAt: now + RATE_LIMIT_WINDOW_MS };
+    return {
+      allowed: true,
+      remaining: MAX_REQUESTS_PER_WINDOW - 1,
+      resetAt: now + RATE_LIMIT_WINDOW_MS,
+    };
   }
 
   // Check if the window has expired
   if (rateLimit.windowStart < windowStart) {
     // Window expired, request is allowed
-    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - 1, resetAt: now + RATE_LIMIT_WINDOW_MS };
+    return {
+      allowed: true,
+      remaining: MAX_REQUESTS_PER_WINDOW - 1,
+      resetAt: now + RATE_LIMIT_WINDOW_MS,
+    };
   }
 
   // Window is still active, check the count
@@ -99,21 +107,18 @@ async function checkRateLimit(
     return {
       allowed: false,
       remaining: 0,
-      resetAt: rateLimit.windowStart + RATE_LIMIT_WINDOW_MS
+      resetAt: rateLimit.windowStart + RATE_LIMIT_WINDOW_MS,
     };
   }
 
   return {
     allowed: true,
     remaining: MAX_REQUESTS_PER_WINDOW - rateLimit.requestCount - 1,
-    resetAt: rateLimit.windowStart + RATE_LIMIT_WINDOW_MS
+    resetAt: rateLimit.windowStart + RATE_LIMIT_WINDOW_MS,
   };
 }
 
-async function trackApiUsage(
-  ctx: { db: any },
-  keyId: Id<"apiKeys">
-): Promise<void> {
+async function trackApiUsage(ctx: { db: any }, keyId: Id<"apiKeys">): Promise<void> {
   const now = Date.now();
   const windowStart = now - RATE_LIMIT_WINDOW_MS;
 
@@ -205,13 +210,13 @@ export const watchMatch = query({
     }
 
     // Get the match
-    const match = await ctx.db.get(matchId);
+    const match = await ctx.db.get("matches", matchId);
     if (!match) {
       return { error: "Match not found" };
     }
 
     // Get the tournament
-    const tournament = await ctx.db.get(match.tournamentId);
+    const tournament = await ctx.db.get("tournaments", match.tournamentId);
     if (!tournament) {
       return { error: "Tournament not found" };
     }
@@ -226,7 +231,7 @@ export const watchMatch = query({
     let participant2 = undefined;
 
     if (match.participant1Id) {
-      const p1 = await ctx.db.get(match.participant1Id);
+      const p1 = await ctx.db.get("tournamentParticipants", match.participant1Id);
       if (p1) {
         participant1 = {
           id: p1._id,
@@ -245,7 +250,7 @@ export const watchMatch = query({
     }
 
     if (match.participant2Id) {
-      const p2 = await ctx.db.get(match.participant2Id);
+      const p2 = await ctx.db.get("tournamentParticipants", match.participant2Id);
       if (p2) {
         participant2 = {
           id: p2._id,
@@ -329,7 +334,9 @@ export const getMatch = mutation({
     // Check rate limit
     const rateLimit = await checkRateLimit(ctx, keyValidation.keyId);
     if (!rateLimit.allowed) {
-      return { error: `Rate limit exceeded. Try again after ${new Date(rateLimit.resetAt).toISOString()}` };
+      return {
+        error: `Rate limit exceeded. Try again after ${new Date(rateLimit.resetAt).toISOString()}`,
+      };
     }
     await trackApiUsage(ctx, keyValidation.keyId);
 
@@ -342,13 +349,13 @@ export const getMatch = mutation({
     }
 
     // Get the match
-    const match = await ctx.db.get(matchId);
+    const match = await ctx.db.get("matches", matchId);
     if (!match) {
       return { error: "Match not found" };
     }
 
     // Get the tournament
-    const tournament = await ctx.db.get(match.tournamentId);
+    const tournament = await ctx.db.get("tournaments", match.tournamentId);
     if (!tournament) {
       return { error: "Tournament not found" };
     }
@@ -363,7 +370,7 @@ export const getMatch = mutation({
     let participant2 = undefined;
 
     if (match.participant1Id) {
-      const p1 = await ctx.db.get(match.participant1Id);
+      const p1 = await ctx.db.get("tournamentParticipants", match.participant1Id);
       if (p1) {
         participant1 = {
           id: p1._id,
@@ -382,7 +389,7 @@ export const getMatch = mutation({
     }
 
     if (match.participant2Id) {
-      const p2 = await ctx.db.get(match.participant2Id);
+      const p2 = await ctx.db.get("tournamentParticipants", match.participant2Id);
       if (p2) {
         participant2 = {
           id: p2._id,
@@ -467,7 +474,9 @@ export const listMatches = mutation({
     // Check rate limit
     const rateLimit = await checkRateLimit(ctx, keyValidation.keyId);
     if (!rateLimit.allowed) {
-      return { error: `Rate limit exceeded. Try again after ${new Date(rateLimit.resetAt).toISOString()}` };
+      return {
+        error: `Rate limit exceeded. Try again after ${new Date(rateLimit.resetAt).toISOString()}`,
+      };
     }
     await trackApiUsage(ctx, keyValidation.keyId);
 
@@ -480,7 +489,7 @@ export const listMatches = mutation({
     }
 
     // Get the tournament
-    const tournament = await ctx.db.get(tournamentId);
+    const tournament = await ctx.db.get("tournaments", tournamentId);
     if (!tournament) {
       return { error: "Tournament not found" };
     }
@@ -534,7 +543,7 @@ export const listMatches = mutation({
       matches = await ctx.db
         .query("matches")
         .withIndex("by_tournament_and_court", (q) =>
-          q.eq("tournamentId", tournamentId).eq("court", args.court!)
+          q.eq("tournamentId", tournamentId).eq("court", args.court)
         )
         .collect();
     } else {
@@ -556,7 +565,7 @@ export const listMatches = mutation({
       if (match.participant2Id) participantIds.add(match.participant2Id);
     }
     const participantDocs = await Promise.all(
-      [...participantIds].map((id) => ctx.db.get(id))
+      [...participantIds].map((id) => ctx.db.get("tournamentParticipants", id))
     );
     const participantMap = new Map(
       participantDocs
@@ -698,7 +707,9 @@ export const listTournaments = mutation({
     // Check rate limit
     const rateLimit = await checkRateLimit(ctx, keyValidation.keyId);
     if (!rateLimit.allowed) {
-      return { error: `Rate limit exceeded. Try again after ${new Date(rateLimit.resetAt).toISOString()}` };
+      return {
+        error: `Rate limit exceeded. Try again after ${new Date(rateLimit.resetAt).toISOString()}`,
+      };
     }
     await trackApiUsage(ctx, keyValidation.keyId);
 
@@ -708,17 +719,13 @@ export const listTournaments = mutation({
       tournaments = await ctx.db
         .query("tournaments")
         .withIndex("by_created_by_and_status", (q) =>
-          q
-            .eq("createdBy", keyValidation.userId)
-            .eq("status", args.status!)
+          q.eq("createdBy", keyValidation.userId).eq("status", args.status!)
         )
         .collect();
     } else {
       tournaments = await ctx.db
         .query("tournaments")
-        .withIndex("by_created_by", (q) =>
-          q.eq("createdBy", keyValidation.userId)
-        )
+        .withIndex("by_created_by", (q) => q.eq("createdBy", keyValidation.userId))
         .collect();
     }
 
@@ -765,11 +772,7 @@ export const listBrackets = mutation({
           name: v.string(),
           description: v.optional(v.string()),
           format: v.optional(tournamentFormats),
-          status: v.union(
-            v.literal("draft"),
-            v.literal("active"),
-            v.literal("completed")
-          ),
+          status: v.union(v.literal("draft"), v.literal("active"), v.literal("completed")),
           displayOrder: v.number(),
           participantCount: v.number(),
           matchCount: v.number(),
@@ -791,7 +794,9 @@ export const listBrackets = mutation({
     // Check rate limit
     const rateLimit = await checkRateLimit(ctx, keyValidation.keyId);
     if (!rateLimit.allowed) {
-      return { error: `Rate limit exceeded. Try again after ${new Date(rateLimit.resetAt).toISOString()}` };
+      return {
+        error: `Rate limit exceeded. Try again after ${new Date(rateLimit.resetAt).toISOString()}`,
+      };
     }
     await trackApiUsage(ctx, keyValidation.keyId);
 
@@ -804,7 +809,7 @@ export const listBrackets = mutation({
     }
 
     // Get the tournament
-    const tournament = await ctx.db.get(tournamentId);
+    const tournament = await ctx.db.get("tournaments", tournamentId);
     if (!tournament) {
       return { error: "Tournament not found" };
     }

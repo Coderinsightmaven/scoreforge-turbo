@@ -1,8 +1,8 @@
-import { useAuthActions } from '@convex-dev/auth/react';
-import { useMutation, useQuery } from 'convex/react';
-import { api } from '@repo/convex';
-import { useState } from 'react';
-import { getDisplayMessage } from '../utils/errors';
+import { useAuthActions } from "@convex-dev/auth/react";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@repo/convex";
+import { useState } from "react";
+import { getDisplayMessage } from "../utils/errors";
 import {
   View,
   Text,
@@ -13,10 +13,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-type LoginType = 'regular' | 'scorer';
+type LoginType = "regular" | "scorer";
 
 interface TempScorerSession {
   token: string;
@@ -34,16 +34,16 @@ interface SignInScreenProps {
 
 export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
   const { signIn } = useAuthActions();
-  const [loginType, setLoginType] = useState<LoginType>('regular');
+  const [loginType, setLoginType] = useState<LoginType>("regular");
 
   // Regular login state
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   // Scorer login state
-  const [tournamentCode, setTournamentCode] = useState('');
-  const [username, setUsername] = useState('');
-  const [pin, setPin] = useState('');
+  const [tournamentCode, setTournamentCode] = useState("");
+  const [username, setUsername] = useState("");
+  const [pin, setPin] = useState("");
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -54,12 +54,12 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
   // Query tournament info by code (for preview)
   const tournamentInfo = useQuery(
     api.temporaryScorers.getTournamentByCode,
-    tournamentCode.length === 6 ? { code: tournamentCode } : 'skip'
+    tournamentCode.length === 6 ? { code: tournamentCode } : "skip"
   );
 
   const handleRegularSubmit = async () => {
     if (!email || !password) {
-      setError('Please fill in all fields');
+      setError("Please fill in all fields");
       return;
     }
 
@@ -67,31 +67,31 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
     setLoading(true);
 
     try {
-      await signIn('password', { email, password, flow: 'signIn' });
+      await signIn("password", { email, password, flow: "signIn" });
     } catch (err) {
-      const message = err instanceof Error ? err.message : '';
+      const message = err instanceof Error ? err.message : "";
       if (
-        message.includes('InvalidSecret') ||
-        message.toLowerCase().includes('invalid') ||
-        message.toLowerCase().includes('incorrect') ||
-        message.toLowerCase().includes('credentials') ||
-        message.toLowerCase().includes('password')
+        message.includes("InvalidSecret") ||
+        message.toLowerCase().includes("invalid") ||
+        message.toLowerCase().includes("incorrect") ||
+        message.toLowerCase().includes("credentials") ||
+        message.toLowerCase().includes("password")
       ) {
-        setError('Invalid email or password. Please try again.');
+        setError("Invalid email or password. Please try again.");
       } else if (
-        message.includes('InvalidAccountId') ||
-        message.toLowerCase().includes('not found') ||
-        message.toLowerCase().includes('no user') ||
-        message.toLowerCase().includes('does not exist')
+        message.includes("InvalidAccountId") ||
+        message.toLowerCase().includes("not found") ||
+        message.toLowerCase().includes("no user") ||
+        message.toLowerCase().includes("does not exist")
       ) {
-        setError('No account found with this email address.');
+        setError("No account found with this email address.");
       } else if (
-        message.toLowerCase().includes('too many') ||
-        message.toLowerCase().includes('rate limit')
+        message.toLowerCase().includes("too many") ||
+        message.toLowerCase().includes("rate limit")
       ) {
-        setError('Too many attempts. Please wait a moment and try again.');
+        setError("Too many attempts. Please wait a moment and try again.");
       } else {
-        setError('Unable to sign in. Please check your credentials and try again.');
+        setError("Unable to sign in. Please check your credentials and try again.");
       }
     } finally {
       setLoading(false);
@@ -100,17 +100,17 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
 
   const handleScorerSubmit = async () => {
     if (!tournamentCode || !username || !pin) {
-      setError('Please fill in all fields');
+      setError("Please fill in all fields");
       return;
     }
 
     if (tournamentCode.length !== 6) {
-      setError('Tournament code must be 6 characters');
+      setError("Tournament code must be 6 characters");
       return;
     }
 
     if (pin.length < 4) {
-      setError('PIN must be at least 4 digits');
+      setError("PIN must be at least 4 digits");
       return;
     }
 
@@ -125,7 +125,7 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
       });
 
       if (!result) {
-        setError('Invalid credentials. Please check your code, username, and PIN.');
+        setError("Invalid credentials. Please check your code, username, and PIN.");
         return;
       }
 
@@ -152,7 +152,7 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
     <View className="flex-1 bg-editorial-page">
       <SafeAreaView className="flex-1">
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           className="flex-1">
           <ScrollView
             contentContainerClassName="flex-grow justify-center px-6 py-8"
@@ -160,16 +160,18 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
             {/* Logo & Branding */}
             <View className="mb-8 items-center">
               <View className="mb-4 h-16 w-16 items-center justify-center rounded-xl bg-brand shadow-lg">
-                <Text className="text-3xl font-display-bold text-white">S</Text>
+                <Text className="font-display-bold text-3xl text-white">S</Text>
               </View>
-              <Text className="font-sans text-sm text-gray-500">Tournament Scoring Made Simple</Text>
+              <Text className="font-sans text-sm text-gray-500">
+                Tournament Scoring Made Simple
+              </Text>
             </View>
 
             {/* Login Type Tabs */}
             <View
               style={{
-                flexDirection: 'row',
-                backgroundColor: '#f3f4f6',
+                flexDirection: "row",
+                backgroundColor: "#f3f4f6",
                 borderRadius: 12,
                 padding: 4,
                 marginBottom: 24,
@@ -177,21 +179,21 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
               <Pressable
                 style={{
                   flex: 1,
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  alignItems: "center",
+                  justifyContent: "center",
                   paddingVertical: 12,
                   borderRadius: 8,
-                  backgroundColor: loginType === 'regular' ? '#ffffff' : 'transparent',
+                  backgroundColor: loginType === "regular" ? "#ffffff" : "transparent",
                 }}
                 onPress={() => {
-                  setLoginType('regular');
+                  setLoginType("regular");
                   setError(null);
                 }}>
                 <Text
                   style={{
                     fontSize: 14,
-                    fontWeight: '600',
-                    color: loginType === 'regular' ? '#111827' : '#6b7280',
+                    fontWeight: "600",
+                    color: loginType === "regular" ? "#111827" : "#6b7280",
                   }}>
                   Account Login
                 </Text>
@@ -199,21 +201,21 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
               <Pressable
                 style={{
                   flex: 1,
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  alignItems: "center",
+                  justifyContent: "center",
                   paddingVertical: 12,
                   borderRadius: 8,
-                  backgroundColor: loginType === 'scorer' ? '#ffffff' : 'transparent',
+                  backgroundColor: loginType === "scorer" ? "#ffffff" : "transparent",
                 }}
                 onPress={() => {
-                  setLoginType('scorer');
+                  setLoginType("scorer");
                   setError(null);
                 }}>
                 <Text
                   style={{
                     fontSize: 14,
-                    fontWeight: '600',
-                    color: loginType === 'scorer' ? '#111827' : '#6b7280',
+                    fontWeight: "600",
+                    color: loginType === "scorer" ? "#111827" : "#6b7280",
                   }}>
                   Scorer Login
                 </Text>
@@ -222,9 +224,9 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
 
             {/* Login Card */}
             <View className="rounded-xl bg-white p-6 shadow-xl">
-              {loginType === 'regular' ? (
+              {loginType === "regular" ? (
                 <>
-                  <Text className="mb-1 text-center text-xl font-display-bold text-gray-900">
+                  <Text className="mb-1 text-center font-display-bold text-xl text-gray-900">
                     Welcome Back
                   </Text>
                   <Text className="mb-6 text-center font-sans text-sm text-gray-500">
@@ -271,7 +273,7 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
 
                     <TouchableOpacity
                       className={`mt-2 w-full items-center rounded-xl py-4 ${
-                        loading ? 'bg-brand' : 'bg-brand'
+                        loading ? "bg-brand" : "bg-brand"
                       }`}
                       onPress={handleRegularSubmit}
                       disabled={loading}
@@ -286,7 +288,7 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
                 </>
               ) : (
                 <>
-                  <Text className="mb-1 text-center text-xl font-display-bold text-gray-900">
+                  <Text className="mb-1 text-center font-display-bold text-xl text-gray-900">
                     Scorer Login
                   </Text>
                   <Text className="mb-6 text-center font-sans text-sm text-gray-500">
@@ -347,7 +349,7 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
                         placeholder="1234"
                         placeholderTextColor="#9ca3af"
                         value={pin}
-                        onChangeText={(text) => setPin(text.replace(/[^0-9]/g, '').slice(0, 6))}
+                        onChangeText={(text) => setPin(text.replace(/[^0-9]/g, "").slice(0, 6))}
                         keyboardType="number-pad"
                         maxLength={6}
                         secureTextEntry
@@ -362,7 +364,7 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
 
                     <TouchableOpacity
                       className={`mt-2 w-full items-center rounded-xl py-4 ${
-                        loading ? 'bg-brand' : 'bg-brand'
+                        loading ? "bg-brand" : "bg-brand"
                       }`}
                       onPress={handleScorerSubmit}
                       disabled={loading}
@@ -381,9 +383,9 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
             {/* Footer */}
             <View className="mt-6 items-center">
               <Text className="text-center font-sans text-xs text-gray-500">
-                {loginType === 'regular'
-                  ? 'Scorer access only. Contact your tournament organizer for credentials.'
-                  : 'Get your code, username, and PIN from the tournament organizer.'}
+                {loginType === "regular"
+                  ? "Scorer access only. Contact your tournament organizer for credentials."
+                  : "Get your code, username, and PIN from the tournament organizer."}
               </Text>
             </View>
           </ScrollView>

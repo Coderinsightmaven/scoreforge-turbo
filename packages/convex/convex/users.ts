@@ -53,7 +53,7 @@ export const updateProfile = mutation({
     }
 
     if (Object.keys(updates).length > 0) {
-      await ctx.db.patch(userId, updates);
+      await ctx.db.patch("users", userId, updates);
     }
 
     return null;
@@ -79,7 +79,7 @@ export const getOnboardingState = query({
       return null;
     }
 
-    const user = await ctx.db.get(userId);
+    const user = await ctx.db.get("users", userId);
     if (!user) {
       return null;
     }
@@ -155,7 +155,7 @@ export const setThemePreference = mutation({
       .first();
 
     if (existing) {
-      await ctx.db.patch(existing._id, {
+      await ctx.db.patch("userPreferences", existing._id, {
         themePreference: args.theme,
         updatedAt: Date.now(),
       });
@@ -189,7 +189,7 @@ export const deleteAccount = mutation({
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
     for (const pref of preferences) {
-      await ctx.db.delete(pref._id);
+      await ctx.db.delete("userPreferences", pref._id);
     }
 
     // 2. Delete user scoring logs settings
@@ -198,7 +198,7 @@ export const deleteAccount = mutation({
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
     for (const setting of scoringLogsSettings) {
-      await ctx.db.delete(setting._id);
+      await ctx.db.delete("userScoringLogs", setting._id);
     }
 
     // 3. Delete API keys
@@ -213,9 +213,9 @@ export const deleteAccount = mutation({
         .withIndex("by_api_key", (q) => q.eq("apiKeyId", key._id))
         .collect();
       for (const limit of rateLimits) {
-        await ctx.db.delete(limit._id);
+        await ctx.db.delete("apiRateLimits", limit._id);
       }
-      await ctx.db.delete(key._id);
+      await ctx.db.delete("apiKeys", key._id);
     }
 
     // 4. Delete scorer assignments
@@ -224,7 +224,7 @@ export const deleteAccount = mutation({
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
     for (const assignment of scorerAssignments) {
-      await ctx.db.delete(assignment._id);
+      await ctx.db.delete("tournamentScorers", assignment._id);
     }
 
     // 5. Delete site admin record if exists
@@ -233,7 +233,7 @@ export const deleteAccount = mutation({
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .first();
     if (siteAdminRecord) {
-      await ctx.db.delete(siteAdminRecord._id);
+      await ctx.db.delete("siteAdmins", siteAdminRecord._id);
     }
 
     // 6. Delete tournaments owned by the user (and all related data)
@@ -249,7 +249,7 @@ export const deleteAccount = mutation({
         .withIndex("by_tournament", (q) => q.eq("tournamentId", tournament._id))
         .collect();
       for (const bracket of brackets) {
-        await ctx.db.delete(bracket._id);
+        await ctx.db.delete("tournamentBrackets", bracket._id);
       }
 
       // Delete tournament participants
@@ -258,7 +258,7 @@ export const deleteAccount = mutation({
         .withIndex("by_tournament", (q) => q.eq("tournamentId", tournament._id))
         .collect();
       for (const participant of participants) {
-        await ctx.db.delete(participant._id);
+        await ctx.db.delete("tournamentParticipants", participant._id);
       }
 
       // Delete matches
@@ -267,7 +267,7 @@ export const deleteAccount = mutation({
         .withIndex("by_tournament", (q) => q.eq("tournamentId", tournament._id))
         .collect();
       for (const match of matches) {
-        await ctx.db.delete(match._id);
+        await ctx.db.delete("matches", match._id);
       }
 
       // Delete scoring input logs
@@ -276,7 +276,7 @@ export const deleteAccount = mutation({
         .withIndex("by_tournament", (q) => q.eq("tournamentId", tournament._id))
         .collect();
       for (const log of scoringLogs) {
-        await ctx.db.delete(log._id);
+        await ctx.db.delete("scoringInputLogs", log._id);
       }
 
       // Delete tournament scorers for this tournament
@@ -285,11 +285,11 @@ export const deleteAccount = mutation({
         .withIndex("by_tournament", (q) => q.eq("tournamentId", tournament._id))
         .collect();
       for (const scorer of tournamentScorers) {
-        await ctx.db.delete(scorer._id);
+        await ctx.db.delete("tournamentScorers", scorer._id);
       }
 
       // Delete the tournament
-      await ctx.db.delete(tournament._id);
+      await ctx.db.delete("tournaments", tournament._id);
     }
 
     // 7. Delete auth-related records
@@ -299,7 +299,7 @@ export const deleteAccount = mutation({
       .withIndex("userId", (q) => q.eq("userId", userId))
       .collect();
     for (const session of authSessions) {
-      await ctx.db.delete(session._id);
+      await ctx.db.delete("authSessions", session._id);
     }
 
     // Delete from authAccounts
@@ -308,11 +308,11 @@ export const deleteAccount = mutation({
       .withIndex("userIdAndProvider", (q) => q.eq("userId", userId))
       .collect();
     for (const account of authAccounts) {
-      await ctx.db.delete(account._id);
+      await ctx.db.delete("authAccounts", account._id);
     }
 
     // 8. Finally, delete the user record
-    await ctx.db.delete(userId);
+    await ctx.db.delete("users", userId);
 
     return null;
   },

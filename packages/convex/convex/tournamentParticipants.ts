@@ -2,7 +2,6 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { participantTypes } from "./schema";
-import type { Id, Doc } from "./_generated/dataModel";
 import { errors } from "./lib/errors";
 import { validateStringLength, MAX_LENGTHS } from "./lib/validation";
 import { canManageTournament, canViewTournament } from "./lib/accessControl";
@@ -20,22 +19,24 @@ function capitalizeProperName(name: string): string {
     .trim()
     .toLowerCase()
     .split(/\s+/)
-    .map(word => {
+    .map((word) => {
       // Handle hyphenated names (e.g., "mary-jane" -> "Mary-Jane")
-      if (word.includes('-')) {
-        return word.split('-').map(part =>
-          part.charAt(0).toUpperCase() + part.slice(1)
-        ).join('-');
+      if (word.includes("-")) {
+        return word
+          .split("-")
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join("-");
       }
       // Handle apostrophe names (e.g., "o'brien" -> "O'Brien")
       if (word.includes("'")) {
-        return word.split("'").map(part =>
-          part.charAt(0).toUpperCase() + part.slice(1)
-        ).join("'");
+        return word
+          .split("'")
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join("'");
       }
       return word.charAt(0).toUpperCase() + word.slice(1);
     })
-    .join(' ');
+    .join(" ");
 }
 
 /**
@@ -96,7 +97,7 @@ export const listParticipants = query({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -184,12 +185,12 @@ export const getParticipant = query({
       return null;
     }
 
-    const participant = await ctx.db.get(args.participantId);
+    const participant = await ctx.db.get("tournamentParticipants", args.participantId);
     if (!participant) {
       return null;
     }
 
-    const tournament = await ctx.db.get(participant.tournamentId);
+    const tournament = await ctx.db.get("tournaments", participant.tournamentId);
     if (!tournament) {
       return null;
     }
@@ -250,13 +251,13 @@ export const addParticipant = mutation({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
 
     // Only owner can add participants
-    const canManage = await canManageTournament(tournament, authUserId);
+    const canManage = canManageTournament(tournament, authUserId);
     if (!canManage) {
       throw errors.unauthorized("Only the tournament owner can add participants");
     }
@@ -267,7 +268,7 @@ export const addParticipant = mutation({
     }
 
     // Verify the bracket exists and belongs to this tournament
-    const bracket = await ctx.db.get(args.bracketId);
+    const bracket = await ctx.db.get("tournamentBrackets", args.bracketId);
     if (!bracket) {
       throw errors.notFound("Bracket");
     }
@@ -300,7 +301,7 @@ export const addParticipant = mutation({
 
     // Validate and generate displayName based on participant type
     let displayName: string;
-    let participantData: {
+    const participantData: {
       playerName?: string;
       player1Name?: string;
       player2Name?: string;
@@ -316,7 +317,7 @@ export const addParticipant = mutation({
         participantData.playerName = displayName;
         break;
 
-      case "doubles":
+      case "doubles": {
         if (!args.player1Name?.trim() || !args.player2Name?.trim()) {
           throw errors.invalidInput("Both player names are required for doubles tournaments");
         }
@@ -326,6 +327,7 @@ export const addParticipant = mutation({
         participantData.player1Name = p1;
         participantData.player2Name = p2;
         break;
+      }
 
       case "team":
         if (!args.teamName?.trim()) {
@@ -379,18 +381,18 @@ export const updateParticipant = mutation({
       throw errors.unauthenticated();
     }
 
-    const participant = await ctx.db.get(args.participantId);
+    const participant = await ctx.db.get("tournamentParticipants", args.participantId);
     if (!participant) {
       throw errors.notFound("Participant");
     }
 
-    const tournament = await ctx.db.get(participant.tournamentId);
+    const tournament = await ctx.db.get("tournaments", participant.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
 
     // Only owner can update participants
-    const canManage = await canManageTournament(tournament, userId);
+    const canManage = canManageTournament(tournament, userId);
     if (!canManage) {
       throw errors.unauthorized();
     }
@@ -423,15 +425,20 @@ export const updateParticipant = mutation({
         }
         break;
 
-      case "doubles":
-        const updatedP1 = args.player1Name?.trim() ? capitalizeProperName(args.player1Name) : participant.player1Name;
-        const updatedP2 = args.player2Name?.trim() ? capitalizeProperName(args.player2Name) : participant.player2Name;
+      case "doubles": {
+        const updatedP1 = args.player1Name?.trim()
+          ? capitalizeProperName(args.player1Name)
+          : participant.player1Name;
+        const updatedP2 = args.player2Name?.trim()
+          ? capitalizeProperName(args.player2Name)
+          : participant.player2Name;
         if (args.player1Name !== undefined || args.player2Name !== undefined) {
           updates.player1Name = updatedP1;
           updates.player2Name = updatedP2;
           updates.displayName = formatDoublesDisplayName(updatedP1 ?? "", updatedP2 ?? "");
         }
         break;
+      }
 
       case "team":
         if (args.teamName?.trim()) {
@@ -442,7 +449,7 @@ export const updateParticipant = mutation({
     }
 
     if (Object.keys(updates).length > 0) {
-      await ctx.db.patch(args.participantId, updates);
+      await ctx.db.patch("tournamentParticipants", args.participantId, updates);
     }
 
     return null;
@@ -461,18 +468,18 @@ export const removeParticipant = mutation({
       throw errors.unauthenticated();
     }
 
-    const participant = await ctx.db.get(args.participantId);
+    const participant = await ctx.db.get("tournamentParticipants", args.participantId);
     if (!participant) {
       throw errors.notFound("Participant");
     }
 
-    const tournament = await ctx.db.get(participant.tournamentId);
+    const tournament = await ctx.db.get("tournaments", participant.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
 
     // Only owner can remove participants
-    const canManage = await canManageTournament(tournament, userId);
+    const canManage = canManageTournament(tournament, userId);
     if (!canManage) {
       throw errors.unauthorized("Only the tournament owner can remove participants");
     }
@@ -482,7 +489,7 @@ export const removeParticipant = mutation({
       throw errors.invalidState("Cannot remove participants after tournament has started");
     }
 
-    await ctx.db.delete(args.participantId);
+    await ctx.db.delete("tournamentParticipants", args.participantId);
     return null;
   },
 });
@@ -502,18 +509,18 @@ export const updateSeeding = mutation({
       throw errors.unauthenticated();
     }
 
-    const participant = await ctx.db.get(args.participantId);
+    const participant = await ctx.db.get("tournamentParticipants", args.participantId);
     if (!participant) {
       throw errors.notFound("Participant");
     }
 
-    const tournament = await ctx.db.get(participant.tournamentId);
+    const tournament = await ctx.db.get("tournaments", participant.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
 
     // Only owner can update seeding
-    const canManage = await canManageTournament(tournament, userId);
+    const canManage = canManageTournament(tournament, userId);
     if (!canManage) {
       throw errors.unauthorized();
     }
@@ -523,7 +530,7 @@ export const updateSeeding = mutation({
       throw errors.invalidState("Cannot update seeding after tournament has started");
     }
 
-    await ctx.db.patch(args.participantId, { seed: args.seed });
+    await ctx.db.patch("tournamentParticipants", args.participantId, { seed: args.seed });
     return null;
   },
 });
@@ -548,13 +555,13 @@ export const updateSeedingBatch = mutation({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
 
     // Only owner can update seeding
-    const canManage = await canManageTournament(tournament, userId);
+    const canManage = canManageTournament(tournament, userId);
     if (!canManage) {
       throw errors.unauthorized();
     }
@@ -566,9 +573,9 @@ export const updateSeedingBatch = mutation({
 
     // Update all seedings
     for (const { participantId, seed } of args.seedings) {
-      const participant = await ctx.db.get(participantId);
+      const participant = await ctx.db.get("tournamentParticipants", participantId);
       if (participant && participant.tournamentId === args.tournamentId) {
-        await ctx.db.patch(participantId, { seed });
+        await ctx.db.patch("tournamentParticipants", participantId, { seed });
       }
     }
 
@@ -599,18 +606,18 @@ export const updatePlaceholderName = mutation({
       throw errors.unauthenticated();
     }
 
-    const participant = await ctx.db.get(args.participantId);
+    const participant = await ctx.db.get("tournamentParticipants", args.participantId);
     if (!participant) {
       throw errors.notFound("Participant");
     }
 
-    const tournament = await ctx.db.get(participant.tournamentId);
+    const tournament = await ctx.db.get("tournaments", participant.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
 
     // Only owner can update placeholder names
-    const canManage = await canManageTournament(tournament, userId);
+    const canManage = canManageTournament(tournament, userId);
     if (!canManage) {
       throw errors.unauthorized();
     }
@@ -663,7 +670,7 @@ export const updatePlaceholderName = mutation({
         break;
     }
 
-    await ctx.db.patch(args.participantId, updates);
+    await ctx.db.patch("tournamentParticipants", args.participantId, updates);
     return null;
   },
 });

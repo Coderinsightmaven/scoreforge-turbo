@@ -1,11 +1,6 @@
 import { httpRouter } from "convex/server";
 import { auth } from "./auth";
-import {
-  getMatch,
-  listMatches,
-  listTournaments,
-  listBrackets,
-} from "./httpApi";
+import { getMatch, listMatches, listTournaments, listBrackets } from "./httpApi";
 
 const http = httpRouter();
 

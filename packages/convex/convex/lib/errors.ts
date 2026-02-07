@@ -17,7 +17,10 @@ export type ErrorCode =
 /**
  * Create a ConvexError with standardized structure
  */
-export function appError(code: ErrorCode, message: string): ConvexError<{ code: string; message: string }> {
+export function appError(
+  code: ErrorCode,
+  message: string
+): ConvexError<{ code: string; message: string }> {
   return new ConvexError({ code, message });
 }
 

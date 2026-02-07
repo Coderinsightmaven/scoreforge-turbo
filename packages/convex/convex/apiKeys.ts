@@ -171,7 +171,7 @@ export const revokeApiKey = mutation({
       throw errors.unauthenticated();
     }
 
-    const apiKey = await ctx.db.get(args.keyId);
+    const apiKey = await ctx.db.get("apiKeys", args.keyId);
     if (!apiKey) {
       throw errors.notFound("API key");
     }
@@ -181,7 +181,7 @@ export const revokeApiKey = mutation({
       throw errors.unauthorized("You can only revoke your own API keys");
     }
 
-    await ctx.db.patch(args.keyId, {
+    await ctx.db.patch("apiKeys", args.keyId, {
       isActive: false,
     });
 
@@ -201,7 +201,7 @@ export const deleteApiKey = mutation({
       throw errors.unauthenticated();
     }
 
-    const apiKey = await ctx.db.get(args.keyId);
+    const apiKey = await ctx.db.get("apiKeys", args.keyId);
     if (!apiKey) {
       throw errors.notFound("API key");
     }
@@ -211,7 +211,7 @@ export const deleteApiKey = mutation({
       throw errors.unauthorized("You can only delete your own API keys");
     }
 
-    await ctx.db.delete(args.keyId);
+    await ctx.db.delete("apiKeys", args.keyId);
 
     return null;
   },

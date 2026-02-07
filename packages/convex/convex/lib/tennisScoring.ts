@@ -28,7 +28,7 @@ export type TennisState = {
  */
 export function createSnapshot(state: TennisState): TennisStateSnapshot {
   return {
-    sets: state.sets.map(s => [...s]),
+    sets: state.sets.map((s) => [...s]),
     currentSetGames: [...state.currentSetGames],
     currentGamePoints: [...state.currentGamePoints],
     servingParticipant: state.servingParticipant,
@@ -228,7 +228,7 @@ export function getNextServer(state: TennisState, isTiebreakPoint: boolean = fal
     const pointsSinceFirst = totalPoints - 1;
     const serverChanges = Math.floor(pointsSinceFirst / 2) + 1;
     const startServer = state.firstServerOfSet;
-    return serverChanges % 2 === 0 ? startServer : (startServer === 1 ? 2 : 1);
+    return serverChanges % 2 === 0 ? startServer : startServer === 1 ? 2 : 1;
   }
 
   // Regular game: alternate from previous server

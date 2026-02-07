@@ -6,10 +6,7 @@ import type { Id, Doc } from "../_generated/dataModel";
  * Only the creator can manage their tournaments.
  * Pure check — no database access needed.
  */
-export function canManageTournament(
-  tournament: Doc<"tournaments">,
-  userId: Id<"users">
-): boolean {
+export function canManageTournament(tournament: Doc<"tournaments">, userId: Id<"users">): boolean {
   return tournament.createdBy === userId;
 }
 
@@ -49,7 +46,7 @@ export async function canScoreTournament(
       .first();
 
     if (session && session.expiresAt > Date.now()) {
-      const tempScorer = await ctx.db.get(session.scorerId);
+      const tempScorer = await ctx.db.get("temporaryScorers", session.scorerId);
       if (tempScorer && tempScorer.isActive && tempScorer.tournamentId === tournament._id) {
         return true;
       }
@@ -85,7 +82,7 @@ export async function getTournamentRole(
       .first();
 
     if (session && session.expiresAt > Date.now()) {
-      const tempScorer = await ctx.db.get(session.scorerId);
+      const tempScorer = await ctx.db.get("temporaryScorers", session.scorerId);
       if (tempScorer && tempScorer.isActive && tempScorer.tournamentId === tournament._id) {
         return "temp_scorer";
       }

@@ -100,7 +100,7 @@ export const getTournamentLogs = query({
       throw errors.unauthenticated();
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -128,11 +128,11 @@ export const getTournamentLogs = query({
     }
 
     // Get actor names (filter out undefined actorIds for temp scorers)
-    const actorIds = [...new Set(logs.map((l) => l.actorId).filter((id): id is Id<"users"> => id !== undefined))];
-    const actors = await Promise.all(actorIds.map((id) => ctx.db.get(id)));
-    const actorMap = new Map(
-      actors.filter(Boolean).map((a) => [a!._id, a!.name || a!.email])
-    );
+    const actorIds = [
+      ...new Set(logs.map((l) => l.actorId).filter((id): id is Id<"users"> => id !== undefined)),
+    ];
+    const actors = await Promise.all(actorIds.map((id) => ctx.db.get("users", id)));
+    const actorMap = new Map(actors.filter(Boolean).map((a) => [a!._id, a!.name || a!.email]));
 
     return logs.map((log) => ({
       _id: log._id,
@@ -172,7 +172,7 @@ export const hasScoringLogs = query({
       return { enabled: false, logCount: 0 };
     }
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       return { enabled: false, logCount: 0 };
     }
@@ -197,9 +197,7 @@ export const hasScoringLogs = query({
     // Count logs
     const logs = await ctx.db
       .query("scoringInputLogs")
-      .withIndex("by_tournament", (q: any) =>
-        q.eq("tournamentId", args.tournamentId)
-      )
+      .withIndex("by_tournament", (q: any) => q.eq("tournamentId", args.tournamentId))
       .collect();
 
     return {
@@ -385,10 +383,7 @@ export const generateScoringLogsCSV = action({
 
     // Build CSV rows
     const rows: string[][] = logs.map((log: ScoringLog) => {
-      const timestamp = new Date(log.timestamp)
-        .toISOString()
-        .replace("T", " ")
-        .slice(0, 19);
+      const timestamp = new Date(log.timestamp).toISOString().replace("T", " ").slice(0, 19);
 
       return [
         timestamp,
@@ -405,10 +400,7 @@ export const generateScoringLogsCSV = action({
     });
 
     // Combine into CSV string
-    const csv: string = [
-      headers.join(","),
-      ...rows.map((r: string[]) => r.join(",")),
-    ].join("\n");
+    const csv: string = [headers.join(","), ...rows.map((r: string[]) => r.join(","))].join("\n");
 
     // Generate filename
     const tournamentName: string = tournament?.name || "tournament";

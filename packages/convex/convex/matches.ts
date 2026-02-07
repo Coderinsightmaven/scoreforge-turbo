@@ -60,7 +60,7 @@ export const listMatches = query({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
 
-    const tournament = await ctx.db.get(args.tournamentId);
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
       // Return empty array if tournament doesn't exist (e.g., deleted)
       return [];
@@ -132,7 +132,7 @@ export const listMatches = query({
     }
 
     const participantDocs = await Promise.all(
-      [...participantIds].map((id) => ctx.db.get(id))
+      [...participantIds].map((id) => ctx.db.get("tournamentParticipants", id))
     );
     const participantMap = new Map<string, Doc<"tournamentParticipants">>();
     for (const doc of participantDocs) {
@@ -241,11 +241,7 @@ export const getMatch = query({
       startedAt: v.optional(v.number()),
       completedAt: v.optional(v.number()),
       nextMatchId: v.optional(v.id("matches")),
-      myRole: v.union(
-        v.literal("owner"),
-        v.literal("scorer"),
-        v.literal("temp_scorer")
-      ),
+      myRole: v.union(v.literal("owner"), v.literal("scorer"), v.literal("temp_scorer")),
       sport: v.string(),
       tournamentStatus: v.union(
         v.literal("draft"),
@@ -262,12 +258,12 @@ export const getMatch = query({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
 
-    const match = await ctx.db.get(args.matchId);
+    const match = await ctx.db.get("matches", args.matchId);
     if (!match) {
       return null;
     }
 
-    const tournament = await ctx.db.get(match.tournamentId);
+    const tournament = await ctx.db.get("tournaments", match.tournamentId);
     if (!tournament) {
       return null;
     }
@@ -283,7 +279,7 @@ export const getMatch = query({
     let participant2 = undefined;
 
     if (match.participant1Id) {
-      const p1 = await ctx.db.get(match.participant1Id);
+      const p1 = await ctx.db.get("tournamentParticipants", match.participant1Id);
       if (p1) {
         participant1 = {
           _id: p1._id,
@@ -296,7 +292,7 @@ export const getMatch = query({
     }
 
     if (match.participant2Id) {
-      const p2 = await ctx.db.get(match.participant2Id);
+      const p2 = await ctx.db.get("tournamentParticipants", match.participant2Id);
       if (p2) {
         participant2 = {
           _id: p2._id,
@@ -384,7 +380,9 @@ export const listMyLiveMatches = query({
       .withIndex("by_user", (q: any) => q.eq("userId", userId))
       .collect();
 
-    const assignedTournamentIds = new Set(scorerAssignments.map((a: Doc<"tournamentScorers">) => a.tournamentId));
+    const _assignedTournamentIds = new Set(
+      scorerAssignments.map((a: Doc<"tournamentScorers">) => a.tournamentId)
+    );
 
     // Get tournaments the user owns that are active
     const ownedTournaments = await ctx.db
@@ -394,12 +392,11 @@ export const listMyLiveMatches = query({
       )
       .collect();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const results: any[] = [];
     const processedTournamentIds = new Set<string>();
 
     // Helper function to get live matches from a tournament
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const getLiveMatchesFromTournament = async (tournament: any) => {
       const liveMatches = await ctx.db
         .query("matches")
@@ -414,7 +411,7 @@ export const listMyLiveMatches = query({
         let bracketName = undefined;
 
         if (match.participant1Id) {
-          const p1 = await ctx.db.get(match.participant1Id);
+          const p1 = await ctx.db.get("tournamentParticipants", match.participant1Id);
           if (p1) {
             participant1 = {
               _id: p1._id,
@@ -424,7 +421,7 @@ export const listMyLiveMatches = query({
         }
 
         if (match.participant2Id) {
-          const p2 = await ctx.db.get(match.participant2Id);
+          const p2 = await ctx.db.get("tournamentParticipants", match.participant2Id);
           if (p2) {
             participant2 = {
               _id: p2._id,
@@ -435,7 +432,7 @@ export const listMyLiveMatches = query({
 
         // Get bracket name if match belongs to a bracket
         if (match.bracketId) {
-          const bracket = await ctx.db.get(match.bracketId);
+          const bracket = await ctx.db.get("tournamentBrackets", match.bracketId);
           if (bracket) {
             bracketName = bracket.name;
           }
@@ -473,7 +470,7 @@ export const listMyLiveMatches = query({
     for (const assignment of scorerAssignments) {
       if (processedTournamentIds.has(assignment.tournamentId)) continue;
 
-      const tournament = await ctx.db.get(assignment.tournamentId);
+      const tournament = await ctx.db.get("tournaments", assignment.tournamentId);
       if (!tournament || tournament.status !== "active") continue;
 
       await getLiveMatchesFromTournament(tournament);
@@ -507,12 +504,12 @@ export const updateScore = mutation({
       throw errors.unauthenticated();
     }
 
-    const match = await ctx.db.get(args.matchId);
+    const match = await ctx.db.get("matches", args.matchId);
     if (!match) {
       throw errors.notFound("Match");
     }
 
-    const tournament = await ctx.db.get(match.tournamentId);
+    const tournament = await ctx.db.get("tournaments", match.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -541,7 +538,7 @@ export const updateScore = mutation({
       throw errors.invalidState("Cannot update score for this match");
     }
 
-    await ctx.db.patch(args.matchId, {
+    await ctx.db.patch("matches", args.matchId, {
       participant1Score: args.participant1Score,
       participant2Score: args.participant2Score,
     });
@@ -562,12 +559,12 @@ export const startMatch = mutation({
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
 
-    const match = await ctx.db.get(args.matchId);
+    const match = await ctx.db.get("matches", args.matchId);
     if (!match) {
       throw errors.notFound("Match");
     }
 
-    const tournament = await ctx.db.get(match.tournamentId);
+    const tournament = await ctx.db.get("tournaments", match.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -593,7 +590,7 @@ export const startMatch = mutation({
       throw errors.invalidState("Both participants must be assigned before starting");
     }
 
-    await ctx.db.patch(args.matchId, {
+    await ctx.db.patch("matches", args.matchId, {
       status: "live",
       startedAt: Date.now(),
     });
@@ -617,12 +614,12 @@ export const completeMatch = mutation({
       throw errors.unauthenticated();
     }
 
-    const match = await ctx.db.get(args.matchId);
+    const match = await ctx.db.get("matches", args.matchId);
     if (!match) {
       throw errors.notFound("Match");
     }
 
-    const tournament = await ctx.db.get(match.tournamentId);
+    const tournament = await ctx.db.get("tournaments", match.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -653,14 +650,11 @@ export const completeMatch = mutation({
         throw errors.invalidInput("Cannot complete match with tied score in elimination format");
       }
     } else {
-      loserId =
-        winnerId === match.participant1Id
-          ? match.participant2Id
-          : match.participant1Id;
+      loserId = winnerId === match.participant1Id ? match.participant2Id : match.participant1Id;
     }
 
     // Update match
-    await ctx.db.patch(args.matchId, {
+    await ctx.db.patch("matches", args.matchId, {
       status: "completed",
       winnerId,
       completedAt: Date.now(),
@@ -668,11 +662,11 @@ export const completeMatch = mutation({
 
     // Update participant stats
     if (match.participant1Id) {
-      const p1 = await ctx.db.get(match.participant1Id);
+      const p1 = await ctx.db.get("tournamentParticipants", match.participant1Id);
       if (p1) {
         const isWinner = winnerId === match.participant1Id;
         const isDraw = !winnerId;
-        await ctx.db.patch(match.participant1Id, {
+        await ctx.db.patch("tournamentParticipants", match.participant1Id, {
           wins: p1.wins + (isWinner ? 1 : 0),
           losses: p1.losses + (!isWinner && !isDraw ? 1 : 0),
           draws: p1.draws + (isDraw ? 1 : 0),
@@ -683,11 +677,11 @@ export const completeMatch = mutation({
     }
 
     if (match.participant2Id) {
-      const p2 = await ctx.db.get(match.participant2Id);
+      const p2 = await ctx.db.get("tournamentParticipants", match.participant2Id);
       if (p2) {
         const isWinner = winnerId === match.participant2Id;
         const isDraw = !winnerId;
-        await ctx.db.patch(match.participant2Id, {
+        await ctx.db.patch("tournamentParticipants", match.participant2Id, {
           wins: p2.wins + (isWinner ? 1 : 0),
           losses: p2.losses + (!isWinner && !isDraw ? 1 : 0),
           draws: p2.draws + (isDraw ? 1 : 0),
@@ -699,15 +693,15 @@ export const completeMatch = mutation({
 
     // Advance winner to next match (for elimination brackets)
     if (winnerId && match.nextMatchId) {
-      const nextMatch = await ctx.db.get(match.nextMatchId);
+      const nextMatch = await ctx.db.get("matches", match.nextMatchId);
       if (nextMatch) {
         const slot = match.nextMatchSlot;
         if (slot === 1) {
-          await ctx.db.patch(match.nextMatchId, {
+          await ctx.db.patch("matches", match.nextMatchId, {
             participant1Id: winnerId,
           });
         } else if (slot === 2) {
-          await ctx.db.patch(match.nextMatchId, {
+          await ctx.db.patch("matches", match.nextMatchId, {
             participant2Id: winnerId,
           });
         }
@@ -716,15 +710,15 @@ export const completeMatch = mutation({
 
     // Send loser to losers bracket (for double elimination)
     if (loserId && match.loserNextMatchId) {
-      const loserNextMatch = await ctx.db.get(match.loserNextMatchId);
+      const loserNextMatch = await ctx.db.get("matches", match.loserNextMatchId);
       if (loserNextMatch) {
         const slot = match.loserNextMatchSlot;
         if (slot === 1) {
-          await ctx.db.patch(match.loserNextMatchId, {
+          await ctx.db.patch("matches", match.loserNextMatchId, {
             participant1Id: loserId,
           });
         } else if (slot === 2) {
-          await ctx.db.patch(match.loserNextMatchId, {
+          await ctx.db.patch("matches", match.loserNextMatchId, {
             participant2Id: loserId,
           });
         }
@@ -748,7 +742,7 @@ export const completeMatch = mutation({
 
     if (!remainingMatches && !liveMatches) {
       // All matches completed
-      await ctx.db.patch(match.tournamentId, {
+      await ctx.db.patch("tournaments", match.tournamentId, {
         status: "completed",
         endDate: Date.now(),
       });
@@ -779,12 +773,12 @@ export const scheduleMatch = mutation({
       throw errors.unauthenticated();
     }
 
-    const match = await ctx.db.get(args.matchId);
+    const match = await ctx.db.get("matches", args.matchId);
     if (!match) {
       throw errors.notFound("Match");
     }
 
-    const tournament = await ctx.db.get(match.tournamentId);
+    const tournament = await ctx.db.get("tournaments", match.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -799,7 +793,7 @@ export const scheduleMatch = mutation({
       throw errors.invalidState("Match cannot be scheduled");
     }
 
-    await ctx.db.patch(args.matchId, {
+    await ctx.db.patch("matches", args.matchId, {
       status: "scheduled",
       scheduledTime: args.scheduledTime,
       court: args.court,
@@ -824,12 +818,12 @@ export const updateMatchCourt = mutation({
       throw errors.unauthenticated();
     }
 
-    const match = await ctx.db.get(args.matchId);
+    const match = await ctx.db.get("matches", args.matchId);
     if (!match) {
       throw errors.notFound("Match");
     }
 
-    const tournament = await ctx.db.get(match.tournamentId);
+    const tournament = await ctx.db.get("tournaments", match.tournamentId);
     if (!tournament) {
       throw errors.notFound("Tournament");
     }
@@ -844,7 +838,7 @@ export const updateMatchCourt = mutation({
       throw errors.invalidState("Cannot update court for this match");
     }
 
-    await ctx.db.patch(args.matchId, {
+    await ctx.db.patch("matches", args.matchId, {
       court: args.court,
     });
 

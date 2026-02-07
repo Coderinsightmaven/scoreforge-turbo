@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext } from "react";
 
 // Temp scorer session type
 export interface TempScorerSession {
@@ -23,7 +23,7 @@ export const TempScorerContext = createContext<TempScorerContextType | null>(nul
 export function useTempScorer() {
   const context = useContext(TempScorerContext);
   if (!context) {
-    throw new Error('useTempScorer must be used within TempScorerProvider');
+    throw new Error("useTempScorer must be used within TempScorerProvider");
   }
   return context;
 }

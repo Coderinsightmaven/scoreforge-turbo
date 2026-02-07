@@ -1,28 +1,28 @@
-import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator, Text } from 'react-native';
-import { Authenticated, Unauthenticated, AuthLoading } from 'convex/react';
-import { useState, useEffect } from 'react';
-import * as SecureStore from 'expo-secure-store';
-import { useFonts } from 'expo-font';
+import { StatusBar } from "expo-status-bar";
+import { View, ActivityIndicator, Text } from "react-native";
+import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
+import { useState, useEffect } from "react";
+import * as SecureStore from "expo-secure-store";
+import { useFonts } from "expo-font";
 
-import { ConvexProvider } from './providers/ConvexProvider';
-import { SignInScreen } from './screens/SignInScreen';
-import { HomeScreen } from './screens/HomeScreen';
-import { TempScorerHomeScreen } from './screens/TempScorerHomeScreen';
+import { ConvexProvider } from "./providers/ConvexProvider";
+import { SignInScreen } from "./screens/SignInScreen";
+import { HomeScreen } from "./screens/HomeScreen";
+import { TempScorerHomeScreen } from "./screens/TempScorerHomeScreen";
 import {
   TempScorerContext,
   TempScorerSession,
   TempScorerContextType,
-} from './contexts/TempScorerContext';
-import { ErrorBoundary } from './components/ErrorBoundary';
+} from "./contexts/TempScorerContext";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
-import './global.css';
+import "./global.css";
 
 // Re-export for backwards compatibility
-export type { TempScorerSession } from './contexts/TempScorerContext';
-export { useTempScorer } from './contexts/TempScorerContext';
+export type { TempScorerSession } from "./contexts/TempScorerContext";
+export { useTempScorer } from "./contexts/TempScorerContext";
 
-const TEMP_SCORER_SESSION_KEY = 'tempScorerSession';
+const TEMP_SCORER_SESSION_KEY = "tempScorerSession";
 
 function LoadingScreen() {
   return (
@@ -55,7 +55,7 @@ function AppContent() {
           }
         }
       } catch (e) {
-        console.error('Failed to load temp scorer session:', e);
+        console.error("Failed to load temp scorer session:", e);
       } finally {
         setIsLoadingSession(false);
       }
@@ -118,14 +118,14 @@ function AppContent() {
 
 export default function App() {
   const [fontsLoaded] = useFonts({
-    'ClashDisplay-Regular': require('./assets/fonts/ClashDisplay-Regular.ttf'),
-    'ClashDisplay-Medium': require('./assets/fonts/ClashDisplay-Medium.ttf'),
-    'ClashDisplay-Semibold': require('./assets/fonts/ClashDisplay-Semibold.ttf'),
-    'ClashDisplay-Bold': require('./assets/fonts/ClashDisplay-Bold.ttf'),
-    'DMSans-Regular': require('./assets/fonts/DMSans-Regular.ttf'),
-    'DMSans-Medium': require('./assets/fonts/DMSans-Medium.ttf'),
-    'DMSans-SemiBold': require('./assets/fonts/DMSans-SemiBold.ttf'),
-    'DMSans-Bold': require('./assets/fonts/DMSans-Bold.ttf'),
+    "ClashDisplay-Regular": require("./assets/fonts/ClashDisplay-Regular.ttf"),
+    "ClashDisplay-Medium": require("./assets/fonts/ClashDisplay-Medium.ttf"),
+    "ClashDisplay-Semibold": require("./assets/fonts/ClashDisplay-Semibold.ttf"),
+    "ClashDisplay-Bold": require("./assets/fonts/ClashDisplay-Bold.ttf"),
+    "DMSans-Regular": require("./assets/fonts/DMSans-Regular.ttf"),
+    "DMSans-Medium": require("./assets/fonts/DMSans-Medium.ttf"),
+    "DMSans-SemiBold": require("./assets/fonts/DMSans-SemiBold.ttf"),
+    "DMSans-Bold": require("./assets/fonts/DMSans-Bold.ttf"),
   });
 
   if (!fontsLoaded) {

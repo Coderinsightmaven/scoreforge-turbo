@@ -1,5 +1,5 @@
-import { useQuery } from 'convex/react';
-import { api } from '@repo/convex';
+import { useQuery } from "convex/react";
+import { api } from "@repo/convex";
 import {
   View,
   Text,
@@ -7,23 +7,23 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
-} from 'react-native';
-import { useState, useCallback } from 'react';
-import { Id } from '@repo/convex/dataModel';
+} from "react-native";
+import { useState, useCallback } from "react";
+import { Id } from "@repo/convex/dataModel";
 
 type Props = {
-  onSelectTournament: (tournamentId: Id<'tournaments'>) => void;
+  onSelectTournament: (tournamentId: Id<"tournaments">) => void;
 };
 
 const statusColors = {
-  draft: 'bg-gray-100 text-gray-600',
-  active: 'bg-green-100 text-green-700',
-  completed: 'bg-blue-100 text-blue-700',
-  cancelled: 'bg-red-100 text-red-700',
+  draft: "bg-gray-100 text-gray-600",
+  active: "bg-green-100 text-green-700",
+  completed: "bg-blue-100 text-blue-700",
+  cancelled: "bg-red-100 text-red-700",
 };
 
 const sportEmoji: Record<string, string> = {
-  tennis: '🎾',
+  tennis: "🎾",
 };
 
 export function TournamentsScreen({ onSelectTournament }: Props) {
@@ -50,7 +50,7 @@ export function TournamentsScreen({ onSelectTournament }: Props) {
         <View className="mb-4 h-20 w-20 items-center justify-center rounded-xl bg-gray-200">
           <Text className="text-4xl">🏆</Text>
         </View>
-        <Text className="mb-2 text-lg font-display-semibold text-gray-900">No Tournaments</Text>
+        <Text className="mb-2 font-display-semibold text-lg text-gray-900">No Tournaments</Text>
         <Text className="text-center text-gray-500">
           {
             "You don't have access to any tournaments yet. Ask a tournament organizer to add you as a scorer."
@@ -81,7 +81,9 @@ export function TournamentsScreen({ onSelectTournament }: Props) {
               <View className="flex-1">
                 <View className="mb-1 flex-row items-center">
                   <Text className="mr-2 text-xl">{sportEmoji[item.sport]}</Text>
-                  <Text className="flex-1 text-lg font-display-semibold text-gray-900" numberOfLines={1}>
+                  <Text
+                    className="flex-1 font-display-semibold text-lg text-gray-900"
+                    numberOfLines={1}>
                     {item.name}
                   </Text>
                 </View>
@@ -96,9 +98,9 @@ export function TournamentsScreen({ onSelectTournament }: Props) {
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center space-x-2">
                 <View
-                  className={`rounded-full px-2.5 py-1 ${statusColors[item.status].split(' ')[0]}`}>
+                  className={`rounded-full px-2.5 py-1 ${statusColors[item.status].split(" ")[0]}`}>
                   <Text
-                    className={`text-xs font-medium capitalize ${statusColors[item.status].split(' ')[1]}`}>
+                    className={`text-xs font-medium capitalize ${statusColors[item.status].split(" ")[1]}`}>
                     {item.status}
                   </Text>
                 </View>
