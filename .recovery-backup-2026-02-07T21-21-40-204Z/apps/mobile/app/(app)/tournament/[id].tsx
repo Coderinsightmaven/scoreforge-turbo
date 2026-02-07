@@ -60,13 +60,15 @@ export default function TournamentDetailScreen() {
         <View className="mb-3 flex-row items-center">
           <TouchableOpacity
             onPress={() => router.back()}
-            className="mr-3 h-10 w-10 items-center justify-center rounded-lg bg-slate-100">
+            className="mr-3 h-10 w-10 items-center justify-center rounded-lg bg-slate-100"
+          >
             <Text className="text-xl text-text-primary">←</Text>
           </TouchableOpacity>
           <View className="flex-1">
             <Text
               className="font-display-bold text-xl tracking-tight text-slate-900"
-              numberOfLines={1}>
+              numberOfLines={1}
+            >
               {tournament.name}
             </Text>
             <Text className="text-sm capitalize text-text-tertiary">

@@ -29,11 +29,13 @@ export function StatusFilter({ value, onChange }: Props) {
               ? "border-brand bg-brand shadow-lg shadow-brand/20"
               : "border-slate-200 bg-white"
           }`}
-          onPress={() => onChange(item.value)}>
+          onPress={() => onChange(item.value)}
+        >
           <Text
             className={`text-sm font-medium ${
               value === item.value ? "text-white" : "text-text-secondary"
-            }`}>
+            }`}
+          >
             {item.label}
           </Text>
         </TouchableOpacity>

@@ -16,13 +16,15 @@ export function ScreenHeader({ title, onBack, rightAction }: ScreenHeaderProps) 
           {onBack && (
             <Pressable
               onPress={onBack}
-              className="h-10 w-10 items-center justify-center rounded-lg bg-slate-100">
+              className="h-10 w-10 items-center justify-center rounded-lg bg-slate-100"
+            >
               <Text className="text-xl text-text-primary">←</Text>
             </Pressable>
           )}
           <Text
             className="flex-1 font-display-semibold text-2xl tracking-tight text-text-primary"
-            numberOfLines={1}>
+            numberOfLines={1}
+          >
             {title}
           </Text>
         </View>

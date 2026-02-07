@@ -140,10 +140,12 @@ export default function SignInScreen() {
       <SafeAreaView className="flex-1">
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1">
+          className="flex-1"
+        >
           <ScrollView
             contentContainerClassName="flex-grow justify-center px-6 py-8"
-            keyboardShouldPersistTaps="always">
+            keyboardShouldPersistTaps="always"
+          >
             {/* Logo & Branding */}
             <View className="mb-8 items-center">
               <View className="mb-4 h-24 w-24 items-center justify-center rounded-3xl bg-brand shadow-2xl shadow-brand/30">
@@ -165,7 +167,8 @@ export default function SignInScreen() {
                 borderRadius: 12,
                 padding: 4,
                 marginBottom: 24,
-              }}>
+              }}
+            >
               <Pressable
                 style={{
                   flex: 1,
@@ -187,13 +190,15 @@ export default function SignInScreen() {
                 onPress={() => {
                   setLoginType("regular");
                   setError(null);
-                }}>
+                }}
+              >
                 <Text
                   style={{
                     fontSize: 14,
                     fontWeight: "600",
                     color: loginType === "regular" ? "#0F172A" : "#94A3B8",
-                  }}>
+                  }}
+                >
                   Account Login
                 </Text>
               </Pressable>
@@ -218,13 +223,15 @@ export default function SignInScreen() {
                 onPress={() => {
                   setLoginType("scorer");
                   setError(null);
-                }}>
+                }}
+              >
                 <Text
                   style={{
                     fontSize: 14,
                     fontWeight: "600",
                     color: loginType === "scorer" ? "#0F172A" : "#94A3B8",
-                  }}>
+                  }}
+                >
                   Scorer Login
                 </Text>
               </Pressable>
@@ -283,7 +290,8 @@ export default function SignInScreen() {
                       className="mt-2 w-full items-center rounded-xl bg-brand py-5 shadow-lg shadow-brand/30"
                       onPress={handleRegularSubmit}
                       disabled={loading}
-                      activeOpacity={0.8}>
+                      activeOpacity={0.8}
+                    >
                       {loading ? (
                         <ActivityIndicator color="white" />
                       ) : (
@@ -372,7 +380,8 @@ export default function SignInScreen() {
                       className="mt-2 w-full items-center rounded-xl bg-brand py-5 shadow-lg shadow-brand/30"
                       onPress={handleScorerSubmit}
                       disabled={loading}
-                      activeOpacity={0.8}>
+                      activeOpacity={0.8}
+                    >
                       {loading ? (
                         <ActivityIndicator color="white" />
                       ) : (

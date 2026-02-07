@@ -59,7 +59,8 @@ export function Button({
     <Pressable
       className={`items-center justify-center ${styles.container} ${sizes.container} ${disabled || loading ? "opacity-50" : ""}`}
       disabled={disabled || loading}
-      {...props}>
+      {...props}
+    >
       {loading ? (
         <ActivityIndicator
           color={variant === "brand" || variant === "primary" ? "#ffffff" : "#D4A017"}

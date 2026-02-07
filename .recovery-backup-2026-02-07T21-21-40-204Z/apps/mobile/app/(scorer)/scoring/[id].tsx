@@ -14,15 +14,18 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Id } from "@repo/convex/dataModel";
 import { useRef } from "react";
 import { getDisplayMessage } from "../../../utils/errors";
+import { useTempScorer } from "../../../contexts/TempScorerContext";
 
 const pointLabels = ["0", "15", "30", "40", "AD"];
 
-export default function TennisScoringScreen() {
+export default function ScorerTennisScoringScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { session } = useTempScorer();
   const matchId = id as Id<"matches">;
+  const tempScorerToken = session?.token;
 
-  const match = useQuery(api.tennis.getTennisMatch, { matchId });
+  const match = useQuery(api.tennis.getTennisMatch, { matchId, tempScorerToken });
   const initMatch = useMutation(api.tennis.initTennisMatch);
   const scorePoint = useMutation(api.tennis.scoreTennisPoint);
   const undoPoint = useMutation(api.tennis.undoTennisPoint);
@@ -71,9 +74,9 @@ export default function TennisScoringScreen() {
 
   const handleInitMatch = async (firstServer: number) => {
     try {
-      await initMatch({ matchId, firstServer });
+      await initMatch({ matchId, firstServer, tempScorerToken });
       if (match.status === "pending" || match.status === "scheduled") {
-        await startMatch({ matchId });
+        await startMatch({ matchId, tempScorerToken });
       }
     } catch (err) {
       Alert.alert("Error", getDisplayMessage(err));
@@ -84,7 +87,7 @@ export default function TennisScoringScreen() {
     if (!isLive || isCompleted) return;
     triggerFlash(participant === 1 ? flash1 : flash2);
     try {
-      await scorePoint({ matchId, winnerParticipant: participant });
+      await scorePoint({ matchId, winnerParticipant: participant, tempScorerToken });
     } catch (err) {
       Alert.alert("Error", getDisplayMessage(err));
     }
@@ -92,7 +95,7 @@ export default function TennisScoringScreen() {
 
   const handleUndo = async () => {
     try {
-      await undoPoint({ matchId });
+      await undoPoint({ matchId, tempScorerToken });
     } catch (err) {
       Alert.alert("Error", getDisplayMessage(err));
     }
@@ -143,7 +146,8 @@ export default function TennisScoringScreen() {
 
           <TouchableOpacity
             className="mb-4 w-full rounded-xl bg-brand py-4 shadow-lg shadow-brand/30"
-            onPress={() => handleInitMatch(1)}>
+            onPress={() => handleInitMatch(1)}
+          >
             <Text className="text-center text-lg font-bold text-white">
               {match.participant1?.displayName || "Player 1"}
             </Text>
@@ -151,7 +155,8 @@ export default function TennisScoringScreen() {
 
           <TouchableOpacity
             className="w-full rounded-xl bg-dark-elevated py-4"
-            onPress={() => handleInitMatch(2)}>
+            onPress={() => handleInitMatch(2)}
+          >
             <Text className="text-center text-lg font-bold text-white">
               {match.participant2?.displayName || "Player 2"}
             </Text>
@@ -178,7 +183,6 @@ export default function TennisScoringScreen() {
             wins!
           </Text>
 
-          {/* Final Score */}
           <View className="mb-8 w-full rounded-2xl border-2 border-dark-elevated bg-dark-card p-6">
             <Text className="mb-3 text-center font-display-semibold text-sm uppercase text-slate-400">
               Final Score
@@ -200,7 +204,8 @@ export default function TennisScoringScreen() {
 
           <TouchableOpacity
             className="w-full rounded-xl bg-dark-elevated py-4"
-            onPress={() => router.back()}>
+            onPress={() => router.back()}
+          >
             <Text className="text-center text-lg font-semibold text-white">Back to Match</Text>
           </TouchableOpacity>
         </View>
@@ -223,11 +228,10 @@ export default function TennisScoringScreen() {
     ? (state?.tiebreakPoints?.[1] || 0).toString()
     : getPointDisplay(currentGamePoints[1], currentGamePoints[0], isAdScoring);
 
-  // Scoreboard component (shared between layouts)
   const Scoreboard = () => (
     <View
-      className={`rounded-2xl border-2 border-dark-elevated bg-dark-bg p-6 ${isLandscape ? "w-72" : "w-80"}`}>
-      {/* Status Badges */}
+      className={`rounded-2xl border-2 border-dark-elevated bg-dark-bg p-6 ${isLandscape ? "w-72" : "w-80"}`}
+    >
       <View className="mb-3 flex-row items-center justify-center space-x-2">
         {isLive && (
           <View className="flex-row items-center rounded-lg border border-red-500/30 bg-red-500/20 px-3 py-1">
@@ -242,16 +246,13 @@ export default function TennisScoringScreen() {
         )}
       </View>
 
-      {/* Game Status */}
       {gameStatus && (
         <View className="mb-3 items-center">
           <Text className="text-sm font-medium text-brand-glow">{gameStatus}</Text>
         </View>
       )}
 
-      {/* Main Score Display */}
       <View className="mb-4 flex-row items-center justify-center">
-        {/* Player 1 Points */}
         <View className="flex-1 items-center">
           {servingParticipant === 1 && (
             <View className="mb-1 h-2 w-2 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
@@ -261,7 +262,6 @@ export default function TennisScoringScreen() {
           </Text>
         </View>
 
-        {/* Games in Center */}
         <View className="mx-4 items-center rounded-xl bg-dark-card px-4 py-2">
           <Text className="text-xs text-slate-400">{isTiebreak ? "TB" : "GAME"}</Text>
           <Text className="text-xl font-bold text-white">
@@ -269,7 +269,6 @@ export default function TennisScoringScreen() {
           </Text>
         </View>
 
-        {/* Player 2 Points */}
         <View className="flex-1 items-center">
           {servingParticipant === 2 && (
             <View className="mb-1 h-2 w-2 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
@@ -280,7 +279,6 @@ export default function TennisScoringScreen() {
         </View>
       </View>
 
-      {/* Set Scores */}
       {sets.length > 0 && (
         <View className="items-center">
           <Text className="text-sm text-slate-400">
@@ -291,16 +289,15 @@ export default function TennisScoringScreen() {
     </View>
   );
 
-  // LANDSCAPE LAYOUT - Left/Right split
   if (isLandscape) {
     return (
       <View className="flex-1 flex-row bg-dark-bg">
-        {/* Player 1 Tap Zone (Left) */}
         <TouchableOpacity
           className="flex-1 bg-dark-card"
           onPress={() => handleScorePoint(1)}
           activeOpacity={1}
-          disabled={!isLive}>
+          disabled={!isLive}
+        >
           <Animated.View
             className="absolute inset-0 bg-brand"
             style={{ opacity: flash1 }}
@@ -316,12 +313,12 @@ export default function TennisScoringScreen() {
           </SafeAreaView>
         </TouchableOpacity>
 
-        {/* Player 2 Tap Zone (Right) */}
         <TouchableOpacity
           className="flex-1 bg-dark-elevated"
           onPress={() => handleScorePoint(2)}
           activeOpacity={1}
-          disabled={!isLive}>
+          disabled={!isLive}
+        >
           <Animated.View
             className="absolute inset-0 bg-brand"
             style={{ opacity: flash2 }}
@@ -337,10 +334,8 @@ export default function TennisScoringScreen() {
           </SafeAreaView>
         </TouchableOpacity>
 
-        {/* Center Scoreboard Overlay */}
         <View className="absolute inset-0 items-center justify-center" pointerEvents="box-none">
           <Scoreboard />
-          {/* Undo Button */}
           <TouchableOpacity
             className={`mt-4 flex-row items-center rounded-xl border-2 px-8 py-3.5 ${
               state?.history?.length
@@ -348,19 +343,21 @@ export default function TennisScoringScreen() {
                 : "border-dark-elevated/50 bg-dark-card/50"
             }`}
             onPress={handleUndo}
-            disabled={!state?.history?.length}>
+            disabled={!state?.history?.length}
+          >
             <Text
-              className={`text-base font-medium ${state?.history?.length ? "text-white" : "text-slate-600"}`}>
+              className={`text-base font-medium ${state?.history?.length ? "text-white" : "text-slate-600"}`}
+            >
               ↩ Undo
             </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Back Button */}
         <SafeAreaView className="absolute left-4 top-4" pointerEvents="box-none">
           <TouchableOpacity
             className="h-14 w-14 items-center justify-center rounded-full border-2 border-dark-elevated bg-dark-card shadow-2xl"
-            onPress={() => router.back()}>
+            onPress={() => router.back()}
+          >
             <Text className="text-xl text-white">←</Text>
           </TouchableOpacity>
         </SafeAreaView>
@@ -368,15 +365,14 @@ export default function TennisScoringScreen() {
     );
   }
 
-  // PORTRAIT LAYOUT - Top/Bottom split
   return (
     <View className="flex-1 bg-dark-bg">
-      {/* Player 1 Tap Zone (Top) */}
       <TouchableOpacity
         className="flex-1 bg-dark-card"
         onPress={() => handleScorePoint(1)}
         activeOpacity={1}
-        disabled={!isLive}>
+        disabled={!isLive}
+      >
         <Animated.View
           className="absolute inset-0 bg-brand"
           style={{ opacity: flash1 }}
@@ -385,17 +381,16 @@ export default function TennisScoringScreen() {
         <SafeAreaView className="flex-1 items-center justify-center" edges={["top"]}>
           <Text
             className="px-4 text-center font-display-semibold text-3xl text-white"
-            numberOfLines={2}>
+            numberOfLines={2}
+          >
             {match.participant1?.displayName || "Player 1"}
           </Text>
           <Text className="mt-2 text-slate-400">Tap to score</Text>
         </SafeAreaView>
       </TouchableOpacity>
 
-      {/* Center Scoreboard */}
       <View className="items-center bg-dark-bg py-4">
         <Scoreboard />
-        {/* Undo Button */}
         <TouchableOpacity
           className={`mt-4 flex-row items-center rounded-xl border-2 px-8 py-3.5 ${
             state?.history?.length
@@ -403,20 +398,22 @@ export default function TennisScoringScreen() {
               : "border-dark-elevated/50 bg-dark-card/50"
           }`}
           onPress={handleUndo}
-          disabled={!state?.history?.length}>
+          disabled={!state?.history?.length}
+        >
           <Text
-            className={`text-base font-medium ${state?.history?.length ? "text-white" : "text-slate-600"}`}>
+            className={`text-base font-medium ${state?.history?.length ? "text-white" : "text-slate-600"}`}
+          >
             ↩ Undo
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Player 2 Tap Zone (Bottom) */}
       <TouchableOpacity
         className="flex-1 bg-dark-elevated"
         onPress={() => handleScorePoint(2)}
         activeOpacity={1}
-        disabled={!isLive}>
+        disabled={!isLive}
+      >
         <Animated.View
           className="absolute inset-0 bg-brand"
           style={{ opacity: flash2 }}
@@ -425,18 +422,19 @@ export default function TennisScoringScreen() {
         <SafeAreaView className="flex-1 items-center justify-center" edges={["bottom"]}>
           <Text
             className="px-4 text-center font-display-semibold text-3xl text-white"
-            numberOfLines={2}>
+            numberOfLines={2}
+          >
             {match.participant2?.displayName || "Player 2"}
           </Text>
           <Text className="mt-2 text-slate-400">Tap to score</Text>
         </SafeAreaView>
       </TouchableOpacity>
 
-      {/* Back Button */}
       <SafeAreaView className="absolute left-4 top-4" pointerEvents="box-none" edges={["top"]}>
         <TouchableOpacity
           className="h-14 w-14 items-center justify-center rounded-full border-2 border-dark-elevated bg-dark-card shadow-2xl"
-          onPress={() => router.back()}>
+          onPress={() => router.back()}
+        >
           <Text className="text-xl text-white">←</Text>
         </TouchableOpacity>
       </SafeAreaView>

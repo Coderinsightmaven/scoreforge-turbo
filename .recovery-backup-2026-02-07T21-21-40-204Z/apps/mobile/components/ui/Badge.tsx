@@ -52,7 +52,8 @@ export function Badge({ label, variant = "default", className = "", ...props }: 
   return (
     <View
       className={`rounded-md border px-2.5 py-0.5 ${styles.bg} ${styles.border} ${className}`}
-      {...props}>
+      {...props}
+    >
       <Text className={`font-sans-medium text-xs uppercase tracking-wider ${styles.text}`}>
         {label}
       </Text>

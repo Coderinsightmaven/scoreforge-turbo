@@ -143,7 +143,8 @@ export default function TennisScoringScreen() {
 
           <TouchableOpacity
             className="mb-4 w-full rounded-xl bg-brand py-4 shadow-lg shadow-brand/30"
-            onPress={() => handleInitMatch(1)}>
+            onPress={() => handleInitMatch(1)}
+          >
             <Text className="text-center text-lg font-bold text-white">
               {match.participant1?.displayName || "Player 1"}
             </Text>
@@ -151,7 +152,8 @@ export default function TennisScoringScreen() {
 
           <TouchableOpacity
             className="w-full rounded-xl bg-dark-elevated py-4"
-            onPress={() => handleInitMatch(2)}>
+            onPress={() => handleInitMatch(2)}
+          >
             <Text className="text-center text-lg font-bold text-white">
               {match.participant2?.displayName || "Player 2"}
             </Text>
@@ -200,7 +202,8 @@ export default function TennisScoringScreen() {
 
           <TouchableOpacity
             className="w-full rounded-xl bg-dark-elevated py-4"
-            onPress={() => router.back()}>
+            onPress={() => router.back()}
+          >
             <Text className="text-center text-lg font-semibold text-white">Back to Match</Text>
           </TouchableOpacity>
         </View>
@@ -226,7 +229,8 @@ export default function TennisScoringScreen() {
   // Scoreboard component (shared between layouts)
   const Scoreboard = () => (
     <View
-      className={`rounded-2xl border-2 border-dark-elevated bg-dark-bg p-6 ${isLandscape ? "w-72" : "w-80"}`}>
+      className={`rounded-2xl border-2 border-dark-elevated bg-dark-bg p-6 ${isLandscape ? "w-72" : "w-80"}`}
+    >
       {/* Status Badges */}
       <View className="mb-3 flex-row items-center justify-center space-x-2">
         {isLive && (
@@ -300,7 +304,8 @@ export default function TennisScoringScreen() {
           className="flex-1 bg-dark-card"
           onPress={() => handleScorePoint(1)}
           activeOpacity={1}
-          disabled={!isLive}>
+          disabled={!isLive}
+        >
           <Animated.View
             className="absolute inset-0 bg-brand"
             style={{ opacity: flash1 }}
@@ -321,7 +326,8 @@ export default function TennisScoringScreen() {
           className="flex-1 bg-dark-elevated"
           onPress={() => handleScorePoint(2)}
           activeOpacity={1}
-          disabled={!isLive}>
+          disabled={!isLive}
+        >
           <Animated.View
             className="absolute inset-0 bg-brand"
             style={{ opacity: flash2 }}
@@ -348,9 +354,11 @@ export default function TennisScoringScreen() {
                 : "border-dark-elevated/50 bg-dark-card/50"
             }`}
             onPress={handleUndo}
-            disabled={!state?.history?.length}>
+            disabled={!state?.history?.length}
+          >
             <Text
-              className={`text-base font-medium ${state?.history?.length ? "text-white" : "text-slate-600"}`}>
+              className={`text-base font-medium ${state?.history?.length ? "text-white" : "text-slate-600"}`}
+            >
               ↩ Undo
             </Text>
           </TouchableOpacity>
@@ -360,7 +368,8 @@ export default function TennisScoringScreen() {
         <SafeAreaView className="absolute left-4 top-4" pointerEvents="box-none">
           <TouchableOpacity
             className="h-14 w-14 items-center justify-center rounded-full border-2 border-dark-elevated bg-dark-card shadow-2xl"
-            onPress={() => router.back()}>
+            onPress={() => router.back()}
+          >
             <Text className="text-xl text-white">←</Text>
           </TouchableOpacity>
         </SafeAreaView>
@@ -376,7 +385,8 @@ export default function TennisScoringScreen() {
         className="flex-1 bg-dark-card"
         onPress={() => handleScorePoint(1)}
         activeOpacity={1}
-        disabled={!isLive}>
+        disabled={!isLive}
+      >
         <Animated.View
           className="absolute inset-0 bg-brand"
           style={{ opacity: flash1 }}
@@ -385,7 +395,8 @@ export default function TennisScoringScreen() {
         <SafeAreaView className="flex-1 items-center justify-center" edges={["top"]}>
           <Text
             className="px-4 text-center font-display-semibold text-3xl text-white"
-            numberOfLines={2}>
+            numberOfLines={2}
+          >
             {match.participant1?.displayName || "Player 1"}
           </Text>
           <Text className="mt-2 text-slate-400">Tap to score</Text>
@@ -403,9 +414,11 @@ export default function TennisScoringScreen() {
               : "border-dark-elevated/50 bg-dark-card/50"
           }`}
           onPress={handleUndo}
-          disabled={!state?.history?.length}>
+          disabled={!state?.history?.length}
+        >
           <Text
-            className={`text-base font-medium ${state?.history?.length ? "text-white" : "text-slate-600"}`}>
+            className={`text-base font-medium ${state?.history?.length ? "text-white" : "text-slate-600"}`}
+          >
             ↩ Undo
           </Text>
         </TouchableOpacity>
@@ -416,7 +429,8 @@ export default function TennisScoringScreen() {
         className="flex-1 bg-dark-elevated"
         onPress={() => handleScorePoint(2)}
         activeOpacity={1}
-        disabled={!isLive}>
+        disabled={!isLive}
+      >
         <Animated.View
           className="absolute inset-0 bg-brand"
           style={{ opacity: flash2 }}
@@ -425,7 +439,8 @@ export default function TennisScoringScreen() {
         <SafeAreaView className="flex-1 items-center justify-center" edges={["bottom"]}>
           <Text
             className="px-4 text-center font-display-semibold text-3xl text-white"
-            numberOfLines={2}>
+            numberOfLines={2}
+          >
             {match.participant2?.displayName || "Player 2"}
           </Text>
           <Text className="mt-2 text-slate-400">Tap to score</Text>
@@ -436,7 +451,8 @@ export default function TennisScoringScreen() {
       <SafeAreaView className="absolute left-4 top-4" pointerEvents="box-none" edges={["top"]}>
         <TouchableOpacity
           className="h-14 w-14 items-center justify-center rounded-full border-2 border-dark-elevated bg-dark-card shadow-2xl"
-          onPress={() => router.back()}>
+          onPress={() => router.back()}
+        >
           <Text className="text-xl text-white">←</Text>
         </TouchableOpacity>
       </SafeAreaView>

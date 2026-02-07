@@ -120,7 +120,8 @@ export default function ScorerHomeScreen() {
             </View>
             <TouchableOpacity
               className="h-10 w-10 items-center justify-center rounded-full bg-slate-100"
-              onPress={handleSignOut}>
+              onPress={handleSignOut}
+            >
               <Text className="text-lg text-text-secondary">x</Text>
             </TouchableOpacity>
           </View>
@@ -179,13 +180,15 @@ export default function ScorerHomeScreen() {
                       : "border border-slate-100"
                   }`}
                   onPress={() => router.push(`/(scorer)/match/${item._id}`)}
-                  activeOpacity={0.7}>
+                  activeOpacity={0.7}
+                >
                   <View className="mb-2 flex-row items-center justify-between">
                     <Text className="text-xs font-medium text-text-tertiary">
                       R{item.round} - Match {item.matchNumber}
                     </Text>
                     <View
-                      className={`rounded-lg border px-2.5 py-0.5 ${status.bg} ${status.border}`}>
+                      className={`rounded-lg border px-2.5 py-0.5 ${status.bg} ${status.border}`}
+                    >
                       <Text className={`text-xs font-semibold uppercase ${status.text}`}>
                         {item.status === "live" ? "● LIVE" : item.status}
                       </Text>
@@ -198,7 +201,8 @@ export default function ScorerHomeScreen() {
                         className={`text-base font-semibold ${
                           item.winnerId === item.participant1?._id ? "text-brand" : "text-slate-900"
                         }`}
-                        numberOfLines={1}>
+                        numberOfLines={1}
+                      >
                         {item.participant1?.displayName || "TBD"}
                       </Text>
                     </View>
@@ -208,7 +212,8 @@ export default function ScorerHomeScreen() {
                         className={`text-base font-semibold ${
                           item.winnerId === item.participant2?._id ? "text-brand" : "text-slate-900"
                         }`}
-                        numberOfLines={1}>
+                        numberOfLines={1}
+                      >
                         {item.participant2?.displayName || "TBD"}
                       </Text>
                     </View>
