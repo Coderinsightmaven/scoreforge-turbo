@@ -64,7 +64,7 @@ function AuthRedirectHandler({
       if (target === "(auth)") {
         router.replace("/(auth)/sign-in");
       } else {
-        router.replace("/(app)/(tabs)");
+        router.replace("/(app)");
       }
     }
   }, [target, segments, router]);

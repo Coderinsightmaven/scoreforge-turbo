@@ -10,7 +10,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Pressable,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -157,77 +156,62 @@ export default function SignInScreen() {
               </Text>
             </View>
 
-            {/* Login Type Tabs */}
-            <View
-              style={{
-                flexDirection: "row",
-                backgroundColor: "#F1F5F9",
-                borderRadius: 12,
-                padding: 4,
-                marginBottom: 24,
-              }}>
-              <Pressable
-                style={{
-                  flex: 1,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  paddingVertical: 12,
-                  borderRadius: 8,
-                  backgroundColor: loginType === "regular" ? "#ffffff" : "transparent",
-                  ...(loginType === "regular"
-                    ? {
-                        shadowColor: "#0F172A",
-                        shadowOffset: { width: 0, height: 1 },
-                        shadowOpacity: 0.08,
-                        shadowRadius: 4,
-                        elevation: 2,
-                      }
-                    : {}),
-                }}
-                onPress={() => {
-                  setLoginType("regular");
-                  setError(null);
-                }}>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: "600",
-                    color: loginType === "regular" ? "#0F172A" : "#94A3B8",
-                  }}>
-                  Account Login
-                </Text>
-              </Pressable>
-              <Pressable
-                style={{
-                  flex: 1,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  paddingVertical: 12,
-                  borderRadius: 8,
-                  backgroundColor: loginType === "scorer" ? "#ffffff" : "transparent",
-                  ...(loginType === "scorer"
-                    ? {
-                        shadowColor: "#0F172A",
-                        shadowOffset: { width: 0, height: 1 },
-                        shadowOpacity: 0.08,
-                        shadowRadius: 4,
-                        elevation: 2,
-                      }
-                    : {}),
-                }}
-                onPress={() => {
-                  setLoginType("scorer");
-                  setError(null);
-                }}>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: "600",
-                    color: loginType === "scorer" ? "#0F172A" : "#94A3B8",
-                  }}>
-                  Scorer Login
-                </Text>
-              </Pressable>
+            {/* Login Mode Selector */}
+            <View className="mb-6 rounded-xl border border-slate-200 bg-white p-3">
+              <Text className="mb-3 text-xs font-semibold uppercase tracking-wide text-text-tertiary">
+                Sign-In Mode
+              </Text>
+              <View className="gap-2">
+                <TouchableOpacity
+                  className={`rounded-lg border px-4 py-3 ${
+                    loginType === "regular"
+                      ? "border-slate-900 bg-slate-900"
+                      : "border-slate-200 bg-white"
+                  }`}
+                  onPress={() => {
+                    setLoginType("regular");
+                    setError(null);
+                  }}
+                  activeOpacity={0.8}>
+                  <Text
+                    className={`text-sm font-semibold ${
+                      loginType === "regular" ? "text-white" : "text-slate-800"
+                    }`}>
+                    Account Login
+                  </Text>
+                  <Text
+                    className={`mt-1 text-xs ${
+                      loginType === "regular" ? "text-slate-200" : "text-text-tertiary"
+                    }`}>
+                    For owners, admins, and regular staff.
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  className={`rounded-lg border px-4 py-3 ${
+                    loginType === "scorer"
+                      ? "border-slate-900 bg-slate-900"
+                      : "border-slate-200 bg-white"
+                  }`}
+                  onPress={() => {
+                    setLoginType("scorer");
+                    setError(null);
+                  }}
+                  activeOpacity={0.8}>
+                  <Text
+                    className={`text-sm font-semibold ${
+                      loginType === "scorer" ? "text-white" : "text-slate-800"
+                    }`}>
+                    Scorer Login
+                  </Text>
+                  <Text
+                    className={`mt-1 text-xs ${
+                      loginType === "scorer" ? "text-slate-200" : "text-text-tertiary"
+                    }`}>
+                    For temporary tournament scorers using code and PIN.
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Login Card */}

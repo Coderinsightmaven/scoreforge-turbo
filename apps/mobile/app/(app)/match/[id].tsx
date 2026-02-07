@@ -114,10 +114,10 @@ export default function MatchDetailScreen() {
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
         {/* Score Card */}
         <View className="mb-4 rounded-2xl bg-white p-8 shadow-2xl shadow-slate-900/10">
-          <View className="mb-4 flex-row items-center justify-center">
-            <View className="h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
-              <Text className="text-2xl">🎾</Text>
-            </View>
+          <View className="mb-4 items-center">
+            <Text className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">
+              Current Score
+            </Text>
           </View>
 
           {/* Participant 1 */}

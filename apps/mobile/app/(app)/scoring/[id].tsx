@@ -167,8 +167,10 @@ export default function TennisScoringScreen() {
     return (
       <SafeAreaView className="flex-1 bg-dark-bg">
         <View className="flex-1 items-center justify-center px-6">
-          <View className="mb-6 h-24 w-24 items-center justify-center rounded-full bg-brand shadow-2xl shadow-brand/50">
-            <Text className="text-5xl">🏆</Text>
+          <View className="mb-6 rounded-full border border-brand/40 bg-brand/15 px-6 py-2">
+            <Text className="text-sm font-semibold uppercase tracking-wide text-brand-glow">
+              Completed
+            </Text>
           </View>
           <Text className="mb-2 font-display-bold text-4xl text-white">Match Complete</Text>
           <Text className="mb-8 text-xl text-brand-glow">

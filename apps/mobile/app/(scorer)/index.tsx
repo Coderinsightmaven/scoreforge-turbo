@@ -119,9 +119,10 @@ export default function ScorerHomeScreen() {
               <Text className="text-sm text-text-tertiary">{session.tournamentName}</Text>
             </View>
             <TouchableOpacity
-              className="h-10 w-10 items-center justify-center rounded-full bg-slate-100"
-              onPress={handleSignOut}>
-              <Text className="text-lg text-text-secondary">x</Text>
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2"
+              onPress={handleSignOut}
+              activeOpacity={0.7}>
+              <Text className="text-sm font-medium text-slate-900">End Session</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -161,7 +162,6 @@ export default function ScorerHomeScreen() {
             ItemSeparatorComponent={() => <View className="h-3" />}
             ListEmptyComponent={
               <View className="flex-1 items-center justify-center py-16">
-                <Text className="mb-2 text-4xl">🏆</Text>
                 <Text className="text-center text-text-tertiary">
                   No matches found for this filter
                 </Text>
@@ -187,7 +187,7 @@ export default function ScorerHomeScreen() {
                     <View
                       className={`rounded-lg border px-2.5 py-0.5 ${status.bg} ${status.border}`}>
                       <Text className={`text-xs font-semibold uppercase ${status.text}`}>
-                        {item.status === "live" ? "● LIVE" : item.status}
+                        {item.status === "live" ? "LIVE" : item.status}
                       </Text>
                     </View>
                   </View>

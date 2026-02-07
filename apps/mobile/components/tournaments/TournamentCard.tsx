@@ -23,10 +23,6 @@ const statusStyles: Record<string, { bg: string; text: string; border: string }>
   },
 };
 
-const sportEmoji: Record<string, string> = {
-  tennis: "🎾",
-};
-
 type TournamentItem = {
   _id: string;
   name: string;
@@ -45,6 +41,7 @@ type Props = {
 
 export function TournamentCard({ tournament, onPress }: Props) {
   const status = statusStyles[tournament.status] || statusStyles.draft;
+  const sportLabel = tournament.sport ? tournament.sport.toUpperCase() : "SPORT";
 
   return (
     <TouchableOpacity
@@ -53,18 +50,20 @@ export function TournamentCard({ tournament, onPress }: Props) {
       activeOpacity={0.7}>
       <View className="mb-3 flex-row items-start justify-between">
         <View className="flex-1">
-          <View className="mb-1 flex-row items-center">
-            <View className="mr-3 h-10 w-10 items-center justify-center rounded-lg bg-slate-100">
-              <Text className="text-xl">{sportEmoji[tournament.sport]}</Text>
-            </View>
+          <View className="mb-2">
             <Text
-              className="flex-1 font-display-semibold text-xl tracking-tight text-slate-900"
+              className="font-display-semibold text-xl tracking-tight text-slate-900"
               numberOfLines={1}>
               {tournament.name}
             </Text>
+            <View className="mt-2 self-start rounded-md border border-slate-200 bg-slate-50 px-2 py-1">
+              <Text className="text-xs font-semibold tracking-wide text-slate-700">
+                {sportLabel}
+              </Text>
+            </View>
           </View>
           {tournament.description && (
-            <Text className="ml-13 text-sm text-text-secondary" numberOfLines={2}>
+            <Text className="text-sm text-text-secondary" numberOfLines={2}>
               {tournament.description}
             </Text>
           )}
@@ -86,13 +85,12 @@ export function TournamentCard({ tournament, onPress }: Props) {
         </View>
 
         <View className="flex-row items-center space-x-3">
-          <View className="flex-row items-center">
-            <Text className="mr-1 text-xs text-slate-400">👥</Text>
+          <View className="items-end">
+            <Text className="text-xs uppercase tracking-wide text-text-tertiary">Participants</Text>
             <Text className="text-sm text-text-secondary">{tournament.participantCount}</Text>
           </View>
           {tournament.liveMatchCount > 0 && (
-            <View className="flex-row items-center rounded-lg bg-status-live-border px-2.5 py-1 shadow-lg shadow-red-500/30">
-              <View className="mr-1.5 h-1.5 w-1.5 rounded-full bg-white" />
+            <View className="rounded-lg bg-status-live-border px-2.5 py-1 shadow-lg shadow-red-500/30">
               <Text className="text-xs font-medium text-white">
                 {tournament.liveMatchCount} Live
               </Text>
