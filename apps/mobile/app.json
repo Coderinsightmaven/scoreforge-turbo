@@ -3,32 +3,24 @@
     "name": "mobile",
     "slug": "mobile",
     "version": "1.0.0",
-
     "web": {
       "favicon": "./assets/favicon.png"
     },
-
     "experiments": {
       "tsconfigPaths": true
     },
-
     "plugins": [],
-
     "runtimeVersion": {
       "policy": "appVersion"
     },
-
     "extra": {
       "eas": {
-        "projectId": ""
+        "projectId": "5e25276c-0f1a-47ba-9f5c-dc0260ef3ddf"
       }
     },
-
     "orientation": "default",
     "icon": "./assets/icon.png",
-
     "userInterfaceStyle": "light",
-
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -43,6 +35,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       }
-    }
+    },
+    "owner": "theflyingamerican72"
   }
 }
