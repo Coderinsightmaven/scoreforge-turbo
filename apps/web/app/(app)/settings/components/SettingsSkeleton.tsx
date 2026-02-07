@@ -1,9 +1,11 @@
 "use client";
 
+import type { JSX } from "react";
+
 import { Skeleton } from "@/app/components/Skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 
-export function SettingsSkeleton() {
+export function SettingsSkeleton(): JSX.Element {
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="container">

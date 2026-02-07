@@ -1,6 +1,8 @@
 "use client";
 
-export function AdminSkeleton() {
+import type { JSX } from "react";
+
+export function AdminSkeleton(): JSX.Element {
   return (
     <div className="min-h-screen bg-background">
       <div className="border-b border-border bg-card">

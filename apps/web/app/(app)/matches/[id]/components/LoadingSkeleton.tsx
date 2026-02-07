@@ -1,8 +1,10 @@
 "use client";
 
+import type { JSX } from "react";
+
 import { Skeleton, SkeletonScoreboard } from "@/app/components/Skeleton";
 
-export function LoadingSkeleton() {
+export function LoadingSkeleton(): JSX.Element {
   return (
     <div className="min-h-screen flex items-start justify-center px-6 py-12">
       <div className="w-full max-w-2xl">
