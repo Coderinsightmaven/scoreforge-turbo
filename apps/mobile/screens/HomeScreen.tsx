@@ -24,7 +24,7 @@ export function HomeScreen() {
 
   if (user === undefined) {
     return (
-      <View className="flex-1 items-center justify-center bg-editorial-page">
+      <View className="flex-1 items-center justify-center bg-slate-50">
         <ActivityIndicator size="large" color="#D4A017" />
       </View>
     );
@@ -33,7 +33,7 @@ export function HomeScreen() {
   // Render the appropriate screen based on navigation state
   if (screen.type === "tournament") {
     return (
-      <SafeAreaView className="flex-1 bg-editorial-page" edges={["top"]}>
+      <SafeAreaView className="flex-1 bg-slate-50" edges={["top"]}>
         <TournamentDetailScreen
           tournamentId={screen.tournamentId}
           onBack={() => setScreen({ type: "tournaments" })}
@@ -70,16 +70,16 @@ export function HomeScreen() {
     <View className="flex-1 bg-white">
       <SafeAreaView className="flex-1" edges={["top"]}>
         {/* Header */}
-        <View className="flex-row items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
+        <View className="flex-row items-center justify-between bg-white px-5 py-5 shadow-sm shadow-slate-900/5">
           <View>
-            <Text className="font-display-bold text-xl text-gray-900">
+            <Text className="font-display-bold text-2xl tracking-tight text-slate-900">
               {user?.name ? `Hi, ${user.name.split(" ")[0]}` : "Tournaments"}
             </Text>
-            <Text className="font-sans text-sm text-gray-500">ScoreForge Mobile</Text>
+            <Text className="font-sans text-sm text-text-tertiary">ScoreForge Mobile</Text>
           </View>
           <View className="flex-row items-center">
             <TouchableOpacity
-              className="h-10 w-10 items-center justify-center rounded-full bg-brand"
+              className="h-12 w-12 items-center justify-center rounded-full bg-brand shadow-lg shadow-brand/30"
               onPress={() => signOut()}>
               <Text className="text-lg font-bold text-white">
                 {user?.name?.[0]?.toUpperCase() ?? "?"}
@@ -89,7 +89,7 @@ export function HomeScreen() {
         </View>
 
         {/* Tournaments List */}
-        <View className="flex-1 bg-editorial-page">
+        <View className="flex-1 bg-slate-50">
           <TournamentsScreen
             onSelectTournament={(tournamentId) => setScreen({ type: "tournament", tournamentId })}
           />

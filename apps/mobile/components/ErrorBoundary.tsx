@@ -31,18 +31,18 @@ export class ErrorBoundary extends React.Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <View className="flex-1 items-center justify-center bg-gray-900 px-6">
+        <View className="flex-1 items-center justify-center bg-dark-bg px-6">
           <View className="mb-6 h-16 w-16 items-center justify-center rounded-2xl bg-red-500">
             <Text className="text-3xl font-bold text-white">!</Text>
           </View>
-          <Text className="mb-2 text-center text-xl font-bold text-white">
+          <Text className="mb-2 text-center text-xl font-bold text-text-inverse">
             Something went wrong
           </Text>
-          <Text className="mb-6 text-center text-base text-gray-400">
+          <Text className="mb-6 text-center text-base text-slate-400">
             An unexpected error occurred. Please try again.
           </Text>
           <TouchableOpacity
-            className="rounded-lg bg-brand px-8 py-3"
+            className="rounded-xl bg-brand px-8 py-3.5 shadow-lg shadow-brand/20"
             onPress={this.handleRetry}
             activeOpacity={0.7}>
             <Text className="text-base font-semibold text-white">Retry</Text>

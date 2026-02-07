@@ -26,11 +26,12 @@ const TEMP_SCORER_SESSION_KEY = "tempScorerSession";
 
 function LoadingScreen() {
   return (
-    <View className="flex-1 items-center justify-center bg-editorial-charcoal">
-      <View className="mb-6 h-16 w-16 items-center justify-center rounded-xl bg-brand">
-        <Text className="font-display-bold text-3xl text-white">S</Text>
+    <View className="flex-1 items-center justify-center bg-slate-50">
+      <View className="mb-6 h-20 w-20 items-center justify-center rounded-2xl bg-brand shadow-lg shadow-brand/20">
+        <Text className="font-display-bold text-4xl text-white">S</Text>
       </View>
       <ActivityIndicator size="large" color="#D4A017" />
+      <Text className="mt-4 font-sans-medium text-sm text-text-tertiary">Loading ScoreForge</Text>
     </View>
   );
 }
@@ -130,7 +131,7 @@ export default function App() {
 
   if (!fontsLoaded) {
     return (
-      <View className="flex-1 items-center justify-center bg-editorial-charcoal">
+      <View className="flex-1 items-center justify-center bg-slate-50">
         <ActivityIndicator size="large" color="#D4A017" />
       </View>
     );

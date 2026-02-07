@@ -10,16 +10,18 @@ interface ScreenHeaderProps {
 
 export function ScreenHeader({ title, onBack, rightAction }: ScreenHeaderProps) {
   return (
-    <SafeAreaView edges={["top"]} className="border-b border-editorial-border bg-white">
-      <View className="flex-row items-center justify-between px-4 py-3">
+    <SafeAreaView edges={["top"]} className="bg-white">
+      <View className="flex-row items-center justify-between px-5 py-3">
         <View className="flex-1 flex-row items-center gap-3">
           {onBack && (
-            <Pressable onPress={onBack} className="h-9 w-9 items-center justify-center rounded-lg">
-              <Text className="text-xl text-editorial-text-primary">←</Text>
+            <Pressable
+              onPress={onBack}
+              className="h-10 w-10 items-center justify-center rounded-lg bg-slate-100">
+              <Text className="text-xl text-text-primary">←</Text>
             </Pressable>
           )}
           <Text
-            className="flex-1 font-display-semibold text-lg text-editorial-text-primary"
+            className="flex-1 font-display-semibold text-2xl tracking-tight text-text-primary"
             numberOfLines={1}>
             {title}
           </Text>

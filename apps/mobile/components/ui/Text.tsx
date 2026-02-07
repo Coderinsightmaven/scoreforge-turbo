@@ -18,16 +18,16 @@ interface ThemedTextProps extends TextProps {
 }
 
 const variantClasses: Record<TextVariant, string> = {
-  display: "font-display-bold text-4xl tracking-tighter text-editorial-text-primary",
-  hero: "font-display-bold text-3xl tracking-tight text-editorial-text-primary",
-  title: "font-display-semibold text-2xl tracking-tight text-editorial-text-primary",
-  heading: "font-display-semibold text-xl text-editorial-text-primary",
-  subheading: "font-display-semibold text-lg text-editorial-text-primary",
-  "body-lg": "font-sans text-lg text-editorial-text-primary",
-  body: "font-sans text-base text-editorial-text-primary",
-  small: "font-sans text-sm text-editorial-text-secondary",
-  caption: "font-sans-medium text-xs uppercase tracking-widest text-editorial-text-muted",
-  label: "font-sans-semibold text-sm tracking-wide text-editorial-text-secondary",
+  display: "font-display-bold text-5xl tracking-tighter text-text-primary",
+  hero: "font-display-bold text-4xl tracking-tight text-text-primary",
+  title: "font-display-semibold text-3xl tracking-tight text-text-primary",
+  heading: "font-display-semibold text-2xl text-text-primary",
+  subheading: "font-display-semibold text-xl text-text-primary",
+  "body-lg": "font-sans text-xl text-text-primary",
+  body: "font-sans text-lg text-text-primary",
+  small: "font-sans text-base text-text-secondary",
+  caption: "font-sans-medium text-sm uppercase tracking-widest text-text-tertiary",
+  label: "font-sans-semibold text-base tracking-wide text-text-secondary",
 };
 
 export function ThemedText({ variant = "body", className = "", ...props }: ThemedTextProps) {

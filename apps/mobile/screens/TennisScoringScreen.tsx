@@ -47,7 +47,7 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
 
   if (match === undefined) {
     return (
-      <View className="flex-1 items-center justify-center bg-editorial-charcoal">
+      <View className="flex-1 items-center justify-center bg-dark-bg">
         <ActivityIndicator size="large" color="#D4A017" />
       </View>
     );
@@ -55,11 +55,11 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
 
   if (match === null) {
     return (
-      <SafeAreaView className="flex-1 bg-editorial-charcoal">
+      <SafeAreaView className="flex-1 bg-dark-bg">
         <View className="flex-1 items-center justify-center px-6">
           <Text className="font-display-semibold text-lg text-white">Match not found</Text>
           <TouchableOpacity className="mt-4" onPress={onBack}>
-            <Text className="text-brand">Go back</Text>
+            <Text className="text-brand-glow">Go back</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -129,22 +129,22 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
   // Not initialized - show server selection
   if (!isInitialized && !isCompleted) {
     return (
-      <SafeAreaView className="flex-1 bg-editorial-charcoal">
-        <View className="flex-row items-center border-b border-editorial-dark-card px-4 py-3">
+      <SafeAreaView className="flex-1 bg-dark-bg">
+        <View className="flex-row items-center border-b border-dark-elevated px-4 py-3">
           <TouchableOpacity onPress={onBack} className="mr-3 p-1">
-            <Text className="text-2xl text-gray-400">←</Text>
+            <Text className="text-2xl text-slate-400">←</Text>
           </TouchableOpacity>
           <Text className="font-display-semibold text-lg text-white">Start Match</Text>
         </View>
 
         <View className="flex-1 items-center justify-center px-6">
           <Text className="mb-2 font-display-bold text-xl text-white">Who serves first?</Text>
-          <Text className="mb-8 text-center text-gray-400">
+          <Text className="mb-8 text-center text-slate-400">
             Select the player who will serve first
           </Text>
 
           <TouchableOpacity
-            className="mb-4 w-full rounded-xl bg-brand py-4"
+            className="mb-4 w-full rounded-xl bg-brand py-4 shadow-lg shadow-brand/30"
             onPress={() => handleInitMatch(1)}>
             <Text className="text-center text-lg font-bold text-white">
               {match.participant1?.displayName || "Player 1"}
@@ -152,7 +152,7 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
           </TouchableOpacity>
 
           <TouchableOpacity
-            className="w-full rounded-xl bg-editorial-dark-tertiary py-4"
+            className="w-full rounded-xl bg-dark-elevated py-4"
             onPress={() => handleInitMatch(2)}>
             <Text className="text-center text-lg font-bold text-white">
               {match.participant2?.displayName || "Player 2"}
@@ -167,13 +167,13 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
   if (isCompleted) {
     const sets = state?.sets || [];
     return (
-      <SafeAreaView className="flex-1 bg-editorial-charcoal">
+      <SafeAreaView className="flex-1 bg-dark-bg">
         <View className="flex-1 items-center justify-center px-6">
-          <View className="mb-6 h-20 w-20 items-center justify-center rounded-full bg-brand">
-            <Text className="text-4xl">🏆</Text>
+          <View className="mb-6 h-24 w-24 items-center justify-center rounded-full bg-brand shadow-2xl shadow-brand/50">
+            <Text className="text-5xl">🏆</Text>
           </View>
-          <Text className="mb-2 font-display-bold text-3xl text-white">Match Complete</Text>
-          <Text className="mb-8 text-xl text-brand">
+          <Text className="mb-2 font-display-bold text-4xl text-white">Match Complete</Text>
+          <Text className="mb-8 text-xl text-brand-glow">
             {match.winnerId === match.participant1?._id
               ? match.participant1?.displayName
               : match.participant2?.displayName}{" "}
@@ -181,28 +181,26 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
           </Text>
 
           {/* Final Score */}
-          <View className="mb-8 w-full rounded-xl bg-editorial-dark-card p-4">
-            <Text className="mb-3 text-center font-display-semibold text-sm uppercase text-gray-400">
+          <View className="mb-8 w-full rounded-2xl border-2 border-dark-elevated bg-dark-card p-6">
+            <Text className="mb-3 text-center font-display-semibold text-sm uppercase text-slate-400">
               Final Score
             </Text>
             <View className="flex-row items-center justify-between px-4">
               <Text className="flex-1 text-lg font-semibold text-white">
                 {match.participant1?.displayName}
               </Text>
-              <Text className="text-lg text-gray-300">{sets.map((s) => s[0]).join("  ")}</Text>
+              <Text className="text-lg text-slate-300">{sets.map((s) => s[0]).join("  ")}</Text>
             </View>
-            <View className="my-2 h-px bg-editorial-dark-tertiary" />
+            <View className="my-2 h-px bg-dark-elevated" />
             <View className="flex-row items-center justify-between px-4">
               <Text className="flex-1 text-lg font-semibold text-white">
                 {match.participant2?.displayName}
               </Text>
-              <Text className="text-lg text-gray-300">{sets.map((s) => s[1]).join("  ")}</Text>
+              <Text className="text-lg text-slate-300">{sets.map((s) => s[1]).join("  ")}</Text>
             </View>
           </View>
 
-          <TouchableOpacity
-            className="w-full rounded-xl bg-editorial-dark-tertiary py-4"
-            onPress={onBack}>
+          <TouchableOpacity className="w-full rounded-xl bg-dark-elevated py-4" onPress={onBack}>
             <Text className="text-center text-lg font-semibold text-white">Back to Match</Text>
           </TouchableOpacity>
         </View>
@@ -228,18 +226,18 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
   // Scoreboard component (shared between layouts)
   const Scoreboard = () => (
     <View
-      className={`rounded-xl border border-editorial-dark-tertiary bg-editorial-charcoal p-4 ${isLandscape ? "w-72" : "w-80"}`}>
+      className={`rounded-2xl border-2 border-dark-elevated bg-dark-bg p-6 ${isLandscape ? "w-72" : "w-80"}`}>
       {/* Status Badges */}
       <View className="mb-3 flex-row items-center justify-center space-x-2">
         {isLive && (
-          <View className="flex-row items-center rounded-full bg-red-500/20 px-3 py-1">
+          <View className="flex-row items-center rounded-lg border border-red-500/30 bg-red-500/20 px-3 py-1">
             <View className="mr-1.5 h-2 w-2 rounded-full bg-red-500" />
             <Text className="text-xs font-medium text-red-500">LIVE</Text>
           </View>
         )}
         {isTiebreak && (
-          <View className="rounded-full bg-brand/20 px-3 py-1">
-            <Text className="text-xs font-medium text-brand">TIEBREAK</Text>
+          <View className="rounded-lg border border-brand/30 bg-brand/20 px-3 py-1">
+            <Text className="text-xs font-medium text-brand-glow">TIEBREAK</Text>
           </View>
         )}
       </View>
@@ -247,7 +245,7 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
       {/* Game Status */}
       {gameStatus && (
         <View className="mb-3 items-center">
-          <Text className="text-sm font-medium text-brand">{gameStatus}</Text>
+          <Text className="text-sm font-medium text-brand-glow">{gameStatus}</Text>
         </View>
       )}
 
@@ -255,15 +253,17 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
       <View className="mb-4 flex-row items-center justify-center">
         {/* Player 1 Points */}
         <View className="flex-1 items-center">
-          {servingParticipant === 1 && <View className="mb-1 h-2 w-2 rounded-full bg-green-500" />}
-          <Text className={`font-bold text-brand ${isLandscape ? "text-4xl" : "text-5xl"}`}>
+          {servingParticipant === 1 && (
+            <View className="mb-1 h-2 w-2 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
+          )}
+          <Text className={`font-bold text-brand-glow ${isLandscape ? "text-5xl" : "text-6xl"}`}>
             {p1Points}
           </Text>
         </View>
 
         {/* Games in Center */}
-        <View className="mx-4 items-center rounded-lg bg-editorial-dark-card px-4 py-2">
-          <Text className="text-xs text-gray-400">{isTiebreak ? "TB" : "GAME"}</Text>
+        <View className="mx-4 items-center rounded-xl bg-dark-card px-4 py-2">
+          <Text className="text-xs text-slate-400">{isTiebreak ? "TB" : "GAME"}</Text>
           <Text className="text-xl font-bold text-white">
             {currentSetGames[0]} - {currentSetGames[1]}
           </Text>
@@ -271,8 +271,10 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
 
         {/* Player 2 Points */}
         <View className="flex-1 items-center">
-          {servingParticipant === 2 && <View className="mb-1 h-2 w-2 rounded-full bg-green-500" />}
-          <Text className={`font-bold text-brand ${isLandscape ? "text-4xl" : "text-5xl"}`}>
+          {servingParticipant === 2 && (
+            <View className="mb-1 h-2 w-2 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
+          )}
+          <Text className={`font-bold text-brand-glow ${isLandscape ? "text-5xl" : "text-6xl"}`}>
             {p2Points}
           </Text>
         </View>
@@ -281,7 +283,7 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
       {/* Set Scores */}
       {sets.length > 0 && (
         <View className="items-center">
-          <Text className="text-sm text-gray-400">
+          <Text className="text-sm text-slate-400">
             {sets.map((s) => `${s[0]}-${s[1]}`).join("   ")}
           </Text>
         </View>
@@ -292,10 +294,10 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
   // LANDSCAPE LAYOUT - Left/Right split
   if (isLandscape) {
     return (
-      <View className="flex-1 flex-row bg-editorial-charcoal">
+      <View className="flex-1 flex-row bg-dark-bg">
         {/* Player 1 Tap Zone (Left) */}
         <TouchableOpacity
-          className="flex-1 bg-editorial-dark-card"
+          className="flex-1 bg-dark-card"
           onPress={() => handleScorePoint(1)}
           activeOpacity={1}
           disabled={!isLive}>
@@ -306,17 +308,17 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
           />
           <SafeAreaView className="flex-1 items-start justify-center pl-8">
             <View className="items-center">
-              <Text className="text-2xl font-bold text-white" numberOfLines={2}>
+              <Text className="font-display-semibold text-3xl text-white" numberOfLines={2}>
                 {match.participant1?.displayName || "Player 1"}
               </Text>
-              <Text className="mt-2 text-sm text-gray-400">Tap to score</Text>
+              <Text className="mt-2 text-sm text-slate-400">Tap to score</Text>
             </View>
           </SafeAreaView>
         </TouchableOpacity>
 
         {/* Player 2 Tap Zone (Right) */}
         <TouchableOpacity
-          className="flex-1 bg-editorial-dark-tertiary"
+          className="flex-1 bg-dark-elevated"
           onPress={() => handleScorePoint(2)}
           activeOpacity={1}
           disabled={!isLive}>
@@ -327,10 +329,10 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
           />
           <SafeAreaView className="flex-1 items-end justify-center pr-8">
             <View className="items-center">
-              <Text className="text-2xl font-bold text-white" numberOfLines={2}>
+              <Text className="font-display-semibold text-3xl text-white" numberOfLines={2}>
                 {match.participant2?.displayName || "Player 2"}
               </Text>
-              <Text className="mt-2 text-sm text-gray-400">Tap to score</Text>
+              <Text className="mt-2 text-sm text-slate-400">Tap to score</Text>
             </View>
           </SafeAreaView>
         </TouchableOpacity>
@@ -340,13 +342,15 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
           <Scoreboard />
           {/* Undo Button */}
           <TouchableOpacity
-            className={`mt-4 flex-row items-center rounded-full px-6 py-3 ${
-              state?.history?.length ? "bg-editorial-dark-card" : "bg-editorial-dark-card/50"
+            className={`mt-4 flex-row items-center rounded-xl border-2 px-8 py-3.5 ${
+              state?.history?.length
+                ? "border-dark-elevated bg-dark-card"
+                : "border-dark-elevated/50 bg-dark-card/50"
             }`}
             onPress={handleUndo}
             disabled={!state?.history?.length}>
             <Text
-              className={`text-sm font-medium ${state?.history?.length ? "text-white" : "text-gray-600"}`}>
+              className={`text-base font-medium ${state?.history?.length ? "text-white" : "text-slate-600"}`}>
               ↩ Undo
             </Text>
           </TouchableOpacity>
@@ -355,7 +359,7 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
         {/* Back Button */}
         <SafeAreaView className="absolute left-4 top-4" pointerEvents="box-none">
           <TouchableOpacity
-            className="h-12 w-12 items-center justify-center rounded-full bg-editorial-dark-card"
+            className="h-14 w-14 items-center justify-center rounded-full border-2 border-dark-elevated bg-dark-card shadow-2xl"
             onPress={onBack}>
             <Text className="text-xl text-white">←</Text>
           </TouchableOpacity>
@@ -366,10 +370,10 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
 
   // PORTRAIT LAYOUT - Top/Bottom split
   return (
-    <View className="flex-1 bg-editorial-charcoal">
+    <View className="flex-1 bg-dark-bg">
       {/* Player 1 Tap Zone (Top) */}
       <TouchableOpacity
-        className="flex-1 bg-editorial-dark-card"
+        className="flex-1 bg-dark-card"
         onPress={() => handleScorePoint(1)}
         activeOpacity={1}
         disabled={!isLive}>
@@ -379,25 +383,29 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
           pointerEvents="none"
         />
         <SafeAreaView className="flex-1 items-center justify-center" edges={["top"]}>
-          <Text className="px-4 text-center text-3xl font-bold text-white" numberOfLines={2}>
+          <Text
+            className="px-4 text-center font-display-semibold text-3xl text-white"
+            numberOfLines={2}>
             {match.participant1?.displayName || "Player 1"}
           </Text>
-          <Text className="mt-2 text-gray-400">Tap to score</Text>
+          <Text className="mt-2 text-slate-400">Tap to score</Text>
         </SafeAreaView>
       </TouchableOpacity>
 
       {/* Center Scoreboard */}
-      <View className="items-center bg-editorial-charcoal py-4">
+      <View className="items-center bg-dark-bg py-4">
         <Scoreboard />
         {/* Undo Button */}
         <TouchableOpacity
-          className={`mt-4 flex-row items-center rounded-full px-6 py-3 ${
-            state?.history?.length ? "bg-editorial-dark-card" : "bg-editorial-dark-card/50"
+          className={`mt-4 flex-row items-center rounded-xl border-2 px-8 py-3.5 ${
+            state?.history?.length
+              ? "border-dark-elevated bg-dark-card"
+              : "border-dark-elevated/50 bg-dark-card/50"
           }`}
           onPress={handleUndo}
           disabled={!state?.history?.length}>
           <Text
-            className={`text-sm font-medium ${state?.history?.length ? "text-white" : "text-gray-600"}`}>
+            className={`text-base font-medium ${state?.history?.length ? "text-white" : "text-slate-600"}`}>
             ↩ Undo
           </Text>
         </TouchableOpacity>
@@ -405,7 +413,7 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
 
       {/* Player 2 Tap Zone (Bottom) */}
       <TouchableOpacity
-        className="flex-1 bg-editorial-dark-tertiary"
+        className="flex-1 bg-dark-elevated"
         onPress={() => handleScorePoint(2)}
         activeOpacity={1}
         disabled={!isLive}>
@@ -415,17 +423,19 @@ export function TennisScoringScreen({ matchId, tempScorerToken, onBack }: Props)
           pointerEvents="none"
         />
         <SafeAreaView className="flex-1 items-center justify-center" edges={["bottom"]}>
-          <Text className="px-4 text-center text-3xl font-bold text-white" numberOfLines={2}>
+          <Text
+            className="px-4 text-center font-display-semibold text-3xl text-white"
+            numberOfLines={2}>
             {match.participant2?.displayName || "Player 2"}
           </Text>
-          <Text className="mt-2 text-gray-400">Tap to score</Text>
+          <Text className="mt-2 text-slate-400">Tap to score</Text>
         </SafeAreaView>
       </TouchableOpacity>
 
       {/* Back Button */}
       <SafeAreaView className="absolute left-4 top-4" pointerEvents="box-none" edges={["top"]}>
         <TouchableOpacity
-          className="h-12 w-12 items-center justify-center rounded-full bg-editorial-dark-card"
+          className="h-14 w-14 items-center justify-center rounded-full border-2 border-dark-elevated bg-dark-card shadow-2xl"
           onPress={onBack}>
           <Text className="text-xl text-white">←</Text>
         </TouchableOpacity>

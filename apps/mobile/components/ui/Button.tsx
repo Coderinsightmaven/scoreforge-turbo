@@ -12,36 +12,36 @@ interface ButtonProps extends PressableProps {
 
 const variantStyles: Record<ButtonVariant, { container: string; text: string; pressed: string }> = {
   brand: {
-    container: "bg-brand rounded-lg",
+    container: "bg-brand rounded-xl shadow-lg shadow-brand/20",
     text: "font-display-semibold text-white text-center",
     pressed: "bg-brand-hover",
   },
   primary: {
-    container: "bg-editorial-text-primary rounded-lg",
+    container: "bg-text-primary rounded-xl",
     text: "font-sans-semibold text-white text-center",
     pressed: "opacity-90",
   },
   secondary: {
-    container: "bg-editorial-secondary rounded-lg",
-    text: "font-sans-semibold text-editorial-text-primary text-center",
-    pressed: "bg-editorial-tertiary",
+    container: "bg-surface-secondary rounded-xl",
+    text: "font-sans-semibold text-text-primary text-center",
+    pressed: "bg-surface-tertiary",
   },
   outline: {
-    container: "border border-editorial-border rounded-lg bg-transparent",
-    text: "font-sans-semibold text-editorial-text-primary text-center",
-    pressed: "bg-editorial-secondary",
+    container: "border-2 border-slate-200 rounded-xl bg-transparent",
+    text: "font-sans-semibold text-text-primary text-center",
+    pressed: "bg-surface-secondary",
   },
   ghost: {
-    container: "bg-transparent rounded-lg",
-    text: "font-sans-semibold text-editorial-text-secondary text-center",
-    pressed: "bg-editorial-secondary",
+    container: "bg-transparent rounded-xl",
+    text: "font-sans-semibold text-text-secondary text-center",
+    pressed: "bg-surface-secondary",
   },
 };
 
 const sizeStyles: Record<string, { container: string; text: string }> = {
-  sm: { container: "py-2 px-4", text: "text-sm" },
-  md: { container: "py-3 px-6", text: "text-base" },
-  lg: { container: "py-4 px-8", text: "text-lg" },
+  sm: { container: "py-2.5 px-5", text: "text-sm" },
+  md: { container: "py-3.5 px-7", text: "text-base" },
+  lg: { container: "py-5 px-10", text: "text-lg" },
 };
 
 export function Button({

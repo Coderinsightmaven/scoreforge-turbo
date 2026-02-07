@@ -10,18 +10,18 @@ export function Input({ label, error, className = "", ...props }: InputProps) {
   return (
     <View>
       {label && (
-        <Text className="mb-1.5 font-sans-semibold text-sm tracking-wide text-editorial-text-secondary">
+        <Text className="mb-1.5 font-sans-semibold text-sm tracking-wide text-text-secondary">
           {label}
         </Text>
       )}
       <TextInput
-        className={`rounded-lg border border-editorial-border bg-white px-4 py-3 font-sans text-base text-editorial-text-primary ${
-          error ? "border-editorial-error" : "focus:border-brand"
+        className={`rounded-xl border-2 border-slate-200 bg-white px-5 py-4 font-sans text-base text-text-primary ${
+          error ? "border-red-500" : "focus:border-brand"
         } ${className}`}
-        placeholderTextColor="#737373"
+        placeholderTextColor="#94A3B8"
         {...props}
       />
-      {error && <Text className="mt-1 font-sans text-sm text-editorial-error">{error}</Text>}
+      {error && <Text className="mt-1 font-sans text-sm text-red-500">{error}</Text>}
     </View>
   );
 }

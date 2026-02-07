@@ -6,8 +6,9 @@ interface CardProps extends ViewProps {
 }
 
 export function Card({ variant = "default", className = "", ...props }: CardProps) {
-  const baseClass = "bg-white rounded-lg border border-editorial-border";
-  const variantClass = variant === "elevated" ? "shadow-sm" : "";
+  const baseClass = "bg-surface-primary rounded-xl";
+  const variantClass =
+    variant === "elevated" ? "shadow-lg shadow-slate-900/5 border border-slate-100" : "";
 
   return <View className={`${baseClass} ${variantClass} ${className}`} {...props} />;
 }

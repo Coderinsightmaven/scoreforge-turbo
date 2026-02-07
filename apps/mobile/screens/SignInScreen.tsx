@@ -149,7 +149,7 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
   };
 
   return (
-    <View className="flex-1 bg-editorial-page">
+    <View className="flex-1 bg-slate-50">
       <SafeAreaView className="flex-1">
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -159,10 +159,13 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
             keyboardShouldPersistTaps="always">
             {/* Logo & Branding */}
             <View className="mb-8 items-center">
-              <View className="mb-4 h-16 w-16 items-center justify-center rounded-xl bg-brand shadow-lg">
-                <Text className="font-display-bold text-3xl text-white">S</Text>
+              <View className="mb-4 h-24 w-24 items-center justify-center rounded-3xl bg-brand shadow-2xl shadow-brand/30">
+                <Text className="font-display-bold text-4xl text-white">S</Text>
               </View>
-              <Text className="font-sans text-sm text-gray-500">
+              <Text className="mb-1 font-display-semibold text-2xl text-text-primary">
+                Welcome to ScoreForge
+              </Text>
+              <Text className="font-sans text-sm text-text-tertiary">
                 Tournament Scoring Made Simple
               </Text>
             </View>
@@ -171,7 +174,7 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
             <View
               style={{
                 flexDirection: "row",
-                backgroundColor: "#f3f4f6",
+                backgroundColor: "#F1F5F9",
                 borderRadius: 12,
                 padding: 4,
                 marginBottom: 24,
@@ -184,6 +187,15 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
                   paddingVertical: 12,
                   borderRadius: 8,
                   backgroundColor: loginType === "regular" ? "#ffffff" : "transparent",
+                  ...(loginType === "regular"
+                    ? {
+                        shadowColor: "#0F172A",
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: 0.08,
+                        shadowRadius: 4,
+                        elevation: 2,
+                      }
+                    : {}),
                 }}
                 onPress={() => {
                   setLoginType("regular");
@@ -193,7 +205,7 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
                   style={{
                     fontSize: 14,
                     fontWeight: "600",
-                    color: loginType === "regular" ? "#111827" : "#6b7280",
+                    color: loginType === "regular" ? "#0F172A" : "#94A3B8",
                   }}>
                   Account Login
                 </Text>
@@ -206,6 +218,15 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
                   paddingVertical: 12,
                   borderRadius: 8,
                   backgroundColor: loginType === "scorer" ? "#ffffff" : "transparent",
+                  ...(loginType === "scorer"
+                    ? {
+                        shadowColor: "#0F172A",
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: 0.08,
+                        shadowRadius: 4,
+                        elevation: 2,
+                      }
+                    : {}),
                 }}
                 onPress={() => {
                   setLoginType("scorer");
@@ -215,7 +236,7 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
                   style={{
                     fontSize: 14,
                     fontWeight: "600",
-                    color: loginType === "scorer" ? "#111827" : "#6b7280",
+                    color: loginType === "scorer" ? "#0F172A" : "#94A3B8",
                   }}>
                   Scorer Login
                 </Text>
@@ -223,25 +244,25 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
             </View>
 
             {/* Login Card */}
-            <View className="rounded-xl bg-white p-6 shadow-xl">
+            <View className="rounded-2xl bg-white p-8 shadow-2xl shadow-slate-900/10">
               {loginType === "regular" ? (
                 <>
-                  <Text className="mb-1 text-center font-display-bold text-xl text-gray-900">
+                  <Text className="mb-1 text-center font-display-bold text-xl text-slate-900">
                     Welcome Back
                   </Text>
-                  <Text className="mb-6 text-center font-sans text-sm text-gray-500">
+                  <Text className="mb-6 text-center font-sans text-sm text-text-tertiary">
                     Sign in with your account
                   </Text>
 
                   <View className="space-y-4">
                     <View>
-                      <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-tertiary">
                         Email Address
                       </Text>
                       <TextInput
-                        className="w-full rounded-xl border-2 border-gray-100 bg-gray-50 px-4 py-3.5 text-base text-gray-900"
+                        className="w-full rounded-xl border-2 border-slate-200 bg-white px-5 py-4 text-base text-slate-900"
                         placeholder="you@example.com"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor="#94A3B8"
                         value={email}
                         onChangeText={setEmail}
                         keyboardType="email-address"
@@ -251,13 +272,13 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
                     </View>
 
                     <View>
-                      <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-tertiary">
                         Password
                       </Text>
                       <TextInput
-                        className="w-full rounded-xl border-2 border-gray-100 bg-gray-50 px-4 py-3.5 text-base text-gray-900"
+                        className="w-full rounded-xl border-2 border-slate-200 bg-white px-5 py-4 text-base text-slate-900"
                         placeholder="Enter your password"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor="#94A3B8"
                         value={password}
                         onChangeText={setPassword}
                         secureTextEntry
@@ -266,15 +287,13 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
                     </View>
 
                     {error && (
-                      <View className="rounded-xl bg-red-50 p-4">
+                      <View className="rounded-xl border border-red-200 bg-red-50 p-4">
                         <Text className="text-center text-sm text-red-600">{error}</Text>
                       </View>
                     )}
 
                     <TouchableOpacity
-                      className={`mt-2 w-full items-center rounded-xl py-4 ${
-                        loading ? "bg-brand" : "bg-brand"
-                      }`}
+                      className="mt-2 w-full items-center rounded-xl bg-brand py-5 shadow-lg shadow-brand/30"
                       onPress={handleRegularSubmit}
                       disabled={loading}
                       activeOpacity={0.8}>
@@ -288,36 +307,36 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
                 </>
               ) : (
                 <>
-                  <Text className="mb-1 text-center font-display-bold text-xl text-gray-900">
+                  <Text className="mb-1 text-center font-display-bold text-xl text-slate-900">
                     Scorer Login
                   </Text>
-                  <Text className="mb-6 text-center font-sans text-sm text-gray-500">
+                  <Text className="mb-6 text-center font-sans text-sm text-text-tertiary">
                     Sign in with your tournament credentials
                   </Text>
 
                   <View className="space-y-4">
                     <View>
-                      <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-tertiary">
                         Tournament Code
                       </Text>
                       <TextInput
-                        className="w-full rounded-xl border-2 border-gray-100 bg-gray-50 px-4 py-3.5 text-center text-lg font-bold tracking-widest text-gray-900"
+                        className="w-full rounded-xl border-2 border-slate-200 bg-white px-5 py-4 text-center text-lg font-bold tracking-widest text-slate-900"
                         placeholder="ABC123"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor="#94A3B8"
                         value={tournamentCode}
                         onChangeText={(text) => setTournamentCode(text.toUpperCase().slice(0, 6))}
                         autoCapitalize="characters"
                         maxLength={6}
                       />
                       {tournamentInfo && (
-                        <View className="mt-2 rounded-lg bg-brand-light p-2">
-                          <Text className="text-center text-sm text-brand-text">
+                        <View className="mt-2 rounded-lg border border-status-active-border/30 bg-status-active-bg p-2">
+                          <Text className="text-center text-sm text-status-active-text">
                             {tournamentInfo.name}
                           </Text>
                         </View>
                       )}
                       {tournamentCode.length === 6 && tournamentInfo === null && (
-                        <View className="mt-2 rounded-lg bg-red-50 p-2">
+                        <View className="mt-2 rounded-lg border border-red-200 bg-red-50 p-2">
                           <Text className="text-center text-sm text-red-600">
                             Tournament not found
                           </Text>
@@ -326,13 +345,13 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
                     </View>
 
                     <View>
-                      <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-tertiary">
                         Username
                       </Text>
                       <TextInput
-                        className="w-full rounded-xl border-2 border-gray-100 bg-gray-50 px-4 py-3.5 text-base text-gray-900"
+                        className="w-full rounded-xl border-2 border-slate-200 bg-white px-5 py-4 text-base text-slate-900"
                         placeholder="Your username"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor="#94A3B8"
                         value={username}
                         onChangeText={(text) => setUsername(text.toLowerCase())}
                         autoCapitalize="none"
@@ -341,13 +360,13 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
                     </View>
 
                     <View>
-                      <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-tertiary">
                         PIN
                       </Text>
                       <TextInput
-                        className="w-full rounded-xl border-2 border-gray-100 bg-gray-50 px-4 py-3.5 text-center text-lg font-bold tracking-widest text-gray-900"
+                        className="w-full rounded-xl border-2 border-slate-200 bg-white px-5 py-4 text-center text-lg font-bold tracking-widest text-slate-900"
                         placeholder="1234"
-                        placeholderTextColor="#9ca3af"
+                        placeholderTextColor="#94A3B8"
                         value={pin}
                         onChangeText={(text) => setPin(text.replace(/[^0-9]/g, "").slice(0, 6))}
                         keyboardType="number-pad"
@@ -357,15 +376,13 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
                     </View>
 
                     {error && (
-                      <View className="rounded-xl bg-red-50 p-4">
+                      <View className="rounded-xl border border-red-200 bg-red-50 p-4">
                         <Text className="text-center text-sm text-red-600">{error}</Text>
                       </View>
                     )}
 
                     <TouchableOpacity
-                      className={`mt-2 w-full items-center rounded-xl py-4 ${
-                        loading ? "bg-brand" : "bg-brand"
-                      }`}
+                      className="mt-2 w-full items-center rounded-xl bg-brand py-5 shadow-lg shadow-brand/30"
                       onPress={handleScorerSubmit}
                       disabled={loading}
                       activeOpacity={0.8}>
@@ -382,7 +399,7 @@ export function SignInScreen({ onTempScorerLogin }: SignInScreenProps) {
 
             {/* Footer */}
             <View className="mt-6 items-center">
-              <Text className="text-center font-sans text-xs text-gray-500">
+              <Text className="text-center font-sans text-xs text-text-tertiary">
                 {loginType === "regular"
                   ? "Scorer access only. Contact your tournament organizer for credentials."
                   : "Get your code, username, and PIN from the tournament organizer."}

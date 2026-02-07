@@ -9,7 +9,7 @@ interface SkeletonProps extends ViewProps {
 export function Skeleton({ width, height, className = "", style, ...props }: SkeletonProps) {
   return (
     <View
-      className={`animate-pulse rounded bg-editorial-secondary ${className}`}
+      className={`animate-pulse rounded bg-slate-100 ${className}`}
       style={[{ width, height }, style]}
       {...props}
     />
