@@ -57,9 +57,7 @@ export function StandingsTab({
     return (
       <div className="flex flex-col items-center py-16 text-center bg-secondary border border-dashed border-border rounded-xl">
         <span className="text-5xl text-muted-foreground mb-4 opacity-50">📊</span>
-        <p className="text-muted-foreground">
-          Standings will appear when matches are played
-        </p>
+        <p className="text-muted-foreground">Standings will appear when matches are played</p>
       </div>
     );
   }
@@ -96,16 +94,14 @@ export function StandingsTab({
               {index + 1}
             </span>
             <span className="font-medium truncate">{participant.displayName}</span>
-            <span className="text-center text-emerald-600 dark:text-emerald-400">{participant.wins}</span>
+            <span className="text-center text-success">{participant.wins}</span>
             <span className="text-center text-red">{participant.losses}</span>
             <span className="text-center text-muted-foreground">{participant.draws}</span>
-            <span className="text-center font-bold text-brand">
-              {participant.points}
-            </span>
+            <span className="text-center font-bold text-brand">{participant.points}</span>
             <span
               className={`text-right ${
                 participant.pointsFor - participant.pointsAgainst > 0
-                  ? "text-emerald-600 dark:text-emerald-400"
+                  ? "text-success"
                   : participant.pointsFor - participant.pointsAgainst < 0
                     ? "text-red"
                     : ""

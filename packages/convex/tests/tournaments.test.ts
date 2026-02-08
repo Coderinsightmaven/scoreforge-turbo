@@ -301,6 +301,7 @@ describe("createTournament", () => {
         participantType: "individual",
         maxParticipants: 8,
         tennisConfig: { isAdScoring: true, setsToWin: 2 },
+        courts: ["Court 1"],
       })
     ).rejects.toThrow();
   });
@@ -316,6 +317,7 @@ describe("createTournament", () => {
       participantType: "individual",
       maxParticipants: 16,
       tennisConfig: { isAdScoring: true, setsToWin: 2 },
+      courts: ["Court 1"],
     });
 
     expect(tournamentId).toBeDefined();
@@ -347,8 +349,26 @@ describe("createTournament", () => {
         format: "single_elimination",
         participantType: "individual",
         maxParticipants: 8,
+        courts: ["Court 1"],
       })
     ).rejects.toThrow("Tennis configuration is required");
+  });
+
+  it("requires at least one court", async () => {
+    const t = getTestContext();
+    const { asUser } = await setupUser(t);
+
+    await expect(
+      asUser.mutation(api.tournaments.createTournament, {
+        name: "No Courts",
+        sport: "tennis",
+        format: "single_elimination",
+        participantType: "individual",
+        maxParticipants: 8,
+        tennisConfig: { isAdScoring: true, setsToWin: 2 },
+        courts: [],
+      })
+    ).rejects.toThrow("At least one court is required");
   });
 
   it("enforces tournament limit for non-admins", async () => {
@@ -374,6 +394,7 @@ describe("createTournament", () => {
       participantType: "individual",
       maxParticipants: 8,
       tennisConfig: { isAdScoring: true, setsToWin: 2 },
+      courts: ["Court 1"],
     });
 
     // Second tournament fails
@@ -385,6 +406,7 @@ describe("createTournament", () => {
         participantType: "individual",
         maxParticipants: 8,
         tennisConfig: { isAdScoring: true, setsToWin: 2 },
+        courts: ["Court 1"],
       })
     ).rejects.toThrow("maximum number of tournaments");
   });
@@ -401,6 +423,7 @@ describe("createTournament", () => {
         participantType: "individual",
         maxParticipants: 8,
         tennisConfig: { isAdScoring: true, setsToWin: 2 },
+        courts: ["Court 1"],
       })
     ).rejects.toThrow();
   });

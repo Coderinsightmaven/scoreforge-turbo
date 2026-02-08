@@ -67,7 +67,7 @@ export function TemporaryScorersSection({
               </div>
               <div className="flex items-center gap-2">
                 {!scorer.isActive && (
-                  <span className="px-2 py-1 text-xs font-semibold text-red bg-red/10 rounded">
+                  <span className="px-2 py-1 text-xs font-semibold text-error bg-error/10 rounded">
                     Inactive
                   </span>
                 )}
@@ -86,21 +86,21 @@ export function TemporaryScorersSection({
                 {scorer.isActive ? (
                   <button
                     onClick={() => onDeactivate(scorer._id)}
-                    className="px-3 py-1.5 text-xs font-semibold text-muted-foreground bg-secondary border border-border rounded-lg hover:text-red hover:border-red/30 transition-all"
+                    className="px-3 py-1.5 text-xs font-semibold text-muted-foreground bg-secondary border border-border rounded-lg hover:text-error hover:border-error/35 transition-all"
                   >
                     Deactivate
                   </button>
                 ) : (
                   <button
                     onClick={() => onReactivate(scorer._id)}
-                    className="px-3 py-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-all"
+                    className="px-3 py-1.5 text-xs font-semibold text-success bg-success-light border border-success/35 rounded-lg hover:bg-success/20 transition-all"
                   >
                     Reactivate
                   </button>
                 )}
                 <button
                   onClick={() => onDelete(scorer._id)}
-                  className="px-3 py-1.5 text-xs font-semibold text-red bg-red/10 border border-red/20 rounded-lg hover:bg-red hover:text-white transition-all"
+                  className="px-3 py-1.5 text-xs font-semibold text-error bg-error/10 border border-error/30 rounded-lg hover:bg-error hover:text-text-inverse transition-all"
                 >
                   Delete
                 </button>

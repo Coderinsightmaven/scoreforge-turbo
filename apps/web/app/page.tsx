@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight,
   BarChart3,
@@ -12,59 +10,60 @@ import {
   Loader2,
   Monitor,
   ShieldCheck,
-  Smartphone,
   Trophy,
   Zap,
 } from "lucide-react";
 
-const features = [
+const featureHighlights = [
   {
     icon: Trophy,
     title: "Bracket-first workflow",
     description:
-      "Create singles, doubles, and multi-bracket tournaments with clear progression and fast seeding.",
+      "Build and run singles, doubles, and multi-bracket events with cleaner flow and faster setup.",
   },
   {
     icon: LayoutGrid,
     title: "Live scoring sync",
     description:
-      "Scores, court updates, and match outcomes propagate instantly across scorer, dashboard, and display.",
+      "Every score update lands across scorer, dashboard, and display views in real time.",
   },
   {
     icon: ShieldCheck,
-    title: "Role-based access",
+    title: "Role-based controls",
     description:
-      "Owners, admins, scorers, and temporary scorers get exactly the tools and permissions they need.",
-  },
-  {
-    icon: Smartphone,
-    title: "Cross-device operation",
-    description:
-      "Tournament staff can manage events from desktop while scorers work from mobile without drift.",
+      "Owners, admins, and scorers each get focused permissions with less interface clutter.",
   },
   {
     icon: Monitor,
-    title: "Display mode ready",
+    title: "Broadcast-ready screens",
     description:
-      "Drive external scoreboard views with production-grade layouts and real-time event data.",
+      "Drive external display modes with polished layouts tuned for event-day visibility.",
   },
   {
     icon: BarChart3,
-    title: "Export and audit",
-    description:
-      "Download match logs and scoring reports when you need accountability or post-event analysis.",
+    title: "Reports and export",
+    description: "Export match and scoring data when you need post-event auditing and review.",
   },
-];
+] as const;
 
-const stats = [
-  { label: "Realtime updates", value: "< 1s" },
-  { label: "Supported formats", value: "3" },
-  { label: "Devices synced", value: "Web + Mobile" },
-];
+const splitSignals = [
+  { label: "Realtime latency", value: "< 1s", detail: "Average sync across views" },
+  { label: "Court status", value: "7 Active", detail: "2 preparing, 5 live" },
+  { label: "Scorer roster", value: "14 Online", detail: "Desktop + mobile operators" },
+] as const;
+
+const tickerItems = [
+  "Court A live",
+  "Quarterfinal sheet published",
+  "Semifinal warmup in 04:00",
+  "Score logs synced",
+  "Broadcast overlay locked",
+  "Bracket update queued",
+] as const;
 
 export default function LandingPage(): React.ReactNode {
   return (
-    <div className="min-h-screen overflow-hidden pb-20">
+    <div className="min-h-screen overflow-hidden pb-16">
       <AuthLoading>
         <LoadingScreen />
       </AuthLoading>
@@ -82,8 +81,8 @@ export default function LandingPage(): React.ReactNode {
 
 function LoadingScreen(): React.JSX.Element {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 backdrop-blur-sm">
-      <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-5 py-4 shadow-[var(--shadow-card)]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/92 backdrop-blur-sm">
+      <div className="animate-splitInRight flex items-center gap-3 border-b border-border/80 px-4 py-3">
         <Loader2 className="h-4 w-4 animate-spin text-brand" />
         <span className="text-sm font-semibold text-muted-foreground">Loading ScoreForge</span>
       </div>
@@ -94,10 +93,10 @@ function LoadingScreen(): React.JSX.Element {
 function LandingContent({ isAuthenticated }: { isAuthenticated: boolean }): React.JSX.Element {
   return (
     <>
-      <header className="container py-7">
-        <div className="surface-panel flex items-center justify-between rounded-2xl border px-4 py-3 sm:px-6">
+      <header className="container py-6">
+        <div className="flex items-center justify-between gap-4 border-b border-border/75 px-1 pb-3">
           <Link href={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-brand/30 bg-brand text-text-inverse shadow-[var(--shadow-glow)]">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-brand/45 bg-brand text-text-inverse">
               <Zap className="h-5 w-5" />
             </div>
             <div>
@@ -105,7 +104,7 @@ function LandingContent({ isAuthenticated }: { isAuthenticated: boolean }): Reac
                 ScoreForge
               </p>
               <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-                Tournament OS
+                Operations Desk
               </p>
             </div>
           </Link>
@@ -114,7 +113,7 @@ function LandingContent({ isAuthenticated }: { isAuthenticated: boolean }): Reac
             {isAuthenticated ? (
               <Button variant="brand" asChild>
                 <Link href="/dashboard">
-                  Open Dashboard
+                  Open Workspace
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -132,93 +131,91 @@ function LandingContent({ isAuthenticated }: { isAuthenticated: boolean }): Reac
         </div>
       </header>
 
-      <main className="container space-y-10">
-        <section className="surface-panel section-shell relative overflow-hidden rounded-[28px] border px-6 py-10 sm:px-10 sm:py-14">
-          <div className="grid gap-10 lg:grid-cols-[1.12fr_0.88fr] lg:items-end">
-            <div className="space-y-7">
-              <Badge variant="brand" className="px-3 py-1 text-[10px]">
-                Realtime Competition Management
-              </Badge>
-              <div className="space-y-5">
-                <h1 className="text-display max-w-2xl">
-                  Run tournaments with the pace of live sport.
-                </h1>
-                <p className="max-w-xl text-body-lg text-muted-foreground">
-                  ScoreForge combines scheduling, scoring, brackets, and role management into one
-                  synchronized command center.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <Button variant="brand" size="lg" asChild>
-                  <Link href={isAuthenticated ? "/dashboard" : "/sign-up"}>
-                    {isAuthenticated ? "Go to Dashboard" : "Start for Free"}
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button variant="outline" size="lg" asChild>
-                  <Link href="/brackets/quick">Try Quick Bracket</Link>
-                </Button>
-              </div>
+      <main className="container space-y-6">
+        <section className="grid gap-8 border-b border-border/70 pb-8 xl:grid-cols-[1.05fr_0.95fr]">
+          <article className="section-shell animate-splitInLeft pt-2">
+            <p className="mb-3 text-caption text-muted-foreground">Split Layout</p>
+            <h1 className="text-display max-w-[12ch]">
+              Run every match from one focused operations split.
+            </h1>
+            <p className="mt-4 max-w-xl text-body-lg text-muted-foreground">
+              ScoreForge keeps live scoring, bracket movement, and court logistics side-by-side so
+              your team can react faster without tab-switching chaos.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button variant="brand" size="lg" asChild>
+                <Link href={isAuthenticated ? "/dashboard" : "/sign-up"}>
+                  {isAuthenticated ? "Go to Dashboard" : "Start for Free"}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="outline" size="lg" asChild>
+                <Link href="/brackets/quick">Open Quick Bracket</Link>
+              </Button>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-              {stats.map((stat) => (
-                <Card key={stat.label} className="rounded-2xl border bg-card/90">
-                  <CardContent className="space-y-1 p-5">
-                    <p className="text-caption text-muted-foreground">{stat.label}</p>
-                    <p className="font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight text-foreground">
-                      {stat.value}
+            <div className="mt-7 overflow-hidden border-y border-border/75 px-2 py-2">
+              <div className="ticker-track animate-tickerSlide">
+                {[...tickerItems, ...tickerItems].map((item, index) => (
+                  <span key={`${item}-${index}`} className="ticker-chip">
+                    <span className="live-dot" />
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </article>
+
+          <article className="animate-splitInRight border-l border-border/70 pl-5 sm:pl-7">
+            <div className="mb-5">
+              <p className="text-caption text-muted-foreground">Live Signals</p>
+              <h2 className="text-title">Operations at a glance</h2>
+            </div>
+            <div className="space-y-3">
+              {splitSignals.map((signal, index) => (
+                <div
+                  key={signal.label}
+                  className="animate-floatDrift border-b border-border/65 pb-3"
+                  style={{ animationDelay: `${index * 190}ms` }}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
+                      {signal.label}
                     </p>
-                  </CardContent>
-                </Card>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-brand">
+                      <span className="live-dot" />
+                      Live
+                    </span>
+                  </div>
+                  <p className="mt-1 font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight">
+                    {signal.value}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">{signal.detail}</p>
+                </div>
               ))}
             </div>
-          </div>
+          </article>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {features.map((feature, index) => {
+        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {featureHighlights.map((feature, index) => {
             const Icon = feature.icon;
             return (
-              <Card
+              <article
                 key={feature.title}
-                className="animate-staggerIn rounded-2xl border bg-card/90"
+                className="animate-staggerIn border-b border-border/70 pb-4"
                 style={{ animationDelay: `${index * 70}ms` }}
               >
-                <CardHeader className="space-y-3 pb-0">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-brand/25 bg-brand-light text-brand">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-sm text-muted-foreground">
-                    {feature.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
+                <div className="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-full border border-brand/40 text-brand">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="text-heading">{feature.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {feature.description}
+                </p>
+              </article>
             );
           })}
-        </section>
-
-        <section className="surface-panel rounded-2xl border px-6 py-7 sm:px-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-2">
-              <p className="text-caption text-muted-foreground">Built for organizers and scorers</p>
-              <h2 className="text-title">One workflow from check-in to final point.</h2>
-              <p className="max-w-2xl text-sm text-muted-foreground">
-                Keep operations clean under pressure with an interface designed around live matches,
-                staff coordination, and broadcast-ready output.
-              </p>
-            </div>
-            <Button variant="brand" asChild>
-              <Link href={isAuthenticated ? "/dashboard" : "/sign-in"}>
-                {isAuthenticated ? "Open Workspace" : "Sign In"}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
         </section>
       </main>
     </>

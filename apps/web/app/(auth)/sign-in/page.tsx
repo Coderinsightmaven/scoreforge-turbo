@@ -55,8 +55,8 @@ export default function SignInPage(): React.ReactNode {
   };
 
   return (
-    <div className="min-h-screen w-full lg:grid lg:grid-cols-[1.05fr_0.95fr]">
-      <div className="auth-ambient hidden lg:block">
+    <div className="min-h-screen w-full lg:grid lg:grid-cols-[1fr_1fr]">
+      <div className="auth-ambient hidden lg:block animate-splitInLeft">
         <div className="flex h-full flex-col justify-between px-10 py-12 xl:px-16 xl:py-16">
           <Link href="/" className="inline-flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-brand/30 bg-brand text-text-inverse shadow-[var(--shadow-glow)]">
@@ -67,25 +67,29 @@ export default function SignInPage(): React.ReactNode {
                 ScoreForge
               </p>
               <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                Tournament OS
+                Operations Desk
               </p>
             </div>
           </Link>
 
           <div className="max-w-xl space-y-6">
-            <h1 className="text-display">Keep match operations perfectly in sync.</h1>
+            <h1 className="text-display">Stay in sync across every court and scorer.</h1>
             <p className="text-body-lg text-muted-foreground">
-              Continue with your dashboard to score live matches, update courts, and manage brackets
-              without losing momentum.
+              Continue into your split workspace to manage brackets, scoring, and court assignments
+              side by side.
             </p>
             <div className="space-y-3 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
+              <div className="flex animate-staggerIn items-center gap-2">
                 <Shield className="h-4 w-4 text-brand" />
                 Role-based access for owners, admins, and scorers
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex animate-staggerIn items-center gap-2 delay-1">
                 <ArrowRight className="h-4 w-4 text-brand" />
                 Real-time match and bracket updates
+              </div>
+              <div className="flex animate-staggerIn items-center gap-2 delay-2">
+                <Zap className="h-4 w-4 text-brand" />
+                Split layout built for tournament-day speed
               </div>
             </div>
           </div>
@@ -97,7 +101,7 @@ export default function SignInPage(): React.ReactNode {
       </div>
 
       <div className="flex items-center justify-center px-6 py-10 sm:px-10">
-        <div className="surface-panel w-full max-w-md rounded-2xl border p-6 sm:p-8">
+        <div className="animate-splitInRight w-full max-w-md border-y border-border/80 px-2 py-6 sm:px-4 sm:py-8">
           <div className="mb-8 space-y-3">
             <Link href="/" className="inline-flex items-center gap-2 lg:hidden">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-text-inverse">

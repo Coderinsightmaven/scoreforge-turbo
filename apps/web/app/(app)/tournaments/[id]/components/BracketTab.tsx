@@ -74,7 +74,9 @@ export function BracketTab({
 }): React.ReactNode {
   const [generating, setGenerating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const generateBracketMatches = useMutation(api.tournamentBrackets.generateBracketMatchesForBracket);
+  const generateBracketMatches = useMutation(
+    api.tournamentBrackets.generateBracketMatchesForBracket
+  );
   const generateTournamentBracket = useMutation(api.tournaments.generateBracket);
 
   // Use bracket-specific query if a bracket is selected, otherwise tournament-level
@@ -108,7 +110,9 @@ export function BracketTab({
       const message = getDisplayMessage(err) || "Failed to generate matches";
       // Make the error message more user-friendly
       if (message.includes("Need at least 2 participants")) {
-        setErrorMessage("This bracket needs at least 2 participants to generate matches. Please add more participants first.");
+        setErrorMessage(
+          "This bracket needs at least 2 participants to generate matches. Please add more participants first."
+        );
       } else {
         setErrorMessage(message);
       }
@@ -127,8 +131,18 @@ export function BracketTab({
     return (
       <div className="flex flex-col items-center py-16 text-center bg-secondary border border-dashed border-border rounded-xl">
         <div className="w-14 h-14 flex items-center justify-center bg-card rounded-xl mb-4">
-          <svg className="w-7 h-7 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
+          <svg
+            className="w-7 h-7 text-muted-foreground"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0"
+            />
           </svg>
         </div>
         {bracketId ? (
@@ -155,17 +169,25 @@ export function BracketTab({
                 />
                 <div className="relative bg-card border border-border rounded-xl shadow-2xl max-w-md w-full overflow-hidden animate-fadeIn">
                   <div className="p-6">
-                    <div className="flex items-center justify-center w-14 h-14 mx-auto bg-red/10 rounded-full mb-4">
-                      <svg className="w-7 h-7 text-red" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    <div className="flex items-center justify-center w-14 h-14 mx-auto bg-error/10 rounded-full mb-4">
+                      <svg
+                        className="w-7 h-7 text-error"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                        />
                       </svg>
                     </div>
                     <h3 className="text-lg font-semibold text-foreground text-center mb-2">
                       Unable to Generate Matches
                     </h3>
-                    <p className="text-sm text-muted-foreground text-center mb-6">
-                      {errorMessage}
-                    </p>
+                    <p className="text-sm text-muted-foreground text-center mb-6">{errorMessage}</p>
                     <button
                       onClick={() => setErrorMessage(null)}
                       className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2 w-full"
@@ -182,11 +204,14 @@ export function BracketTab({
             <p className="text-muted-foreground">
               Bracket will be generated when the tournament starts
             </p>
-            {canManage && status === "draft" && (format === "single_elimination" || format === "double_elimination") && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Use the &quot;Blank Bracket&quot; button to create a bracket with placeholder slots.
-              </p>
-            )}
+            {canManage &&
+              status === "draft" &&
+              (format === "single_elimination" || format === "double_elimination") && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Use the &quot;Blank Bracket&quot; button to create a bracket with placeholder
+                  slots.
+                </p>
+              )}
           </>
         )}
       </div>
@@ -211,18 +236,24 @@ export function BracketTab({
               href={`/tournaments/${tournamentId}/bracket/print${bracketId ? `?bracketId=${bracketId}` : ""}`}
               className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 text-xs no-print"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z"
+                />
               </svg>
               Print
             </Link>
           </div>
         </div>
-        <EditableBracket
-          matches={bracket.matches as Match[]}
-          format={format}
-          canEdit={true}
-        />
+        <EditableBracket matches={bracket.matches as Match[]} format={format} canEdit={true} />
       </div>
     );
   }
@@ -250,10 +281,7 @@ export function BracketTab({
     return `Round ${round}`;
   };
 
-  const getScoreDisplay = (
-    match: (typeof bracket.matches)[0],
-    playerIndex: 0 | 1
-  ) => {
+  const getScoreDisplay = (match: (typeof bracket.matches)[0], playerIndex: 0 | 1) => {
     if (bracket.sport === "tennis" && match.tennisState) {
       return formatTennisScoreForBracket(match.tennisState, playerIndex);
     }
@@ -267,8 +295,18 @@ export function BracketTab({
           href={`/tournaments/${tournamentId}/bracket/print${bracketId ? `?bracketId=${bracketId}` : ""}`}
           className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 text-xs"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" />
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z"
+            />
           </svg>
           Print Bracket
         </Link>
@@ -301,9 +339,7 @@ export function BracketTab({
                       )}
                       <div
                         className={`flex items-center gap-2 px-3 py-2 border-b border-border ${
-                          match.winnerId === match.participant1?._id
-                            ? "bg-brand/10"
-                            : ""
+                          match.winnerId === match.participant1?._id ? "bg-brand/10" : ""
                         } ${match.court ? "pt-5" : ""}`}
                       >
                         <span className="w-6 text-xs text-center text-muted-foreground">
@@ -326,16 +362,12 @@ export function BracketTab({
                           </span>
                         )}
                         {isByeMatch && match.participant1 && (
-                          <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                            Advances
-                          </span>
+                          <span className="text-xs font-medium text-success">Advances</span>
                         )}
                       </div>
                       <div
                         className={`flex items-center gap-2 px-3 py-2 ${
-                          match.winnerId === match.participant2?._id
-                            ? "bg-brand/10"
-                            : ""
+                          match.winnerId === match.participant2?._id ? "bg-brand/10" : ""
                         }`}
                       >
                         <span className="w-6 text-xs text-center text-muted-foreground">
@@ -358,9 +390,7 @@ export function BracketTab({
                           </span>
                         )}
                         {isByeMatch && match.participant2 && (
-                          <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                            Advances
-                          </span>
+                          <span className="text-xs font-medium text-success">Advances</span>
                         )}
                       </div>
                       {isByeMatch && (
@@ -372,7 +402,11 @@ export function BracketTab({
                   );
 
                   // Allow clicking matches in draft mode for admin/owner to set court, or when tournament is active
-                  const isClickable = isScoreable || match.status === "live" || match.status === "completed" || (status === "draft" && !isByeMatch);
+                  const isClickable =
+                    isScoreable ||
+                    match.status === "live" ||
+                    match.status === "completed" ||
+                    (status === "draft" && !isByeMatch);
 
                   if (isClickable) {
                     return (

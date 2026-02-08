@@ -180,10 +180,11 @@ export const getBracket = query({
       .query("matches")
       .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
       .collect();
+    const bracketMatches = matches.filter((match) => match.bracketType !== "one_off");
 
     // Batch-fetch all unique participant IDs to avoid N+1 queries
     const participantIds = new Set<Id<"tournamentParticipants">>();
-    for (const match of matches) {
+    for (const match of bracketMatches) {
       if (match.participant1Id) participantIds.add(match.participant1Id);
       if (match.participant2Id) participantIds.add(match.participant2Id);
     }
@@ -197,7 +198,7 @@ export const getBracket = query({
     }
 
     // Enrich matches with participant details using the pre-fetched map
-    const matchesWithParticipants = matches.map((match) => {
+    const matchesWithParticipants = bracketMatches.map((match) => {
       let participant1 = undefined;
       let participant2 = undefined;
 
@@ -578,7 +579,7 @@ export const createTournament = mutation({
       })
     ),
     tennisConfig: v.optional(tennisConfig),
-    courts: v.optional(v.array(v.string())),
+    courts: v.array(v.string()),
     bracketName: v.optional(v.string()),
   },
   returns: v.id("tournaments"),
@@ -592,7 +593,11 @@ export const createTournament = mutation({
     validateStringLength(args.name, "Tournament name", MAX_LENGTHS.tournamentName);
     validateStringLength(args.description, "Description", MAX_LENGTHS.tournamentDescription);
     validateStringLength(args.bracketName, "Bracket name", MAX_LENGTHS.bracketName);
-    validateStringArrayLength(args.courts, "courts", MAX_LENGTHS.courtName);
+    const normalizedCourts = [...new Set(args.courts.map((court) => court.trim()).filter(Boolean))];
+    if (normalizedCourts.length === 0) {
+      throw errors.invalidInput("At least one court is required");
+    }
+    validateStringArrayLength(normalizedCourts, "courts", MAX_LENGTHS.courtName);
 
     // Check if user is a site admin (exempt from limits)
     const siteAdmin = await ctx.db
@@ -643,7 +648,7 @@ export const createTournament = mutation({
       startDate: args.startDate,
       scoringConfig: args.scoringConfig,
       tennisConfig: args.tennisConfig,
-      courts: args.courts,
+      courts: normalizedCourts,
     });
 
     // Auto-create a default bracket for the tournament

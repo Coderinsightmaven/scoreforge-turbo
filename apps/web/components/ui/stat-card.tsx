@@ -16,14 +16,14 @@ function StatCard({
     <div
       data-slot="stat-card"
       className={cn(
-        "surface-panel bg-card text-card-foreground flex flex-col gap-2 rounded-2xl border p-6",
+        "bg-card/40 text-card-foreground flex flex-col gap-2 rounded-none border-x-0 border-y border-border/75 p-6",
         className
       )}
       {...props}
     >
       <div className="flex items-center justify-between">
         <span className="text-caption text-muted-foreground">{label}</span>
-        {icon && <span className="text-muted-foreground">{icon}</span>}
+        {icon && <span className="text-brand">{icon}</span>}
       </div>
       <span className="font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight">
         {value}

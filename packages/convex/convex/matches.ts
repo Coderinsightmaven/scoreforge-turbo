@@ -6,6 +6,7 @@ import type { Id, Doc } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 import { errors } from "./lib/errors";
 import { canScoreTournament, getTournamentRole } from "./lib/accessControl";
+import { MAX_LENGTHS, validateStringLength } from "./lib/validation";
 
 // ============================================
 // Queries
@@ -487,6 +488,115 @@ export const listMyLiveMatches = query({
 // ============================================
 // Mutations
 // ============================================
+
+/**
+ * Create a standalone one-off match with ad-hoc participant names (owner only)
+ */
+export const createOneOffMatch = mutation({
+  args: {
+    tournamentId: v.id("tournaments"),
+    participant1Name: v.string(),
+    participant2Name: v.string(),
+    court: v.optional(v.string()),
+  },
+  returns: v.id("matches"),
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw errors.unauthenticated();
+    }
+
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
+    if (!tournament) {
+      throw errors.notFound("Tournament");
+    }
+
+    if (tournament.createdBy !== userId) {
+      throw errors.unauthorized("Only the tournament owner can create one-off matches");
+    }
+
+    if (tournament.status !== "active") {
+      throw errors.invalidState("Tournament must be active to create one-off matches");
+    }
+
+    const participant1Name = args.participant1Name.trim();
+    const participant2Name = args.participant2Name.trim();
+    if (!participant1Name || !participant2Name) {
+      throw errors.invalidInput("Both participant names are required");
+    }
+
+    validateStringLength(participant1Name, "Participant name", MAX_LENGTHS.displayName);
+    validateStringLength(participant2Name, "Participant name", MAX_LENGTHS.displayName);
+
+    const normalizedCourt = args.court?.trim() || undefined;
+    validateStringLength(normalizedCourt, "Court", MAX_LENGTHS.courtName);
+
+    if (
+      normalizedCourt &&
+      tournament.courts &&
+      tournament.courts.length > 0 &&
+      !tournament.courts.includes(normalizedCourt)
+    ) {
+      throw errors.invalidInput("Selected court is not configured for this tournament");
+    }
+
+    const now = Date.now();
+    const roundZeroMatches = await ctx.db
+      .query("matches")
+      .withIndex("by_tournament_and_round", (q: any) =>
+        q.eq("tournamentId", args.tournamentId).eq("round", 0)
+      )
+      .collect();
+    const nextMatchNumber =
+      roundZeroMatches.reduce((max, match) => Math.max(max, match.matchNumber), 0) + 1;
+
+    const makeParticipantInsert = (displayName: string) => {
+      const base = {
+        tournamentId: args.tournamentId,
+        type: tournament.participantType,
+        displayName,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        pointsFor: 0,
+        pointsAgainst: 0,
+        createdAt: now,
+      };
+
+      if (tournament.participantType === "individual") {
+        return { ...base, playerName: displayName };
+      }
+      if (tournament.participantType === "team") {
+        return { ...base, teamName: displayName };
+      }
+      return { ...base, player1Name: displayName };
+    };
+
+    const participant1Id = await ctx.db.insert(
+      "tournamentParticipants",
+      makeParticipantInsert(participant1Name)
+    );
+    const participant2Id = await ctx.db.insert(
+      "tournamentParticipants",
+      makeParticipantInsert(participant2Name)
+    );
+
+    const matchId = await ctx.db.insert("matches", {
+      tournamentId: args.tournamentId,
+      round: 0,
+      matchNumber: nextMatchNumber,
+      bracketType: "one_off",
+      participant1Id,
+      participant2Id,
+      participant1Score: 0,
+      participant2Score: 0,
+      status: "pending",
+      court: normalizedCourt,
+    });
+
+    return matchId;
+  },
+});
 
 /**
  * Update match scores (scorer/owner)

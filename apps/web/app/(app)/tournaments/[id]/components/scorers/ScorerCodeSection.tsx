@@ -40,7 +40,7 @@ export function ScorerCodeSection({ scorerCode }: ScorerCodeSectionProps): React
           >
             {copiedCode ? (
               <svg
-                className="w-5 h-5 text-emerald-600"
+                className="w-5 h-5 text-success"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"

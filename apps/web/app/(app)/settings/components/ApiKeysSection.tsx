@@ -82,16 +82,14 @@ export function ApiKeysSection() {
         <CardContent>
           {/* New key created alert */}
           {showNewKey && (
-            <Alert className="mb-6 border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-900/20">
+            <Alert className="mb-6 border-success/35 bg-success-light">
               <div className="flex items-center justify-between mb-2">
-                <p className="font-medium text-emerald-700 dark:text-emerald-300">
-                  API key created!
-                </p>
+                <p className="font-medium text-success">API key created!</p>
                 <Button variant="ghost" size="icon-xs" onClick={() => setShowNewKey(null)}>
                   <X className="w-4 h-4" />
                 </Button>
               </div>
-              <AlertDescription className="text-emerald-700 dark:text-emerald-300 mb-3">
+              <AlertDescription className="text-success mb-3">
                 Make sure to copy your API key now. You won&apos;t be able to see it again!
               </AlertDescription>
               <div className="flex items-center gap-2">
@@ -180,7 +178,7 @@ export function ApiKeysSection() {
                         onClick={() => handleDelete(key._id)}
                         variant="outline"
                         size="sm"
-                        className="text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20"
+                        className="text-error border-error/35 hover:bg-error/12"
                       >
                         Delete
                       </Button>

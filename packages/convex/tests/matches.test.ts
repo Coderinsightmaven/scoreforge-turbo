@@ -728,6 +728,106 @@ describe("listMyLiveMatches", () => {
 });
 
 // ============================================
+// createOneOffMatch
+// ============================================
+
+describe("createOneOffMatch", () => {
+  it("creates a standalone match with ad-hoc participant names", async () => {
+    const t = getTestContext();
+    const { userId, asUser } = await setupUser(t);
+    const { tournamentId } = await setupTournamentWithMatch(t, userId);
+
+    const matchId = await asUser.mutation(api.matches.createOneOffMatch, {
+      tournamentId,
+      participant1Name: "Serena Williams",
+      participant2Name: "Coco Gauff",
+    });
+
+    const match = await t.run(async (ctx) => ctx.db.get(matchId));
+    expect(match).not.toBeNull();
+    expect(match!.round).toBe(0);
+    expect(match!.bracketType).toBe("one_off");
+    expect(match!.status).toBe("pending");
+
+    const participant1 = await t.run(async (ctx) => ctx.db.get(match!.participant1Id!));
+    const participant2 = await t.run(async (ctx) => ctx.db.get(match!.participant2Id!));
+    expect(participant1!.displayName).toBe("Serena Williams");
+    expect(participant2!.displayName).toBe("Coco Gauff");
+  });
+
+  it("only allows the tournament owner to create one-off matches", async () => {
+    const t = getTestContext();
+    const { userId: ownerId } = await setupUser(t, { name: "Owner", email: "owner@test.com" });
+    const { asUser: asOther } = await setupUser(t, { name: "Other", email: "other@test.com" });
+    const { tournamentId } = await setupTournamentWithMatch(t, ownerId);
+
+    await expect(
+      asOther.mutation(api.matches.createOneOffMatch, {
+        tournamentId,
+        participant1Name: "Player A",
+        participant2Name: "Player B",
+      })
+    ).rejects.toThrow("Only the tournament owner can create one-off matches");
+  });
+
+  it("requires the tournament to be active", async () => {
+    const t = getTestContext();
+    const { userId, asUser } = await setupUser(t);
+    const { tournamentId } = await setupTournamentWithMatch(t, userId, { status: "draft" });
+
+    await expect(
+      asUser.mutation(api.matches.createOneOffMatch, {
+        tournamentId,
+        participant1Name: "Player A",
+        participant2Name: "Player B",
+      })
+    ).rejects.toThrow("Tournament must be active to create one-off matches");
+  });
+
+  it("requires both participant names", async () => {
+    const t = getTestContext();
+    const { userId, asUser } = await setupUser(t);
+    const { tournamentId } = await setupTournamentWithMatch(t, userId);
+
+    await expect(
+      asUser.mutation(api.matches.createOneOffMatch, {
+        tournamentId,
+        participant1Name: "Player A",
+        participant2Name: "   ",
+      })
+    ).rejects.toThrow("Both participant names are required");
+  });
+
+  it("rejects a court not configured for the tournament", async () => {
+    const t = getTestContext();
+    const { userId, asUser } = await setupUser(t);
+
+    const tournamentId = await t.run(async (ctx) => {
+      return await ctx.db.insert("tournaments", {
+        createdBy: userId,
+        name: "Court Limited Tournament",
+        sport: "tennis",
+        format: "single_elimination",
+        participantType: "individual",
+        maxParticipants: 8,
+        status: "active",
+        tennisConfig: { isAdScoring: true, setsToWin: 2 },
+        courts: ["Court 1", "Court 2"],
+      });
+    });
+
+    await expect(
+      asUser.mutation(api.matches.createOneOffMatch, {
+        tournamentId,
+        participant1Name: "Player A",
+        participant2Name: "Player B",
+        court: "Center Court",
+      })
+    ).rejects.toThrow("Selected court is not configured for this tournament");
+  });
+});
+
+// ============================================
 // updateScore
 // ============================================
 

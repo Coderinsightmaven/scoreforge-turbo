@@ -16,19 +16,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/app/components/Skeleton";
 import { Home, Settings, LogOut, Shield, Braces } from "lucide-react";
-import { useEffect, useState } from "react";
 
 export function Navigation(): React.ReactNode {
   const { signOut } = useAuthActions();
   const user = useQuery(api.users.currentUser);
   const isSiteAdmin = useQuery(api.siteAdmin.checkIsSiteAdmin);
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 8);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const initials = user?.name
     ? user.name
@@ -40,18 +32,14 @@ export function Navigation(): React.ReactNode {
     : "?";
 
   return (
-    <nav className="fixed top-0 z-50 w-full px-3 py-3 sm:px-5 sm:py-4 no-print">
-      <div
-        className={`container rounded-2xl border transition-all duration-300 ${
-          scrolled
-            ? "bg-background/86 border-border shadow-[var(--shadow-card)] backdrop-blur-lg"
-            : "bg-background/72 border-border/70 backdrop-blur-md"
-        }`}
-        style={{ minHeight: "var(--nav-height)" }}
-      >
-        <div className="flex items-center justify-between gap-4 px-3 py-3 sm:px-5 sm:py-4">
+    <nav className="sticky top-0 z-40 w-full px-3 py-2 sm:px-5 sm:py-3 no-print">
+      <div className="container border-b border-border/75 pb-2 sm:pb-3">
+        <div
+          className="flex items-center justify-between gap-4"
+          style={{ minHeight: "var(--nav-height)" }}
+        >
           <Link href="/dashboard" className="group flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-brand/30 bg-brand text-text-inverse shadow-[var(--shadow-glow)] transition-transform duration-200 group-hover:-translate-y-0.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-brand/45 bg-brand text-text-inverse transition-transform duration-200 group-hover:-translate-y-0.5">
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M13 3L4 14h7v7l9-11h-7V3z" />
               </svg>
@@ -60,23 +48,26 @@ export function Navigation(): React.ReactNode {
               <p className="font-[family-name:var(--font-display)] text-lg font-semibold tracking-tight text-foreground">
                 ScoreForge
               </p>
-              <p className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
-                Tournament OS
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
+                  Operations Desk
+                </p>
+                <span className="live-dot" />
+              </div>
             </div>
           </Link>
 
           <Authenticated>
-            <div className="hidden items-center gap-2 md:flex">
+            <div className="hidden items-center gap-5 md:flex">
               <Link
                 href="/dashboard"
-                className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                className="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
               >
                 Dashboard
               </Link>
               <Link
                 href="/brackets/quick"
-                className="rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                className="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
               >
                 Quick Bracket
               </Link>
@@ -105,10 +96,10 @@ export function Navigation(): React.ReactNode {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-10 w-10 rounded-full p-0"
+                    className="h-10 w-10 rounded-full border border-transparent p-0 hover:border-brand/40"
                     aria-label="Open user menu"
                   >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full border border-brand/25 bg-brand text-sm font-bold text-text-inverse shadow-[var(--shadow-sm)]">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full border border-brand/55 bg-brand text-sm font-bold text-text-inverse shadow-[var(--shadow-sm)]">
                       {initials}
                     </div>
                   </Button>

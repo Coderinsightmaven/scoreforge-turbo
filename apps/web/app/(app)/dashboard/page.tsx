@@ -53,12 +53,12 @@ export default function DashboardPage(): React.ReactNode {
       <section className="surface-panel section-shell rounded-3xl border px-6 py-7 sm:px-8 sm:py-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-2">
-            <p className="text-caption text-muted-foreground">Dashboard</p>
+            <p className="text-caption text-muted-foreground">Daily Operations</p>
             <h1 className="text-hero">Welcome back, {firstName}</h1>
             <p className="max-w-2xl text-sm text-muted-foreground">
               {tournaments.length === 0
-                ? "Create your first tournament to start scoring matches in real time."
-                : `You have ${tournaments.length} tournament${tournaments.length === 1 ? "" : "s"} in your workspace.`}
+                ? "Create your first tournament to bring live court operations online."
+                : `You have ${tournaments.length} tournament${tournaments.length === 1 ? "" : "s"} in your active workspace.`}
             </p>
           </div>
 

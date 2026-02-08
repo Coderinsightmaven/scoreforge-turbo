@@ -14,8 +14,8 @@ export const PARTICIPANT_TYPE_LABELS: Record<ParticipantType, string> = {
 };
 
 export const STATUS_STYLES: Record<string, string> = {
-  draft: "text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/20",
-  active: "text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/20",
+  draft: "text-info bg-info/10",
+  active: "text-success bg-success/10",
   completed: "text-brand-hover dark:text-brand bg-brand-light dark:bg-brand-light",
-  cancelled: "text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20",
+  cancelled: "text-error bg-error/10",
 };

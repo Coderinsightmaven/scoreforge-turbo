@@ -92,8 +92,8 @@ export function CreateTempScorerModal({
         <div className="p-6">
           {createdCredentials ? (
             <div className="space-y-4">
-              <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg">
-                <p className="text-sm text-emerald-800 dark:text-emerald-200 font-medium mb-2">
+              <div className="p-4 bg-success-light border border-success/35 rounded-lg">
+                <p className="text-sm text-success font-medium mb-2">
                   Save these credentials! The PIN will not be shown again.
                 </p>
               </div>
@@ -130,7 +130,7 @@ export function CreateTempScorerModal({
                     PIN
                   </label>
                   <div className="flex items-center gap-2 mt-1">
-                    <code className="flex-1 px-3 py-2 text-lg font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-secondary border border-border rounded-lg tracking-widest">
+                    <code className="flex-1 px-3 py-2 text-lg font-mono font-bold text-success bg-secondary border border-border rounded-lg tracking-widest">
                       {createdCredentials.pin}
                     </code>
                     <button
@@ -146,8 +146,8 @@ export function CreateTempScorerModal({
           ) : (
             <>
               {error && (
-                <div className="flex items-center gap-2 p-3 mb-4 text-sm text-red bg-red/10 border border-red/20 rounded-lg">
-                  <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center bg-red rounded-full text-white text-xs font-bold">
+                <div className="flex items-center gap-2 p-3 mb-4 text-sm text-error bg-error/10 border border-error/30 rounded-lg">
+                  <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center bg-error rounded-full text-text-inverse text-xs font-bold">
                     !
                   </span>
                   {error}

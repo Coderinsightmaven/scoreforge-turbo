@@ -42,6 +42,10 @@ export default function NewTournamentPage(): React.ReactNode {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (courts.length === 0) {
+      setError("Select at least one court before creating a tournament.");
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -49,6 +53,7 @@ export default function NewTournamentPage(): React.ReactNode {
         isAdScoring: tennisIsAdScoring,
         setsToWin: tennisSetsToWin,
       };
+      const normalizedCourts = [...new Set(courts.map((court) => court.trim()).filter(Boolean))];
 
       const tournamentId = await createTournament({
         name,
@@ -58,7 +63,7 @@ export default function NewTournamentPage(): React.ReactNode {
         participantType,
         maxParticipants,
         tennisConfig,
-        courts: courts.length > 0 ? courts : undefined,
+        courts: normalizedCourts,
         bracketName: bracketName.trim() || "Main Draw",
       });
 
@@ -83,7 +88,7 @@ export default function NewTournamentPage(): React.ReactNode {
           </Link>
           <h1 className="text-title text-foreground mb-2">Create Tournament</h1>
           <p className="text-body text-muted-foreground">
-            Set up a new competition for your players
+            Configure your split operations workspace for the next event
           </p>
         </div>
 
@@ -184,8 +189,16 @@ export default function NewTournamentPage(): React.ReactNode {
             <CardContent>
               <div className="grid gap-3">
                 {[
-                  { value: "single_elimination", label: "Single Elimination", desc: "One loss and you're out" },
-                  { value: "double_elimination", label: "Double Elimination", desc: "Two losses to eliminate" },
+                  {
+                    value: "single_elimination",
+                    label: "Single Elimination",
+                    desc: "One loss and you're out",
+                  },
+                  {
+                    value: "double_elimination",
+                    label: "Double Elimination",
+                    desc: "Two losses to eliminate",
+                  },
                   { value: "round_robin", label: "Round Robin", desc: "Everyone plays everyone" },
                 ].map((f) => (
                   <button
@@ -198,10 +211,14 @@ export default function NewTournamentPage(): React.ReactNode {
                         : "border-border bg-secondary hover:border-muted-foreground"
                     }`}
                   >
-                    <span className={`block font-semibold ${format === f.value ? "text-brand dark:text-brand" : "text-foreground"}`}>
+                    <span
+                      className={`block font-semibold ${format === f.value ? "text-brand dark:text-brand" : "text-foreground"}`}
+                    >
                       {f.label}
                     </span>
-                    <span className={`block text-small mt-1 ${format === f.value ? "text-brand-hover/70 dark:text-brand/70" : "text-muted-foreground"}`}>
+                    <span
+                      className={`block text-small mt-1 ${format === f.value ? "text-brand-hover/70 dark:text-brand/70" : "text-muted-foreground"}`}
+                    >
                       {f.desc}
                     </span>
                   </button>
@@ -232,10 +249,14 @@ export default function NewTournamentPage(): React.ReactNode {
                         : "border-border bg-secondary hover:border-muted-foreground"
                     }`}
                   >
-                    <span className={`block font-semibold ${participantType === p.value ? "text-brand dark:text-brand" : "text-foreground"}`}>
+                    <span
+                      className={`block font-semibold ${participantType === p.value ? "text-brand dark:text-brand" : "text-foreground"}`}
+                    >
                       {p.label}
                     </span>
-                    <span className={`block text-small mt-1 ${participantType === p.value ? "text-brand-hover/70 dark:text-brand/70" : "text-muted-foreground"}`}>
+                    <span
+                      className={`block text-small mt-1 ${participantType === p.value ? "text-brand-hover/70 dark:text-brand/70" : "text-muted-foreground"}`}
+                    >
                       {p.desc}
                     </span>
                   </button>
@@ -282,7 +303,7 @@ export default function NewTournamentPage(): React.ReactNode {
             <CardHeader>
               <CardTitle>Courts</CardTitle>
               <p className="text-small text-muted-foreground">
-                Select courts or playing areas for match scheduling (optional)
+                Select one or more courts for scheduling matches
               </p>
             </CardHeader>
             <CardContent>
@@ -290,24 +311,26 @@ export default function NewTournamentPage(): React.ReactNode {
               <div className="mb-6">
                 <Label className="mb-3 block">Quick select</Label>
                 <div className="flex flex-wrap gap-2">
-                  {["Stadium", "Grandstand", "Court 1", "Court 2", "Court 3", "Court 4"].map((court) => (
-                    <Button
-                      key={court}
-                      type="button"
-                      onClick={() => {
-                        if (courts.includes(court)) {
-                          setCourts(courts.filter((c) => c !== court));
-                        } else {
-                          setCourts([...courts, court]);
-                        }
-                      }}
-                      variant={courts.includes(court) ? "brand" : "outline"}
-                      size="sm"
-                    >
-                      {courts.includes(court) && <Check className="w-4 h-4 mr-1" />}
-                      {court}
-                    </Button>
-                  ))}
+                  {["Stadium", "Grandstand", "Court 1", "Court 2", "Court 3", "Court 4"].map(
+                    (court) => (
+                      <Button
+                        key={court}
+                        type="button"
+                        onClick={() => {
+                          if (courts.includes(court)) {
+                            setCourts(courts.filter((c) => c !== court));
+                          } else {
+                            setCourts([...courts, court]);
+                          }
+                        }}
+                        variant={courts.includes(court) ? "brand" : "outline"}
+                        size="sm"
+                      >
+                        {courts.includes(court) && <Check className="w-4 h-4 mr-1" />}
+                        {court}
+                      </Button>
+                    )
+                  )}
                 </div>
               </div>
 
@@ -363,7 +386,7 @@ export default function NewTournamentPage(): React.ReactNode {
                         <button
                           type="button"
                           onClick={() => setCourts(courts.filter((_, i) => i !== index))}
-                          className="text-muted-foreground hover:text-red-500 transition-colors"
+                          className="text-muted-foreground hover:text-error transition-colors"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -372,6 +395,10 @@ export default function NewTournamentPage(): React.ReactNode {
                   </div>
                 </div>
               )}
+
+              {courts.length === 0 && (
+                <p className="mt-4 text-small text-destructive">At least one court is required.</p>
+              )}
             </CardContent>
           </Card>
 
@@ -379,7 +406,7 @@ export default function NewTournamentPage(): React.ReactNode {
           <div className="flex items-center gap-4 pt-4">
             <Button
               type="submit"
-              disabled={isSubmitting || !name.trim() || !bracketName.trim()}
+              disabled={isSubmitting || !name.trim() || !bracketName.trim() || courts.length === 0}
               variant="brand"
             >
               {isSubmitting ? (

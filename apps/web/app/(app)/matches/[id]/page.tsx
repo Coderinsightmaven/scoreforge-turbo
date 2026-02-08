@@ -47,6 +47,7 @@ export default function MatchDetailPage({
     (match.participant1 && !match.participant2) ||
     (!match.participant1 && match.participant2) ||
     match.status === "bye";
+  const isOneOffMatch = match.bracketType === "one_off";
 
   const byeWinner = isByeMatch ? match.participant1 || match.participant2 : null;
 
@@ -105,10 +106,18 @@ export default function MatchDetailPage({
           {/* Match Header */}
           <div className="flex items-center justify-between p-6 bg-bg-secondary border-b border-border">
             <div className="flex items-center gap-3">
-              <span className="text-sm font-semibold tracking-wide text-text-muted">
-                Round {match.round}
-              </span>
-              <span className="text-text-muted">|</span>
+              {isOneOffMatch ? (
+                <span className="text-sm font-semibold tracking-wide text-text-muted">
+                  One-Off Match
+                </span>
+              ) : (
+                <>
+                  <span className="text-sm font-semibold tracking-wide text-text-muted">
+                    Round {match.round}
+                  </span>
+                  <span className="text-text-muted">|</span>
+                </>
+              )}
               <span className="text-sm text-text-muted">Match {match.matchNumber}</span>
               {match.court && (
                 <>

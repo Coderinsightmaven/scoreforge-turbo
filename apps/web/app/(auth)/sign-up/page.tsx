@@ -89,8 +89,8 @@ export default function SignUpPage(): React.ReactNode {
   };
 
   return (
-    <div className="min-h-screen w-full lg:grid lg:grid-cols-[1.05fr_0.95fr]">
-      <div className="auth-ambient hidden lg:block">
+    <div className="min-h-screen w-full lg:grid lg:grid-cols-[1fr_1fr]">
+      <div className="auth-ambient hidden lg:block animate-splitInLeft">
         <div className="flex h-full flex-col justify-between px-10 py-12 xl:px-16 xl:py-16">
           <Link href="/" className="inline-flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-brand/30 bg-brand text-text-inverse shadow-[var(--shadow-glow)]">
@@ -101,25 +101,29 @@ export default function SignUpPage(): React.ReactNode {
                 ScoreForge
               </p>
               <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                Tournament OS
+                Operations Desk
               </p>
             </div>
           </Link>
 
           <div className="max-w-xl space-y-6">
-            <h1 className="text-display">Launch your tournament workspace in minutes.</h1>
+            <h1 className="text-display">Launch your split tournament workspace in minutes.</h1>
             <p className="text-body-lg text-muted-foreground">
               Set up brackets, assign scorers, and run live matches with a unified control plane
               built for event-day speed.
             </p>
             <div className="space-y-3 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
+              <div className="flex animate-staggerIn items-center gap-2">
                 <Sparkles className="h-4 w-4 text-brand" />
                 Guided setup for first tournament creation
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex animate-staggerIn items-center gap-2 delay-1">
                 <ShieldCheck className="h-4 w-4 text-brand" />
                 Secure role and access management from day one
+              </div>
+              <div className="flex animate-staggerIn items-center gap-2 delay-2">
+                <Zap className="h-4 w-4 text-brand" />
+                Fancy animated split layout included
               </div>
             </div>
           </div>
@@ -131,7 +135,7 @@ export default function SignUpPage(): React.ReactNode {
       </div>
 
       <div className="flex items-center justify-center px-6 py-10 sm:px-10">
-        <div className="surface-panel w-full max-w-md rounded-2xl border p-6 sm:p-8">
+        <div className="animate-splitInRight w-full max-w-md border-y border-border/80 px-2 py-6 sm:px-4 sm:py-8">
           <div className="mb-8 space-y-3">
             <Link href="/" className="inline-flex items-center gap-2 lg:hidden">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-text-inverse">

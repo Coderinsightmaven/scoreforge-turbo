@@ -31,13 +31,13 @@ export function ResetPinModal({ pin, onClose }: ResetPinModalProps): React.React
           <h3 className="text-lg font-semibold text-foreground mb-4 text-center font-[family-name:var(--font-display)]">
             PIN Reset
           </h3>
-          <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg mb-4">
-            <p className="text-sm text-emerald-800 dark:text-emerald-200 font-medium text-center">
+          <div className="p-4 bg-success-light border border-success/35 rounded-lg mb-4">
+            <p className="text-sm text-success font-medium text-center">
               Save this PIN! It will not be shown again.
             </p>
           </div>
           <div className="flex items-center justify-center gap-2">
-            <code className="px-4 py-2 text-2xl font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-secondary border border-border rounded-lg tracking-widest">
+            <code className="px-4 py-2 text-2xl font-mono font-bold text-success bg-secondary border border-border rounded-lg tracking-widest">
               {pin}
             </code>
             <button

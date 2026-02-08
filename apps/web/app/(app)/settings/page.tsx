@@ -107,7 +107,7 @@ export default function SettingsPage(): React.ReactNode {
         </Link>
         <h1 className="text-hero">Settings</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Manage your profile details, authentication keys, and account-level controls.
+          Manage identity, API access, and security controls for your tournament workspace.
         </p>
       </section>
 
