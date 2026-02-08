@@ -11,11 +11,9 @@ export function Skeleton({
   children?: ReactNode;
 }): ReactNode {
   return (
-    <div
-      className={`relative overflow-hidden bg-bg-secondary rounded animate-pulse ${className}`}
-    >
+    <div className={`relative overflow-hidden bg-bg-secondary rounded animate-pulse ${className}`}>
       {children}
-      <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-black/5 to-transparent animate-shimmer" />
+      <div className="absolute inset-0 -translate-x-full bg-foreground/[0.03] animate-shimmer" />
     </div>
   );
 }
@@ -31,10 +29,7 @@ export function SkeletonText({
   return (
     <div className={`space-y-2 ${className}`}>
       {Array.from({ length: lines }).map((_, i) => (
-        <Skeleton
-          key={i}
-          className={`h-4 ${i === lines - 1 && lines > 1 ? "w-3/4" : "w-full"}`}
-        />
+        <Skeleton key={i} className={`h-4 ${i === lines - 1 && lines > 1 ? "w-3/4" : "w-full"}`} />
       ))}
     </div>
   );
@@ -67,10 +62,10 @@ export function SkeletonCard({
   children?: ReactNode;
 }): ReactNode {
   return (
-    <div className={`bg-bg-card border border-border rounded-lg p-4 ${className}`}>
+    <div className={`bg-bg-card border border-border rounded-2xl p-4 ${className}`}>
       {children || (
         <>
-          <Skeleton className="h-12 w-12 rounded-lg mb-4" />
+          <Skeleton className="h-12 w-12 rounded-2xl mb-4" />
           <Skeleton className="h-5 w-3/4 mb-2" />
           <Skeleton className="h-4 w-1/2" />
         </>
@@ -82,9 +77,9 @@ export function SkeletonCard({
 // Skeleton for stat cards
 export function SkeletonStatCard({ className = "" }: { className?: string }): ReactNode {
   return (
-    <div className={`bg-bg-card border border-border rounded-lg p-4 ${className}`}>
+    <div className={`bg-bg-card border border-border rounded-2xl p-4 ${className}`}>
       <div className="flex items-center gap-3 mb-3">
-        <Skeleton className="w-10 h-10 rounded-lg" />
+        <Skeleton className="w-10 h-10 rounded-2xl" />
         <Skeleton className="h-4 w-20" />
       </div>
       <Skeleton className="h-8 w-16" />
@@ -101,7 +96,7 @@ export function SkeletonListItem({ className = "" }: { className?: string }): Re
         <Skeleton className="h-4 w-1/3" />
         <Skeleton className="h-3 w-1/4" />
       </div>
-      <Skeleton className="h-8 w-20 rounded-lg" />
+      <Skeleton className="h-8 w-20 rounded-2xl" />
     </div>
   );
 }
@@ -117,7 +112,7 @@ export function SkeletonTable({
   className?: string;
 }): ReactNode {
   return (
-    <div className={`bg-bg-card border border-border rounded-lg overflow-hidden ${className}`}>
+    <div className={`bg-bg-card border border-border rounded-2xl overflow-hidden ${className}`}>
       {/* Header */}
       <div className="flex gap-4 p-4 border-b border-border bg-bg-secondary">
         {Array.from({ length: cols }).map((_, i) => (
@@ -126,15 +121,9 @@ export function SkeletonTable({
       </div>
       {/* Rows */}
       {Array.from({ length: rows }).map((_, rowIndex) => (
-        <div
-          key={rowIndex}
-          className="flex gap-4 p-4 border-b border-border last:border-b-0"
-        >
+        <div key={rowIndex} className="flex gap-4 p-4 border-b border-border last:border-b-0">
           {Array.from({ length: cols }).map((_, colIndex) => (
-            <Skeleton
-              key={colIndex}
-              className={`h-4 flex-1 ${colIndex === 0 ? "w-1/4" : ""}`}
-            />
+            <Skeleton key={colIndex} className={`h-4 flex-1 ${colIndex === 0 ? "w-1/4" : ""}`} />
           ))}
         </div>
       ))}
@@ -152,7 +141,7 @@ export function SkeletonBracket({ className = "" }: { className?: string }): Rea
           {Array.from({ length: count }).map((_, matchIndex) => (
             <div
               key={matchIndex}
-              className="bg-bg-card border border-border rounded-lg overflow-hidden"
+              className="bg-bg-card border border-border rounded-2xl overflow-hidden"
             >
               <div className="flex items-center gap-2 p-3 border-b border-border">
                 <Skeleton className="w-6 h-6 rounded" />
@@ -177,7 +166,7 @@ export function SkeletonScoreboard({ className = "" }: { className?: string }): 
   return (
     <div className={`flex items-center justify-center gap-4 p-8 ${className}`}>
       {/* Team 1 */}
-      <div className="flex-1 flex flex-col items-center gap-4 p-6 bg-bg-secondary border border-border rounded-lg">
+      <div className="flex-1 flex flex-col items-center gap-4 p-6 bg-bg-secondary border border-border rounded-2xl">
         <Skeleton className="h-5 w-8 mb-1" />
         <Skeleton className="h-6 w-32 mb-1" />
         <Skeleton className="h-4 w-16" />
@@ -190,7 +179,7 @@ export function SkeletonScoreboard({ className = "" }: { className?: string }): 
       </div>
 
       {/* Team 2 */}
-      <div className="flex-1 flex flex-col items-center gap-4 p-6 bg-bg-secondary border border-border rounded-lg">
+      <div className="flex-1 flex flex-col items-center gap-4 p-6 bg-bg-secondary border border-border rounded-2xl">
         <Skeleton className="h-5 w-8 mb-1" />
         <Skeleton className="h-6 w-32 mb-1" />
         <Skeleton className="h-4 w-16" />
@@ -220,7 +209,7 @@ export function SkeletonPageHeader({
         </div>
         {withActions && (
           <div className="flex gap-3">
-            <Skeleton className="h-10 w-32 rounded-lg" />
+            <Skeleton className="h-10 w-32 rounded-2xl" />
           </div>
         )}
       </div>
@@ -239,7 +228,7 @@ export function SkeletonTabs({
   return (
     <div className={`flex gap-2 ${className}`}>
       {Array.from({ length: count }).map((_, i) => (
-        <Skeleton key={i} className="h-10 w-28 rounded-lg" />
+        <Skeleton key={i} className="h-10 w-28 rounded-2xl" />
       ))}
     </div>
   );
@@ -258,11 +247,11 @@ export function SkeletonForm({
       {Array.from({ length: fields }).map((_, i) => (
         <div key={i} className="space-y-2">
           <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-12 w-full rounded-lg" />
+          <Skeleton className="h-12 w-full rounded-2xl" />
         </div>
       ))}
       <div className="flex justify-end pt-4">
-        <Skeleton className="h-12 w-32 rounded-lg" />
+        <Skeleton className="h-12 w-32 rounded-2xl" />
       </div>
     </div>
   );
