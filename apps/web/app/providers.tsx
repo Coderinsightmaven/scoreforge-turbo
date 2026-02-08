@@ -11,11 +11,11 @@ const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export function Providers({ children }: { children: ReactNode }): ReactNode {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <ConvexAuthProvider client={convex}>
         <ThemeSyncProvider>
           {children}
-          <Toaster richColors closeButton toastOptions={{ style: { borderRadius: '6px' } }} />
+          <Toaster richColors closeButton toastOptions={{ style: { borderRadius: "6px" } }} />
         </ThemeSyncProvider>
       </ConvexAuthProvider>
     </ThemeProvider>

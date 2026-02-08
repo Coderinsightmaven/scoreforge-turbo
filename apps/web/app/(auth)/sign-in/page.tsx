@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, ArrowRight, Loader2, Shield, Zap } from "lucide-react";
+import { AlertCircle, ArrowRight, Loader2, Zap } from "lucide-react";
 
 export default function SignInPage(): React.ReactNode {
   const { signIn } = useAuthActions();
@@ -55,72 +55,89 @@ export default function SignInPage(): React.ReactNode {
   };
 
   return (
-    <div className="min-h-screen w-full lg:grid lg:grid-cols-[1fr_1fr]">
-      <div className="auth-ambient hidden lg:block animate-splitInLeft">
-        <div className="flex h-full flex-col justify-between px-10 py-12 xl:px-16 xl:py-16">
-          <Link href="/" className="inline-flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-brand/30 bg-brand text-text-inverse shadow-[var(--shadow-glow)]">
+    <div className="min-h-screen w-full lg:grid lg:grid-cols-2">
+      {/* Left: Branding */}
+      <div className="hidden lg:flex lg:items-center lg:justify-center animate-splitInLeft">
+        <div className="max-w-md space-y-8 px-12">
+          <Link href="/" className="inline-flex items-center gap-3 group">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-foreground text-background transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12">
               <Zap className="h-5 w-5" />
             </div>
-            <div>
-              <p className="font-[family-name:var(--font-display)] text-xl font-semibold">
-                ScoreForge
-              </p>
-              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                Operations Desk
-              </p>
-            </div>
+            <span className="font-[family-name:var(--font-display)] text-xl font-bold">
+              ScoreForge
+            </span>
           </Link>
 
-          <div className="max-w-xl space-y-6">
-            <h1 className="text-display">Stay in sync across every court and scorer.</h1>
-            <p className="text-body-lg text-muted-foreground">
-              Continue into your split workspace to manage brackets, scoring, and court assignments
-              side by side.
-            </p>
-            <div className="space-y-3 text-sm text-muted-foreground">
-              <div className="flex animate-staggerIn items-center gap-2">
-                <Shield className="h-4 w-4 text-brand" />
-                Role-based access for owners, admins, and scorers
-              </div>
-              <div className="flex animate-staggerIn items-center gap-2 delay-1">
-                <ArrowRight className="h-4 w-4 text-brand" />
-                Real-time match and bracket updates
-              </div>
-              <div className="flex animate-staggerIn items-center gap-2 delay-2">
-                <Zap className="h-4 w-4 text-brand" />
-                Split layout built for tournament-day speed
-              </div>
-            </div>
-          </div>
-
-          <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-            Trusted by competitive tournament teams
+          <h1
+            className="text-display leading-[0.92] animate-slideUp"
+            style={{ animationDelay: "200ms", opacity: 0 }}
+          >
+            Stay in
+            <br />
+            sync.
+          </h1>
+          <p
+            className="text-body-lg text-muted-foreground animate-slideUp"
+            style={{ animationDelay: "320ms", opacity: 0 }}
+          >
+            Continue into your workspace to manage brackets, scoring, and court assignments.
           </p>
+
+          <div className="space-y-3 text-sm text-muted-foreground">
+            {[
+              "Real-time match and bracket updates",
+              "Role-based access for your team",
+              "Built for tournament-day speed",
+            ].map((item, index) => (
+              <div
+                key={item}
+                className="flex items-center gap-3 animate-slideUp"
+                style={{ animationDelay: `${440 + index * 100}ms`, opacity: 0 }}
+              >
+                <span
+                  className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-[#0a0a0a] animate-scaleIn"
+                  style={{ animationDelay: `${500 + index * 100}ms` }}
+                >
+                  {index + 1}
+                </span>
+                {item}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-center px-6 py-10 sm:px-10">
-        <div className="animate-splitInRight w-full max-w-md border-y border-border/80 px-2 py-6 sm:px-4 sm:py-8">
-          <div className="mb-8 space-y-3">
-            <Link href="/" className="inline-flex items-center gap-2 lg:hidden">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-text-inverse">
+      {/* Right: Form */}
+      <div className="flex items-center justify-center px-6 py-12 sm:px-10">
+        <div className="animate-splitInRight w-full max-w-md space-y-8">
+          <div className="space-y-3">
+            <Link href="/" className="inline-flex items-center gap-2 lg:hidden group">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-background transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12">
                 <Zap className="h-4 w-4" />
               </div>
-              <span className="font-[family-name:var(--font-display)] text-lg font-semibold">
+              <span className="font-[family-name:var(--font-display)] text-lg font-bold">
                 ScoreForge
               </span>
             </Link>
-            <div>
-              <h2 className="text-title">Welcome back</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Sign in to continue managing your tournaments.
-              </p>
-            </div>
+            <h2
+              className="text-title animate-slideUp"
+              style={{ animationDelay: "100ms", opacity: 0 }}
+            >
+              Welcome back
+            </h2>
+            <p
+              className="text-sm text-muted-foreground animate-slideUp"
+              style={{ animationDelay: "180ms", opacity: 0 }}
+            >
+              Sign in to continue managing your tournaments.
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
+            <div
+              className="space-y-2 animate-slideUp"
+              style={{ animationDelay: "250ms", opacity: 0 }}
+            >
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -132,7 +149,10 @@ export default function SignInPage(): React.ReactNode {
               />
             </div>
 
-            <div className="space-y-2">
+            <div
+              className="space-y-2 animate-slideUp"
+              style={{ animationDelay: "330ms", opacity: 0 }}
+            >
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
@@ -145,21 +165,46 @@ export default function SignInPage(): React.ReactNode {
             </div>
 
             {error && (
-              <Alert variant="destructive">
+              <Alert variant="destructive" className="animate-scaleIn">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
 
-            <Button type="submit" disabled={loading} className="w-full" variant="brand" size="lg">
-              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Sign in"}
-            </Button>
+            <div className="animate-slideUp" style={{ animationDelay: "410ms", opacity: 0 }}>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full group"
+                variant="brand"
+                size="lg"
+              >
+                {loading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <>
+                    Sign in
+                    <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+                  </>
+                )}
+              </Button>
+            </div>
           </form>
 
-          <div className="mt-8 border-t border-border pt-6 text-center">
+          <div
+            className="pt-6 text-center animate-fadeIn"
+            style={{ animationDelay: "500ms", opacity: 0, position: "relative" }}
+          >
+            <div
+              className="absolute top-0 left-0 right-0 h-px bg-border animate-expandWidth"
+              style={{ animationDelay: "600ms" }}
+            />
             <p className="text-sm text-muted-foreground">
               Don&apos;t have an account?{" "}
-              <Link href="/sign-up" className="font-semibold text-brand hover:text-brand-hover">
+              <Link
+                href="/sign-up"
+                className="font-bold text-foreground hover:text-brand hover-underline-reveal transition-colors duration-200"
+              >
                 Create one
               </Link>
             </p>

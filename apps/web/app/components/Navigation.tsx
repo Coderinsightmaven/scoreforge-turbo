@@ -32,49 +32,38 @@ export function Navigation(): React.ReactNode {
     : "?";
 
   return (
-    <nav className="sticky top-0 z-40 w-full px-3 py-2 sm:px-5 sm:py-3 no-print">
-      <div className="container border-b border-border/75 pb-2 sm:pb-3">
-        <div
-          className="flex items-center justify-between gap-4"
-          style={{ minHeight: "var(--nav-height)" }}
-        >
+    <nav className="sticky top-0 z-40 w-full px-4 py-3 sm:px-6 no-print">
+      <div className="container">
+        <div className="flex items-center justify-between gap-4">
           <Link href="/dashboard" className="group flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-brand/45 bg-brand text-text-inverse transition-transform duration-200 group-hover:-translate-y-0.5">
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-background transition-transform duration-200 group-hover:scale-105">
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M13 3L4 14h7v7l9-11h-7V3z" />
               </svg>
             </div>
-            <div className="leading-none">
-              <p className="font-[family-name:var(--font-display)] text-lg font-semibold tracking-tight text-foreground">
-                ScoreForge
-              </p>
-              <div className="flex items-center gap-2">
-                <p className="text-[11px] uppercase tracking-[0.15em] text-muted-foreground">
-                  Operations Desk
-                </p>
-                <span className="live-dot" />
-              </div>
-            </div>
+            <span className="font-[family-name:var(--font-display)] text-lg font-bold tracking-tight text-foreground">
+              ScoreForge
+            </span>
           </Link>
 
           <Authenticated>
-            <div className="hidden items-center gap-5 md:flex">
+            <div className="hidden items-center gap-1 md:flex">
               <Link
                 href="/dashboard"
-                className="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                className="rounded-full px-4 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               >
                 Dashboard
               </Link>
               <Link
                 href="/brackets/quick"
-                className="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                className="rounded-full px-4 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               >
                 Quick Bracket
               </Link>
             </div>
           </Authenticated>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2">
             <ThemeToggle />
 
             <AuthLoading>
@@ -99,7 +88,7 @@ export function Navigation(): React.ReactNode {
                     className="h-10 w-10 rounded-full border border-transparent p-0 hover:border-brand/40"
                     aria-label="Open user menu"
                   >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full border border-brand/55 bg-brand text-sm font-bold text-text-inverse shadow-[var(--shadow-sm)]">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-sm font-bold text-background">
                       {initials}
                     </div>
                   </Button>

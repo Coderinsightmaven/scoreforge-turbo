@@ -15,7 +15,7 @@ export function ThemeToggle(): React.ReactNode {
   if (!mounted) {
     return (
       <button
-        className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-secondary/70"
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-secondary"
         aria-label="Toggle theme"
       >
         <span className="h-4 w-4" />
@@ -28,7 +28,7 @@ export function ThemeToggle(): React.ReactNode {
   return (
     <button
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="group relative flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-secondary/75 text-muted-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/40 hover:bg-background hover:text-foreground"
+      className="group relative flex h-9 w-9 items-center justify-center rounded-full border border-border bg-secondary text-muted-foreground transition-all duration-200 hover:border-brand hover:text-foreground"
       aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
     >
       <Sun
@@ -38,9 +38,7 @@ export function ThemeToggle(): React.ReactNode {
       />
       <Moon
         className={`absolute h-4 w-4 transition-all ${
-          isDark
-            ? "scale-100 rotate-0 opacity-100 text-brand-bright"
-            : "scale-75 -rotate-90 opacity-0"
+          isDark ? "scale-100 rotate-0 opacity-100 text-brand" : "scale-75 -rotate-90 opacity-0"
         }`}
       />
     </button>

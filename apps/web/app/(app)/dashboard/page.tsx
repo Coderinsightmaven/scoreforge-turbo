@@ -49,16 +49,17 @@ export default function DashboardPage(): React.ReactNode {
   ).length;
 
   return (
-    <div className="container space-y-7 py-2">
-      <section className="surface-panel section-shell rounded-3xl border px-6 py-7 sm:px-8 sm:py-8">
+    <div className="container space-y-8 py-4">
+      {/* Welcome section */}
+      <section className="animate-slideUp">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-2">
-            <p className="text-caption text-muted-foreground">Daily Operations</p>
+            <p className="text-caption text-muted-foreground">Dashboard</p>
             <h1 className="text-hero">Welcome back, {firstName}</h1>
             <p className="max-w-2xl text-sm text-muted-foreground">
               {tournaments.length === 0
-                ? "Create your first tournament to bring live court operations online."
-                : `You have ${tournaments.length} tournament${tournaments.length === 1 ? "" : "s"} in your active workspace.`}
+                ? "Create your first tournament to get started."
+                : `You have ${tournaments.length} tournament${tournaments.length === 1 ? "" : "s"} in your workspace.`}
             </p>
           </div>
 
@@ -70,13 +71,14 @@ export default function DashboardPage(): React.ReactNode {
               </Link>
             </Button>
           ) : (
-            <div className="rounded-xl border border-border bg-secondary/75 px-4 py-3 text-sm text-muted-foreground">
+            <div className="rounded-full border border-border bg-secondary px-5 py-2.5 text-sm text-muted-foreground">
               Tournament limit reached ({createStatus?.maxAllowed})
             </div>
           )}
         </div>
       </section>
 
+      {/* Stats */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           value={tournaments.length}
@@ -96,40 +98,40 @@ export default function DashboardPage(): React.ReactNode {
         />
       </section>
 
-      <section className="surface-panel rounded-2xl border p-4 sm:p-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filter tournaments">
-            {filters.map((activeFilter) => (
-              <button
-                key={activeFilter.value}
-                onClick={() => setFilter(activeFilter.value)}
-                role="tab"
-                aria-selected={filter === activeFilter.value}
-                className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
-                  filter === activeFilter.value
-                    ? "border-brand/45 bg-brand-light text-brand-text"
-                    : "border-border bg-background text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {activeFilter.label}
-              </button>
-            ))}
-          </div>
-
-          {liveMatchCount > 0 && (
-            <div className="inline-flex items-center gap-2 rounded-full border border-error/30 bg-error-light px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-error">
-              <span className="live-dot" />
-              {liveMatchCount} live match{liveMatchCount === 1 ? "" : "es"}
-            </div>
-          )}
+      {/* Filters */}
+      <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filter tournaments">
+          {filters.map((activeFilter) => (
+            <button
+              key={activeFilter.value}
+              onClick={() => setFilter(activeFilter.value)}
+              role="tab"
+              aria-selected={filter === activeFilter.value}
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition-all ${
+                filter === activeFilter.value
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border bg-transparent text-muted-foreground hover:bg-secondary hover:text-foreground"
+              }`}
+            >
+              {activeFilter.label}
+            </button>
+          ))}
         </div>
+
+        {liveMatchCount > 0 && (
+          <div className="inline-flex items-center gap-2 rounded-full bg-error-light px-4 py-1.5 text-xs font-bold uppercase tracking-[0.1em] text-error">
+            <span className="live-dot" />
+            {liveMatchCount} live match{liveMatchCount === 1 ? "" : "es"}
+          </div>
+        )}
       </section>
 
+      {/* Tournament cards */}
       {tournaments.length === 0 ? (
-        <Card className="rounded-2xl border">
+        <Card>
           <CardContent>
             <EmptyState
-              icon={<Trophy className="h-10 w-10" />}
+              icon={<Trophy className="h-8 w-8" />}
               title="No tournaments yet"
               description="Create your first tournament to start managing competitions and score live matches."
               action={
@@ -146,7 +148,7 @@ export default function DashboardPage(): React.ReactNode {
           </CardContent>
         </Card>
       ) : filteredTournaments?.length === 0 ? (
-        <Card className="rounded-2xl border">
+        <Card>
           <CardContent>
             <EmptyState
               title={`No ${filter} tournaments`}
@@ -209,7 +211,7 @@ function TournamentCard({
   return (
     <Link href={`/tournaments/${tournament._id}`} className="block">
       <Card
-        className={`h-full rounded-2xl border transition-transform duration-200 hover:-translate-y-1 ${hasLive ? "ring-1 ring-error/40" : ""}`}
+        className={`h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[var(--shadow-md)] ${hasLive ? "ring-2 ring-error/30" : ""}`}
       >
         <CardHeader className="pb-1">
           <div className="flex items-start justify-between gap-3">
@@ -235,7 +237,7 @@ function TournamentCard({
             <span className="text-muted-foreground">
               {tournament.liveMatchCount} live match{tournament.liveMatchCount === 1 ? "" : "es"}
             </span>
-            <span className="inline-flex items-center gap-1 font-semibold text-brand">
+            <span className="inline-flex items-center gap-1 font-bold text-foreground">
               Open
               <ArrowUpRight className="h-4 w-4" />
             </span>
@@ -248,36 +250,38 @@ function TournamentCard({
 
 function DashboardSkeleton() {
   return (
-    <div className="container space-y-7 py-2">
-      <div className="surface-panel rounded-3xl border p-8">
-        <Skeleton className="mb-3 h-4 w-28" />
-        <Skeleton className="mb-2 h-12 w-96 max-w-full" />
-        <Skeleton className="h-5 w-72 max-w-full" />
+    <div className="container space-y-8 py-4">
+      <div>
+        <Skeleton className="mb-3 h-4 w-28 rounded-full" />
+        <Skeleton className="mb-2 h-12 w-96 max-w-full rounded-full" />
+        <Skeleton className="h-5 w-72 max-w-full rounded-full" />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[1, 2, 3, 4].map((index) => (
-          <Card key={index} className="rounded-2xl border">
+          <Card key={index}>
             <CardContent className="space-y-2 p-5">
-              <Skeleton className="h-3 w-24" />
-              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-3 w-24 rounded-full" />
+              <Skeleton className="h-8 w-20 rounded-full" />
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Card className="rounded-2xl border p-5">
-        <Skeleton className="h-10 w-full" />
-      </Card>
+      <div className="flex gap-2">
+        {[1, 2, 3, 4].map((index) => (
+          <Skeleton key={index} className="h-10 w-24 rounded-full" />
+        ))}
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {[1, 2, 3].map((index) => (
-          <Card key={index} className="rounded-2xl border">
+          <Card key={index}>
             <CardContent className="space-y-3 p-6">
-              <Skeleton className="h-5 w-20" />
-              <Skeleton className="h-6 w-48" />
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-4 w-36" />
+              <Skeleton className="h-5 w-20 rounded-full" />
+              <Skeleton className="h-6 w-48 rounded-full" />
+              <Skeleton className="h-4 w-32 rounded-full" />
+              <Skeleton className="h-4 w-36 rounded-full" />
             </CardContent>
           </Card>
         ))}
