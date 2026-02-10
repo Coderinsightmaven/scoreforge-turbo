@@ -116,7 +116,7 @@ export default function LandingPage(): React.ReactNode {
               Real-time tournament ops
             </div>
             <h1 className="text-display animate-slideUp" style={{ animationDelay: "120ms" }}>
-              Arena control for
+              Court control for
               <br />
               modern tournaments.
             </h1>
