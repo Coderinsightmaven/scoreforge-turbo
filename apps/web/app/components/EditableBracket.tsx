@@ -266,10 +266,11 @@ export function EditableBracket({
                   return (
                     <div
                       key={match._id}
-                      className={`group relative flex flex-col bg-bg-card border border-border rounded-lg overflow-hidden print:break-inside-avoid ${
+                      className={`group relative flex flex-col bg-card border border-border/70 rounded-2xl shadow-card overflow-hidden print:break-inside-avoid ${
                         isByeMatch ? "opacity-60" : ""
                       }`}
                     >
+                      <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-brand/40" />
                       {match.court && (
                         <div className="absolute top-1 left-1 px-1.5 py-0.5 text-[9px] font-medium text-brand bg-brand/10 rounded z-10 print:hidden">
                           {match.court}
@@ -363,8 +364,9 @@ export function PrintableBracket({
               {(rounds[round] || []).map((match) => (
                 <div
                   key={match._id}
-                  className="flex flex-col bg-white border border-gray-300 rounded overflow-hidden print:break-inside-avoid"
+                  className="relative flex flex-col bg-white border border-gray-300 rounded-2xl overflow-hidden print:break-inside-avoid"
                 >
+                  <div className="absolute left-3 right-3 top-0 h-px bg-gray-300" />
                   {renderSlot(match.participant1, 1)}
                   {renderSlot(match.participant2, 2)}
                 </div>

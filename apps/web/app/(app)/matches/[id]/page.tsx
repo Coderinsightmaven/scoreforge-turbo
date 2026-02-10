@@ -93,35 +93,35 @@ export default function MatchDetailPage({
   }
 
   return (
-    <div className="min-h-screen flex items-start justify-center px-6 py-12">
-      <div className="w-full max-w-2xl">
+    <div className="flex items-start justify-center">
+      <div className="w-full max-w-2xl space-y-6">
         <Link
           href={`/tournaments/${match.tournamentId}`}
-          className="inline-flex items-center gap-2 text-text-secondary hover:text-brand transition-colors mb-8"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-brand transition-colors"
         >
           <span>←</span> Back to Tournament
         </Link>
 
-        <div className="relative bg-bg-card border border-border rounded-xl overflow-hidden">
-          {/* Match Header */}
-          <div className="flex items-center justify-between p-6 bg-bg-secondary border-b border-border">
+        <div className="surface-panel surface-panel-rail relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-brand/40" />
+          <div className="flex items-center justify-between border-b border-border/70 bg-bg-secondary px-6 py-4">
             <div className="flex items-center gap-3">
               {isOneOffMatch ? (
-                <span className="text-sm font-semibold tracking-wide text-text-muted">
+                <span className="text-sm font-semibold tracking-wide text-muted-foreground">
                   One-Off Match
                 </span>
               ) : (
                 <>
-                  <span className="text-sm font-semibold tracking-wide text-text-muted">
+                  <span className="text-sm font-semibold tracking-wide text-muted-foreground">
                     Round {match.round}
                   </span>
-                  <span className="text-text-muted">|</span>
+                  <span className="text-muted-foreground">|</span>
                 </>
               )}
-              <span className="text-sm text-text-muted">Match {match.matchNumber}</span>
+              <span className="text-sm text-muted-foreground">Match {match.matchNumber}</span>
               {match.court && (
                 <>
-                  <span className="text-text-muted">|</span>
+                  <span className="text-muted-foreground">|</span>
                   <span className="text-sm text-brand">{match.court}</span>
                 </>
               )}
@@ -197,8 +197,8 @@ export default function MatchDetailPage({
             match.participant1 &&
             match.participant2 &&
             (match.status === "pending" || match.status === "scheduled") && (
-              <div className="bg-bg-card border border-border rounded-xl p-6 text-center">
-                <div className="w-12 h-12 mx-auto flex items-center justify-center bg-warning/10 rounded-lg mb-4">
+              <div className="surface-panel p-6 text-center">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-warning/30 bg-warning/10">
                   <svg
                     className="w-6 h-6 text-warning"
                     fill="none"
@@ -230,7 +230,7 @@ export default function MatchDetailPage({
             !needsSetup && <MatchActions match={match} tournamentStatus={match.tournamentStatus} />}
 
           {/* Match Info */}
-          <div className="flex flex-wrap gap-6 p-6 border-t border-border">
+          <div className="flex flex-wrap gap-6 border-t border-border/70 p-6">
             {match.scheduledTime && (
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-medium uppercase tracking-wide text-text-muted">

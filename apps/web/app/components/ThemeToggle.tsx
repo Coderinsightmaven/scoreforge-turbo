@@ -15,7 +15,7 @@ export function ThemeToggle(): React.ReactNode {
   if (!mounted) {
     return (
       <button
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-secondary"
+        className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-bg-secondary"
         aria-label="Toggle theme"
       >
         <span className="h-4 w-4" />
@@ -28,7 +28,7 @@ export function ThemeToggle(): React.ReactNode {
   return (
     <button
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="group relative flex h-9 w-9 items-center justify-center rounded-full border border-border bg-secondary text-muted-foreground transition-all duration-200 hover:border-brand hover:text-foreground"
+      className="group relative flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-bg-secondary text-muted-foreground transition-all duration-200 hover:border-brand/60 hover:text-foreground"
       aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
     >
       <Sun

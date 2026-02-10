@@ -1,211 +1,310 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { Authenticated, Unauthenticated, AuthLoading, useQuery } from "convex/react";
+import { usePathname } from "next/navigation";
+import { Authenticated, AuthLoading, Unauthenticated, useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "@repo/convex";
 import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/app/components/Skeleton";
-import { Home, Settings, LogOut, Shield, Braces, Menu, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Braces, Gauge, LogOut, Settings, Shield, X } from "lucide-react";
 
-export function Navigation(): React.ReactNode {
+type NavigationProps = {
+  mobileOpen: boolean;
+  onMobileOpenChange: (open: boolean) => void;
+};
+
+const navItems = [
+  {
+    label: "Ops Console",
+    href: "/dashboard",
+    icon: Gauge,
+    activePaths: ["/dashboard", "/tournaments", "/matches"],
+  },
+  {
+    label: "Quick Bracket",
+    href: "/brackets/quick",
+    icon: Braces,
+    activePaths: ["/brackets/quick"],
+  },
+  {
+    label: "Settings",
+    href: "/settings",
+    icon: Settings,
+    activePaths: ["/settings"],
+  },
+];
+
+export function Navigation({ mobileOpen, onMobileOpenChange }: NavigationProps): React.ReactNode {
+  const pathname = usePathname();
   const { signOut } = useAuthActions();
   const user = useQuery(api.users.currentUser);
   const isSiteAdmin = useQuery(api.siteAdmin.checkIsSiteAdmin);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const initials = user?.name
     ? user.name
         .split(" ")
-        .map((n) => n[0])
+        .map((name) => name[0])
         .join("")
         .toUpperCase()
         .slice(0, 2)
     : "?";
 
+  const isActive = (paths: string[]) =>
+    paths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+
   return (
-    <nav className="sticky top-0 z-40 w-full px-4 py-3 sm:px-6 no-print">
-      <div className="container">
-        <div className="flex items-center justify-between gap-4">
+    <>
+      <aside
+        id="onborda-nav"
+        className="sticky top-0 hidden h-screen w-72 flex-col border-r border-border/70 bg-bg-primary/90 px-6 py-6 lg:flex no-print"
+      >
+        <div className="flex h-full flex-col">
           <Link href="/dashboard" className="group flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-background transition-transform duration-200 group-hover:scale-105">
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M13 3L4 14h7v7l9-11h-7V3z" />
-              </svg>
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-brand/40 bg-brand/15 text-brand">
+              <Gauge className="h-5 w-5" />
             </div>
-            <span className="font-[family-name:var(--font-display)] text-lg font-bold tracking-tight text-foreground">
-              ScoreForge
-            </span>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+                Arena Ops
+              </p>
+              <p className="text-lg font-semibold text-foreground">ScoreForge</p>
+            </div>
           </Link>
 
-          <Authenticated>
-            <div className="hidden items-center gap-1 md:flex">
-              <Link
-                href="/dashboard"
-                className="rounded-full px-4 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/brackets/quick"
-                className="rounded-full px-4 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-              >
-                Quick Bracket
-              </Link>
-            </div>
-          </Authenticated>
-
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-
-            <AuthLoading>
-              <Skeleton className="h-9 w-9 rounded-full" />
-            </AuthLoading>
-
-            <Unauthenticated>
-              <Button variant="ghost" asChild className="hidden sm:inline-flex">
-                <Link href="/sign-in">Sign in</Link>
-              </Button>
-              <Button variant="brand" asChild className="hidden sm:inline-flex">
-                <Link href="/sign-up">Create Account</Link>
-              </Button>
-              {/* Mobile hamburger for unauthenticated users */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="sm:hidden"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-                aria-expanded={mobileMenuOpen}
-              >
-                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
-            </Unauthenticated>
-
-            <Authenticated>
-              {/* Mobile hamburger for quick nav (visible below md breakpoint) */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-                aria-expanded={mobileMenuOpen}
-              >
-                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-10 w-10 rounded-full border border-transparent p-0 hover:border-brand/40"
-                    aria-label="Open user menu"
+          <div className="mt-8">
+            <p className="text-caption text-muted-foreground">Operations</p>
+            <nav className="mt-4 space-y-2">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.activePaths);
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className={cn(
+                      "group flex items-center gap-3 rounded-2xl border px-3 py-2 text-sm font-semibold transition-all",
+                      active
+                        ? "border-brand/40 bg-brand/15 text-foreground shadow-[var(--shadow-sm)]"
+                        : "border-transparent text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                    )}
                   >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-sm font-bold text-background">
-                      {initials}
-                    </div>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 p-2">
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="space-y-1">
-                      <p className="truncate font-medium text-foreground">{user?.name || "User"}</p>
-                      <p className="truncate text-sm text-muted-foreground">{user?.email}</p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="cursor-pointer">
-                      <Home className="mr-2 h-4 w-4" />
-                      Dashboard
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/brackets/quick" className="cursor-pointer">
-                      <Braces className="mr-2 h-4 w-4" />
-                      Quick Bracket
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings" className="cursor-pointer">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Settings
-                    </Link>
-                  </DropdownMenuItem>
-                  {isSiteAdmin && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin" className="cursor-pointer">
-                        <Shield className="mr-2 h-4 w-4" />
-                        Site Admin
-                      </Link>
-                    </DropdownMenuItem>
+                    <span
+                      className={cn(
+                        "flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-bg-primary text-muted-foreground transition",
+                        active
+                          ? "border-brand/40 text-brand"
+                          : "group-hover:border-brand/30 group-hover:text-foreground"
+                      )}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+
+              {isSiteAdmin && (
+                <Link
+                  href="/admin"
+                  className={cn(
+                    "group flex items-center gap-3 rounded-2xl border px-3 py-2 text-sm font-semibold transition-all",
+                    isActive(["/admin"])
+                      ? "border-brand/40 bg-brand/15 text-foreground shadow-[var(--shadow-sm)]"
+                      : "border-transparent text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
                   )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onClick={() => signOut()}
-                    className="cursor-pointer"
+                >
+                  <span
+                    className={cn(
+                      "flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-bg-primary text-muted-foreground transition",
+                      isActive(["/admin"])
+                        ? "border-brand/40 text-brand"
+                        : "group-hover:border-brand/30 group-hover:text-foreground"
+                    )}
                   >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </Authenticated>
+                    <Shield className="h-4 w-4" />
+                  </span>
+                  <span>Site Admin</span>
+                </Link>
+              )}
+            </nav>
+          </div>
+
+          <div className="mt-auto space-y-3">
+            <div className="rounded-2xl border border-border bg-bg-secondary/80 p-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-text-inverse">
+                  {initials}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {user?.name || "User"}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {user?.email || "Signed in"}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-between">
+                <ThemeToggle />
+                <Button variant="ghost" size="sm" onClick={() => signOut()} className="gap-2">
+                  <LogOut className="h-4 w-4" />
+                  Sign out
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
+      </aside>
 
-        {/* Mobile menu panel */}
-        {mobileMenuOpen && (
-          <div className="mt-3 border-t border-border pt-3 animate-fadeIn">
+      <div
+        className={cn(
+          "fixed inset-0 z-50 flex lg:hidden no-print",
+          mobileOpen ? "pointer-events-auto" : "pointer-events-none"
+        )}
+      >
+        <div
+          className={cn(
+            "absolute inset-0 bg-black/60 transition-opacity",
+            mobileOpen ? "opacity-100" : "opacity-0"
+          )}
+          onClick={() => onMobileOpenChange(false)}
+        />
+        <div
+          className={cn(
+            "relative h-full w-[85%] max-w-xs border-r border-border bg-bg-primary p-5 transition-transform",
+            mobileOpen ? "translate-x-0" : "-translate-x-full"
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <Link href="/dashboard" className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-brand/40 bg-brand/15 text-brand">
+                <Gauge className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.26em] text-muted-foreground">
+                  Arena Ops
+                </p>
+                <p className="text-base font-semibold text-foreground">ScoreForge</p>
+              </div>
+            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onMobileOpenChange(false)}
+              aria-label="Close navigation"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+
+          <div className="mt-6">
+            <p className="text-caption text-muted-foreground">Operations</p>
+            <nav className="mt-4 space-y-2">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.activePaths);
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => onMobileOpenChange(false)}
+                    className={cn(
+                      "group flex items-center gap-3 rounded-2xl border px-3 py-2 text-sm font-semibold transition-all",
+                      active
+                        ? "border-brand/40 bg-brand/15 text-foreground"
+                        : "border-transparent text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-bg-primary text-muted-foreground transition",
+                        active
+                          ? "border-brand/40 text-brand"
+                          : "group-hover:border-brand/30 group-hover:text-foreground"
+                      )}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+
+              {isSiteAdmin && (
+                <Link
+                  href="/admin"
+                  onClick={() => onMobileOpenChange(false)}
+                  className={cn(
+                    "group flex items-center gap-3 rounded-2xl border px-3 py-2 text-sm font-semibold transition-all",
+                    isActive(["/admin"])
+                      ? "border-brand/40 bg-brand/15 text-foreground"
+                      : "border-transparent text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-bg-primary text-muted-foreground transition",
+                      isActive(["/admin"])
+                        ? "border-brand/40 text-brand"
+                        : "group-hover:border-brand/30 group-hover:text-foreground"
+                    )}
+                  >
+                    <Shield className="h-4 w-4" />
+                  </span>
+                  <span>Site Admin</span>
+                </Link>
+              )}
+            </nav>
+          </div>
+
+          <div className="mt-8 space-y-4">
+            <AuthLoading>
+              <Skeleton className="h-20 w-full rounded-2xl" />
+            </AuthLoading>
             <Authenticated>
-              <div className="flex flex-col gap-1 md:hidden">
-                <Link
-                  href="/dashboard"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                >
-                  <Home className="h-4 w-4" />
-                  Dashboard
-                </Link>
-                <Link
-                  href="/brackets/quick"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                >
-                  <Braces className="h-4 w-4" />
-                  Quick Bracket
-                </Link>
+              <div className="rounded-2xl border border-border bg-bg-secondary/80 p-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-text-inverse">
+                    {initials}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground">
+                      {user?.name || "User"}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {user?.email || "Signed in"}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center justify-between">
+                  <ThemeToggle />
+                  <Button variant="ghost" size="sm" onClick={() => signOut()} className="gap-2">
+                    <LogOut className="h-4 w-4" />
+                    Sign out
+                  </Button>
+                </div>
               </div>
             </Authenticated>
             <Unauthenticated>
-              <div className="flex flex-col gap-2 sm:hidden">
-                <Button variant="ghost" asChild className="w-full justify-start">
-                  <Link href="/sign-in" onClick={() => setMobileMenuOpen(false)}>
+              <div className="flex flex-col gap-2">
+                <Button variant="outline" asChild>
+                  <Link href="/sign-in" onClick={() => onMobileOpenChange(false)}>
                     Sign in
                   </Link>
                 </Button>
-                <Button variant="brand" asChild className="w-full justify-start">
-                  <Link href="/sign-up" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="brand" asChild>
+                  <Link href="/sign-up" onClick={() => onMobileOpenChange(false)}>
                     Create Account
                   </Link>
                 </Button>
               </div>
             </Unauthenticated>
           </div>
-        )}
+        </div>
       </div>
-    </nav>
+    </>
   );
 }

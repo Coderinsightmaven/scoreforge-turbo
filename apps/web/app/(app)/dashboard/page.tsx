@@ -3,15 +3,20 @@
 import { useQuery } from "convex/react";
 import { api } from "@repo/convex";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/ui/stat-card";
+import { DataTable } from "@/components/ui/data-table";
+import { CalendarHeatmap } from "@/components/ui/calendar-heatmap";
+import { Timeline, TimelineItem } from "@/components/ui/timeline";
 import { Skeleton } from "@/app/components/Skeleton";
-import { Activity, ArrowUpRight, Plus, Trophy, Users, Zap } from "lucide-react";
+import { Activity, ArrowUpRight, Calendar, Plus, Trophy, Users, Zap } from "lucide-react";
 import { FORMAT_LABELS, type TournamentFormat } from "@/app/lib/constants";
+import type { ColumnDef } from "@tanstack/react-table";
+import NumberFlow from "@number-flow/react";
 
 type Filter = "all" | "active" | "draft" | "completed";
 
@@ -48,18 +53,96 @@ export default function DashboardPage(): React.ReactNode {
     (tournament) => tournament.status === "active"
   ).length;
 
+  const heatmapEntries = useMemo(() => {
+    const bucket = new Map<string, { date: Date; weight: number }>();
+    tournaments.forEach((tournament) => {
+      const date = new Date(tournament._creationTime);
+      const key = date.toISOString().split("T")[0] ?? "";
+      const weight = 1 + (tournament.liveMatchCount || 0);
+      const existing = bucket.get(key);
+      if (existing) {
+        existing.weight += weight;
+      } else {
+        bucket.set(key, { date, weight });
+      }
+    });
+    return Array.from(bucket.values());
+  }, [tournaments]);
+
+  const tableData = useMemo(
+    () =>
+      tournaments.map((tournament) => ({
+        id: tournament._id,
+        name: tournament.name,
+        status: tournament.status,
+        format: FORMAT_LABELS[tournament.format as TournamentFormat] || tournament.format,
+        liveMatches: tournament.liveMatchCount,
+        participants: `${tournament.participantCount} / ${tournament.maxParticipants}`,
+      })),
+    [tournaments]
+  );
+
+  const tableColumns = useMemo<ColumnDef<(typeof tableData)[number]>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: "Tournament",
+        cell: ({ row }) => (
+          <div className="space-y-1">
+            <p className="font-semibold text-foreground">{row.original.name}</p>
+            <p className="text-xs text-muted-foreground">{row.original.format}</p>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => (
+          <Badge variant={row.original.status === "active" ? "success" : "muted"}>
+            {row.original.status}
+          </Badge>
+        ),
+      },
+      {
+        accessorKey: "liveMatches",
+        header: "Live",
+        cell: ({ row }) => (
+          <span className="font-semibold text-foreground">
+            <NumberFlow value={row.original.liveMatches} />
+          </span>
+        ),
+      },
+      {
+        accessorKey: "participants",
+        header: "Participants",
+      },
+      {
+        id: "actions",
+        header: "",
+        cell: ({ row }) => (
+          <Link
+            href={`/tournaments/${row.original.id}`}
+            className="text-xs font-semibold uppercase tracking-[0.18em] text-brand hover:text-brand-hover"
+          >
+            Open
+          </Link>
+        ),
+      },
+    ],
+    []
+  );
+
   return (
-    <div className="container space-y-8 py-4">
-      {/* Welcome section */}
-      <section className="animate-slideUp">
+    <div className="container space-y-8">
+      <section className="surface-panel surface-panel-rail p-6 sm:p-8 animate-slideUp">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-2">
-            <p className="text-caption text-muted-foreground">Dashboard</p>
+          <div className="space-y-3">
+            <p className="text-caption text-muted-foreground">Ops Overview</p>
             <h1 className="text-hero">Welcome back, {firstName}</h1>
-            <p className="max-w-2xl text-sm text-muted-foreground">
+            <p className="max-w-2xl text-body text-muted-foreground">
               {tournaments.length === 0
-                ? "Create your first tournament to get started."
-                : `You have ${tournaments.length} tournament${tournaments.length === 1 ? "" : "s"} in your workspace.`}
+                ? "Create your first tournament to start the ops board."
+                : `You are tracking ${tournaments.length} tournament${tournaments.length === 1 ? "" : "s"} right now.`}
             </p>
           </div>
 
@@ -71,7 +154,7 @@ export default function DashboardPage(): React.ReactNode {
               </Link>
             </Button>
           ) : (
-            <div className="rounded-full border border-border bg-secondary px-5 py-2.5 text-sm text-muted-foreground">
+            <div className="rounded-full border border-border bg-bg-secondary px-5 py-2.5 text-sm text-muted-foreground">
               Tournament limit reached ({createStatus?.maxAllowed})
             </div>
           )}
@@ -79,51 +162,57 @@ export default function DashboardPage(): React.ReactNode {
       </section>
 
       {/* Stats */}
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section id="onborda-ops-stats" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          value={tournaments.length}
+          value={<NumberFlow value={tournaments.length} />}
           label="Total tournaments"
           icon={<Trophy className="h-4 w-4" />}
         />
         <StatCard
-          value={activeTournaments}
+          value={<NumberFlow value={activeTournaments} />}
           label="Active tournaments"
           icon={<Users className="h-4 w-4" />}
         />
-        <StatCard value={liveMatchCount} label="Live matches" icon={<Zap className="h-4 w-4" />} />
         <StatCard
-          value={tournaments.filter((tournament) => tournament.status === "draft").length}
+          value={<NumberFlow value={liveMatchCount} />}
+          label="Live matches"
+          icon={<Zap className="h-4 w-4" />}
+        />
+        <StatCard
+          value={
+            <NumberFlow
+              value={tournaments.filter((tournament) => tournament.status === "draft").length}
+            />
+          }
           label="Draft tournaments"
           icon={<Activity className="h-4 w-4" />}
         />
       </section>
 
-      {/* Filters */}
-      <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filter tournaments">
-          {filters.map((activeFilter) => (
-            <button
-              key={activeFilter.value}
-              onClick={() => setFilter(activeFilter.value)}
-              role="tab"
-              aria-selected={filter === activeFilter.value}
-              className={`rounded-full border px-4 py-2 text-sm font-semibold transition-all ${
-                filter === activeFilter.value
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border bg-transparent text-muted-foreground hover:bg-secondary hover:text-foreground"
-              }`}
-            >
-              {activeFilter.label}
-            </button>
-          ))}
-        </div>
-
-        {liveMatchCount > 0 && (
-          <div className="inline-flex items-center gap-2 rounded-full bg-error-light px-4 py-1.5 text-xs font-bold uppercase tracking-[0.1em] text-error">
-            <span className="live-dot" />
-            {liveMatchCount} live match{liveMatchCount === 1 ? "" : "es"}
+      <section className="surface-panel p-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filter tournaments">
+            {filters.map((activeFilter) => (
+              <Button
+                key={activeFilter.value}
+                onClick={() => setFilter(activeFilter.value)}
+                role="tab"
+                aria-selected={filter === activeFilter.value}
+                variant={filter === activeFilter.value ? "brand" : "outline"}
+                size="sm"
+              >
+                {activeFilter.label}
+              </Button>
+            ))}
           </div>
-        )}
+
+          {liveMatchCount > 0 && (
+            <div className="inline-flex items-center gap-2 rounded-full border border-brand/40 bg-brand/10 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-brand">
+              <span className="live-dot" />
+              {liveMatchCount} live match{liveMatchCount === 1 ? "" : "es"}
+            </div>
+          )}
+        </div>
       </section>
 
       {/* Tournament cards */}
@@ -162,7 +251,7 @@ export default function DashboardPage(): React.ReactNode {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div id="onborda-ops-tournaments" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filteredTournaments?.map((tournament, index) => (
             <div
               key={tournament._id}
@@ -174,6 +263,79 @@ export default function DashboardPage(): React.ReactNode {
           ))}
         </div>
       )}
+
+      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="surface-panel surface-panel-rail p-6">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-brand" />
+            <p className="text-caption text-muted-foreground">Ops Activity</p>
+          </div>
+          <h2 className="mt-3 text-heading">Match days heatmap</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Track momentum across tournament creation and live match days.
+          </p>
+          <div className="mt-4">
+            <CalendarHeatmap
+              numberOfMonths={3}
+              weightedDates={heatmapEntries}
+              variantClassnames={[
+                "bg-bg-secondary text-muted-foreground",
+                "bg-brand/20 text-brand",
+                "bg-brand/40 text-brand",
+                "bg-brand/70 text-text-inverse",
+              ]}
+            />
+          </div>
+        </div>
+
+        <div className="surface-panel surface-panel-rail p-6">
+          <div className="flex items-center gap-2">
+            <Activity className="h-4 w-4 text-brand" />
+            <p className="text-caption text-muted-foreground">Ops Timeline</p>
+          </div>
+          <h2 className="mt-3 text-heading">Recent tournament flow</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Stay ahead of schedule changes and status transitions.
+          </p>
+          <div className="mt-6">
+            <Timeline>
+              {tournaments.slice(0, 4).map((tournament) => (
+                <TimelineItem
+                  key={tournament._id}
+                  date={new Date(tournament._creationTime).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                  title={tournament.name}
+                  description={`${FORMAT_LABELS[tournament.format as TournamentFormat] || tournament.format} · ${tournament.participantCount} participants`}
+                  status={
+                    tournament.status === "active"
+                      ? "in-progress"
+                      : tournament.status === "completed"
+                        ? "completed"
+                        : "pending"
+                  }
+                />
+              ))}
+            </Timeline>
+          </div>
+        </div>
+      </section>
+
+      <section id="onborda-ops-table" className="surface-panel surface-panel-rail p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-caption text-muted-foreground">Ops Directory</p>
+            <h2 className="mt-2 text-heading">Tournament operations table</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Search, sort, and jump straight into any active tournament.
+            </p>
+          </div>
+        </div>
+        <div className="mt-6">
+          <DataTable columns={tableColumns} data={tableData} searchKey="name" />
+        </div>
+      </section>
     </div>
   );
 }
@@ -211,8 +373,11 @@ function TournamentCard({
   return (
     <Link href={`/tournaments/${tournament._id}`} className="block">
       <Card
-        className={`h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[var(--shadow-md)] ${hasLive ? "ring-2 ring-error/30" : ""}`}
+        className={`relative h-full overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-[var(--shadow-md)] ${
+          hasLive ? "ring-2 ring-live/30" : ""
+        }`}
       >
+        <div className="absolute inset-x-0 top-0 h-1 bg-brand/70" />
         <CardHeader className="pb-1">
           <div className="flex items-start justify-between gap-3">
             <Badge variant={statusVariants[tournament.status] || "muted"}>
@@ -233,7 +398,7 @@ function TournamentCard({
             </p>
           </div>
 
-          <div className="flex items-center justify-between border-t border-border pt-3 text-sm">
+          <div className="flex items-center justify-between border-t border-border/70 pt-3 text-sm">
             <span className="text-muted-foreground">
               {tournament.liveMatchCount} live match{tournament.liveMatchCount === 1 ? "" : "es"}
             </span>
@@ -250,7 +415,7 @@ function TournamentCard({
 
 function DashboardSkeleton() {
   return (
-    <div className="container space-y-8 py-4">
+    <div className="container space-y-8">
       <div>
         <Skeleton className="mb-3 h-4 w-28 rounded-full" />
         <Skeleton className="mb-2 h-12 w-96 max-w-full rounded-full" />

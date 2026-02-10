@@ -35,18 +35,21 @@ export function MatchCard({ match, onPress }: Props) {
 
   return (
     <TouchableOpacity
-      className="mb-3 rounded-2xl border border-slate-100 bg-white p-5 shadow-lg shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900"
+      className="relative mb-3 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-lg shadow-slate-900/10 dark:border-slate-800 dark:bg-slate-900"
       onPress={onPress}
       activeOpacity={0.7}
       disabled={match.status === "bye"}>
+      <View className="absolute left-5 right-5 top-3 h-px bg-brand/30" />
       {/* Match Header */}
       <View className="mb-3 flex-row items-center justify-between">
         <Text className="text-xs font-medium text-text-tertiary dark:text-slate-400">
           Round {match.round} • Match {match.matchNumber}
           {match.court ? ` • ${match.court}` : ""}
         </Text>
-        <View className={`rounded-lg border px-3 py-1 ${status.bg} ${status.border}`}>
-          <Text className={`text-xs font-medium capitalize ${status.text}`}>{match.status}</Text>
+        <View className={`rounded-full border px-3 py-1 ${status.bg} ${status.border}`}>
+          <Text className={`text-[10px] font-semibold uppercase ${status.text}`}>
+            {match.status}
+          </Text>
         </View>
       </View>
 

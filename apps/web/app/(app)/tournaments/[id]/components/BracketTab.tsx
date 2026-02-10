@@ -9,6 +9,7 @@ import { getDisplayMessage } from "@/lib/errors";
 import { EditableBracket, type Match } from "@/app/components/EditableBracket";
 import { TabSkeleton } from "@/app/components/TabSkeleton";
 import { getRoundName as getRoundNameUtil } from "@/lib/bracket";
+import { Button } from "@/components/ui/button";
 
 // Tennis score formatter for bracket display
 function formatTennisScoreForBracket(
@@ -99,8 +100,8 @@ export function BracketTab({
     const canGenerate = canManage && status === "draft" && participantCount >= 2;
 
     return (
-      <div className="flex flex-col items-center py-16 text-center bg-secondary border border-dashed border-border rounded-xl">
-        <div className="w-14 h-14 flex items-center justify-center bg-card rounded-xl mb-4">
+      <div className="surface-panel surface-panel-rail flex flex-col items-center py-16 text-center">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-bg-secondary">
           <svg
             className="w-7 h-7 text-muted-foreground"
             fill="none"
@@ -123,13 +124,15 @@ export function BracketTab({
                 : "No matches generated yet"}
             </p>
             {canGenerate && (
-              <button
+              <Button
                 onClick={handleGenerateMatches}
                 disabled={generating}
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2 mt-4"
+                variant="brand"
+                size="sm"
+                className="mt-4"
               >
                 {generating ? "Generating..." : "Generate Matches"}
-              </button>
+              </Button>
             )}
             {errorMessage && (
               <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -137,9 +140,9 @@ export function BracketTab({
                   className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                   onClick={() => setErrorMessage(null)}
                 />
-                <div className="relative bg-card border border-border rounded-xl shadow-2xl max-w-md w-full overflow-hidden animate-fadeIn">
+                <div className="surface-panel surface-panel-rail relative max-w-md w-full overflow-hidden animate-fadeIn">
                   <div className="p-6">
-                    <div className="flex items-center justify-center w-14 h-14 mx-auto bg-error/10 rounded-full mb-4">
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-error/10">
                       <svg
                         className="w-7 h-7 text-error"
                         fill="none"
@@ -158,12 +161,13 @@ export function BracketTab({
                       Unable to Generate Matches
                     </h3>
                     <p className="text-sm text-muted-foreground text-center mb-6">{errorMessage}</p>
-                    <button
+                    <Button
                       onClick={() => setErrorMessage(null)}
-                      className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2 w-full"
+                      variant="brand"
+                      className="w-full"
                     >
                       Got it
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -202,25 +206,13 @@ export function BracketTab({
             Click on placeholder slots to fill in participant names.
           </p>
           <div className="flex gap-2">
-            <Link
-              href={`/tournaments/${tournamentId}/bracket/print${bracketId ? `?bracketId=${bracketId}` : ""}`}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 text-xs no-print"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
+            <Button variant="outline" size="sm" asChild className="no-print">
+              <Link
+                href={`/tournaments/${tournamentId}/bracket/print${bracketId ? `?bracketId=${bracketId}` : ""}`}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z"
-                />
-              </svg>
-              Print
-            </Link>
+                Print
+              </Link>
+            </Button>
           </div>
         </div>
         <EditableBracket matches={bracket.matches as Match[]} format={format} canEdit={true} />
@@ -257,25 +249,13 @@ export function BracketTab({
   return (
     <div className="animate-fadeIn">
       <div className="flex justify-end mb-4 no-print">
-        <Link
-          href={`/tournaments/${tournamentId}/bracket/print${bracketId ? `?bracketId=${bracketId}` : ""}`}
-          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 text-xs"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+        <Button variant="outline" size="sm" asChild>
+          <Link
+            href={`/tournaments/${tournamentId}/bracket/print${bracketId ? `?bracketId=${bracketId}` : ""}`}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z"
-            />
-          </svg>
-          Print Bracket
-        </Link>
+            Print Bracket
+          </Link>
+        </Button>
       </div>
       <div className="overflow-x-auto pb-4">
         <div className="flex gap-8 min-w-max">
@@ -297,6 +277,7 @@ export function BracketTab({
 
                   const matchContent = (
                     <>
+                      <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-brand/40" />
                       {/* Court badge - top-left */}
                       {match.court && (
                         <div className="absolute top-1 left-1 px-1.5 py-0.5 text-[9px] font-medium text-brand bg-brand/10 rounded z-10">
@@ -360,7 +341,7 @@ export function BracketTab({
                         )}
                       </div>
                       {isByeMatch && (
-                        <span className="absolute top-1 right-1 px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground bg-secondary rounded">
+                        <span className="absolute top-1 right-1 rounded bg-bg-secondary px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground">
                           BYE
                         </span>
                       )}
@@ -379,12 +360,12 @@ export function BracketTab({
                       <Link
                         key={match._id}
                         href={`/matches/${match._id}`}
-                        className={`relative flex flex-col bg-card border rounded-lg overflow-hidden transition-all hover:border-brand/30 hover:-translate-y-0.5 ${
+                        className={`relative flex flex-col bg-card border border-border/70 rounded-2xl shadow-card overflow-hidden transition-all hover:border-brand/40 hover:-translate-y-0.5 hover:shadow-md ${
                           match.status === "live"
                             ? "border-success shadow-[0_0_20px_var(--success-glow)]"
                             : match.status === "completed"
-                              ? "border-border opacity-80"
-                              : "border-border"
+                              ? "opacity-80"
+                              : ""
                         }`}
                       >
                         {matchContent}
@@ -396,7 +377,7 @@ export function BracketTab({
                   return (
                     <div
                       key={match._id}
-                      className={`relative flex flex-col bg-card border border-border rounded-lg overflow-hidden ${
+                      className={`relative flex flex-col bg-card border border-border/70 rounded-2xl shadow-card overflow-hidden ${
                         isByeMatch ? "opacity-60" : ""
                       }`}
                     >

@@ -24,14 +24,14 @@ export function AccountScorersSection({
   onRemove,
 }: AccountScorersSectionProps): React.ReactNode {
   return (
-    <div>
+    <div className="surface-panel surface-panel-rail p-5">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-heading text-foreground font-[family-name:var(--font-display)]">
           Account Scorers ({scorers.length})
         </h2>
         <button
           onClick={onAddClick}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-brand bg-brand/10 border border-brand/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-brand/30 bg-brand/10 px-4 py-2 text-sm font-medium text-brand transition-all hover:bg-brand hover:text-text-inverse"
         >
           <span>+</span> Assign by Email
         </button>
@@ -42,7 +42,7 @@ export function AccountScorersSection({
       </p>
 
       {scorers.length === 0 ? (
-        <div className="flex flex-col items-center py-12 text-center bg-secondary border border-dashed border-border rounded-lg">
+        <div className="flex flex-col items-center rounded-xl border border-dashed border-border bg-bg-secondary py-12 text-center">
           <span className="text-4xl text-muted-foreground mb-3 opacity-50">👤</span>
           <p className="text-sm text-muted-foreground">No account scorers assigned yet.</p>
         </div>
@@ -51,10 +51,10 @@ export function AccountScorersSection({
           {scorers.map((scorer, index) => (
             <div
               key={scorer._id}
-              className="flex items-center gap-4 p-4 bg-card border border-border rounded-lg animate-fadeInUp"
+              className="flex items-center gap-4 rounded-xl border border-border/70 bg-bg-secondary p-4 animate-fadeInUp"
               style={{ animationDelay: `${index * 0.03}s` }}
             >
-              <div className="w-10 h-10 flex items-center justify-center text-sm font-bold text-brand bg-brand/10 rounded-full flex-shrink-0">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold text-brand bg-brand/10 flex-shrink-0">
                 {(scorer.userName || scorer.userEmail || "?").charAt(0).toUpperCase()}
               </div>
               <div className="flex-1">
@@ -69,7 +69,7 @@ export function AccountScorersSection({
               <button
                 onClick={() => onRemove(scorer.userId)}
                 disabled={removingId === scorer.userId}
-                className="px-3 py-1.5 text-xs font-semibold text-red bg-red/10 border border-red/20 rounded-lg hover:bg-red hover:text-white transition-all disabled:opacity-50"
+                className="rounded-lg border border-red/20 bg-red/10 px-3 py-1.5 text-xs font-semibold text-red transition-all hover:bg-red hover:text-text-inverse disabled:opacity-50"
               >
                 {removingId === scorer.userId ? "..." : "Remove"}
               </button>

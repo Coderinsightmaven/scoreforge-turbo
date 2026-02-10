@@ -28,14 +28,14 @@ export function TemporaryScorersSection({
   onDelete,
 }: TemporaryScorrersSectionProps): React.ReactNode {
   return (
-    <div>
+    <div className="surface-panel surface-panel-rail p-5">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-heading text-foreground font-[family-name:var(--font-display)]">
           Temporary Scorers ({tempScorers?.length || 0})
         </h2>
         <button
           onClick={onCreateClick}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-brand bg-brand/10 border border-brand/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-brand/30 bg-brand/10 px-4 py-2 text-sm font-medium text-brand transition-all hover:bg-brand hover:text-text-inverse"
         >
           <span>+</span> Create Temporary Scorer
         </button>
@@ -51,11 +51,11 @@ export function TemporaryScorersSection({
           {tempScorers.map((scorer, index) => (
             <div
               key={scorer._id}
-              className={`flex items-center gap-4 p-4 bg-card border border-border rounded-lg animate-fadeInUp ${!scorer.isActive ? "opacity-60" : ""}`}
+              className={`flex items-center gap-4 rounded-xl border border-border/70 bg-bg-secondary p-4 animate-fadeInUp ${!scorer.isActive ? "opacity-60" : ""}`}
               style={{ animationDelay: `${index * 0.03}s` }}
             >
               <div
-                className={`w-10 h-10 flex items-center justify-center text-sm font-bold rounded-full flex-shrink-0 ${scorer.isActive ? "text-brand bg-brand/10" : "text-muted-foreground bg-secondary"}`}
+                className={`flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold flex-shrink-0 ${scorer.isActive ? "text-brand bg-brand/10" : "text-muted-foreground bg-bg-secondary"}`}
               >
                 {scorer.displayName.charAt(0).toUpperCase()}
               </div>
@@ -67,7 +67,7 @@ export function TemporaryScorersSection({
               </div>
               <div className="flex items-center gap-2">
                 {!scorer.isActive && (
-                  <span className="px-2 py-1 text-xs font-semibold text-error bg-error/10 rounded">
+                  <span className="rounded-md bg-error/10 px-2 py-1 text-xs font-semibold text-error">
                     Inactive
                   </span>
                 )}
@@ -78,7 +78,7 @@ export function TemporaryScorersSection({
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => onResetPin(scorer._id)}
-                  className="px-3 py-1.5 text-xs font-semibold text-muted-foreground bg-secondary border border-border rounded-lg hover:text-foreground hover:border-brand/30 transition-all"
+                  className="rounded-lg border border-border bg-bg-secondary px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-all hover:border-brand/30 hover:text-foreground"
                   title="Reset PIN"
                 >
                   Reset PIN
@@ -86,21 +86,21 @@ export function TemporaryScorersSection({
                 {scorer.isActive ? (
                   <button
                     onClick={() => onDeactivate(scorer._id)}
-                    className="px-3 py-1.5 text-xs font-semibold text-muted-foreground bg-secondary border border-border rounded-lg hover:text-error hover:border-error/35 transition-all"
+                    className="rounded-lg border border-border bg-bg-secondary px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-all hover:border-error/35 hover:text-error"
                   >
                     Deactivate
                   </button>
                 ) : (
                   <button
                     onClick={() => onReactivate(scorer._id)}
-                    className="px-3 py-1.5 text-xs font-semibold text-success bg-success-light border border-success/35 rounded-lg hover:bg-success/20 transition-all"
+                    className="rounded-lg border border-success/35 bg-success-light px-3 py-1.5 text-xs font-semibold text-success transition-all hover:bg-success/20"
                   >
                     Reactivate
                   </button>
                 )}
                 <button
                   onClick={() => onDelete(scorer._id)}
-                  className="px-3 py-1.5 text-xs font-semibold text-error bg-error/10 border border-error/30 rounded-lg hover:bg-error hover:text-text-inverse transition-all"
+                  className="rounded-lg border border-error/30 bg-error/10 px-3 py-1.5 text-xs font-semibold text-error transition-all hover:bg-error hover:text-text-inverse"
                 >
                   Delete
                 </button>
@@ -109,7 +109,7 @@ export function TemporaryScorersSection({
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center py-12 text-center bg-secondary border border-dashed border-border rounded-lg mb-8">
+        <div className="flex flex-col items-center rounded-xl border border-dashed border-border bg-bg-secondary py-12 text-center mb-8">
           <span className="text-4xl text-muted-foreground mb-3 opacity-50">🔑</span>
           <p className="text-sm text-muted-foreground">
             No temporary scorers yet. Create one to allow scoring without an account.

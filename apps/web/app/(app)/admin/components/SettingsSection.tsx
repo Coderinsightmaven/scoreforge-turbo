@@ -50,7 +50,7 @@ export function SettingsSection() {
 
   if (settings === undefined || settings === null) {
     return (
-      <div className="bg-card text-card-foreground rounded-lg border p-6 shadow-sm">
+      <div className="surface-panel p-6">
         <div className="h-6 w-40 bg-bg-secondary rounded animate-pulse mb-6" />
         <div className="space-y-6">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -65,10 +65,7 @@ export function SettingsSection() {
   }
 
   return (
-    <form
-      onSubmit={handleSave}
-      className="bg-card text-card-foreground rounded-lg border p-6 shadow-sm"
-    >
+    <form onSubmit={handleSave} className="surface-panel surface-panel-rail p-6">
       <h2 className="text-heading text-foreground mb-2 font-[family-name:var(--font-display)]">
         System Settings
       </h2>

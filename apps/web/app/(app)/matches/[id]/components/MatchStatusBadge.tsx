@@ -17,7 +17,7 @@ export function MatchStatusBadge({ status }: { status: string }) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold uppercase rounded ${config.className}`}
+      className={`inline-flex items-center gap-1.5 rounded-md border border-border/60 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${config.className}`}
     >
       {config.pulse && <span className="w-1.5 h-1.5 bg-current rounded-full animate-pulse" />}
       {config.label}

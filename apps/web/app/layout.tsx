@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
-import { Syne, DM_Sans } from "next/font/google";
+import { Lexend, Teko } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
-const syne = Syne({
+const teko = Teko({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-display",
   display: "swap",
 });
 
-const dmSans = DM_Sans({
+const lexend = Lexend({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-sans",
   display: "swap",
 });
@@ -52,7 +52,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>): React.ReactNode {
   return (
-    <html lang="en" suppressHydrationWarning className={`${syne.variable} ${dmSans.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${teko.variable} ${lexend.variable}`}>
       <body>
         <Providers>{children}</Providers>
       </body>

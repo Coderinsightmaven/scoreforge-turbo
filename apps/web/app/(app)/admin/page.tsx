@@ -25,8 +25,8 @@ export default function AdminPage(): React.ReactNode {
   }
 
   return (
-    <div className="container space-y-6 py-2">
-      <section className="surface-panel section-shell rounded-3xl border px-6 py-7 sm:px-8">
+    <div className="container space-y-6">
+      <section className="surface-panel surface-panel-rail p-6 sm:p-8">
         <Link
           href="/dashboard"
           className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -40,7 +40,7 @@ export default function AdminPage(): React.ReactNode {
         </p>
       </section>
 
-      <section className="surface-panel rounded-2xl border p-4">
+      <section className="surface-panel p-4">
         <nav className="flex flex-wrap gap-2" aria-label="Admin sections">
           {[
             { id: "users" as Tab, label: "Users" },
@@ -50,10 +50,10 @@ export default function AdminPage(): React.ReactNode {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+              className={`rounded-xl border px-3 py-2 text-sm font-semibold transition-colors ${
                 activeTab === tab.id
-                  ? "border-brand/45 bg-brand-light text-brand-text"
-                  : "border-border bg-background text-muted-foreground hover:text-foreground"
+                  ? "border-brand/45 bg-brand/10 text-brand"
+                  : "border-transparent bg-bg-secondary text-muted-foreground hover:text-foreground"
               }`}
             >
               {tab.label}
@@ -74,7 +74,7 @@ export default function AdminPage(): React.ReactNode {
 function UnauthorizedState() {
   return (
     <div className="container flex min-h-[70vh] items-center justify-center px-4">
-      <div className="surface-panel w-full max-w-lg rounded-3xl border p-8 text-center">
+      <div className="surface-panel surface-panel-rail w-full max-w-lg p-8 text-center">
         <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-error/30 bg-error-light">
           <ShieldAlert className="h-7 w-7 text-error" />
         </div>

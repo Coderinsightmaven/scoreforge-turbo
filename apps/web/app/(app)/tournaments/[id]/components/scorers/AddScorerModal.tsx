@@ -6,6 +6,7 @@ import { useMutation } from "convex/react";
 import { api } from "@repo/convex";
 import type { Id } from "@repo/convex/dataModel";
 import { getDisplayMessage } from "@/lib/errors";
+import { Button } from "@/components/ui/button";
 
 interface AddScorerModalProps {
   tournamentId: string;
@@ -43,21 +44,21 @@ export function AddScorerModal({ tournamentId, onClose }: AddScorerModalProps): 
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-lg bg-card border border-border rounded-lg shadow-2xl animate-scaleIn">
-        <div className="flex items-center justify-between p-6 border-b border-border">
+      <div className="surface-panel surface-panel-rail w-full max-w-lg animate-scaleIn">
+        <div className="flex items-center justify-between border-b border-border/70 p-6">
           <h3 className="text-heading text-foreground font-[family-name:var(--font-display)]">
             Assign scorer by email
           </h3>
           <button
             onClick={handleClose}
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className="rounded-full border border-border/60 px-2 py-1 text-muted-foreground hover:text-foreground transition-colors"
           >
             ✕
           </button>
         </div>
         <div className="p-6">
           {error && (
-            <div className="flex items-center gap-2 p-3 mb-4 text-sm text-red bg-red/10 border border-red/20 rounded-lg">
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-red/20 bg-red/10 p-3 text-sm text-red">
               <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center bg-red rounded-full text-white text-xs font-bold">
                 !
               </span>
@@ -74,7 +75,7 @@ export function AddScorerModal({ tournamentId, onClose }: AddScorerModalProps): 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter email address..."
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="input"
             autoFocus
             onKeyDown={(e) => {
               if (e.key === "Enter" && email.trim()) {
@@ -83,20 +84,18 @@ export function AddScorerModal({ tournamentId, onClose }: AddScorerModalProps): 
             }}
           />
         </div>
-        <div className="flex justify-end gap-3 p-6 border-t border-border">
-          <button
-            onClick={handleClose}
-            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
-          >
+        <div className="flex justify-end gap-3 border-t border-border/70 p-6">
+          <Button onClick={handleClose} variant="outline" size="sm">
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={handleAssign}
             disabled={!email.trim() || loading}
-            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2"
+            variant="brand"
+            size="sm"
           >
             {loading ? "Assigning..." : "Assign Scorer"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>,

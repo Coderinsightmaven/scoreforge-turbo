@@ -57,8 +57,8 @@ export function BracketSelector({
 
   if (brackets === undefined) {
     return (
-      <div className="bg-bg-secondary border-b border-border">
-        <div className="flex items-center gap-3 px-6 py-3 max-w-[var(--content-max)] mx-auto">
+      <div className="surface-panel p-3">
+        <div className="flex items-center gap-3 px-3">
           <Skeleton className="h-10 w-48" />
         </div>
       </div>
@@ -69,8 +69,8 @@ export function BracketSelector({
   if (brackets.length === 0) {
     if (showManageButton && onManageBrackets) {
       return (
-        <div className="bg-bg-secondary border-b border-border">
-          <div className="flex items-center justify-between px-6 py-3 max-w-[var(--content-max)] mx-auto">
+        <div className="surface-panel p-3">
+          <div className="flex items-center justify-between px-3">
             <span className="text-sm text-text-muted">No brackets configured</span>
             <button
               onClick={onManageBrackets}
@@ -112,13 +112,13 @@ export function BracketSelector({
   };
 
   return (
-    <div className="bg-bg-secondary border-b border-border">
-      <div className="flex items-center gap-3 px-6 py-3 max-w-[var(--content-max)] mx-auto">
+    <div className="surface-panel p-3">
+      <div className="flex items-center gap-3 px-3">
         {/* Dropdown */}
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-bg-card border border-border rounded-lg hover:border-text-muted transition-all min-w-[200px]"
+            className="flex items-center gap-2 px-4 py-2.5 bg-bg-card border border-border rounded-xl hover:border-text-muted transition-all min-w-[200px]"
           >
             <div className="flex items-center gap-2 flex-1">
               {selectedBracket && (
@@ -146,7 +146,7 @@ export function BracketSelector({
 
           {/* Dropdown Menu */}
           {isOpen && (
-            <div className="absolute top-full left-0 mt-1 w-full min-w-[280px] bg-bg-card border border-border rounded-lg shadow-xl z-[9999] overflow-hidden">
+            <div className="absolute top-full left-0 mt-2 w-full min-w-[280px] bg-bg-card border border-border rounded-xl shadow-xl z-[9999] overflow-hidden">
               {/* Brackets list */}
               {brackets.map((bracket: Bracket, index: number) => (
                 <button

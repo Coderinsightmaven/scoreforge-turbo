@@ -184,7 +184,8 @@ export function FullScreenScoring({
         <div className="w-[400px] max-w-[90vw] pointer-events-auto">
           {/* Tennis Scoreboard */}
           {tennisState && (
-            <div className="bg-bg-card border border-border rounded-xl p-4 shadow-lg">
+            <div className="relative bg-card border border-border/70 rounded-3xl p-5 shadow-card">
+              <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-brand/40" />
               {/* Tiebreak indicator */}
               {tennisState.isTiebreak && (
                 <div className="flex justify-center mb-3">
@@ -216,7 +217,7 @@ export function FullScreenScoring({
                 </div>
 
                 {/* Divider with current games */}
-                <div className="px-4 py-2 bg-bg-tertiary rounded-lg">
+                <div className="px-4 py-2 bg-secondary/80 rounded-lg">
                   <span className="text-xl font-bold text-text-primary">
                     {tennisState.currentSetGames[0]} - {tennisState.currentSetGames[1]}
                   </span>

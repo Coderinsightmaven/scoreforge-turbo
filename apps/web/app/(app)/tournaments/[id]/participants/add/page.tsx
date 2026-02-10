@@ -3,11 +3,11 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@repo/convex";
 import { Id } from "@repo/convex/dataModel";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { use } from "react";
 import { getDisplayMessage } from "@/lib/errors";
+import { FileDropzone } from "@/components/ui/file-dropzone";
 
 /**
  * Format a full name to abbreviated format (e.g., "Joe Berry" -> "J. Berry")
@@ -27,6 +27,87 @@ function formatNameAbbreviated(fullName: string): string {
  */
 function formatDoublesDisplayName(player1: string, player2: string): string {
   return `${formatNameAbbreviated(player1)} / ${formatNameAbbreviated(player2)}`;
+}
+
+const CSV_SINGLE_HEADERS = new Set([
+  "name",
+  "player",
+  "player name",
+  "participant",
+  "participant name",
+  "team",
+  "team name",
+  "teamname",
+]);
+
+const CSV_PLAYER1_HEADERS = new Set([
+  "player1",
+  "player 1",
+  "player1 name",
+  "player 1 name",
+  "partner1",
+  "partner 1",
+]);
+
+const CSV_PLAYER2_HEADERS = new Set([
+  "player2",
+  "player 2",
+  "player2 name",
+  "player 2 name",
+  "partner2",
+  "partner 2",
+]);
+
+function parseCsvRows(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let value = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i] ?? "";
+    const nextChar = text[i + 1] ?? "";
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        value += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === "," && !inQuotes) {
+      row.push(value.trim());
+      value = "";
+      continue;
+    }
+
+    if ((char === "\n" || char === "\r") && !inQuotes) {
+      if (char === "\r" && nextChar === "\n") {
+        i += 1;
+      }
+      row.push(value.trim());
+      value = "";
+      if (row.some((cell) => cell.length > 0)) {
+        rows.push(row);
+      }
+      row = [];
+      continue;
+    }
+
+    value += char;
+  }
+
+  if (value.length > 0 || row.length > 0) {
+    row.push(value.trim());
+    if (row.some((cell) => cell.length > 0)) {
+      rows.push(row);
+    }
+  }
+
+  return rows;
 }
 
 export default function AddParticipantPage({
@@ -73,6 +154,8 @@ export default function AddParticipantPage({
   const [player2Name, setPlayer2Name] = useState("");
   const [teamName, setTeamName] = useState("");
   const [seed, setSeed] = useState<string>("");
+  const [importSummary, setImportSummary] = useState<string | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
 
   if (tournament === undefined) {
     return <LoadingSkeleton />;
@@ -236,20 +319,135 @@ export default function AddParticipantPage({
     }
   };
 
+  const csvHelperText =
+    effectiveParticipantType === "doubles"
+      ? "Columns: player1, player2 (or use the first two columns). One row per pair."
+      : "Column: name (or use the first column). One row per participant.";
+
+  const handleCsvImport = async (files: File[]) => {
+    setImportSummary(null);
+    setImportError(null);
+
+    if (files.length === 0) {
+      return;
+    }
+
+    const file = files[0];
+    if (!file) {
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const rows = parseCsvRows(text);
+
+      if (rows.length === 0) {
+        setImportError("CSV file is empty.");
+        return;
+      }
+
+      const headerRow = rows[0]?.map((cell) => cell.trim().toLowerCase()) ?? [];
+      const hasHeader = headerRow.some(
+        (cell) =>
+          CSV_SINGLE_HEADERS.has(cell) ||
+          CSV_PLAYER1_HEADERS.has(cell) ||
+          CSV_PLAYER2_HEADERS.has(cell)
+      );
+
+      const dataRows = hasHeader ? rows.slice(1) : rows;
+
+      if (effectiveParticipantType === "doubles") {
+        const rawPlayer1Index = hasHeader
+          ? headerRow.findIndex((cell) => CSV_PLAYER1_HEADERS.has(cell))
+          : 0;
+        const rawPlayer2Index = hasHeader
+          ? headerRow.findIndex((cell) => CSV_PLAYER2_HEADERS.has(cell))
+          : 1;
+        const player1Index = rawPlayer1Index === -1 ? 0 : rawPlayer1Index;
+        const player2Index = rawPlayer2Index === -1 ? 1 : rawPlayer2Index;
+
+        const player1Values: string[] = [];
+        const player2Values: string[] = [];
+
+        dataRows.forEach((row) => {
+          const player1 = row[player1Index]?.trim() ?? "";
+          const player2 = row[player2Index]?.trim() ?? "";
+          if (player1 && player2) {
+            player1Values.push(player1);
+            player2Values.push(player2);
+          }
+        });
+
+        if (player1Values.length === 0) {
+          setImportError("No valid doubles pairs found in the CSV.");
+          return;
+        }
+
+        setPlayer1Name(player1Values.join(", "));
+        setPlayer2Name(player2Values.join(", "));
+        setPlayerName("");
+        setTeamName("");
+        setSeed("");
+        setError(null);
+        setImportSummary(
+          `Imported ${player1Values.length} ${player1Values.length === 1 ? "pair" : "pairs"} from ${file.name}.`
+        );
+        return;
+      }
+
+      const rawNameIndex = hasHeader
+        ? headerRow.findIndex((cell) => CSV_SINGLE_HEADERS.has(cell))
+        : 0;
+      const nameIndex = rawNameIndex === -1 ? 0 : rawNameIndex;
+      const names = dataRows
+        .map((row) => row[nameIndex]?.trim() ?? "")
+        .filter((name) => name.length > 0);
+
+      if (names.length === 0) {
+        setImportError("No valid names found in the CSV.");
+        return;
+      }
+
+      if (effectiveParticipantType === "team") {
+        setTeamName(names.join(", "));
+        setPlayerName("");
+        setPlayer1Name("");
+        setPlayer2Name("");
+        setSeed("");
+        setError(null);
+        setImportSummary(
+          `Imported ${names.length} ${names.length === 1 ? "team" : "teams"} from ${file.name}.`
+        );
+        return;
+      }
+
+      setPlayerName(names.join(", "));
+      setPlayer1Name("");
+      setPlayer2Name("");
+      setTeamName("");
+      setSeed("");
+      setError(null);
+      setImportSummary(
+        `Imported ${names.length} ${names.length === 1 ? "player" : "players"} from ${file.name}.`
+      );
+    } catch (csvError) {
+      setImportError(csvError instanceof Error ? csvError.message : "Failed to parse the CSV.");
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-start justify-center px-6 py-12">
-      <div className="w-full max-w-lg">
+    <div className="flex items-start justify-center">
+      <div className="w-full max-w-lg space-y-6">
         <Link
           href={`/tournaments/${tournamentId}`}
-          className="inline-flex items-center gap-2 text-text-secondary hover:text-brand transition-colors mb-8"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-brand transition-colors"
         >
           <span>←</span> Back to {tournament.name}
         </Link>
 
-        <div className="relative bg-bg-card border border-border rounded-2xl overflow-hidden">
-          {/* Header */}
+        <div className="surface-panel surface-panel-rail relative overflow-hidden">
           <div className="text-center px-8 pt-10 pb-6">
-            <div className="w-14 h-14 mx-auto flex items-center justify-center bg-brand/10 rounded-2xl mb-4">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-brand/30 bg-brand/10">
               <svg
                 className="w-7 h-7 text-brand"
                 fill="none"
@@ -343,6 +541,20 @@ export default function AddParticipantPage({
                     );
                   })}
                 </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-text-primary">
+                  Import from CSV
+                </label>
+                <FileDropzone
+                  onFiles={handleCsvImport}
+                  accept={{ "text/csv": [".csv"] }}
+                  label="Drop CSV here or click to upload"
+                  helperText={csvHelperText}
+                />
+                {importSummary && <p className="text-xs text-success">{importSummary}</p>}
+                {importError && <p className="text-xs text-error">{importError}</p>}
               </div>
 
               {/* Individual: Single Player Name */}
@@ -519,10 +731,10 @@ export default function AddParticipantPage({
 
 function LoadingSkeleton() {
   return (
-    <div className="min-h-screen flex items-start justify-center px-6 py-12">
-      <div className="w-full max-w-lg">
-        <div className="w-40 h-5 bg-bg-card rounded animate-pulse mb-8" />
-        <div className="h-[400px] bg-bg-card rounded-2xl animate-pulse" />
+    <div className="container flex min-h-[50vh] items-center justify-center px-6">
+      <div className="w-full max-w-lg space-y-4">
+        <div className="h-5 w-40 rounded bg-bg-card animate-pulse" />
+        <div className="h-[400px] rounded-2xl bg-bg-card animate-pulse" />
       </div>
     </div>
   );
@@ -530,68 +742,74 @@ function LoadingSkeleton() {
 
 function NotFound() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center text-center px-6">
-      <div className="w-16 h-16 flex items-center justify-center bg-bg-card rounded-2xl mb-6">
-        <svg
-          className="w-8 h-8 text-text-muted"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.5}
+    <div className="container flex min-h-[60vh] items-center justify-center px-6">
+      <div className="surface-panel surface-panel-rail w-full max-w-lg p-8 text-center">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-bg-secondary">
+          <svg
+            className="w-8 h-8 text-text-muted"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0"
+            />
+          </svg>
+        </div>
+        <h1 className="text-title text-text-primary mb-3">Tournament Not Found</h1>
+        <p className="text-text-secondary mb-8">
+          This tournament doesn&apos;t exist or you don&apos;t have access.
+        </p>
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 text-brand hover:text-brand-bright transition-colors"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0"
-          />
-        </svg>
+          ← Back to Dashboard
+        </Link>
       </div>
-      <h1 className="text-title text-text-primary mb-3">Tournament Not Found</h1>
-      <p className="text-text-secondary mb-8">
-        This tournament doesn&apos;t exist or you don&apos;t have access.
-      </p>
-      <Link
-        href="/tournaments"
-        className="inline-flex items-center gap-2 text-brand hover:text-brand-bright transition-colors"
-      >
-        ← Back to Tournaments
-      </Link>
     </div>
   );
 }
 
 function NotAuthorized({ tournamentId }: { tournamentId: string }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center text-center px-6">
-      <div className="text-6xl text-text-muted mb-6">⚠</div>
-      <h1 className="text-title text-text-primary mb-3">Not Authorized</h1>
-      <p className="text-text-secondary mb-8">
-        You don&apos;t have permission to add participants to this tournament.
-      </p>
-      <Link
-        href={`/tournaments/${tournamentId}`}
-        className="inline-flex items-center gap-2 text-brand hover:text-brand-bright transition-colors"
-      >
-        ← Back to Tournament
-      </Link>
+    <div className="container flex min-h-[60vh] items-center justify-center px-6">
+      <div className="surface-panel surface-panel-rail w-full max-w-lg p-8 text-center">
+        <div className="text-5xl text-text-muted mb-4">⚠</div>
+        <h1 className="text-title text-text-primary mb-3">Not Authorized</h1>
+        <p className="text-text-secondary mb-8">
+          You don&apos;t have permission to add participants to this tournament.
+        </p>
+        <Link
+          href={`/tournaments/${tournamentId}`}
+          className="inline-flex items-center gap-2 text-brand hover:text-brand-bright transition-colors"
+        >
+          ← Back to Tournament
+        </Link>
+      </div>
     </div>
   );
 }
 
 function TournamentNotDraft({ tournamentId }: { tournamentId: string }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center text-center px-6">
-      <div className="text-6xl text-text-muted mb-6">🚫</div>
-      <h1 className="text-title text-text-primary mb-3">Cannot Add Participants</h1>
-      <p className="text-text-secondary mb-8">
-        This tournament has already started and is no longer accepting new participants.
-      </p>
-      <Link
-        href={`/tournaments/${tournamentId}`}
-        className="inline-flex items-center gap-2 text-brand hover:text-brand-bright transition-colors"
-      >
-        ← Back to Tournament
-      </Link>
+    <div className="container flex min-h-[60vh] items-center justify-center px-6">
+      <div className="surface-panel surface-panel-rail w-full max-w-lg p-8 text-center">
+        <div className="text-5xl text-text-muted mb-4">🚫</div>
+        <h1 className="text-title text-text-primary mb-3">Cannot Add Participants</h1>
+        <p className="text-text-secondary mb-8">
+          This tournament has already started and is no longer accepting new participants.
+        </p>
+        <Link
+          href={`/tournaments/${tournamentId}`}
+          className="inline-flex items-center gap-2 text-brand hover:text-brand-bright transition-colors"
+        >
+          ← Back to Tournament
+        </Link>
+      </div>
     </div>
   );
 }

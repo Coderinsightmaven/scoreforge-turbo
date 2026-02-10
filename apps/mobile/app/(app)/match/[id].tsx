@@ -68,63 +68,74 @@ export default function MatchDetailScreen() {
 
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
         {/* Score Card */}
-        <View className="mb-4 rounded-2xl bg-white p-8 shadow-2xl shadow-slate-900/10 dark:bg-slate-900">
+        <View className="relative mb-4 overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-2xl shadow-slate-900/10 dark:border-slate-800 dark:bg-slate-900">
+          <View className="absolute left-6 right-6 top-3 h-px bg-brand/30" />
           <View className="mb-4 items-center">
-            <Text className="text-xs font-semibold uppercase tracking-wide text-text-tertiary dark:text-slate-400">
+            <Text className="text-xs font-semibold uppercase tracking-[0.2em] text-text-tertiary dark:text-slate-400">
               Current Score
             </Text>
           </View>
 
-          {/* Participant 1 */}
-          <View className="mb-4 flex-row items-center justify-between">
-            <View className="flex-1">
-              <Text
-                className={`text-xl ${
-                  match.winnerId === match.participant1?._id
-                    ? "font-bold text-slate-900 dark:text-slate-100"
-                    : "text-text-secondary dark:text-slate-300"
-                }`}>
-                {match.participant1?.displayName || "TBD"}
-              </Text>
-              {match.participant1?.seed && (
-                <Text className="text-sm text-text-tertiary dark:text-slate-400">
-                  Seed #{match.participant1.seed}
-                </Text>
-              )}
-            </View>
-            <Text
-              className={`font-display-bold text-5xl ${
-                match.winnerId === match.participant1?._id ? "text-brand" : "text-slate-300"
+          <View className="gap-3">
+            {/* Participant 1 */}
+            <View
+              className={`flex-row items-center justify-between rounded-2xl border px-4 py-3 dark:border-slate-800 ${
+                match.winnerId === match.participant1?._id
+                  ? "border-brand/30 bg-brand/10"
+                  : "border-slate-200 bg-slate-50 dark:bg-slate-950"
               }`}>
-              {match.participant1Score}
-            </Text>
-          </View>
-
-          <View className="my-3 h-0.5 bg-slate-100 dark:bg-slate-800" />
-
-          {/* Participant 2 */}
-          <View className="mt-4 flex-row items-center justify-between">
-            <View className="flex-1">
-              <Text
-                className={`text-xl ${
-                  match.winnerId === match.participant2?._id
-                    ? "font-bold text-slate-900 dark:text-slate-100"
-                    : "text-text-secondary dark:text-slate-300"
-                }`}>
-                {match.participant2?.displayName || "TBD"}
-              </Text>
-              {match.participant2?.seed && (
-                <Text className="text-sm text-text-tertiary dark:text-slate-400">
-                  Seed #{match.participant2.seed}
+              <View className="flex-1">
+                <Text
+                  className={`text-xl ${
+                    match.winnerId === match.participant1?._id
+                      ? "font-bold text-slate-900 dark:text-slate-100"
+                      : "text-text-secondary dark:text-slate-300"
+                  }`}>
+                  {match.participant1?.displayName || "TBD"}
                 </Text>
-              )}
+                {match.participant1?.seed && (
+                  <Text className="text-sm text-text-tertiary dark:text-slate-400">
+                    Seed #{match.participant1.seed}
+                  </Text>
+                )}
+              </View>
+              <Text
+                className={`font-display-bold text-5xl ${
+                  match.winnerId === match.participant1?._id ? "text-brand" : "text-slate-300"
+                }`}>
+                {match.participant1Score}
+              </Text>
             </View>
-            <Text
-              className={`font-display-bold text-5xl ${
-                match.winnerId === match.participant2?._id ? "text-brand" : "text-slate-300"
+
+            {/* Participant 2 */}
+            <View
+              className={`flex-row items-center justify-between rounded-2xl border px-4 py-3 dark:border-slate-800 ${
+                match.winnerId === match.participant2?._id
+                  ? "border-brand/30 bg-brand/10"
+                  : "border-slate-200 bg-slate-50 dark:bg-slate-950"
               }`}>
-              {match.participant2Score}
-            </Text>
+              <View className="flex-1">
+                <Text
+                  className={`text-xl ${
+                    match.winnerId === match.participant2?._id
+                      ? "font-bold text-slate-900 dark:text-slate-100"
+                      : "text-text-secondary dark:text-slate-300"
+                  }`}>
+                  {match.participant2?.displayName || "TBD"}
+                </Text>
+                {match.participant2?.seed && (
+                  <Text className="text-sm text-text-tertiary dark:text-slate-400">
+                    Seed #{match.participant2.seed}
+                  </Text>
+                )}
+              </View>
+              <Text
+                className={`font-display-bold text-5xl ${
+                  match.winnerId === match.participant2?._id ? "text-brand" : "text-slate-300"
+                }`}>
+                {match.participant2Score}
+              </Text>
+            </View>
           </View>
 
           {/* Detailed Score */}

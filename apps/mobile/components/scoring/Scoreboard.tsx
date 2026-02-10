@@ -29,18 +29,21 @@ export function Scoreboard({
 }: ScoreboardProps) {
   return (
     <View
-      className={`rounded-2xl border-2 border-dark-elevated bg-dark-bg p-6 ${isLandscape ? "w-72" : "w-80"}`}>
+      className={`relative overflow-hidden rounded-2xl border border-dark-elevated bg-dark-card p-6 ${
+        isLandscape ? "w-72" : "w-80"
+      }`}>
+      <View className="absolute left-6 right-6 top-3 h-px bg-brand/40" />
       {/* Status Badges */}
       <View className="mb-3 flex-row items-center justify-center space-x-2">
         {isLive && (
-          <View className="flex-row items-center rounded-lg border border-red-500/30 bg-red-500/20 px-3 py-1">
+          <View className="flex-row items-center rounded-full border border-red-500/30 bg-red-500/20 px-3 py-1">
             <View className="mr-1.5 h-2 w-2 rounded-full bg-red-500" />
-            <Text className="text-xs font-medium text-red-500">LIVE</Text>
+            <Text className="text-[10px] font-semibold uppercase text-red-500">Live</Text>
           </View>
         )}
         {isTiebreak && (
-          <View className="rounded-lg border border-brand/30 bg-brand/20 px-3 py-1">
-            <Text className="text-xs font-medium text-brand-glow">TIEBREAK</Text>
+          <View className="rounded-full border border-brand/30 bg-brand/20 px-3 py-1">
+            <Text className="text-[10px] font-semibold uppercase text-brand-glow">Tiebreak</Text>
           </View>
         )}
       </View>
@@ -65,7 +68,7 @@ export function Scoreboard({
         </View>
 
         {/* Games in Center */}
-        <View className="mx-4 items-center rounded-xl bg-dark-card px-4 py-2">
+        <View className="mx-4 items-center rounded-xl border border-dark-elevated bg-dark-elevated px-4 py-2">
           <Text className="text-xs text-slate-400">{isTiebreak ? "TB" : "GAME"}</Text>
           <Text className="text-xl font-bold text-white">
             {currentSetGames[0]} - {currentSetGames[1]}

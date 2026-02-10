@@ -59,7 +59,7 @@ export function ParticipantsTab({
         {canAdd && (
           <Link
             href={`/tournaments/${tournamentId}/participants/add${bracketId ? `?bracketId=${bracketId}` : ""}`}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-brand bg-brand/10 border border-brand/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-brand/30 bg-brand/10 px-4 py-2 text-sm font-medium text-brand transition-all hover:bg-brand hover:text-text-inverse"
           >
             <span>+</span> Add Participant
           </Link>
@@ -67,7 +67,7 @@ export function ParticipantsTab({
       </div>
 
       {participants.length === 0 ? (
-        <div className="flex flex-col items-center py-16 text-center bg-secondary border border-dashed border-border rounded-xl">
+        <div className="surface-panel surface-panel-rail flex flex-col items-center py-16 text-center">
           <span className="text-5xl text-muted-foreground mb-4 opacity-50">
             {getParticipantIcon()}
           </span>
@@ -75,7 +75,7 @@ export function ParticipantsTab({
           {canAdd && (
             <Link
               href={`/tournaments/${tournamentId}/participants/add${bracketId ? `?bracketId=${bracketId}` : ""}`}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all bg-brand text-text-inverse hover:bg-brand-hover shadow-sm h-9 px-4 py-2"
             >
               Add Participant
             </Link>
@@ -87,10 +87,10 @@ export function ParticipantsTab({
             return (
               <div
                 key={participant._id}
-                className="flex items-center gap-4 p-4 bg-card border border-border rounded-lg animate-fadeInUp"
+                className="flex items-center gap-4 rounded-xl border border-border/70 bg-bg-secondary p-4 animate-fadeInUp"
                 style={{ animationDelay: `${index * 0.03}s` }}
               >
-                <div className="w-8 h-8 flex items-center justify-center text-sm font-bold text-brand bg-brand/10 rounded-lg flex-shrink-0">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-brand/30 bg-brand/10 text-sm font-bold text-brand flex-shrink-0">
                   {participant.seed || "-"}
                 </div>
                 <div className="flex-1">

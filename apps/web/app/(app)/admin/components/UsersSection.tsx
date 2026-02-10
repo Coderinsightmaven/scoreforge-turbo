@@ -2,9 +2,21 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@repo/convex";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Id } from "@repo/convex/dataModel";
+import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
+import { DataTable } from "@/components/ui/data-table";
+
+type UserRow = {
+  _id: Id<"users">;
+  _creationTime: number;
+  name?: string;
+  email?: string;
+  isSiteAdmin: boolean;
+  tournamentCount: number;
+  scoringLogsEnabled: boolean;
+};
 
 export function UsersSection() {
   const [search, setSearch] = useState("");
@@ -50,62 +62,165 @@ export function UsersSection() {
     }
   };
 
+  const columns = useMemo<ColumnDef<UserRow>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: "User",
+        cell: ({ row }) => {
+          const user = row.original;
+          return (
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 flex items-center justify-center text-small font-semibold text-white bg-brand rounded-full flex-shrink-0">
+                {user.name
+                  ? user.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()
+                      .slice(0, 2)
+                  : user.email?.[0]?.toUpperCase() || "?"}
+              </div>
+              <div className="min-w-0">
+                {editingUser === user._id ? (
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="input py-1 px-2 text-small"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleEditSave(user._id);
+                      if (e.key === "Escape") setEditingUser(null);
+                    }}
+                  />
+                ) : (
+                  <p className="font-medium text-foreground truncate">{user.name || "No name"}</p>
+                )}
+                <p className="text-small text-muted-foreground truncate">{user.email}</p>
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "_creationTime",
+        header: "Joined",
+        cell: ({ row }) => (
+          <span className="text-small text-muted-foreground">
+            {new Date(row.original._creationTime).toLocaleDateString()}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "tournamentCount",
+        header: "Tournaments",
+        cell: ({ row }) => (
+          <span className="text-small text-muted-foreground">{row.original.tournamentCount}</span>
+        ),
+      },
+      {
+        id: "status",
+        header: "Status",
+        cell: ({ row }) =>
+          row.original.isSiteAdmin ? <span className="badge badge-brand">Admin</span> : null,
+      },
+      {
+        id: "logs",
+        header: () => <div className="text-center">Logs</div>,
+        cell: ({ row }) => (
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={() =>
+                handleToggleScoringLogs(row.original._id, row.original.scoringLogsEnabled)
+              }
+              disabled={togglingLogs === row.original._id}
+              className={`relative w-11 h-6 rounded-full transition-colors disabled:opacity-50 ${
+                row.original.scoringLogsEnabled ? "bg-brand" : "bg-bg-tertiary"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                  row.original.scoringLogsEnabled ? "translate-x-5" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+          </div>
+        ),
+      },
+      {
+        id: "actions",
+        header: () => <div className="text-right">Actions</div>,
+        cell: ({ row }) => (
+          <div className="flex items-center justify-end">
+            {editingUser === row.original._id ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setEditingUser(null)}
+                  className="px-3 py-1.5 text-small text-muted-foreground hover:text-foreground"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleEditSave(row.original._id)}
+                  disabled={saving}
+                  className="px-3 py-1.5 text-small font-medium text-white bg-brand rounded-lg hover:bg-brand-hover disabled:opacity-50"
+                >
+                  {saving ? "..." : "Save"}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setEditingUser(row.original._id);
+                  setEditName(row.original.name || "");
+                }}
+                className="px-3 py-1.5 text-small text-muted-foreground hover:text-brand"
+              >
+                Edit
+              </button>
+            )}
+          </div>
+        ),
+      },
+    ],
+    [editingUser, editName, saving, togglingLogs, handleToggleScoringLogs, handleEditSave]
+  );
+
+  const isLoading = users === undefined;
+  const tableData = users?.users ?? [];
+
   return (
     <div className="space-y-6">
-      {/* Search */}
-      <div className="relative">
-        <svg
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.5}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-          />
-        </svg>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search users by name or email..."
-          aria-label="Search users"
-          className="input pl-12"
-        />
-      </div>
-
-      {/* Users Table */}
-      <div className="card p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border bg-bg-secondary">
-                <th className="text-left px-6 py-4 text-small font-semibold text-muted-foreground uppercase tracking-wide">
-                  User
-                </th>
-                <th className="text-left px-6 py-4 text-small font-semibold text-muted-foreground uppercase tracking-wide">
-                  Joined
-                </th>
-                <th className="text-left px-6 py-4 text-small font-semibold text-muted-foreground uppercase tracking-wide">
-                  Tournaments
-                </th>
-                <th className="text-left px-6 py-4 text-small font-semibold text-muted-foreground uppercase tracking-wide">
-                  Status
-                </th>
-                <th className="text-center px-6 py-4 text-small font-semibold text-muted-foreground uppercase tracking-wide">
-                  Logs
-                </th>
-                <th className="text-right px-6 py-4 text-small font-semibold text-muted-foreground uppercase tracking-wide">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {users === undefined ? (
-                Array.from({ length: 5 }).map((_, i) => (
+      {isLoading ? (
+        <div className="surface-panel p-0 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border/70 bg-bg-secondary">
+                  <th className="text-left px-6 py-4 text-small font-semibold text-muted-foreground uppercase tracking-wide">
+                    User
+                  </th>
+                  <th className="text-left px-6 py-4 text-small font-semibold text-muted-foreground uppercase tracking-wide">
+                    Joined
+                  </th>
+                  <th className="text-left px-6 py-4 text-small font-semibold text-muted-foreground uppercase tracking-wide">
+                    Tournaments
+                  </th>
+                  <th className="text-left px-6 py-4 text-small font-semibold text-muted-foreground uppercase tracking-wide">
+                    Status
+                  </th>
+                  <th className="text-center px-6 py-4 text-small font-semibold text-muted-foreground uppercase tracking-wide">
+                    Logs
+                  </th>
+                  <th className="text-right px-6 py-4 text-small font-semibold text-muted-foreground uppercase tracking-wide">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="border-b border-border last:border-0">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -132,114 +247,21 @@ export function UsersSection() {
                       <div className="h-8 w-16 bg-bg-secondary rounded-lg ml-auto animate-pulse" />
                     </td>
                   </tr>
-                ))
-              ) : users.users.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
-                    No users found
-                  </td>
-                </tr>
-              ) : (
-                users.users.map((user) => (
-                  <tr
-                    key={user._id}
-                    className="border-b border-border last:border-0 hover:bg-bg-hover transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 flex items-center justify-center text-small font-semibold text-white bg-brand rounded-full flex-shrink-0">
-                          {user.name
-                            ? user.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")
-                                .toUpperCase()
-                                .slice(0, 2)
-                            : user.email?.[0]?.toUpperCase() || "?"}
-                        </div>
-                        <div className="min-w-0">
-                          {editingUser === user._id ? (
-                            <input
-                              type="text"
-                              value={editName}
-                              onChange={(e) => setEditName(e.target.value)}
-                              className="input py-1 px-2 text-small"
-                              autoFocus
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") handleEditSave(user._id);
-                                if (e.key === "Escape") setEditingUser(null);
-                              }}
-                            />
-                          ) : (
-                            <p className="font-medium text-foreground truncate">
-                              {user.name || "No name"}
-                            </p>
-                          )}
-                          <p className="text-small text-muted-foreground truncate">{user.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-small text-muted-foreground">
-                      {new Date(user._creationTime).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 text-small text-muted-foreground">
-                      {user.tournamentCount}
-                    </td>
-                    <td className="px-6 py-4">
-                      {user.isSiteAdmin && <span className="badge badge-brand">Admin</span>}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleScoringLogs(user._id, user.scoringLogsEnabled)}
-                        disabled={togglingLogs === user._id}
-                        className={`relative w-11 h-6 rounded-full transition-colors disabled:opacity-50 ${
-                          user.scoringLogsEnabled ? "bg-brand" : "bg-bg-tertiary"
-                        }`}
-                      >
-                        <span
-                          className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                            user.scoringLogsEnabled ? "translate-x-5" : "translate-x-0.5"
-                          }`}
-                        />
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      {editingUser === user._id ? (
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => setEditingUser(null)}
-                            className="px-3 py-1.5 text-small text-muted-foreground hover:text-foreground"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            onClick={() => handleEditSave(user._id)}
-                            disabled={saving}
-                            className="px-3 py-1.5 text-small font-medium text-white bg-brand rounded-lg hover:bg-brand-hover disabled:opacity-50"
-                          >
-                            {saving ? "..." : "Save"}
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setEditingUser(user._id);
-                            setEditName(user.name || "");
-                          }}
-                          className="px-3 py-1.5 text-small text-muted-foreground hover:text-brand"
-                        >
-                          Edit
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={tableData}
+          searchValue={search}
+          onSearchChange={setSearch}
+          disableClientFilter
+          searchPlaceholder="Search users by name or email..."
+        />
+      )}
     </div>
   );
 }

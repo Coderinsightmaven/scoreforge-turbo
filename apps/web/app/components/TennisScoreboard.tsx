@@ -103,10 +103,11 @@ export function TennisScoreboard({
         const gridCols = `1fr repeat(${totalSetColumns}, 48px) 64px`;
 
         return (
-          <div className="bg-bg-secondary rounded-lg overflow-hidden border border-border">
+          <div className="relative bg-card rounded-2xl overflow-hidden border border-border/70 shadow-card">
+            <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-brand/40" />
             {/* Header Row */}
             <div
-              className="gap-1 p-2 bg-bg-secondary text-xs font-semibold text-text-muted"
+              className="gap-1 p-2 bg-secondary/70 text-xs font-semibold text-muted-foreground"
               style={{ display: "grid", gridTemplateColumns: gridCols }}
             >
               <div className="px-3">Player</div>

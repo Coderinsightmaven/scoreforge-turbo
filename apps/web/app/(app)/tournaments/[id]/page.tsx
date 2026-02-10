@@ -19,6 +19,7 @@ import { Id } from "@repo/convex/dataModel";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/app/components/ConfirmDialog";
 import { FORMAT_LABELS, STATUS_STYLES } from "@/app/lib/constants";
+import { cn } from "@/lib/utils";
 import { ScorersTab } from "./components/ScorersTab";
 import { BracketTab } from "./components/BracketTab";
 import { MatchesTab } from "./components/MatchesTab";
@@ -83,63 +84,56 @@ export default function TournamentDetailPage({
   ];
 
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <header className="py-10 px-6 border-b border-border">
-        <div className="max-w-[var(--content-max)] mx-auto animate-fadeIn">
-          <Link
-            href="/tournaments"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-brand transition-colors mb-6"
-          >
-            <span>←</span> Tournaments
-          </Link>
-          <div className="flex flex-col md:flex-row md:items-start gap-6">
-            <div className="w-[100px] h-[100px] flex items-center justify-center text-6xl bg-card border border-border rounded-xl shadow-lg flex-shrink-0">
-              {sportIcons[tournament.sport] || "🏆"}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <span
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold uppercase rounded ${statusStyles[tournament.status]}`}
-                >
-                  {tournament.status === "active" && (
-                    <span className="w-1.5 h-1.5 bg-current rounded-full animate-pulse" />
-                  )}
-                  {tournament.status}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  {formatLabels[tournament.format] || tournament.format}
-                </span>
-              </div>
-              <h1 className="text-title text-foreground mb-2 font-[family-name:var(--font-display)]">
-                {tournament.name}
-              </h1>
-              {tournament.description && (
-                <p className="text-muted-foreground mb-4 max-w-xl">{tournament.description}</p>
-              )}
-              {tournament.startDate && (
-                <div className="flex items-baseline gap-1">
-                  <span className="text-heading text-brand">
-                    {new Date(tournament.startDate).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </span>
-                  <span className="text-sm text-muted-foreground">Start Date</span>
-                </div>
-              )}
-
-              {/* Tournament ID for API access */}
-              <TournamentIdDisplay tournamentId={tournament._id} />
-            </div>
-            {canManage && (
-              <TournamentActions
-                tournament={{ ...tournament, format: tournament.format, sport: tournament.sport }}
-              />
-            )}
+    <div className="space-y-6">
+      <section className="surface-panel surface-panel-rail p-6 sm:p-8 animate-fadeIn">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-brand transition-colors mb-6"
+        >
+          <span>←</span> Back to dashboard
+        </Link>
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+          <div className="flex h-24 w-24 items-center justify-center rounded-2xl border border-border bg-bg-secondary text-5xl shadow-card">
+            {sportIcons[tournament.sport] || "🏆"}
           </div>
+          <div className="flex-1 space-y-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <span
+                className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold uppercase rounded ${statusStyles[tournament.status]}`}
+              >
+                {tournament.status === "active" && (
+                  <span className="w-1.5 h-1.5 bg-current rounded-full animate-pulse" />
+                )}
+                {tournament.status}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                {formatLabels[tournament.format] || tournament.format}
+              </span>
+            </div>
+            <h1 className="text-title text-foreground">{tournament.name}</h1>
+            {tournament.description && (
+              <p className="text-muted-foreground max-w-xl">{tournament.description}</p>
+            )}
+            {tournament.startDate && (
+              <div className="flex items-baseline gap-2">
+                <span className="text-heading text-brand">
+                  {new Date(tournament.startDate).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </span>
+                <span className="text-sm text-muted-foreground">Start Date</span>
+              </div>
+            )}
+            <TournamentIdDisplay tournamentId={tournament._id} />
+          </div>
+          {canManage && (
+            <TournamentActions
+              tournament={{ ...tournament, format: tournament.format, sport: tournament.sport }}
+            />
+          )}
         </div>
-      </header>
+      </section>
 
       {/* Bracket Selector (shown if tournament has brackets or is in draft mode for owner) */}
       {(tournament.bracketCount > 0 || (canManage && tournament.status === "draft")) && (
@@ -155,8 +149,12 @@ export default function TournamentDetailPage({
       )}
 
       {/* Tabs */}
-      <nav className="bg-secondary border-b border-border sticky top-[var(--nav-height)] z-50">
-        <div className="flex gap-1 max-w-[var(--content-max)] mx-auto px-6" role="tablist">
+      <nav className="sticky top-[var(--nav-height)] z-40">
+        <div
+          className="surface-panel flex flex-wrap gap-2 px-3 py-2"
+          role="tablist"
+          aria-label="Tournament tabs"
+        >
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -168,11 +166,12 @@ export default function TournamentDetailPage({
               }}
               role="tab"
               aria-selected={activeTab === tab.id}
-              className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium -mb-px border-b-2 transition-colors ${
+              className={cn(
+                "relative flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-colors",
                 activeTab === tab.id
-                  ? "border-b-2 border-brand text-brand font-semibold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+                  ? "border-brand/40 bg-brand/10 text-brand"
+                  : "border-transparent text-muted-foreground hover:bg-bg-secondary hover:text-foreground"
+              )}
             >
               <span>{tab.label}</span>
             </button>
@@ -181,7 +180,7 @@ export default function TournamentDetailPage({
       </nav>
 
       {/* Content */}
-      <main className="py-8 px-6 max-w-[var(--content-max)] mx-auto">
+      <main className="container space-y-8">
         {activeTab === "bracket" && (
           <BracketTab
             tournamentId={id}
@@ -239,7 +238,7 @@ function TournamentIdDisplay({ tournamentId }: { tournamentId: string }) {
   return (
     <div className="mt-4 flex items-center gap-2">
       <span className="text-xs text-muted-foreground">Tournament ID:</span>
-      <code className="px-2 py-1 text-xs font-mono text-muted-foreground bg-secondary border border-border rounded">
+      <code className="rounded-lg border border-border bg-bg-secondary px-2 py-1 text-xs font-mono text-muted-foreground">
         {tournamentId}
       </code>
       <button
@@ -616,80 +615,74 @@ function TournamentActions({
 
 function LoadingSkeleton() {
   return (
-    <div className="min-h-screen">
-      <header className="py-10 px-6 border-b border-border">
-        <div className="max-w-[var(--content-max)] mx-auto">
-          <Skeleton className="w-28 h-5 mb-6" />
-          <div className="flex flex-col md:flex-row md:items-start gap-6">
-            <Skeleton className="w-[100px] h-[100px] rounded-xl flex-shrink-0" />
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <Skeleton className="h-6 w-20 rounded" />
-                <Skeleton className="h-5 w-28" />
-              </div>
-              <Skeleton className="h-10 w-72 mb-2" />
-              <Skeleton className="h-5 w-96 max-w-full mb-4" />
-              <div className="flex flex-wrap gap-6">
-                <div className="flex items-baseline gap-1">
-                  <Skeleton className="h-8 w-16" />
-                  <Skeleton className="h-4 w-24" />
-                </div>
-                <div className="flex items-baseline gap-1">
-                  <Skeleton className="h-8 w-16" />
-                  <Skeleton className="h-4 w-20" />
-                </div>
-              </div>
+    <div className="container space-y-6">
+      <div className="surface-panel p-6">
+        <Skeleton className="w-28 h-5 mb-6" />
+        <div className="flex flex-col md:flex-row md:items-start gap-6">
+          <Skeleton className="w-[100px] h-[100px] rounded-xl flex-shrink-0" />
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <Skeleton className="h-6 w-20 rounded" />
+              <Skeleton className="h-5 w-28" />
             </div>
-            <div className="flex gap-2">
-              <Skeleton className="h-10 w-28 rounded-lg" />
-              <Skeleton className="h-10 w-32 rounded-lg" />
+            <Skeleton className="h-10 w-72 mb-2" />
+            <Skeleton className="h-5 w-96 max-w-full mb-4" />
+            <div className="flex flex-wrap gap-6">
+              <div className="flex items-baseline gap-1">
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <div className="flex items-baseline gap-1">
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-4 w-20" />
+              </div>
             </div>
           </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-28 rounded-lg" />
+            <Skeleton className="h-10 w-32 rounded-lg" />
+          </div>
         </div>
-      </header>
+      </div>
 
-      {/* Tabs skeleton */}
-      <nav className="bg-secondary border-b border-border">
-        <div className="max-w-[var(--content-max)] mx-auto px-6">
-          <SkeletonTabs count={4} className="py-3" />
-        </div>
-      </nav>
+      <div className="surface-panel p-3">
+        <SkeletonTabs count={4} className="py-3" />
+      </div>
 
-      {/* Content skeleton */}
-      <main className="py-8 px-6 max-w-[var(--content-max)] mx-auto">
-        <SkeletonBracket />
-      </main>
+      <SkeletonBracket />
     </div>
   );
 }
 
 function NotFound() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center text-center px-6">
-      <div className="w-16 h-16 flex items-center justify-center bg-card rounded-xl mb-6">
-        <svg
-          className="w-8 h-8 text-muted-foreground"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.5}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0"
-          />
-        </svg>
+    <div className="container flex min-h-[60vh] items-center justify-center px-6">
+      <div className="surface-panel surface-panel-rail w-full max-w-lg p-8 text-center">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-bg-secondary">
+          <svg
+            className="w-8 h-8 text-muted-foreground"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0"
+            />
+          </svg>
+        </div>
+        <h1 className="text-title text-foreground mb-3 font-[family-name:var(--font-display)]">
+          Tournament Not Found
+        </h1>
+        <p className="text-muted-foreground mb-8">
+          This tournament doesn&apos;t exist or you don&apos;t have access.
+        </p>
+        <Link href="/dashboard" className="text-brand hover:text-brand-hover transition-colors">
+          ← Back to Dashboard
+        </Link>
       </div>
-      <h1 className="text-title text-foreground mb-3 font-[family-name:var(--font-display)]">
-        Tournament Not Found
-      </h1>
-      <p className="text-muted-foreground mb-8">
-        This tournament doesn&apos;t exist or you don&apos;t have access.
-      </p>
-      <Link href="/tournaments" className="text-brand hover:text-brand-hover transition-colors">
-        ← Back to Tournaments
-      </Link>
     </div>
   );
 }

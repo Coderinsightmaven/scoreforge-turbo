@@ -24,7 +24,7 @@ export function StandingsTab({
 
   if (standings.length === 0) {
     return (
-      <div className="flex flex-col items-center py-16 text-center bg-secondary border border-dashed border-border rounded-xl">
+      <div className="surface-panel surface-panel-rail flex flex-col items-center py-16 text-center">
         <span className="text-5xl text-muted-foreground mb-4 opacity-50">📊</span>
         <p className="text-muted-foreground">Standings will appear when matches are played</p>
       </div>
@@ -33,8 +33,8 @@ export function StandingsTab({
 
   return (
     <div className="animate-fadeIn">
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <div className="grid grid-cols-[40px_1fr_40px_40px_40px_50px_60px] gap-2 p-4 text-xs font-semibold tracking-wide uppercase text-muted-foreground bg-secondary border-b border-border">
+      <div className="surface-panel overflow-hidden">
+        <div className="grid grid-cols-[40px_1fr_40px_40px_40px_50px_60px] gap-2 border-b border-border/70 bg-bg-secondary p-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           <span className="text-center">#</span>
           <span>Participant</span>
           <span className="text-center">W</span>
@@ -46,7 +46,7 @@ export function StandingsTab({
         {standings.map((participant, index) => (
           <div
             key={participant._id}
-            className="grid grid-cols-[40px_1fr_40px_40px_40px_50px_60px] gap-2 p-4 text-sm text-foreground border-b border-border last:border-b-0 animate-fadeIn"
+            className="grid grid-cols-[40px_1fr_40px_40px_40px_50px_60px] gap-2 border-b border-border/70 p-4 text-sm text-foreground last:border-b-0 animate-fadeIn"
             style={{ animationDelay: `${index * 0.03}s` }}
           >
             <span

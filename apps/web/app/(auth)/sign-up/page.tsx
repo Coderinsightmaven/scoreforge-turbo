@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, ArrowRight, Ban, Loader2, Zap } from "lucide-react";
+import { ArrowRight, Gauge, Loader2, ShieldCheck, UserPlus } from "lucide-react";
 
 export default function SignUpPage(): React.ReactNode {
   const { signIn } = useAuthActions();
@@ -89,50 +89,37 @@ export default function SignUpPage(): React.ReactNode {
   };
 
   return (
-    <div className="min-h-screen w-full lg:grid lg:grid-cols-2">
-      {/* Left: Branding */}
-      <div className="hidden lg:flex lg:items-center lg:justify-center animate-splitInLeft">
-        <div className="max-w-md space-y-8 px-12">
-          <Link href="/" className="inline-flex items-center gap-3 group">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-foreground text-background transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12">
-              <Zap className="h-5 w-5" />
+    <div className="min-h-screen w-full lg:grid lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="hidden lg:flex lg:flex-col lg:justify-between px-10 py-12">
+        <div className="space-y-10">
+          <Link href="/" className="inline-flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-brand/40 bg-brand/15 text-brand">
+              <Gauge className="h-5 w-5" />
             </div>
-            <span className="font-[family-name:var(--font-display)] text-xl font-bold">
-              ScoreForge
-            </span>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+                Arena Ops
+              </p>
+              <p className="text-lg font-semibold text-foreground">ScoreForge</p>
+            </div>
           </Link>
 
-          <h1
-            className="text-display leading-[0.92] animate-slideUp"
-            style={{ animationDelay: "200ms", opacity: 0 }}
-          >
-            Launch your
-            <br />
-            workspace.
-          </h1>
-          <p
-            className="text-body-lg text-muted-foreground animate-slideUp"
-            style={{ animationDelay: "320ms", opacity: 0 }}
-          >
-            Set up brackets, assign scorers, and run live matches with a unified control plane built
-            for event-day speed.
-          </p>
+          <div className="space-y-5">
+            <p className="text-caption text-muted-foreground">New Operator</p>
+            <h1 className="text-display leading-[0.9]">Launch your ops console.</h1>
+            <p className="text-body-lg text-muted-foreground">
+              Configure brackets, assign scorers, and run the tournament with real-time control.
+            </p>
+          </div>
 
-          <div className="space-y-3 text-sm text-muted-foreground">
+          <div className="space-y-4 text-sm text-muted-foreground">
             {[
-              "Guided setup for your first tournament",
-              "Secure role management from day one",
-              "Free to start, no credit card required",
+              "Guided setup for your first event",
+              "Secure role management",
+              "Free to start, no card required",
             ].map((item, index) => (
-              <div
-                key={item}
-                className="flex items-center gap-3 animate-slideUp"
-                style={{ animationDelay: `${440 + index * 100}ms`, opacity: 0 }}
-              >
-                <span
-                  className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-[#0a0a0a] animate-scaleIn"
-                  style={{ animationDelay: `${500 + index * 100}ms` }}
-                >
+              <div key={item} className="flex items-center gap-3">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand text-text-inverse text-xs font-bold">
                   {index + 1}
                 </span>
                 {item}
@@ -140,57 +127,58 @@ export default function SignUpPage(): React.ReactNode {
             ))}
           </div>
         </div>
+
+        <div className="flex items-center gap-3 text-xs uppercase tracking-[0.24em] text-muted-foreground">
+          <ShieldCheck className="h-4 w-4" />
+          Secure onboarding
+        </div>
       </div>
 
-      {/* Right: Form */}
       <div className="flex items-center justify-center px-6 py-12 sm:px-10">
-        <div className="animate-splitInRight w-full max-w-md space-y-8">
-          <div className="space-y-3">
-            <Link href="/" className="inline-flex items-center gap-2 lg:hidden group">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-background transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12">
-                <Zap className="h-4 w-4" />
+        <div className="w-full max-w-md space-y-8">
+          <div className="space-y-3 lg:hidden">
+            <Link href="/" className="inline-flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-brand/40 bg-brand/15 text-brand">
+                <Gauge className="h-5 w-5" />
               </div>
-              <span className="font-[family-name:var(--font-display)] text-lg font-bold">
-                ScoreForge
-              </span>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+                  Arena Ops
+                </p>
+                <p className="text-lg font-semibold text-foreground">ScoreForge</p>
+              </div>
             </Link>
-            <h2
-              className="text-title animate-slideUp"
-              style={{ animationDelay: "100ms", opacity: 0 }}
-            >
-              Create your account
-            </h2>
-            <p
-              className="text-sm text-muted-foreground animate-slideUp"
-              style={{ animationDelay: "180ms", opacity: 0 }}
-            >
-              Join ScoreForge and start running events.
-            </p>
+            <h2 className="text-title">Create your account</h2>
+            <p className="text-sm text-muted-foreground">Start your ops session.</p>
           </div>
 
           {!isRegistrationAllowed ? (
-            <div className="rounded-3xl border border-border bg-card p-8 text-center animate-scaleIn">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-secondary">
-                <Ban className="h-6 w-6 text-muted-foreground" />
+            <div className="surface-panel surface-panel-rail p-8 text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-bg-secondary">
+                <UserPlus className="h-6 w-6 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground">Registration closed</h3>
+              <h3 className="text-heading text-foreground">Registration closed</h3>
               <p className="mt-2 text-sm text-muted-foreground">
                 New account registration is currently disabled. Contact an administrator for access.
               </p>
-              <Button variant="brand" size="lg" asChild className="mt-6 w-full group">
+              <Button variant="brand" size="lg" asChild className="mt-6 w-full">
                 <Link href="/sign-in">
                   Sign in to existing account
-                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
             </div>
           ) : (
-            <>
+            <div className="surface-panel surface-panel-rail p-8">
+              <div className="mb-6 space-y-2">
+                <h2 className="text-heading text-foreground">Operator onboarding</h2>
+                <p className="text-sm text-muted-foreground">
+                  Enter your details to build your ops workspace.
+                </p>
+              </div>
+
               <form onSubmit={handleSubmit} className="space-y-5">
-                <div
-                  className="grid grid-cols-2 gap-4 animate-slideUp"
-                  style={{ animationDelay: "250ms", opacity: 0 }}
-                >
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">First Name</Label>
                     <Input
@@ -215,10 +203,7 @@ export default function SignUpPage(): React.ReactNode {
                   </div>
                 </div>
 
-                <div
-                  className="space-y-2 animate-slideUp"
-                  style={{ animationDelay: "330ms", opacity: 0 }}
-                >
+                <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
@@ -230,10 +215,7 @@ export default function SignUpPage(): React.ReactNode {
                   />
                 </div>
 
-                <div
-                  className="space-y-2 animate-slideUp"
-                  style={{ animationDelay: "410ms", opacity: 0 }}
-                >
+                <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
@@ -246,10 +228,7 @@ export default function SignUpPage(): React.ReactNode {
                   />
                 </div>
 
-                <div
-                  className="space-y-2 animate-slideUp"
-                  style={{ animationDelay: "490ms", opacity: 0 }}
-                >
+                <div className="space-y-2">
                   <Label htmlFor="confirmPassword">Confirm Password</Label>
                   <Input
                     id="confirmPassword"
@@ -263,52 +242,37 @@ export default function SignUpPage(): React.ReactNode {
                 </div>
 
                 {error && (
-                  <Alert variant="destructive" className="animate-scaleIn">
-                    <AlertCircle className="h-4 w-4" />
+                  <Alert variant="destructive">
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
 
-                <div className="animate-slideUp" style={{ animationDelay: "570ms", opacity: 0 }}>
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full group"
-                    variant="brand"
-                    size="lg"
-                  >
-                    {loading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <>
-                        Create Account
-                        <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-                      </>
-                    )}
-                  </Button>
-                </div>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full"
+                  variant="brand"
+                  size="lg"
+                >
+                  {loading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <>
+                      Create Account
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
               </form>
-
-              <div
-                className="pt-6 text-center animate-fadeIn"
-                style={{ animationDelay: "650ms", opacity: 0, position: "relative" }}
-              >
-                <div
-                  className="absolute top-0 left-0 right-0 h-px bg-border animate-expandWidth"
-                  style={{ animationDelay: "750ms" }}
-                />
-                <p className="text-sm text-muted-foreground">
-                  Already have an account?{" "}
-                  <Link
-                    href="/sign-in"
-                    className="font-bold text-foreground hover:text-brand hover-underline-reveal transition-colors duration-200"
-                  >
-                    Sign in
-                  </Link>
-                </p>
-              </div>
-            </>
+            </div>
           )}
+
+          <div className="text-center text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <Link href="/sign-in" className="font-semibold text-foreground hover:text-brand">
+              Sign in
+            </Link>
+          </div>
         </div>
       </div>
     </div>

@@ -170,16 +170,25 @@ export default function PrintBracketPage({
       {/* Printable Content */}
       <div className="bracket-print-container p-8 print:p-0">
         {/* Header */}
-        <div className="text-center mb-8 print:mb-6">
-          <h1 className="text-3xl font-bold text-black print:text-2xl">{tournament.name}</h1>
-          {bracketDetails && (
-            <h2 className="text-xl font-semibold text-gray-700 mt-1 print:text-lg">
-              {bracketDetails.name}
-            </h2>
-          )}
-          <p className="text-gray-600 mt-1 print:text-sm">
-            {formatLabels[bracket.format] || bracket.format} &bull; {bracket.matches.length} matches
-          </p>
+        <div className="mx-auto mb-8 max-w-4xl print:mb-6">
+          <div className="relative overflow-hidden rounded-2xl border border-gray-300 bg-white px-6 py-5 text-center print:px-4 print:py-4">
+            <div className="absolute left-6 right-6 top-0 h-px bg-gray-300 print:left-4 print:right-4" />
+            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-gray-500 print:text-[9px]">
+              ScoreForge Bracket
+            </p>
+            <h1 className="mt-2 text-3xl font-bold text-gray-900 print:text-2xl">
+              {tournament.name}
+            </h1>
+            {bracketDetails && (
+              <h2 className="text-xl font-semibold text-gray-700 mt-1 print:text-lg">
+                {bracketDetails.name}
+              </h2>
+            )}
+            <p className="text-gray-600 mt-1 print:text-sm">
+              {formatLabels[bracket.format] || bracket.format} &bull; {bracket.matches.length}{" "}
+              matches
+            </p>
+          </div>
         </div>
 
         {/* Bracket */}
@@ -199,10 +208,11 @@ export default function PrintBracketPage({
                     return (
                       <div
                         key={match._id}
-                        className={`flex flex-col bg-white border border-gray-300 rounded overflow-hidden print:break-inside-avoid ${
+                        className={`relative flex flex-col bg-white border border-gray-300 rounded-2xl overflow-hidden print:break-inside-avoid ${
                           isByeMatch ? "opacity-60" : ""
                         }`}
                       >
+                        <div className="absolute left-3 right-3 top-0 h-px bg-gray-300" />
                         {/* Participant 1 */}
                         <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-200 print:py-1.5 print:px-2">
                           <span className="w-5 text-xs text-center text-gray-500 print:text-[10px]">

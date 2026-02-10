@@ -1,238 +1,370 @@
 "use client";
 
 import Link from "next/link";
-import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
+import { Authenticated, AuthLoading, Unauthenticated } from "convex/react";
 import { Button } from "@/components/ui/button";
+import { SlidingNumber } from "@/components/animate-ui/primitives/texts/sliding-number";
 import {
+  Activity,
   ArrowRight,
+  Braces,
+  Gauge,
   GitBranch,
   Loader2,
   Monitor,
-  Radio,
-  Undo2,
-  UserCheck,
-  Zap,
+  ShieldCheck,
+  Trophy,
+  Users,
 } from "lucide-react";
 
 const featureHighlights = [
   {
+    icon: Activity,
+    title: "Live scoring grid",
+    description:
+      "Point-by-point tennis scoring with real-time sync across every scorer, display, and admin view.",
+  },
+  {
     icon: GitBranch,
-    title: "Three bracket formats",
+    title: "Bracket control",
     description:
-      "Single elimination, double elimination, and round robin — with auto-generated brackets up to 256 participants.",
+      "Single, double, and round robin formats with instant regeneration and smart seeding support.",
   },
   {
-    icon: Radio,
-    title: "Real-time scoring",
+    icon: Users,
+    title: "Role-based ops",
     description:
-      "Point-by-point tennis scoring with live sync across every connected scorer, dashboard, and display screen.",
-  },
-  {
-    icon: UserCheck,
-    title: "PIN-based scorers",
-    description:
-      "Hand off scoring to volunteers with temporary PIN codes — no account signup needed, just a 6-character code.",
-  },
-  {
-    icon: Undo2,
-    title: "Undo and replay",
-    description:
-      "Every scoring action is tracked with a 10-state history so you can revert mistakes mid-match instantly.",
+      "Owners, scorers, and temporary scorers get the exact controls they need - nothing extra.",
   },
   {
     icon: Monitor,
-    title: "Multi-screen display",
+    title: "Broadcast display",
     description:
-      "Drive dedicated scoreboard displays from a native desktop app with real-time data and designed layouts.",
+      "Drive dedicated scoreboard displays with live match data and custom-designed layouts.",
   },
   {
-    icon: Zap,
-    title: "Court management",
+    icon: ShieldCheck,
+    title: "Secure access",
     description:
-      "Assign matches to courts, track availability, and see at a glance which courts are live or open.",
+      "PIN-based scoring handoffs, audit logging, and admin gates for tournament-day integrity.",
+  },
+  {
+    icon: Trophy,
+    title: "Court flow",
+    description:
+      "Assign courts, track availability, and keep the schedule moving with a live ops view.",
+  },
+] as const;
+
+const opsStats = [
+  { value: 256, label: "Max bracket size" },
+  { value: 10, label: "Undo depth" },
+  { value: 6, label: "PIN length" },
+] as const;
+
+const liveSnapshot = {
+  court: "Court 3",
+  round: "Semifinal · Set 3",
+  point: "40-30",
+  teams: [
+    { name: "Rivers / Lee", seed: "1", sets: [6, 4, 5] },
+    { name: "Park / Owens", seed: "4", sets: [4, 6, 5] },
+  ],
+} as const;
+
+const matchQueue = [
+  {
+    status: "Live",
+    court: "Court 5",
+    teams: "Sato vs Gomez",
+    detail: "Set 2 · 3-3",
+  },
+  {
+    status: "Next",
+    court: "Court 1",
+    teams: "Nguyen vs Patel",
+    detail: "Starts in 8m",
+  },
+  {
+    status: "Final",
+    court: "Court 2",
+    teams: "Chen def. Harper",
+    detail: "6-2, 6-4",
   },
 ] as const;
 
 export default function LandingPage(): React.ReactNode {
   return (
-    <div className="min-h-screen overflow-hidden pb-16">
-      <AuthLoading>
-        <LoadingScreen />
-      </AuthLoading>
+    <div className="min-h-screen pb-20">
+      <header className="container flex items-center justify-between py-6">
+        <Link href="/" className="group flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-brand/40 bg-brand/15 text-brand">
+            <Gauge className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+              Arena Ops
+            </p>
+            <p className="text-lg font-semibold text-foreground">ScoreForge</p>
+          </div>
+        </Link>
 
-      <Authenticated>
-        <LandingContent isAuthenticated />
-      </Authenticated>
-
-      <Unauthenticated>
-        <LandingContent isAuthenticated={false} />
-      </Unauthenticated>
-    </div>
-  );
-}
-
-function LoadingScreen(): React.JSX.Element {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
-      <div className="flex items-center gap-3">
-        <Loader2 className="h-4 w-4 animate-spin text-foreground" />
-        <span className="text-sm font-semibold text-muted-foreground">Loading</span>
-      </div>
-    </div>
-  );
-}
-
-function LandingContent({ isAuthenticated }: { isAuthenticated: boolean }): React.JSX.Element {
-  return (
-    <>
-      <header className="container py-6 animate-fadeIn">
-        <div
-          className="flex items-center justify-between gap-4 pb-4"
-          style={{ position: "relative" }}
-        >
-          <Link
-            href={isAuthenticated ? "/dashboard" : "/"}
-            className="flex items-center gap-3 group"
-          >
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-background transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12">
-              <Zap className="h-4 w-4" />
-            </div>
-            <span className="font-[family-name:var(--font-display)] text-lg font-bold tracking-tight">
-              ScoreForge
-            </span>
-          </Link>
-
-          <div className="flex items-center gap-2">
-            {isAuthenticated ? (
-              <Button variant="brand" asChild className="animate-scaleIn delay-2">
-                <Link href="/dashboard">
-                  Open Dashboard
-                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+        <div className="flex items-center gap-2">
+          <AuthLoading>
+            <Button variant="outline" size="sm" disabled>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading
+            </Button>
+          </AuthLoading>
+          <Authenticated>
+            <Button variant="brand" size="sm" asChild>
+              <Link href="/dashboard">
+                Open Dashboard
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </Authenticated>
+          <Unauthenticated>
+            <>
+              <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex">
+                <Link href="/sign-in">Sign In</Link>
+              </Button>
+              <Button variant="brand" size="sm" asChild>
+                <Link href="/sign-up">
+                  Start Ops
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
-            ) : (
-              <>
-                <Button
-                  variant="ghost"
-                  asChild
-                  className="hidden sm:inline-flex animate-fadeIn delay-1"
-                >
-                  <Link href="/sign-in">Sign In</Link>
-                </Button>
-                <Button variant="brand" asChild className="animate-scaleIn delay-2">
-                  <Link href="/sign-up">Get Started</Link>
-                </Button>
-              </>
-            )}
-          </div>
-          {/* Animated border line */}
-          <div className="absolute bottom-0 left-0 h-px bg-border animate-expandWidth delay-3" />
+            </>
+          </Unauthenticated>
         </div>
       </header>
 
-      <main className="container">
-        {/* Hero */}
-        <section className="relative py-16 sm:py-24">
-          {/* Decorative orbit circles */}
+      <section className="container grid items-center gap-12 pb-16 pt-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="space-y-8">
+          <div className="inline-flex items-center gap-2 rounded-full border border-brand/40 bg-brand/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-brand animate-scaleIn">
+            <span className="live-dot" />
+            Real-time tournament ops
+          </div>
+          <h1 className="text-display animate-slideUp" style={{ animationDelay: "120ms" }}>
+            Arena control for
+            <br />
+            modern tournaments.
+          </h1>
+          <p
+            className="max-w-xl text-body-lg text-muted-foreground animate-slideUp"
+            style={{ animationDelay: "200ms", opacity: 0 }}
+          >
+            ScoreForge centralizes brackets, live scoring, and court flow in one ops console. Keep
+            every match in sync, from the first serve to the final trophy.
+          </p>
           <div
-            className="pointer-events-none absolute -right-20 top-8 h-[400px] w-[400px] rounded-full border border-border animate-circleExpand delay-4"
-            style={{ opacity: 0.35 }}
-          />
-          <div
-            className="pointer-events-none absolute -right-10 top-16 h-[300px] w-[300px] rounded-full border border-brand/20 animate-orbit animate-circleExpand delay-6"
-            style={{ animationDuration: "45s", opacity: 0.4 }}
-          />
-
-          <div className="max-w-3xl">
-            <div
-              className="mb-6 inline-flex items-center gap-2 rounded-full bg-brand px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#0a0a0a] animate-scaleIn animate-glowPulse"
-              style={{ animationDelay: "100ms" }}
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-[#0a0a0a]" />
-              Tournament Management
-            </div>
-            <h1 className="text-display animate-slideUp" style={{ animationDelay: "150ms" }}>
-              Run every match
-              <br />
-              from one place.
-            </h1>
-            <p
-              className="mt-6 max-w-xl text-body-lg text-muted-foreground animate-slideUp"
-              style={{ animationDelay: "280ms", opacity: 0 }}
-            >
-              ScoreForge keeps live scoring, bracket movement, and court logistics together so your
-              team can react faster without tab-switching chaos.
-            </p>
-            <div
-              className="mt-8 flex flex-wrap items-center gap-3 animate-slideUp"
-              style={{ animationDelay: "400ms", opacity: 0 }}
-            >
-              <Button variant="brand" size="lg" asChild className="group">
-                <Link href={isAuthenticated ? "/dashboard" : "/sign-up"}>
-                  {isAuthenticated ? "Go to Dashboard" : "Start for Free"}
-                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+            className="flex flex-wrap items-center gap-3 animate-slideUp"
+            style={{ animationDelay: "280ms", opacity: 0 }}
+          >
+            <Authenticated>
+              <Button variant="brand" size="lg" asChild>
+                <Link href="/dashboard">
+                  Enter Ops Console
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" asChild className="group">
-                <Link href="/brackets/quick">Quick Bracket</Link>
+            </Authenticated>
+            <Unauthenticated>
+              <Button variant="brand" size="lg" asChild>
+                <Link href="/sign-up">
+                  Launch Workspace
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               </Button>
-            </div>
+            </Unauthenticated>
+            <Button variant="outline" size="lg" asChild>
+              <Link href="/brackets/quick">
+                <Braces className="h-4 w-4" />
+                Quick Bracket
+              </Link>
+            </Button>
           </div>
 
-          {/* Stats row */}
-          <div className="mt-16 max-w-xl" style={{ position: "relative" }}>
-            <div className="absolute top-0 left-0 h-px bg-border animate-expandWidth delay-6" />
-            <div className="grid grid-cols-3 gap-6 pt-8">
-              {[
-                { value: "< 1s", label: "Sync latency" },
-                { value: "Live", label: "Score updates" },
-                { value: "Multi", label: "Platform" },
-              ].map((stat, index) => (
+          <div className="grid gap-4 sm:grid-cols-3">
+            {opsStats.map((stat, index) => (
+              <div
+                key={stat.label}
+                className="surface-panel surface-panel-rail px-4 py-4 animate-slideUp"
+                style={{ animationDelay: `${340 + index * 80}ms`, opacity: 0 }}
+              >
+                <SlidingNumber
+                  className="font-[family-name:var(--font-display)] text-2xl font-bold tracking-[0.04em]"
+                  number={stat.value}
+                  fromNumber={0}
+                  inViewOnce
+                  inViewMargin="-10%"
+                />
+                <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  {stat.label}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="relative">
+          <div className="absolute -right-8 -top-10 h-28 w-28 rounded-full border border-brand/30 animate-orbit" />
+          <div className="absolute -left-10 bottom-2 h-36 w-36 rounded-full border border-border/60 animate-circleExpand" />
+
+          <div className="space-y-5">
+            <div
+              className="surface-panel surface-panel-rail relative overflow-hidden p-6 shadow-lg animate-slideUp"
+              style={{ animationDelay: "240ms", opacity: 0 }}
+            >
+              <div className="absolute inset-x-6 top-6 h-px bg-brand/40 animate-expandWidth" />
+              <div className="flex items-center justify-between">
+                <div className="inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">
+                  <span className="live-dot" />
+                  Live {liveSnapshot.court}
+                </div>
+                <span className="text-xs font-semibold text-muted-foreground">
+                  {liveSnapshot.round}
+                </span>
+              </div>
+
+              <div className="mt-6 space-y-3">
+                {liveSnapshot.teams.map((team, teamIndex) => (
+                  <div
+                    key={team.name}
+                    className="flex items-center justify-between gap-4 rounded-2xl border border-border/60 bg-bg-secondary px-4 py-3"
+                  >
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                        Seed {team.seed}
+                      </p>
+                      <p className="text-lg font-semibold text-foreground">{team.name}</p>
+                    </div>
+                    <div className="flex items-center gap-2 text-2xl font-bold">
+                      {team.sets.map((setScore, setIndex) => (
+                        <span
+                          key={`${team.name}-${setIndex}`}
+                          className={
+                            setIndex === team.sets.length - 1
+                              ? "text-brand"
+                              : teamIndex === 0
+                                ? "text-foreground"
+                                : "text-muted-foreground"
+                          }
+                        >
+                          {setScore}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-5 flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                  Current point
+                </span>
+                <span className="rounded-full border border-brand/30 bg-brand/10 px-4 py-1 text-sm font-semibold text-brand">
+                  {liveSnapshot.point}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              {matchQueue.map((match, index) => (
                 <div
-                  key={stat.label}
-                  className="animate-slideUp"
-                  style={{ animationDelay: `${550 + index * 100}ms`, opacity: 0 }}
+                  key={`${match.court}-${match.teams}`}
+                  className="surface-panel flex items-center justify-between px-4 py-3 shadow-card animate-slideUp"
+                  style={{ animationDelay: `${320 + index * 80}ms`, opacity: 0 }}
                 >
-                  <p className="font-[family-name:var(--font-display)] text-2xl font-bold tracking-tight sm:text-3xl">
-                    {stat.value}
-                  </p>
-                  <p className="mt-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                    {stat.label}
-                  </p>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full border border-border/80 bg-bg-tertiary px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                        {match.status}
+                      </span>
+                      <span className="text-xs font-semibold text-muted-foreground">
+                        {match.court}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm font-semibold text-foreground">{match.teams}</p>
+                    <p className="text-xs text-muted-foreground">{match.detail}</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
                 </div>
               ))}
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Features */}
-        <section className="pt-12" style={{ position: "relative" }}>
-          <div className="absolute top-0 left-0 right-0 h-px bg-border animate-expandWidth delay-8" />
-          <p className="text-caption text-muted-foreground mb-6 animate-fadeIn delay-9">Features</p>
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {featureHighlights.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <article
-                  key={feature.title}
-                  className="animate-slideUp group hover-lift cursor-default rounded-3xl p-4 -m-4 transition-colors"
-                  style={{ animationDelay: `${800 + index * 100}ms`, opacity: 0 }}
-                >
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-foreground transition-all duration-300 group-hover:bg-brand group-hover:text-[#0a0a0a] group-hover:scale-110 group-hover:rotate-6">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <h3 className="text-heading transition-colors duration-200 group-hover:text-brand">
-                    {feature.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {feature.description}
-                  </p>
-                </article>
-              );
-            })}
+      <section className="container py-16">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-caption text-muted-foreground">Capabilities</p>
+            <h2 className="mt-4 text-hero">Every tool you need on match day.</h2>
           </div>
-        </section>
-      </main>
-    </>
+          <p className="max-w-md text-body text-muted-foreground">
+            From bracket generation to court scheduling, ScoreForge gives your operations team the
+            visibility and speed required to run a full event.
+          </p>
+        </div>
+
+        <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {featureHighlights.map((feature, index) => {
+            const Icon = feature.icon;
+            return (
+              <article
+                key={feature.title}
+                className="group surface-panel surface-panel-rail relative overflow-hidden p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-md)] animate-slideUp"
+                style={{ animationDelay: `${180 + index * 90}ms`, opacity: 0 }}
+              >
+                <div className="absolute -right-6 -top-6 text-[64px] font-bold text-brand/10">
+                  0{index + 1}
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-brand/30 bg-brand/10 text-brand transition-transform duration-300 group-hover:scale-110">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="mt-5 text-heading text-foreground transition-colors duration-200 group-hover:text-brand">
+                  {feature.title}
+                </h3>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  {feature.description}
+                </p>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="container pb-20">
+        <div className="surface-panel surface-panel-rail grid gap-8 p-8 lg:grid-cols-[1.2fr_0.8fr]">
+          <div>
+            <p className="text-caption text-muted-foreground">Ops Flow</p>
+            <h2 className="mt-4 text-hero">From setup to finals in a single console.</h2>
+            <p className="mt-4 text-body text-muted-foreground">
+              Keep your tournament moving without chasing spreadsheets or manual score updates.
+              ScoreForge syncs brackets, courts, and scoring in one place.
+            </p>
+          </div>
+          <div className="space-y-4">
+            {[
+              "Build brackets and seed participants",
+              "Assign courts and manage match flow",
+              "Score live and broadcast instantly",
+            ].map((step, index) => (
+              <div
+                key={step}
+                className="flex items-center gap-4 rounded-2xl border border-border/70 bg-bg-secondary px-4 py-3"
+              >
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand text-text-inverse text-xs font-bold">
+                  {index + 1}
+                </span>
+                <p className="text-sm font-semibold text-foreground">{step}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

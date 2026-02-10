@@ -67,7 +67,7 @@ export function AdminsSection() {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2"
+          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all bg-brand text-text-inverse hover:bg-brand-hover shadow-sm h-9 px-4 py-2"
         >
           Add Admin
         </button>
@@ -80,7 +80,7 @@ export function AdminsSection() {
       )}
 
       {/* Admins List */}
-      <div className="card p-0">
+      <div className="surface-panel p-0">
         {admins === undefined ? (
           <div className="p-6 space-y-4">
             {Array.from({ length: 3 }).map((_, i) => (

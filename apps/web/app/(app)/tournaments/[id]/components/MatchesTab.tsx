@@ -104,7 +104,7 @@ export function MatchesTab({
   return (
     <div className="animate-fadeIn space-y-4">
       {canManage && (
-        <section className="surface-panel rounded-xl border p-4 sm:p-5">
+        <section className="surface-panel surface-panel-rail p-4 sm:p-5">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h3 className="text-heading">One-Off Match</h3>
@@ -153,7 +153,7 @@ export function MatchesTab({
                   value={selectedCourt}
                   onChange={(event) => setSelectedCourt(event.target.value)}
                   disabled={!canCreateOneOff || isCreatingOneOff}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="input"
                 >
                   <option value="">No court assigned</option>
                   {availableCourts.map((court) => (
@@ -207,8 +207,8 @@ export function MatchesTab({
       )}
 
       {readyMatches.length === 0 ? (
-        <div className="flex flex-col items-center py-16 text-center bg-secondary border border-dashed border-border rounded-xl">
-          <div className="w-14 h-14 flex items-center justify-center bg-card rounded-xl mb-4">
+        <div className="surface-panel surface-panel-rail flex flex-col items-center py-16 text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-bg-secondary">
             <svg
               className="w-7 h-7 text-muted-foreground"
               fill="none"
@@ -228,64 +228,70 @@ export function MatchesTab({
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           {sortedMatches.map((match, index) => {
             const roundLabel = match.bracketType === "one_off" ? "One-Off" : `Round ${match.round}`;
+            const isWinner1 = match.winnerId === match.participant1?._id;
+            const isWinner2 = match.winnerId === match.participant2?._id;
 
             const content = (
               <>
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-xs font-semibold text-muted-foreground">{roundLabel}</span>
-                  <span className="text-xs text-muted-foreground">Match {match.matchNumber}</span>
-                  {match.court && <span className="text-xs text-brand">@ {match.court}</span>}
+                <div className="absolute inset-x-4 top-0 h-px bg-brand/40" />
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    {roundLabel}
+                  </span>
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    Match {match.matchNumber}
+                  </span>
+                  {match.court && (
+                    <span className="text-xs font-semibold text-brand">@ {match.court}</span>
+                  )}
                   <span
-                    className={`flex items-center gap-1 ml-auto px-2 py-0.5 text-[10px] font-semibold uppercase rounded ${matchStatusStyles[match.status]}`}
+                    className={`ml-auto flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] ${matchStatusStyles[match.status]}`}
                   >
                     {match.status === "live" && (
-                      <span className="w-1.5 h-1.5 bg-current rounded-full animate-pulse" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
                     )}
                     {match.status}
                   </span>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="mt-3 grid gap-2">
                   <div
-                    className={`flex-1 flex items-center gap-2 ${
-                      match.winnerId === match.participant1?._id ? "" : ""
+                    className={`flex items-center justify-between rounded-xl border px-3 py-2 ${
+                      isWinner1 ? "border-brand/30 bg-brand/10" : "border-border/60 bg-bg-secondary"
                     }`}
                   >
                     <span
-                      className={`font-medium ${
-                        match.winnerId === match.participant1?._id
-                          ? "text-brand"
-                          : "text-foreground"
+                      className={`text-sm font-semibold ${
+                        isWinner1 ? "text-brand" : "text-foreground"
                       }`}
                     >
                       {match.participant1?.displayName || "TBD"}
                     </span>
-                    <span className="text-base font-bold text-foreground">
+                    <span className="text-lg font-bold text-foreground">
                       {match.participant1Score}
                     </span>
                   </div>
-                  <span className="text-xs font-semibold text-muted-foreground flex-shrink-0">
-                    vs
-                  </span>
-                  <div className="flex-1 flex items-center justify-end gap-2">
-                    <span className="text-base font-bold text-foreground">
-                      {match.participant2Score}
-                    </span>
+                  <div
+                    className={`flex items-center justify-between rounded-xl border px-3 py-2 ${
+                      isWinner2 ? "border-brand/30 bg-brand/10" : "border-border/60 bg-bg-secondary"
+                    }`}
+                  >
                     <span
-                      className={`font-medium ${
-                        match.winnerId === match.participant2?._id
-                          ? "text-brand"
-                          : "text-foreground"
+                      className={`text-sm font-semibold ${
+                        isWinner2 ? "text-brand" : "text-foreground"
                       }`}
                     >
                       {match.participant2?.displayName || "TBD"}
                     </span>
+                    <span className="text-lg font-bold text-foreground">
+                      {match.participant2Score}
+                    </span>
                   </div>
                 </div>
                 {match.scheduledTime && (
-                  <div className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border">
+                  <div className="text-xs text-muted-foreground mt-3 pt-3 border-t border-border/70">
                     {new Date(match.scheduledTime).toLocaleString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -302,7 +308,7 @@ export function MatchesTab({
                 <Link
                   key={match._id}
                   href={`/matches/${match._id}`}
-                  className="flex flex-col p-4 bg-card border border-border rounded-lg hover:bg-card-hover hover:border-brand/30 transition-all animate-fadeInUp"
+                  className="surface-panel surface-panel-rail relative flex flex-col gap-3 p-4 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md animate-fadeInUp"
                   style={{ animationDelay: `${index * 0.03}s` }}
                 >
                   {content}
@@ -313,7 +319,7 @@ export function MatchesTab({
             return (
               <div
                 key={match._id}
-                className="flex flex-col p-4 bg-card border border-border rounded-lg animate-fadeInUp"
+                className="surface-panel surface-panel-rail relative flex flex-col gap-3 p-4 animate-fadeInUp"
                 style={{ animationDelay: `${index * 0.03}s` }}
               >
                 {content}

@@ -96,8 +96,8 @@ export default function SettingsPage(): React.ReactNode {
   }
 
   return (
-    <div className="container space-y-7 py-2">
-      <section className="surface-panel section-shell rounded-3xl border px-6 py-7 sm:px-8">
+    <div className="container space-y-7">
+      <section className="surface-panel surface-panel-rail p-6 sm:p-8">
         <Link
           href="/dashboard"
           className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -149,7 +149,7 @@ export default function SettingsPage(): React.ReactNode {
                     type="email"
                     value={user.email || ""}
                     disabled
-                    className="cursor-not-allowed bg-secondary/85 text-muted-foreground"
+                    className="cursor-not-allowed bg-bg-secondary text-muted-foreground"
                   />
                   <p className="text-sm text-muted-foreground">
                     Email address is managed by your auth provider.

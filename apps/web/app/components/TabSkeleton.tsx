@@ -7,7 +7,7 @@ export function TabSkeleton() {
         {[1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
-            className="flex flex-col p-4 bg-card border border-border rounded-lg"
+            className="surface-panel flex flex-col p-4"
             style={{ animationDelay: `${i * 0.05}s` }}
           >
             <div className="flex items-center gap-3 mb-2">

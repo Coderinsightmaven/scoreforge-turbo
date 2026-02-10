@@ -5,22 +5,22 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center justify-center rounded-full border border-transparent px-3 py-0.5 text-[11px] uppercase tracking-[0.12em] font-bold w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1.5 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-all overflow-hidden",
+  "inline-flex items-center justify-center rounded-md border border-transparent px-3 py-0.5 text-[11px] uppercase tracking-[0.18em] font-bold w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1.5 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-all overflow-hidden",
   {
     variants: {
       variant: {
         default: "bg-foreground text-background border-foreground/80",
         secondary: "bg-secondary text-secondary-foreground border-border",
         destructive:
-          "bg-destructive text-white focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
+          "bg-destructive text-text-inverse focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
         outline: "border-border text-foreground",
         ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         link: "text-foreground underline-offset-4 [a&]:hover:underline",
         success: "bg-success-light text-success border-success/25",
         warning: "bg-warning-light text-warning border-warning/25",
-        brand: "bg-brand text-[#0a0a0a] border-brand/80 font-bold",
+        brand: "bg-brand text-text-inverse border-brand/80 font-bold",
         muted: "bg-muted text-muted-foreground border-border",
-        editorial: "border-foreground/20 bg-secondary text-foreground",
+        editorial: "border-border bg-bg-secondary text-foreground",
       },
     },
     defaultVariants: {

@@ -17,15 +17,15 @@ function EmptyState({
   return (
     <div
       data-slot="empty-state"
-      className={cn("flex flex-col items-center justify-center py-20 text-center", className)}
+      className={cn("flex flex-col items-center justify-center gap-3 py-16 text-center", className)}
       {...props}
     >
       {icon && (
-        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-bg-secondary text-muted-foreground">
           {icon}
         </div>
       )}
-      <h3 className="font-[family-name:var(--font-display)] text-xl font-semibold tracking-tight">
+      <h3 className="font-[family-name:var(--font-display)] text-xl font-semibold tracking-[0.04em]">
         {title}
       </h3>
       {description && <p className="mt-2 max-w-sm text-sm text-muted-foreground">{description}</p>}

@@ -62,118 +62,121 @@ export function Scoreboard({
   };
 
   return (
-    <div className="flex items-center justify-center gap-4 p-8">
-      {/* Participant 1 */}
-      <div
-        className={`flex-1 flex flex-col items-center gap-4 p-6 rounded-lg border transition-all ${
-          match.winnerId === match.participant1?._id
-            ? "bg-brand/10 border-brand"
-            : "bg-bg-secondary border-border"
-        }`}
-      >
-        <div className="text-center">
-          {match.participant1?.seed && (
-            <span className="block text-xs font-semibold text-brand mb-1">
-              #{match.participant1.seed}
+    <div className="surface-panel surface-panel-rail relative p-6">
+      <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-brand/40" />
+      <div className="flex items-center justify-center gap-4">
+        {/* Participant 1 */}
+        <div
+          className={`flex-1 flex flex-col items-center gap-4 p-6 rounded-2xl border transition-all ${
+            match.winnerId === match.participant1?._id
+              ? "bg-brand/10 border-brand/30"
+              : "bg-bg-secondary border-border/60"
+          }`}
+        >
+          <div className="text-center">
+            {match.participant1?.seed && (
+              <span className="block text-xs font-semibold text-brand mb-1">
+                #{match.participant1.seed}
+              </span>
+            )}
+            <span className="block text-xl font-bold text-foreground mb-1 font-[family-name:var(--font-display)]">
+              {match.participant1?.displayName || "TBD"}
             </span>
-          )}
-          <span className="block text-xl font-bold text-text-primary mb-1 font-[family-name:var(--font-display)]">
-            {match.participant1?.displayName || "TBD"}
-          </span>
-          {match.participant1 && (
-            <span className="block text-xs text-text-muted">
-              {match.participant1.wins}W - {match.participant1.losses}L
+            {match.participant1 && (
+              <span className="block text-xs text-muted-foreground">
+                {match.participant1.wins}W - {match.participant1.losses}L
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {canScore && (
+              <button
+                onClick={() => handleScoreChange(1, -1)}
+                disabled={saving || p1Score === 0}
+                className="w-10 h-10 flex items-center justify-center text-xl font-bold text-muted-foreground bg-bg-secondary border border-border/60 rounded-lg hover:bg-bg-primary hover:text-foreground transition-all disabled:opacity-30"
+              >
+                −
+              </button>
+            )}
+            <span
+              className={`text-5xl font-bold ${
+                p1Score > p2Score ? "text-brand" : "text-foreground"
+              }`}
+            >
+              {p1Score}
             </span>
-          )}
+            {canScore && (
+              <button
+                onClick={() => handleScoreChange(1, 1)}
+                disabled={saving}
+                className="w-10 h-10 flex items-center justify-center text-xl font-bold text-muted-foreground bg-bg-secondary border border-border/60 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
+              >
+                +
+              </button>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          {canScore && (
-            <button
-              onClick={() => handleScoreChange(1, -1)}
-              disabled={saving || p1Score === 0}
-              className="w-10 h-10 flex items-center justify-center text-xl font-bold text-text-secondary bg-bg-secondary border border-border rounded-lg hover:bg-bg-card hover:text-text-primary transition-all disabled:opacity-30"
-            >
-              −
-            </button>
-          )}
-          <span
-            className={`text-5xl font-bold ${
-              p1Score > p2Score ? "text-brand" : "text-text-primary"
-            }`}
-          >
-            {p1Score}
-          </span>
-          {canScore && (
-            <button
-              onClick={() => handleScoreChange(1, 1)}
-              disabled={saving}
-              className="w-10 h-10 flex items-center justify-center text-xl font-bold text-text-secondary bg-bg-secondary border border-border rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
-            >
-              +
-            </button>
-          )}
-        </div>
-      </div>
 
-      {/* VS */}
-      <div className="flex flex-col items-center gap-2 flex-shrink-0">
-        <span className="text-2xl font-bold text-text-muted">VS</span>
-        {match.status === "live" && (
-          <span className="px-2 py-1 text-[10px] font-bold tracking-wider text-white bg-success rounded animate-pulse">
-            LIVE
-          </span>
-        )}
-      </div>
-
-      {/* Participant 2 */}
-      <div
-        className={`flex-1 flex flex-col items-center gap-4 p-6 rounded-lg border transition-all ${
-          match.winnerId === match.participant2?._id
-            ? "bg-brand/10 border-brand"
-            : "bg-bg-secondary border-border"
-        }`}
-      >
-        <div className="text-center">
-          {match.participant2?.seed && (
-            <span className="block text-xs font-semibold text-brand mb-1">
-              #{match.participant2.seed}
-            </span>
-          )}
-          <span className="block text-xl font-bold text-text-primary mb-1 font-[family-name:var(--font-display)]">
-            {match.participant2?.displayName || "TBD"}
-          </span>
-          {match.participant2 && (
-            <span className="block text-xs text-text-muted">
-              {match.participant2.wins}W - {match.participant2.losses}L
+        {/* VS */}
+        <div className="flex flex-col items-center gap-2 flex-shrink-0">
+          <span className="text-2xl font-bold text-muted-foreground">VS</span>
+          {match.status === "live" && (
+            <span className="rounded-full border border-success/30 bg-success/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-success animate-pulse">
+              Live
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          {canScore && (
-            <button
-              onClick={() => handleScoreChange(2, -1)}
-              disabled={saving || p2Score === 0}
-              className="w-10 h-10 flex items-center justify-center text-xl font-bold text-text-secondary bg-bg-secondary border border-border rounded-lg hover:bg-bg-card hover:text-text-primary transition-all disabled:opacity-30"
+
+        {/* Participant 2 */}
+        <div
+          className={`flex-1 flex flex-col items-center gap-4 p-6 rounded-2xl border transition-all ${
+            match.winnerId === match.participant2?._id
+              ? "bg-brand/10 border-brand/30"
+              : "bg-bg-secondary border-border/60"
+          }`}
+        >
+          <div className="text-center">
+            {match.participant2?.seed && (
+              <span className="block text-xs font-semibold text-brand mb-1">
+                #{match.participant2.seed}
+              </span>
+            )}
+            <span className="block text-xl font-bold text-foreground mb-1 font-[family-name:var(--font-display)]">
+              {match.participant2?.displayName || "TBD"}
+            </span>
+            {match.participant2 && (
+              <span className="block text-xs text-muted-foreground">
+                {match.participant2.wins}W - {match.participant2.losses}L
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {canScore && (
+              <button
+                onClick={() => handleScoreChange(2, -1)}
+                disabled={saving || p2Score === 0}
+                className="w-10 h-10 flex items-center justify-center text-xl font-bold text-muted-foreground bg-bg-secondary border border-border/60 rounded-lg hover:bg-bg-primary hover:text-foreground transition-all disabled:opacity-30"
+              >
+                −
+              </button>
+            )}
+            <span
+              className={`text-5xl font-bold ${
+                p2Score > p1Score ? "text-brand" : "text-foreground"
+              }`}
             >
-              −
-            </button>
-          )}
-          <span
-            className={`text-5xl font-bold ${
-              p2Score > p1Score ? "text-brand" : "text-text-primary"
-            }`}
-          >
-            {p2Score}
-          </span>
-          {canScore && (
-            <button
-              onClick={() => handleScoreChange(2, 1)}
-              disabled={saving}
-              className="w-10 h-10 flex items-center justify-center text-xl font-bold text-text-secondary bg-bg-secondary border border-border rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
-            >
-              +
-            </button>
-          )}
+              {p2Score}
+            </span>
+            {canScore && (
+              <button
+                onClick={() => handleScoreChange(2, 1)}
+                disabled={saving}
+                className="w-10 h-10 flex items-center justify-center text-xl font-bold text-muted-foreground bg-bg-secondary border border-border/60 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
+              >
+                +
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

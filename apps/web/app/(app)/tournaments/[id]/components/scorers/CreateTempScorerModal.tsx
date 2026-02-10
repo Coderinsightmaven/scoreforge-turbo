@@ -7,6 +7,7 @@ import { api } from "@repo/convex";
 import type { Id } from "@repo/convex/dataModel";
 import { toast } from "sonner";
 import { getDisplayMessage } from "@/lib/errors";
+import { Button } from "@/components/ui/button";
 
 interface CreateTempScorerModalProps {
   tournamentId: string;
@@ -77,14 +78,14 @@ export function CreateTempScorerModal({
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-lg bg-card border border-border rounded-lg shadow-2xl animate-scaleIn">
-        <div className="flex items-center justify-between p-6 border-b border-border">
+      <div className="surface-panel surface-panel-rail w-full max-w-lg animate-scaleIn">
+        <div className="flex items-center justify-between border-b border-border/70 p-6">
           <h3 className="text-heading text-foreground font-[family-name:var(--font-display)]">
             {createdCredentials ? "Scorer Created" : "Create Temporary Scorer"}
           </h3>
           <button
             onClick={handleClose}
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className="rounded-full border border-border/60 px-2 py-1 text-muted-foreground hover:text-foreground transition-colors"
           >
             ✕
           </button>
@@ -92,7 +93,7 @@ export function CreateTempScorerModal({
         <div className="p-6">
           {createdCredentials ? (
             <div className="space-y-4">
-              <div className="p-4 bg-success-light border border-success/35 rounded-lg">
+              <div className="rounded-xl border border-success/35 bg-success-light p-4">
                 <p className="text-sm text-success font-medium mb-2">
                   Save these credentials! The PIN will not be shown again.
                 </p>
@@ -104,12 +105,12 @@ export function CreateTempScorerModal({
                     Tournament Code
                   </label>
                   <div className="flex items-center gap-2 mt-1">
-                    <code className="flex-1 px-3 py-2 text-lg font-mono font-bold text-brand bg-secondary border border-border rounded-lg tracking-widest">
+                    <code className="flex-1 rounded-xl border border-border bg-bg-secondary px-3 py-2 text-lg font-mono font-bold text-brand tracking-widest">
                       {createdCredentials.scorerCode}
                     </code>
                     <button
                       onClick={() => copyToClipboard(createdCredentials.scorerCode, "code")}
-                      className="p-2 text-muted-foreground hover:text-brand rounded transition-all"
+                      className="rounded-lg p-2 text-muted-foreground hover:text-brand transition-all"
                     >
                       {copiedCode ? "Copied!" : "Copy"}
                     </button>
@@ -120,7 +121,7 @@ export function CreateTempScorerModal({
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                     Username
                   </label>
-                  <div className="px-3 py-2 mt-1 text-sm font-medium text-foreground bg-secondary border border-border rounded-lg">
+                  <div className="mt-1 rounded-xl border border-border bg-bg-secondary px-3 py-2 text-sm font-medium text-foreground">
                     {createdCredentials.username}
                   </div>
                 </div>
@@ -130,12 +131,12 @@ export function CreateTempScorerModal({
                     PIN
                   </label>
                   <div className="flex items-center gap-2 mt-1">
-                    <code className="flex-1 px-3 py-2 text-lg font-mono font-bold text-success bg-secondary border border-border rounded-lg tracking-widest">
+                    <code className="flex-1 rounded-xl border border-border bg-bg-secondary px-3 py-2 text-lg font-mono font-bold text-success tracking-widest">
                       {createdCredentials.pin}
                     </code>
                     <button
                       onClick={() => copyToClipboard(createdCredentials.pin, "pin")}
-                      className="p-2 text-muted-foreground hover:text-brand rounded transition-all"
+                      className="rounded-lg p-2 text-muted-foreground hover:text-brand transition-all"
                     >
                       {copiedPin ? "Copied!" : "Copy"}
                     </button>
@@ -146,7 +147,7 @@ export function CreateTempScorerModal({
           ) : (
             <>
               {error && (
-                <div className="flex items-center gap-2 p-3 mb-4 text-sm text-error bg-error/10 border border-error/30 rounded-lg">
+                <div className="mb-4 flex items-center gap-2 rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error">
                   <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center bg-error rounded-full text-text-inverse text-xs font-bold">
                     !
                   </span>
@@ -169,7 +170,7 @@ export function CreateTempScorerModal({
                       setTempUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))
                     }
                     placeholder="e.g., court1, scorer2"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="input"
                     autoFocus
                   />
                   <p className="mt-1 text-xs text-muted-foreground">
@@ -186,36 +187,31 @@ export function CreateTempScorerModal({
                     value={tempDisplayName}
                     onChange={(e) => setTempDisplayName(e.target.value)}
                     placeholder="e.g., Court 1 Scorer"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="input"
                   />
                 </div>
               </div>
             </>
           )}
         </div>
-        <div className="flex justify-end gap-3 p-6 border-t border-border">
+        <div className="flex justify-end gap-3 border-t border-border/70 p-6">
           {createdCredentials ? (
-            <button
-              onClick={handleClose}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2"
-            >
+            <Button onClick={handleClose} variant="brand" size="sm">
               Done
-            </button>
+            </Button>
           ) : (
             <>
-              <button
-                onClick={handleClose}
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
-              >
+              <Button onClick={handleClose} variant="outline" size="sm">
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleCreateTempScorer}
                 disabled={!tempUsername.trim() || loading}
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2"
+                variant="brand"
+                size="sm"
               >
                 {loading ? "Creating..." : "Create Scorer"}
-              </button>
+              </Button>
             </>
           )}
         </div>

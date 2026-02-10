@@ -164,26 +164,31 @@ export function SkeletonBracket({ className = "" }: { className?: string }): Rea
 // Skeleton for match scoreboard
 export function SkeletonScoreboard({ className = "" }: { className?: string }): ReactNode {
   return (
-    <div className={`flex items-center justify-center gap-4 p-8 ${className}`}>
-      {/* Team 1 */}
-      <div className="flex-1 flex flex-col items-center gap-4 p-6 bg-bg-secondary border border-border rounded-2xl">
-        <Skeleton className="h-5 w-8 mb-1" />
-        <Skeleton className="h-6 w-32 mb-1" />
-        <Skeleton className="h-4 w-16" />
-        <Skeleton className="h-12 w-16 mt-2" />
-      </div>
+    <div
+      className={`relative rounded-2xl border border-border/70 bg-card p-6 shadow-card ${className}`}
+    >
+      <div className="absolute inset-x-6 top-0 h-px bg-brand/20" />
+      <div className="flex items-center justify-center gap-4">
+        {/* Team 1 */}
+        <div className="flex-1 flex flex-col items-center gap-4 p-6 bg-secondary/70 border border-border/60 rounded-2xl">
+          <Skeleton className="h-5 w-8 mb-1" />
+          <Skeleton className="h-6 w-32 mb-1" />
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-12 w-16 mt-2" />
+        </div>
 
-      {/* VS */}
-      <div className="flex flex-col items-center gap-2 flex-shrink-0">
-        <Skeleton className="h-8 w-12" />
-      </div>
+        {/* VS */}
+        <div className="flex flex-col items-center gap-2 flex-shrink-0">
+          <Skeleton className="h-8 w-12" />
+        </div>
 
-      {/* Team 2 */}
-      <div className="flex-1 flex flex-col items-center gap-4 p-6 bg-bg-secondary border border-border rounded-2xl">
-        <Skeleton className="h-5 w-8 mb-1" />
-        <Skeleton className="h-6 w-32 mb-1" />
-        <Skeleton className="h-4 w-16" />
-        <Skeleton className="h-12 w-16 mt-2" />
+        {/* Team 2 */}
+        <div className="flex-1 flex flex-col items-center gap-4 p-6 bg-secondary/70 border border-border/60 rounded-2xl">
+          <Skeleton className="h-5 w-8 mb-1" />
+          <Skeleton className="h-6 w-32 mb-1" />
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-12 w-16 mt-2" />
+        </div>
       </div>
     </div>
   );

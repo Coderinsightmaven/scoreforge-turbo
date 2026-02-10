@@ -21,7 +21,7 @@ export function ScorerCodeSection({ scorerCode }: ScorerCodeSectionProps): React
   };
 
   return (
-    <div className="p-4 bg-secondary border border-border rounded-lg">
+    <div className="surface-panel surface-panel-rail p-4">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold text-foreground mb-1">Tournament Scorer Code</h3>
@@ -30,7 +30,7 @@ export function ScorerCodeSection({ scorerCode }: ScorerCodeSectionProps): React
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <code className="px-4 py-2 text-lg font-mono font-bold text-brand bg-card border border-border rounded-lg tracking-widest">
+          <code className="rounded-xl border border-border bg-bg-primary px-4 py-2 text-lg font-mono font-bold text-brand tracking-[0.3em]">
             {scorerCode}
           </code>
           <button
