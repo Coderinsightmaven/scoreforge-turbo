@@ -28,6 +28,7 @@ export default function DashboardPage(): React.ReactNode {
 
   const canCreate = createStatus?.canCreate ?? true;
   const firstName = user?.name?.split(" ")[0] || "there";
+  const tournamentList = tournaments ?? [];
 
   const filters: { value: Filter; label: string }[] = [
     { value: "all", label: "All" },
@@ -36,26 +37,22 @@ export default function DashboardPage(): React.ReactNode {
     { value: "completed", label: "Completed" },
   ];
 
-  const filteredTournaments = tournaments?.filter((tournament) => {
+  const filteredTournaments = tournamentList.filter((tournament) => {
     if (filter === "all") return true;
     return tournament.status === filter;
   });
 
-  if (user === undefined || tournaments === undefined) {
-    return <DashboardSkeleton />;
-  }
-
-  const liveMatchCount = tournaments.reduce(
+  const liveMatchCount = tournamentList.reduce(
     (acc, tournament) => acc + tournament.liveMatchCount,
     0
   );
-  const activeTournaments = tournaments.filter(
+  const activeTournaments = tournamentList.filter(
     (tournament) => tournament.status === "active"
   ).length;
 
   const heatmapEntries = useMemo(() => {
     const bucket = new Map<string, { date: Date; weight: number }>();
-    tournaments.forEach((tournament) => {
+    tournamentList.forEach((tournament) => {
       const date = new Date(tournament._creationTime);
       const key = date.toISOString().split("T")[0] ?? "";
       const weight = 1 + (tournament.liveMatchCount || 0);
@@ -67,11 +64,11 @@ export default function DashboardPage(): React.ReactNode {
       }
     });
     return Array.from(bucket.values());
-  }, [tournaments]);
+  }, [tournaments, tournamentList]);
 
   const tableData = useMemo(
     () =>
-      tournaments.map((tournament) => ({
+      tournamentList.map((tournament) => ({
         id: tournament._id,
         name: tournament.name,
         status: tournament.status,
@@ -79,7 +76,7 @@ export default function DashboardPage(): React.ReactNode {
         liveMatches: tournament.liveMatchCount,
         participants: `${tournament.participantCount} / ${tournament.maxParticipants}`,
       })),
-    [tournaments]
+    [tournaments, tournamentList]
   );
 
   const tableColumns = useMemo<ColumnDef<(typeof tableData)[number]>[]>(
@@ -132,6 +129,10 @@ export default function DashboardPage(): React.ReactNode {
     []
   );
 
+  if (user === undefined || tournaments === undefined) {
+    return <DashboardSkeleton />;
+  }
+
   return (
     <div className="container space-y-8">
       <section className="surface-panel surface-panel-rail p-6 sm:p-8 animate-slideUp">
@@ -140,9 +141,9 @@ export default function DashboardPage(): React.ReactNode {
             <p className="text-caption text-muted-foreground">Ops Overview</p>
             <h1 className="text-hero">Welcome back, {firstName}</h1>
             <p className="max-w-2xl text-body text-muted-foreground">
-              {tournaments.length === 0
+              {tournamentList.length === 0
                 ? "Create your first tournament to start the ops board."
-                : `You are tracking ${tournaments.length} tournament${tournaments.length === 1 ? "" : "s"} right now.`}
+                : `You are tracking ${tournamentList.length} tournament${tournamentList.length === 1 ? "" : "s"} right now.`}
             </p>
           </div>
 
@@ -164,7 +165,7 @@ export default function DashboardPage(): React.ReactNode {
       {/* Stats */}
       <section id="onborda-ops-stats" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          value={<NumberFlow value={tournaments.length} />}
+          value={<NumberFlow value={tournamentList.length} />}
           label="Total tournaments"
           icon={<Trophy className="h-4 w-4" />}
         />
@@ -181,7 +182,7 @@ export default function DashboardPage(): React.ReactNode {
         <StatCard
           value={
             <NumberFlow
-              value={tournaments.filter((tournament) => tournament.status === "draft").length}
+              value={tournamentList.filter((tournament) => tournament.status === "draft").length}
             />
           }
           label="Draft tournaments"
@@ -216,7 +217,7 @@ export default function DashboardPage(): React.ReactNode {
       </section>
 
       {/* Tournament cards */}
-      {tournaments.length === 0 ? (
+      {tournamentList.length === 0 ? (
         <Card>
           <CardContent>
             <EmptyState
@@ -236,7 +237,7 @@ export default function DashboardPage(): React.ReactNode {
             />
           </CardContent>
         </Card>
-      ) : filteredTournaments?.length === 0 ? (
+      ) : filteredTournaments.length === 0 ? (
         <Card>
           <CardContent>
             <EmptyState
@@ -252,7 +253,7 @@ export default function DashboardPage(): React.ReactNode {
         </Card>
       ) : (
         <div id="onborda-ops-tournaments" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filteredTournaments?.map((tournament, index) => (
+          {filteredTournaments.map((tournament, index) => (
             <div
               key={tournament._id}
               className="animate-staggerIn"
@@ -299,7 +300,7 @@ export default function DashboardPage(): React.ReactNode {
           </p>
           <div className="mt-6">
             <Timeline>
-              {tournaments.slice(0, 4).map((tournament) => (
+              {tournamentList.slice(0, 4).map((tournament) => (
                 <TimelineItem
                   key={tournament._id}
                   date={new Date(tournament._creationTime).toLocaleDateString("en-US", {
