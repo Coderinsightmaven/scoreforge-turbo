@@ -909,7 +909,7 @@ body::after {
 .container {
   width: 100%;
   max-width: var(--content-max);
-  margin: 0 auto;
+  margin-inline: auto;
   padding: 0 20px;
 }
 
@@ -922,7 +922,7 @@ body::after {
 .container-narrow {
   width: 100%;
   max-width: var(--content-narrow);
-  margin: 0 auto;
+  margin-inline: auto;
   padding: 0 24px;
 }
 

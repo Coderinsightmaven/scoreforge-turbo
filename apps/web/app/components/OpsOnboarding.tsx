@@ -15,7 +15,7 @@ const OPS_TOUR: Tour[] = [
       {
         icon: <Gauge className="h-4 w-4" />,
         title: "Ops navigation",
-        content: "Jump between consoles, settings, and admin tools from the rail.",
+        content: "Jump between ScoreCommand, settings, and admin tools from the rail.",
         selector: "#onborda-nav",
         side: "right",
         pointerPadding: 12,

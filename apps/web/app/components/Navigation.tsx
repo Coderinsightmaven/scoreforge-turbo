@@ -29,7 +29,7 @@ type NavigationProps = {
 
 const navItems = [
   {
-    label: "Ops Console",
+    label: "ScoreCommand",
     href: "/dashboard",
     icon: Gauge,
     activePaths: ["/dashboard", "/tournaments", "/matches"],
@@ -95,10 +95,10 @@ export function Navigation({
               </div>
               {!collapsed && (
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                    Arena Ops
-                  </p>
                   <p className="text-lg font-semibold text-foreground">ScoreForge</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+                    ScoreCommand
+                  </p>
                 </div>
               )}
             </Link>
@@ -262,10 +262,10 @@ export function Navigation({
                 <Gauge className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.26em] text-muted-foreground">
-                  Arena Ops
-                </p>
                 <p className="text-base font-semibold text-foreground">ScoreForge</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.26em] text-muted-foreground">
+                  ScoreCommand
+                </p>
               </div>
             </Link>
             <Button

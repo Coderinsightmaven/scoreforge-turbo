@@ -97,16 +97,16 @@ export default function SignUpPage(): React.ReactNode {
               <Gauge className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                Arena Ops
-              </p>
               <p className="text-lg font-semibold text-foreground">ScoreForge</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+                ScoreCommand
+              </p>
             </div>
           </Link>
 
           <div className="space-y-5">
             <p className="text-caption text-muted-foreground">New Operator</p>
-            <h1 className="text-display leading-[0.9]">Launch your ops console.</h1>
+            <h1 className="text-display leading-[0.9]">Launch your ScoreCommand.</h1>
             <p className="text-body-lg text-muted-foreground">
               Configure brackets, assign scorers, and run the tournament with real-time control.
             </p>
@@ -142,10 +142,10 @@ export default function SignUpPage(): React.ReactNode {
                 <Gauge className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                  Arena Ops
-                </p>
                 <p className="text-lg font-semibold text-foreground">ScoreForge</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+                  ScoreCommand
+                </p>
               </div>
             </Link>
             <h2 className="text-title">Create your account</h2>

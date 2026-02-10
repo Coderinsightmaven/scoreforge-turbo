@@ -63,10 +63,10 @@ export default function SignInPage(): React.ReactNode {
               <Gauge className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                Arena Ops
-              </p>
               <p className="text-lg font-semibold text-foreground">ScoreForge</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+                ScoreCommand
+              </p>
             </div>
           </Link>
 
@@ -74,7 +74,7 @@ export default function SignInPage(): React.ReactNode {
             <p className="text-caption text-muted-foreground">Ops Briefing</p>
             <h1 className="text-display leading-[0.9]">Stay in sync with every match.</h1>
             <p className="text-body-lg text-muted-foreground">
-              Rejoin your ops console to manage brackets, monitor courts, and keep scoring live.
+              Rejoin your ScoreCommand to manage brackets, monitor courts, and keep scoring live.
             </p>
           </div>
 
@@ -108,10 +108,10 @@ export default function SignInPage(): React.ReactNode {
                 <Gauge className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                  Arena Ops
-                </p>
                 <p className="text-lg font-semibold text-foreground">ScoreForge</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+                  ScoreCommand
+                </p>
               </div>
             </Link>
             <h2 className="text-title">Welcome back</h2>
@@ -162,7 +162,7 @@ export default function SignInPage(): React.ReactNode {
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   <>
-                    Enter Console
+                    Enter ScoreCommand
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}
