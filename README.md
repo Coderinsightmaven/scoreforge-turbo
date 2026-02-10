@@ -1,202 +1,131 @@
 # ScoreForge
 
-A real-time tournament management platform for organizing competitions, tracking scores, and managing brackets across multiple sports.
+Real-time tournament management for organizing competitions, tracking live scores, and managing brackets.
 
-## Features
+## What It Does
 
-- **Tournament Formats** - Single elimination, double elimination, and round robin
-- **Multiple Brackets** - Organize tournaments with multiple brackets (e.g., Men's Singles, Women's Doubles)
-- **Real-Time Scoring** - Live score updates with undo functionality
-- **Tennis Scoring** - Dedicated interface for tennis (sets/games/points)
-- **Organization Management** - Role-based access control (owner, admin, scorer)
-- **Bracket Generation** - Automatic seeding and bracket creation
-- **Blank Bracket Generator** - Create printable brackets with placeholder slots, assign existing participants to seeds
-- **Quick Bracket Tool** - Standalone printable bracket generator (no database required)
-- **Print Support** - Print-optimized bracket views with empty slots for handwriting
-- **Public API** - External access to match data via API keys
-- **Display App** - Display live scores on external monitors with customizable layouts
+ScoreForge handles the full tournament lifecycle — from creating brackets and seeding participants to live scoring on court and displaying results on external monitors.
+
+- **Tournament formats** — Single elimination, double elimination, round robin
+- **Multi-bracket tournaments** — Run "Men's Singles" and "Women's Doubles" under one event
+- **Live tennis scoring** — Sets, games, points with tiebreaks, advantage/no-ad modes, and full undo history
+- **Role-based access** — Owners manage tournaments, scorers update matches, temporary scorers authenticate with a PIN
+- **Scoreboard display** — Native Rust desktop app for designing and showing live scoreboards on external monitors
+- **Public API** — REST endpoints with API key auth for external integrations
+- **Quick brackets** — Standalone printable bracket generator, no account required
+- **CSV exports** — Download match reports per bracket
 
 ## Tech Stack
 
-- **Frontend** - Next.js 16, React 19, Tailwind CSS
-- **Mobile** - Expo 54, React Native, NativeWind
-- **Display** - Pure Rust (eframe/egui, Convex Rust SDK)
-- **Backend** - Convex (serverless database, functions, real-time sync)
-- **Monorepo** - Turborepo with Bun
-
-## Getting Started
-
-### Prerequisites
-
-- [Bun](https://bun.sh/) (v1.3+)
-- [Convex account](https://convex.dev/)
-
-### Installation
-
-```bash
-# Install dependencies
-bun install
-
-# Set up Convex (follow prompts to create/link project)
-cd packages/convex && npx convex dev --once
-
-# Start development
-bun run dev
-```
-
-This starts:
-
-- Web app at http://localhost:3000
-- Convex backend with real-time sync
-
-### Environment Variables
-
-Create `.env.local` in `apps/web`:
-
-```
-NEXT_PUBLIC_CONVEX_URL=<your-convex-url>
-```
-
-For mobile, create `.env` in `apps/mobile`:
-
-```
-EXPO_PUBLIC_CONVEX_URL=<your-convex-url>
-```
-
-## Blank Bracket Generator
-
-Generate tournament brackets with placeholder slots that can be filled in later:
-
-### Tournament Blank Bracket
-
-1. Create a tournament and optionally add participants
-2. Click **"Blank Bracket"** button
-3. Select bracket size (4, 8, 16, 32, or 64)
-4. Assign existing participants to specific seeds or leave slots empty
-5. Click **"Generate Bracket"**
-6. Click on placeholder slots to fill in names
-7. Use the **Print** button for a printable version
-
-### Quick Bracket (Standalone)
-
-Visit `/brackets/quick` to create a printable bracket without saving to the database:
-
-- Select bracket size and format (single/double elimination)
-- Fill in participant names by clicking slots
-- Print directly from the browser
-
-## Multiple Brackets
-
-Tournaments support multiple brackets for organizing different categories within a single event:
-
-- **Bracket Categories** - Create brackets like "Men's Singles", "Women's Doubles", "Mixed Doubles"
-- **Independent Formats** - Each bracket can have its own format (single elimination, round robin, etc.)
-- **Participant Scoping** - Participants are assigned to specific brackets
-- **Bracket Tabs** - Switch between brackets using horizontal tabs on the tournament page
-- **Per-Bracket Reports** - Filter match reports and exports by bracket
-
-When creating a tournament, you can name the initial bracket. Additional brackets can be added via "Manage Brackets" on the tournament page.
-
-## Display App
-
-A native Rust application for designing and displaying live scoreboards on external monitors during tournaments.
-
-### Features
-
-- **Multi-Monitor Support** - Display scoreboards on any connected monitor
-- **Custom Layouts** - Design scoreboards with a built-in editor
-- **Live Data** - Real-time score updates via Convex Rust SDK
-- **Export/Import** - Zip-based scoreboard export and import
-- **Image/Video Assets** - Manage media for scoreboard designs
-
-### Getting Started
-
-```bash
-cd apps/display
-bun run dev      # Start with cargo watch (auto-reload)
-bun run build    # Build release binary
-```
+| Layer    | Technology                                    |
+| -------- | --------------------------------------------- |
+| Web      | Next.js 16, React 19, Tailwind CSS, shadcn/ui |
+| Mobile   | Expo 54, React Native 0.81, NativeWind        |
+| Display  | Rust (eframe/egui, wgpu, Convex Rust SDK)     |
+| Backend  | Convex (serverless functions, real-time sync) |
+| Auth     | @convex-dev/auth (password-based)             |
+| Monorepo | Turborepo, Bun 1.3                            |
+| Testing  | Vitest, convex-test                           |
 
 ## Project Structure
 
 ```
 apps/
-  web/          # Next.js web application
-  mobile/       # Expo React Native app
-  display/      # Rust scoreboard designer/display app
+  web/              Next.js web application
+  mobile/           Expo React Native app (login only, no sign-up)
+  display/          Rust scoreboard designer + live display
 packages/
-  convex/       # Convex backend (schema, functions)
-  eslint-config/
-  typescript-config/
+  convex/           Convex backend — schema, functions, HTTP API
+  eslint-config/    Shared ESLint v9 flat configs
+  typescript-config/ Shared tsconfig presets
 ```
+
+## Getting Started
+
+**Prerequisites:** [Bun](https://bun.sh/) v1.3+ and a [Convex](https://convex.dev/) account.
+
+```bash
+# Install dependencies
+bun install
+
+# Set up Convex (creates/links your project)
+cd packages/convex && npx convex dev --once && cd ../..
+
+# Start development
+bun run dev
+```
+
+This launches the web app at `http://localhost:3000` with the Convex backend running locally.
+
+### Environment Variables
+
+**Web** — create `apps/web/.env.local`:
+
+```
+NEXT_PUBLIC_CONVEX_URL=<your-convex-url>
+```
+
+**Mobile** — create `apps/mobile/.env`:
+
+```
+EXPO_PUBLIC_CONVEX_URL=<your-convex-url>
+```
+
+### Display App
+
+```bash
+cd apps/display
+bun run dev       # Start with cargo watch (auto-reload)
+bun run build     # Build release binary
+```
+
+Requires a Rust toolchain. Connects to Convex for live match data via a setup wizard.
 
 ## Scripts
 
 ```bash
-bun run dev         # Start all apps + Convex
-bun run build       # Build all packages
-bun run lint        # Lint (zero warnings)
-bun run check-types # Type check
-bun run format      # Format with Prettier
+bun run dev           # Start all apps + Convex
+bun run build         # Build everything
+bun run lint          # Lint all packages (zero warnings)
+bun run check-types   # TypeScript type check across all packages
+bun run test          # Run all tests (Vitest)
+bun run format        # Format with Prettier
+```
+
+Scope to a single package with `--filter`:
+
+```bash
+bun run test --filter=@repo/convex
+bun run test --filter=web
+```
+
+## Testing
+
+All packages use Vitest. Convex integration tests use `convex-test` with `@edge-runtime/vm`.
+
+```bash
+# Run all tests
+bun run test
+
+# Single file (from the package directory)
+bunx vitest run tests/tournaments.test.ts
+
+# Single test by name
+bunx vitest run tests/tournaments.test.ts -t "creates a tournament"
+
+# Watch mode
+bunx vitest
 ```
 
 ## Deployment
 
-### Overview
+| Component | Platform   | Trigger                               |
+| --------- | ---------- | ------------------------------------- |
+| Backend   | Convex     | Auto-deployed during Vercel build     |
+| Web       | Vercel     | Push to `main`                        |
+| Mobile    | EAS (Expo) | Push to `main` via GitHub integration |
+| Display   | Local      | Manual `cargo build --release`        |
 
-| App                         | Platform   | Trigger                                                   |
-| --------------------------- | ---------- | --------------------------------------------------------- |
-| Backend (`packages/convex`) | Convex     | Deployed as part of Vercel build                          |
-| Web (`apps/web`)            | Vercel     | Auto-deploys on push to `main`                            |
-| Mobile (`apps/mobile`)      | EAS (Expo) | Auto-builds via Expo GitHub integration on push to `main` |
+Convex deploys automatically as part of the Vercel build — `npx convex deploy` runs before `next build` (configured in `apps/web/vercel.json`).
 
-### Convex (Backend)
-
-Convex deploys automatically as part of the Vercel build — `npx convex deploy` runs before `next build` (configured in `apps/web/vercel.json`). This keeps the backend and web app in sync on every deploy.
-
-**First-time setup:**
-
-1. Generate a deploy key:
-   ```bash
-   cd packages/convex && npx convex deploy-key
-   ```
-2. Add `CONVEX_DEPLOY_KEY` as an environment variable in Vercel
-
-### Vercel (Web)
-
-The web app deploys via Vercel's GitHub integration.
-
-**First-time setup:**
-
-1. Import the repository on [vercel.com](https://vercel.com/new)
-2. Set **Root Directory** to `apps/web`
-3. Add environment variables:
-   - `CONVEX_DEPLOY_KEY` — from the step above
-   - `NEXT_PUBLIC_CONVEX_URL` — your Convex deployment URL (find in Convex dashboard)
-
-Vercel will auto-deploy on every push to `main`. Preview deploys are created for pull requests.
-
-### EAS (Mobile)
-
-Mobile builds run via Expo's GitHub integration, which auto-builds on push to `main`. Build configuration is managed in `apps/mobile/eas.json`.
-
-**First-time setup:**
-
-1. Connect the repo on [expo.dev](https://expo.dev) and set **Root Directory** to `apps/mobile`
-2. Fill in `EXPO_PUBLIC_CONVEX_URL` for each build profile in `apps/mobile/eas.json`
-
-**Build profiles:**
-
-| Profile       | Use case                                         |
-| ------------- | ------------------------------------------------ |
-| `development` | Dev client with debugging, internal distribution |
-| `preview`     | Test builds, internal distribution               |
-| `production`  | App Store / Play Store submission                |
-
-### Required Secrets
-
-| Secret                   | Where                 | Purpose                                        |
-| ------------------------ | --------------------- | ---------------------------------------------- |
-| `CONVEX_DEPLOY_KEY`      | Vercel env vars       | Authenticates `npx convex deploy` during build |
-| `NEXT_PUBLIC_CONVEX_URL` | Vercel env vars       | Convex URL for the web client                  |
-| `EXPO_PUBLIC_CONVEX_URL` | `eas.json` env blocks | Convex URL for the mobile client               |
+See [DEPLOYMENT.md](DEPLOYMENT.md) for full setup instructions and required secrets.
