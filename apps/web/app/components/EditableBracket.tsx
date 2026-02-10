@@ -4,7 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@repo/convex";
 import type { Id } from "@repo/convex/dataModel";
+import type { TennisState } from "@repo/convex/types/tennis";
 import { getDisplayMessage } from "@/lib/errors";
+import { getRoundName as getRoundNameUtil } from "@/lib/bracket";
 import { toast } from "sonner";
 
 type Participant = {
@@ -12,15 +14,6 @@ type Participant = {
   displayName: string;
   seed?: number;
   isPlaceholder?: boolean;
-};
-
-type TennisState = {
-  sets: [number, number][];
-  currentSetGames: [number, number];
-  currentGamePoints: [number, number];
-  isMatchComplete: boolean;
-  isTiebreak?: boolean;
-  tiebreakPoints?: [number, number];
 };
 
 type Match = {
@@ -121,11 +114,7 @@ export function EditableBracket({
 
   const getRoundName = (round: number, total: number) => {
     if (format === "round_robin") return `Round ${round}`;
-    const remaining = total - round + 1;
-    if (remaining === 1) return "Finals";
-    if (remaining === 2) return "Semifinals";
-    if (remaining === 3) return "Quarterfinals";
-    return `Round ${round}`;
+    return getRoundNameUtil(round, total);
   };
 
   // Get scores for a participant (tennis)
@@ -136,12 +125,12 @@ export function EditableBracket({
 
       // Add completed sets
       sets.forEach((set) => {
-        scores.push({ games: set[participantIndex], isCurrentSet: false });
+        scores.push({ games: set[participantIndex] ?? 0, isCurrentSet: false });
       });
 
       // Add current set if match is in progress (not complete and has games played)
-      if (!isMatchComplete && (currentSetGames[0] > 0 || currentSetGames[1] > 0)) {
-        scores.push({ games: currentSetGames[participantIndex], isCurrentSet: true });
+      if (!isMatchComplete && ((currentSetGames[0] ?? 0) > 0 || (currentSetGames[1] ?? 0) > 0)) {
+        scores.push({ games: currentSetGames[participantIndex] ?? 0, isCurrentSet: true });
       }
 
       return scores;
@@ -150,7 +139,11 @@ export function EditableBracket({
     return [];
   };
 
-  const renderParticipantSlot = (participant: Participant | undefined, slotNumber: 1 | 2, match: Match) => {
+  const renderParticipantSlot = (
+    participant: Participant | undefined,
+    slotNumber: 1 | 2,
+    match: Match
+  ) => {
     if (!participant) {
       return (
         <div className="flex items-center gap-2 px-3 py-2">
@@ -169,10 +162,10 @@ export function EditableBracket({
 
     if (isEditing) {
       return (
-        <div className={`flex items-center gap-2 px-3 py-2 ${slotNumber === 1 ? "border-b border-border" : ""}`}>
-          <span className="w-6 text-xs text-center text-text-muted">
-            {participant.seed || "-"}
-          </span>
+        <div
+          className={`flex items-center gap-2 px-3 py-2 ${slotNumber === 1 ? "border-b border-border" : ""}`}
+        >
+          <span className="w-6 text-xs text-center text-text-muted">{participant.seed || "-"}</span>
           <input
             ref={inputRef}
             type="text"
@@ -194,21 +187,13 @@ export function EditableBracket({
         className={`flex items-center gap-2 px-3 py-2 ${
           slotNumber === 1 ? "border-b border-border" : ""
         } ${isWinner ? "bg-brand/10" : ""} ${
-          canEdit && isPlaceholder
-            ? "cursor-pointer hover:bg-brand/5 transition-colors"
-            : ""
+          canEdit && isPlaceholder ? "cursor-pointer hover:bg-brand/5 transition-colors" : ""
         }`}
       >
-        <span className="w-6 text-xs text-center text-text-muted">
-          {participant.seed || "-"}
-        </span>
+        <span className="w-6 text-xs text-center text-text-muted">{participant.seed || "-"}</span>
         <span
           className={`flex-1 text-sm font-medium truncate ${
-            isWinner
-              ? "text-brand"
-              : isPlaceholder
-                ? "text-text-muted italic"
-                : "text-text-primary"
+            isWinner ? "text-brand" : isPlaceholder ? "text-text-muted italic" : "text-text-primary"
           }`}
         >
           {participant.displayName}
@@ -244,13 +229,21 @@ export function EditableBracket({
     return (
       <div className="flex flex-col items-center py-16 text-center bg-bg-secondary border border-dashed border-border rounded-xl">
         <div className="w-14 h-14 flex items-center justify-center bg-bg-card rounded-xl mb-4">
-          <svg className="w-7 h-7 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
+          <svg
+            className="w-7 h-7 text-text-muted"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0"
+            />
           </svg>
         </div>
-        <p className="text-text-secondary">
-          No bracket generated yet
-        </p>
+        <p className="text-text-secondary">No bracket generated yet</p>
       </div>
     );
   }
@@ -331,11 +324,7 @@ export function PrintableBracket({
 
   const getRoundName = (round: number, total: number) => {
     if (format === "round_robin") return `Round ${round}`;
-    const remaining = total - round + 1;
-    if (remaining === 1) return "Finals";
-    if (remaining === 2) return "Semifinals";
-    if (remaining === 3) return "Quarterfinals";
-    return `Round ${round}`;
+    return getRoundNameUtil(round, total);
   };
 
   const renderSlot = (participant: Participant | undefined, slotNumber: 1 | 2) => {
@@ -352,9 +341,7 @@ export function PrintableBracket({
         </span>
         <span
           className={`flex-1 text-sm truncate print:text-xs ${
-            isPlaceholder
-              ? "bracket-slot-empty"
-              : "text-text-primary font-medium"
+            isPlaceholder ? "bracket-slot-empty" : "text-text-primary font-medium"
           }`}
         >
           {isPlaceholder ? "" : participant?.displayName}
@@ -365,11 +352,7 @@ export function PrintableBracket({
 
   return (
     <div className="bracket-print-container bg-white p-8">
-      {title && (
-        <h1 className="text-2xl font-bold text-center mb-8 print:text-xl">
-          {title}
-        </h1>
-      )}
+      {title && <h1 className="text-2xl font-bold text-center mb-8 print:text-xl">{title}</h1>}
       <div className="flex gap-6 justify-center print:gap-3">
         {roundNumbers.map((round) => (
           <div key={round} className="flex flex-col gap-3 min-w-[180px] print:min-w-[140px]">

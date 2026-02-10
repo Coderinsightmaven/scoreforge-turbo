@@ -381,7 +381,7 @@ describe("isUserScoringLogsEnabled", () => {
   it("returns true when enabled", async () => {
     const t = getTestContext();
     const { userId: adminId } = await setupAdmin(t, { name: "Admin", email: "admin@test.com" });
-    const { userId } = await setupUser(t, { name: "User", email: "user@test.com" });
+    const { userId, asUser } = await setupUser(t, { name: "User", email: "user@test.com" });
 
     await t.run(async (ctx) => {
       await ctx.db.insert("userScoringLogs", {
@@ -392,7 +392,8 @@ describe("isUserScoringLogsEnabled", () => {
       });
     });
 
-    const result = await t.query(api.siteAdmin.isUserScoringLogsEnabled, { userId });
+    // Must be authenticated — unauthenticated calls return false regardless
+    const result = await asUser.query(api.siteAdmin.isUserScoringLogsEnabled, { userId });
     expect(result).toBe(true);
   });
 });

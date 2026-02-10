@@ -56,9 +56,7 @@ describe("getErrorMessage", () => {
   });
 
   it("INVALID_STATE", () => {
-    expect(getErrorMessage("INVALID_STATE")).toBe(
-      "This action cannot be performed right now."
-    );
+    expect(getErrorMessage("INVALID_STATE")).toBe("This action cannot be performed right now.");
   });
 
   it("CONFLICT", () => {
@@ -66,15 +64,11 @@ describe("getErrorMessage", () => {
   });
 
   it("LIMIT_EXCEEDED", () => {
-    expect(getErrorMessage("LIMIT_EXCEEDED")).toBe(
-      "You've reached the limit for this action."
-    );
+    expect(getErrorMessage("LIMIT_EXCEEDED")).toBe("You've reached the limit for this action.");
   });
 
   it("INTERNAL_ERROR", () => {
-    expect(getErrorMessage("INTERNAL_ERROR")).toBe(
-      "Something went wrong. Please try again later."
-    );
+    expect(getErrorMessage("INTERNAL_ERROR")).toBe("Something went wrong. Please try again later.");
   });
 
   it("UNKNOWN", () => {

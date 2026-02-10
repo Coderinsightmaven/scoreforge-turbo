@@ -5,6 +5,7 @@ import { participantTypes } from "./schema";
 import { errors } from "./lib/errors";
 import { validateStringLength, MAX_LENGTHS } from "./lib/validation";
 import { canManageTournament, canViewTournament } from "./lib/accessControl";
+import { assertNotInMaintenance } from "./lib/maintenance";
 
 // ============================================
 // Helpers
@@ -250,6 +251,7 @@ export const addParticipant = mutation({
     if (!authUserId) {
       throw errors.unauthenticated();
     }
+    await assertNotInMaintenance(ctx, authUserId);
 
     const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {

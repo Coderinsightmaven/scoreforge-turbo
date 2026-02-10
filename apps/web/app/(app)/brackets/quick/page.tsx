@@ -8,6 +8,7 @@ import {
   type BlankMatch,
   type BlankParticipant,
 } from "@/app/lib/bracketUtils";
+import { getRoundName as getRoundNameUtil } from "@/lib/bracket";
 
 type BracketFormat = "single_elimination" | "double_elimination";
 
@@ -83,18 +84,9 @@ export default function QuickBracketPage(): React.ReactNode {
         .sort((a, b) => a - b)
     : [];
 
-  const getRoundName = (round: number, total: number) => {
-    const remaining = total - round + 1;
-    if (remaining === 1) return "Finals";
-    if (remaining === 2) return "Semifinals";
-    if (remaining === 3) return "Quarterfinals";
-    return `Round ${round}`;
-  };
+  const getRoundName = getRoundNameUtil;
 
-  const renderParticipantSlot = (
-    participant: BlankParticipant | undefined,
-    slotNumber: 1 | 2
-  ) => {
+  const renderParticipantSlot = (participant: BlankParticipant | undefined, slotNumber: 1 | 2) => {
     if (!participant) {
       return (
         <div
@@ -102,12 +94,8 @@ export default function QuickBracketPage(): React.ReactNode {
             slotNumber === 1 ? "border-b border-border print:border-gray-300" : ""
           }`}
         >
-          <span className="w-6 text-xs text-center text-text-muted print:text-gray-500">
-            -
-          </span>
-          <span className="flex-1 text-sm text-text-muted italic print:text-gray-500">
-            TBD
-          </span>
+          <span className="w-6 text-xs text-center text-text-muted print:text-gray-500">-</span>
+          <span className="flex-1 text-sm text-text-muted italic print:text-gray-500">TBD</span>
         </div>
       );
     }
@@ -122,9 +110,7 @@ export default function QuickBracketPage(): React.ReactNode {
             slotNumber === 1 ? "border-b border-border" : ""
           }`}
         >
-          <span className="w-6 text-xs text-center text-text-muted">
-            {participant.seed || "-"}
-          </span>
+          <span className="w-6 text-xs text-center text-text-muted">{participant.seed || "-"}</span>
           <input
             ref={inputRef}
             type="text"
@@ -173,12 +159,10 @@ export default function QuickBracketPage(): React.ReactNode {
           >
             <span>&larr;</span> Dashboard
           </Link>
-          <h1 className="text-title text-text-primary mb-2">
-            Quick Bracket Generator
-          </h1>
+          <h1 className="text-title text-text-primary mb-2">Quick Bracket Generator</h1>
           <p className="text-text-secondary max-w-xl">
-            Create a printable tournament bracket without saving to the
-            database. Fill in names and print for offline use.
+            Create a printable tournament bracket without saving to the database. Fill in names and
+            print for offline use.
           </p>
         </div>
       </header>
@@ -188,9 +172,7 @@ export default function QuickBracketPage(): React.ReactNode {
           // Configuration Form
           <div className="max-w-md mx-auto animate-fadeIn">
             <div className="bg-bg-card border border-border rounded-2xl p-6 shadow-card">
-              <h2 className="text-heading text-text-primary mb-6">
-                Configure Bracket
-              </h2>
+              <h2 className="text-heading text-text-primary mb-6">Configure Bracket</h2>
 
               <div className="space-y-4">
                 <div>
@@ -224,20 +206,14 @@ export default function QuickBracketPage(): React.ReactNode {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-text-primary mb-2">
-                    Format
-                  </label>
+                  <label className="block text-sm font-medium text-text-primary mb-2">Format</label>
                   <select
                     value={format}
                     onChange={(e) => setFormat(e.target.value as BracketFormat)}
                     className="w-full px-4 py-3 input"
                   >
-                    <option value="single_elimination">
-                      Single Elimination
-                    </option>
-                    <option value="double_elimination">
-                      Double Elimination
-                    </option>
+                    <option value="single_elimination">Single Elimination</option>
+                    <option value="double_elimination">Double Elimination</option>
                   </select>
                 </div>
 

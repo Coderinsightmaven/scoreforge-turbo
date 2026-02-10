@@ -382,5 +382,7 @@ export default defineSchema({
     attemptCount: v.number(),
     windowStart: v.number(),
     lockedUntil: v.optional(v.number()), // Account lockout timestamp
-  }).index("by_identifier", ["identifier"]),
+  })
+    .index("by_identifier", ["identifier"])
+    .index("by_window_start", ["windowStart"]),
 });

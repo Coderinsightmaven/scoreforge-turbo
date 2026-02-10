@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Authenticated, Unauthenticated, AuthLoading, useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
@@ -15,12 +16,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/app/components/Skeleton";
-import { Home, Settings, LogOut, Shield, Braces } from "lucide-react";
+import { Home, Settings, LogOut, Shield, Braces, Menu, X } from "lucide-react";
 
 export function Navigation(): React.ReactNode {
   const { signOut } = useAuthActions();
   const user = useQuery(api.users.currentUser);
   const isSiteAdmin = useQuery(api.siteAdmin.checkIsSiteAdmin);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const initials = user?.name
     ? user.name
@@ -74,12 +76,34 @@ export function Navigation(): React.ReactNode {
               <Button variant="ghost" asChild className="hidden sm:inline-flex">
                 <Link href="/sign-in">Sign in</Link>
               </Button>
-              <Button variant="brand" asChild>
+              <Button variant="brand" asChild className="hidden sm:inline-flex">
                 <Link href="/sign-up">Create Account</Link>
+              </Button>
+              {/* Mobile hamburger for unauthenticated users */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="sm:hidden"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+                aria-expanded={mobileMenuOpen}
+              >
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
             </Unauthenticated>
 
             <Authenticated>
+              {/* Mobile hamburger for quick nav (visible below md breakpoint) */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+                aria-expanded={mobileMenuOpen}
+              >
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -141,6 +165,46 @@ export function Navigation(): React.ReactNode {
             </Authenticated>
           </div>
         </div>
+
+        {/* Mobile menu panel */}
+        {mobileMenuOpen && (
+          <div className="mt-3 border-t border-border pt-3 animate-fadeIn">
+            <Authenticated>
+              <div className="flex flex-col gap-1 md:hidden">
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                >
+                  <Home className="h-4 w-4" />
+                  Dashboard
+                </Link>
+                <Link
+                  href="/brackets/quick"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                >
+                  <Braces className="h-4 w-4" />
+                  Quick Bracket
+                </Link>
+              </div>
+            </Authenticated>
+            <Unauthenticated>
+              <div className="flex flex-col gap-2 sm:hidden">
+                <Button variant="ghost" asChild className="w-full justify-start">
+                  <Link href="/sign-in" onClick={() => setMobileMenuOpen(false)}>
+                    Sign in
+                  </Link>
+                </Button>
+                <Button variant="brand" asChild className="w-full justify-start">
+                  <Link href="/sign-up" onClick={() => setMobileMenuOpen(false)}>
+                    Create Account
+                  </Link>
+                </Button>
+              </div>
+            </Unauthenticated>
+          </div>
+        )}
       </div>
     </nav>
   );

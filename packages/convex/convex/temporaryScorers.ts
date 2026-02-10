@@ -1,16 +1,21 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { query, mutation, internalMutation, type MutationCtx } from "./_generated/server";
+import {
+  query,
+  mutation,
+  internalMutation,
+  type MutationCtx,
+  type QueryCtx,
+} from "./_generated/server";
 import { v } from "convex/values";
+import type { Doc } from "./_generated/dataModel";
 import { errors } from "./lib/errors";
 import { validateStringLength, MAX_LENGTHS } from "./lib/validation";
+import { randomInt, randomString } from "./lib/crypto";
 import bcrypt from "bcryptjs";
 
 const SCORER_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const SESSION_TOKEN_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const PIN_HASH_PREFIX = "pbkdf2_sha256";
-const PIN_HASH_ITERATIONS = 120_000;
-const PIN_SALT_BYTES = 16;
-const PIN_HASH_BYTES = 32;
 const BCRYPT_ROUNDS = 10;
 
 // Rate limiting configuration
@@ -24,39 +29,6 @@ const CODE_LOOKUP_RATE_LIMIT = {
   maxAttempts: 10, // Max code lookups per window
   windowMs: 60 * 1000, // 1 minute window
 };
-
-function randomInt(maxExclusive: number): number {
-  if (maxExclusive <= 0 || maxExclusive > 0x100000000) {
-    throw new Error("maxExclusive must be between 1 and 2^32");
-  }
-
-  const range = 0x100000000;
-  const limit = Math.floor(range / maxExclusive) * maxExclusive;
-  const buffer = new Uint32Array(1);
-
-  while (true) {
-    crypto.getRandomValues(buffer);
-    const value = buffer[0]!;
-    if (value < limit) {
-      return value % maxExclusive;
-    }
-  }
-}
-
-function randomString(length: number, alphabet: string): string {
-  let result = "";
-  for (let i = 0; i < length; i++) {
-    const idx = randomInt(alphabet.length);
-    result += alphabet.charAt(idx);
-  }
-  return result;
-}
-
-function bytesToHex(bytes: Uint8Array): string {
-  return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
 
 function hexToBytes(hex: string): Uint8Array {
   if (hex.length % 2 !== 0) {
@@ -106,6 +78,19 @@ function generateSessionToken(): string {
 }
 
 /**
+ * Hash a session token using SHA-256 for secure storage.
+ * Tokens are hashed before being stored in the database so that
+ * a database compromise doesn't expose active sessions.
+ */
+async function hashSessionToken(token: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(token);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
  * Simple hash function for PIN (not cryptographically secure, but adequate for PINs)
  * In production, you'd want to use a proper hashing library
  */
@@ -127,33 +112,6 @@ function hashPinLegacy(pin: string): string {
  */
 function hashPin(pin: string): string {
   return bcrypt.hashSync(pin, BCRYPT_ROUNDS);
-}
-
-/**
- * Legacy PBKDF2 hash function for backward compatibility
- */
-async function _hashPinPbkdf2(pin: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey("raw", encoder.encode(pin), { name: "PBKDF2" }, false, [
-    "deriveBits",
-  ]);
-
-  const salt = new Uint8Array(PIN_SALT_BYTES);
-  crypto.getRandomValues(salt);
-
-  const derivedBits = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      hash: "SHA-256",
-      salt,
-      iterations: PIN_HASH_ITERATIONS,
-    },
-    key,
-    PIN_HASH_BYTES * 8
-  );
-
-  const hashBytes = new Uint8Array(derivedBits);
-  return `${PIN_HASH_PREFIX}$${PIN_HASH_ITERATIONS}$${bytesToHex(salt)}$${bytesToHex(hashBytes)}`;
 }
 
 function parsePinHash(
@@ -186,13 +144,6 @@ function parsePinHash(
  */
 function isBcryptHash(hash: string): boolean {
   return hash.startsWith("$2a$") || hash.startsWith("$2b$") || hash.startsWith("$2y$");
-}
-
-/**
- * Check if hash is a legacy simple hash (not PBKDF2 or bcrypt)
- */
-function _isLegacySimpleHash(hash: string): boolean {
-  return !hash.startsWith(`${PIN_HASH_PREFIX}$`) && !isBcryptHash(hash);
 }
 
 /**
@@ -344,7 +295,7 @@ async function clearLoginRateLimit(ctx: MutationCtx, identifier: string): Promis
 /**
  * Check rate limit for tournament code lookups
  */
-async function _checkCodeLookupRateLimit(
+async function checkCodeLookupRateLimit(
   ctx: MutationCtx,
   code: string
 ): Promise<{ allowed: boolean; retryAfter?: number }> {
@@ -379,7 +330,7 @@ async function _checkCodeLookupRateLimit(
 /**
  * Record a code lookup attempt
  */
-async function _recordCodeLookup(ctx: MutationCtx, code: string): Promise<void> {
+async function recordCodeLookup(ctx: MutationCtx, code: string): Promise<void> {
   const now = Date.now();
   const windowStart = now - CODE_LOOKUP_RATE_LIMIT.windowMs;
   const identifier = `code_lookup:${code}`;
@@ -414,9 +365,9 @@ async function _recordCodeLookup(ctx: MutationCtx, code: string): Promise<void> 
 /**
  * Get tournament by scorer code (public - no auth required)
  * Returns minimal tournament info for login screen
- * Note: Rate limiting is handled client-side for queries
+ * Rate limited to prevent scorer code enumeration
  */
-export const getTournamentByCode = query({
+export const getTournamentByCode = mutation({
   args: { code: v.string() },
   returns: v.union(
     v.object({
@@ -428,6 +379,16 @@ export const getTournamentByCode = query({
   ),
   handler: async (ctx, args) => {
     const normalizedCode = args.code.toUpperCase().trim();
+
+    // Check rate limit for code lookups
+    const rateLimitResult = await checkCodeLookupRateLimit(ctx, normalizedCode);
+    if (!rateLimitResult.allowed) {
+      // Return null to prevent information leakage about rate limiting
+      return null;
+    }
+
+    // Record the lookup attempt
+    await recordCodeLookup(ctx, normalizedCode);
 
     const tournament = await ctx.db
       .query("tournaments")
@@ -519,6 +480,30 @@ export const getScorerCode = query({
 });
 
 /**
+ * Look up a session by token, trying hashed lookup first, then legacy plaintext fallback.
+ * This is a read-only helper usable from both queries and mutations.
+ */
+async function findSessionByToken(
+  ctx: QueryCtx | MutationCtx,
+  plainToken: string
+): Promise<Doc<"temporaryScorerSessions"> | null> {
+  // First try: look up by SHA-256 hash of the token
+  const tokenHash = await hashSessionToken(plainToken);
+  const hashedSession = await ctx.db
+    .query("temporaryScorerSessions")
+    .withIndex("by_token", (q) => q.eq("token", tokenHash))
+    .first();
+  if (hashedSession) return hashedSession;
+
+  // Fallback: look up by plaintext token (legacy sessions)
+  const plaintextSession = await ctx.db
+    .query("temporaryScorerSessions")
+    .withIndex("by_token", (q) => q.eq("token", plainToken))
+    .first();
+  return plaintextSession ?? null;
+}
+
+/**
  * Verify a temporary scorer session token
  * Returns scorer and tournament info if valid
  */
@@ -536,10 +521,7 @@ export const verifySession = query({
     v.null()
   ),
   handler: async (ctx, args) => {
-    const session = await ctx.db
-      .query("temporaryScorerSessions")
-      .withIndex("by_token", (q) => q.eq("token", args.token))
-      .first();
+    const session = await findSessionByToken(ctx, args.token);
 
     if (!session) {
       return null;
@@ -960,17 +942,19 @@ export const signIn = mutation({
       await ctx.db.patch("temporaryScorers", scorer._id, { pinHash: upgradedHash });
     }
 
-    // Create session
+    // Create session - store hashed token for security
     const token = generateSessionToken();
+    const tokenHash = await hashSessionToken(token);
     const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
 
     await ctx.db.insert("temporaryScorerSessions", {
       scorerId: scorer._id,
-      token,
+      token: tokenHash,
       createdAt: Date.now(),
       expiresAt,
     });
 
+    // Return the plaintext token to the client (only time it's available)
     return {
       token,
       scorerId: scorer._id,
@@ -990,10 +974,7 @@ export const signOut = mutation({
   args: { token: v.string() },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const session = await ctx.db
-      .query("temporaryScorerSessions")
-      .withIndex("by_token", (q) => q.eq("token", args.token))
-      .first();
+    const session = await findSessionByToken(ctx, args.token);
 
     if (session) {
       await ctx.db.delete("temporaryScorerSessions", session._id);
@@ -1035,15 +1016,18 @@ export const cleanupExpiredRateLimits = internalMutation({
   returns: v.number(),
   handler: async (ctx) => {
     const now = Date.now();
-    // Clean up rate limits where both window and lockout have expired
-    const allRateLimits = await ctx.db.query("loginRateLimits").collect();
+    const expiredBefore = now - LOGIN_RATE_LIMIT.windowMs;
+
+    // Use index to only fetch records with expired windows (avoid full table scan)
+    const expiredRateLimits = await ctx.db
+      .query("loginRateLimits")
+      .withIndex("by_window_start", (q) => q.lt("windowStart", expiredBefore))
+      .collect();
 
     let deleted = 0;
-    for (const record of allRateLimits) {
-      const windowExpired = now > record.windowStart + LOGIN_RATE_LIMIT.windowMs;
+    for (const record of expiredRateLimits) {
       const lockoutExpired = !record.lockedUntil || now > record.lockedUntil;
-
-      if (windowExpired && lockoutExpired) {
+      if (lockoutExpired) {
         await ctx.db.delete("loginRateLimits", record._id);
         deleted++;
       }

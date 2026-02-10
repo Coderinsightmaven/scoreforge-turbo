@@ -6,6 +6,7 @@ import { api } from "./_generated/api";
 import { scoringLogAction, presetSports } from "./schema";
 import { errors } from "./lib/errors";
 import { getTournamentRole } from "./lib/accessControl";
+import { escapeCSV } from "./lib/csv";
 
 // ============================================
 // Internal Mutation - Logging Helper
@@ -210,16 +211,6 @@ export const hasScoringLogs = query({
 // ============================================
 // CSV Export Action
 // ============================================
-
-/**
- * Escape a value for CSV
- */
-function escapeCSV(value: string): string {
-  if (value.includes(",") || value.includes('"') || value.includes("\n")) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
-}
 
 /**
  * Format action details as a readable string

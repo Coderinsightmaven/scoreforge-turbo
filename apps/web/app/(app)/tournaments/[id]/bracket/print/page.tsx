@@ -53,7 +53,11 @@ export default function PrintBracketPage({
     }
   }, [tournament, bracket]);
 
-  if (tournament === undefined || brackets === undefined || (selectedBracketId && (bracket === undefined || bracketDetails === undefined))) {
+  if (
+    tournament === undefined ||
+    brackets === undefined ||
+    (selectedBracketId && (bracket === undefined || bracketDetails === undefined))
+  ) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -68,9 +72,7 @@ export default function PrintBracketPage({
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-text-primary mb-4">
-            Tournament Not Found
-          </h1>
+          <h1 className="text-2xl font-bold text-text-primary mb-4">Tournament Not Found</h1>
           <Link href="/tournaments" className="text-brand hover:underline">
             Back to Tournaments
           </Link>
@@ -83,16 +85,13 @@ export default function PrintBracketPage({
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-text-primary mb-4">
-            No Bracket Generated
-          </h1>
+          <h1 className="text-2xl font-bold text-text-primary mb-4">No Bracket Generated</h1>
           <p className="text-text-secondary mb-4">
-            {bracketDetails ? `"${bracketDetails.name}" does not have matches yet.` : "This tournament does not have a bracket yet."}
+            {bracketDetails
+              ? `"${bracketDetails.name}" does not have matches yet.`
+              : "This tournament does not have a bracket yet."}
           </p>
-          <Link
-            href={`/tournaments/${id}`}
-            className="text-brand hover:underline"
-          >
+          <Link href={`/tournaments/${id}`} className="text-brand hover:underline">
             Back to Tournament
           </Link>
         </div>
@@ -172,17 +171,14 @@ export default function PrintBracketPage({
       <div className="bracket-print-container p-8 print:p-0">
         {/* Header */}
         <div className="text-center mb-8 print:mb-6">
-          <h1 className="text-3xl font-bold text-black print:text-2xl">
-            {tournament.name}
-          </h1>
+          <h1 className="text-3xl font-bold text-black print:text-2xl">{tournament.name}</h1>
           {bracketDetails && (
             <h2 className="text-xl font-semibold text-gray-700 mt-1 print:text-lg">
               {bracketDetails.name}
             </h2>
           )}
           <p className="text-gray-600 mt-1 print:text-sm">
-            {formatLabels[bracket.format] || bracket.format} &bull;{" "}
-            {bracket.matches.length} matches
+            {formatLabels[bracket.format] || bracket.format} &bull; {bracket.matches.length} matches
           </p>
         </div>
 
@@ -190,10 +186,7 @@ export default function PrintBracketPage({
         <div className="overflow-x-auto print:overflow-visible">
           <div className="flex gap-6 min-w-max justify-center print:gap-3">
             {roundNumbers.map((round) => (
-              <div
-                key={round}
-                className="flex flex-col gap-3 min-w-[200px] print:min-w-[150px]"
-              >
+              <div key={round} className="flex flex-col gap-3 min-w-[200px] print:min-w-[150px]">
                 <div className="text-sm font-semibold text-gray-700 pb-2 border-b border-gray-300 text-center print:text-xs print:pb-1">
                   {getRoundName(round, roundNumbers.length)}
                 </div>
@@ -220,9 +213,7 @@ export default function PrintBracketPage({
                           ) : (
                             <span
                               className={`flex-1 text-sm truncate print:text-xs ${
-                                match.winnerId === match.participant1?._id
-                                  ? "font-semibold"
-                                  : ""
+                                match.winnerId === match.participant1?._id ? "font-semibold" : ""
                               }`}
                             >
                               {match.participant1.displayName}
@@ -245,9 +236,7 @@ export default function PrintBracketPage({
                           ) : (
                             <span
                               className={`flex-1 text-sm truncate print:text-xs ${
-                                match.winnerId === match.participant2?._id
-                                  ? "font-semibold"
-                                  : ""
+                                match.winnerId === match.participant2?._id ? "font-semibold" : ""
                               }`}
                             >
                               {match.participant2.displayName}

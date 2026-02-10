@@ -3,8 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Tournaments",
-  description:
-    "Browse and manage your tournaments on ScoreForge.",
+  description: "Browse and manage your tournaments on ScoreForge.",
 };
 
 export default function TournamentsRedirect() {

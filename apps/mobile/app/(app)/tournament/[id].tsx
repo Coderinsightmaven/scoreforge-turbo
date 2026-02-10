@@ -29,9 +29,10 @@ export default function TournamentDetailScreen() {
     status: statusFilter === "all" ? undefined : statusFilter,
   });
 
+  // Convex provides real-time updates; brief visual confirmation only
   const onRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 500);
+    setTimeout(() => setRefreshing(false), 300);
   };
 
   if (tournament === undefined || matches === undefined) {

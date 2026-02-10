@@ -12,13 +12,21 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Id } from "@repo/convex/dataModel";
-import { useRef } from "react";
+import { useRef, useCallback } from "react";
+import * as Haptics from "expo-haptics";
+import { useKeepAwake } from "expo-keep-awake";
 import { getDisplayMessage } from "../../../utils/errors";
 import { useTempScorer } from "../../../contexts/TempScorerContext";
+import { detectMatchPoint } from "../../../utils/matchPoint";
+import { OfflineBanner } from "../../../components/OfflineBanner";
+import { Scoreboard } from "../../../components/scoring/Scoreboard";
 
 const pointLabels = ["0", "15", "30", "40", "AD"];
 
 export default function ScorerTennisScoringScreen() {
+  // Keep the screen awake while actively scoring
+  useKeepAwake();
+
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { session } = useTempScorer();
@@ -45,6 +53,48 @@ export default function ScorerTennisScoringScreen() {
       useNativeDriver: true,
     }).start();
   };
+
+  const executeScorePoint = useCallback(
+    async (participant: number) => {
+      triggerFlash(participant === 1 ? flash1 : flash2);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      try {
+        await scorePoint({ matchId, winnerParticipant: participant, tempScorerToken });
+      } catch (err) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        Alert.alert("Error", getDisplayMessage(err));
+      }
+    },
+    [matchId, tempScorerToken, scorePoint, flash1, flash2]
+  );
+
+  const handleScorePoint = useCallback(
+    async (participant: number) => {
+      if (!match || match.status !== "live" || match.tennisState?.isMatchComplete) return;
+
+      // Check for match point - the scoring participant is the one who would win
+      const matchPointHolder = detectMatchPoint(match.tennisState);
+      if (matchPointHolder === participant) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        Alert.alert(
+          "Match Point",
+          `This point will complete the match. ${participant === 1 ? match.participant1?.displayName : match.participant2?.displayName} wins. Confirm?`,
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Confirm",
+              style: "default",
+              onPress: () => executeScorePoint(participant),
+            },
+          ]
+        );
+        return;
+      }
+
+      await executeScorePoint(participant);
+    },
+    [match, executeScorePoint]
+  );
 
   if (match === undefined) {
     return (
@@ -83,20 +133,12 @@ export default function ScorerTennisScoringScreen() {
     }
   };
 
-  const handleScorePoint = async (participant: number) => {
-    if (!isLive || isCompleted) return;
-    triggerFlash(participant === 1 ? flash1 : flash2);
-    try {
-      await scorePoint({ matchId, winnerParticipant: participant, tempScorerToken });
-    } catch (err) {
-      Alert.alert("Error", getDisplayMessage(err));
-    }
-  };
-
   const handleUndo = async () => {
     try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       await undoPoint({ matchId, tempScorerToken });
     } catch (err) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert("Error", getDisplayMessage(err));
     }
   };
@@ -227,65 +269,18 @@ export default function ScorerTennisScoringScreen() {
     ? (state?.tiebreakPoints?.[1] || 0).toString()
     : getPointDisplay(currentGamePoints[1], currentGamePoints[0], isAdScoring);
 
-  const Scoreboard = () => (
-    <View
-      className={`rounded-2xl border-2 border-dark-elevated bg-dark-bg p-6 ${isLandscape ? "w-72" : "w-80"}`}>
-      <View className="mb-3 flex-row items-center justify-center space-x-2">
-        {isLive && (
-          <View className="flex-row items-center rounded-lg border border-red-500/30 bg-red-500/20 px-3 py-1">
-            <View className="mr-1.5 h-2 w-2 rounded-full bg-red-500" />
-            <Text className="text-xs font-medium text-red-500">LIVE</Text>
-          </View>
-        )}
-        {isTiebreak && (
-          <View className="rounded-lg border border-brand/30 bg-brand/20 px-3 py-1">
-            <Text className="text-xs font-medium text-brand-glow">TIEBREAK</Text>
-          </View>
-        )}
-      </View>
-
-      {gameStatus && (
-        <View className="mb-3 items-center">
-          <Text className="text-sm font-medium text-brand-glow">{gameStatus}</Text>
-        </View>
-      )}
-
-      <View className="mb-4 flex-row items-center justify-center">
-        <View className="flex-1 items-center">
-          {servingParticipant === 1 && (
-            <View className="mb-1 h-2 w-2 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
-          )}
-          <Text className={`font-bold text-brand-glow ${isLandscape ? "text-5xl" : "text-6xl"}`}>
-            {p1Points}
-          </Text>
-        </View>
-
-        <View className="mx-4 items-center rounded-xl bg-dark-card px-4 py-2">
-          <Text className="text-xs text-slate-400">{isTiebreak ? "TB" : "GAME"}</Text>
-          <Text className="text-xl font-bold text-white">
-            {currentSetGames[0]} - {currentSetGames[1]}
-          </Text>
-        </View>
-
-        <View className="flex-1 items-center">
-          {servingParticipant === 2 && (
-            <View className="mb-1 h-2 w-2 rounded-full bg-green-500 shadow-lg shadow-green-500/50" />
-          )}
-          <Text className={`font-bold text-brand-glow ${isLandscape ? "text-5xl" : "text-6xl"}`}>
-            {p2Points}
-          </Text>
-        </View>
-      </View>
-
-      {sets.length > 0 && (
-        <View className="items-center">
-          <Text className="text-sm text-slate-400">
-            {sets.map((s) => `${s[0]}-${s[1]}`).join("   ")}
-          </Text>
-        </View>
-      )}
-    </View>
-  );
+  // Scoreboard props for the shared Scoreboard component
+  const scoreboardProps = {
+    isLive,
+    isTiebreak,
+    gameStatus,
+    p1Points,
+    p2Points,
+    currentSetGames,
+    sets,
+    servingParticipant,
+    isLandscape,
+  };
 
   if (isLandscape) {
     return (
@@ -331,7 +326,7 @@ export default function ScorerTennisScoringScreen() {
         </TouchableOpacity>
 
         <View className="absolute inset-0 items-center justify-center" pointerEvents="box-none">
-          <Scoreboard />
+          <Scoreboard {...scoreboardProps} />
           <TouchableOpacity
             className={`mt-4 flex-row items-center rounded-xl border-2 px-8 py-3.5 ${
               state?.history?.length
@@ -360,6 +355,7 @@ export default function ScorerTennisScoringScreen() {
 
   return (
     <View className="flex-1 bg-dark-bg">
+      <OfflineBanner />
       <TouchableOpacity
         className="flex-1 bg-dark-card"
         onPress={() => handleScorePoint(1)}
@@ -381,7 +377,7 @@ export default function ScorerTennisScoringScreen() {
       </TouchableOpacity>
 
       <View className="items-center bg-dark-bg py-4">
-        <Scoreboard />
+        <Scoreboard {...scoreboardProps} />
         <TouchableOpacity
           className={`mt-4 flex-row items-center rounded-xl border-2 px-8 py-3.5 ${
             state?.history?.length

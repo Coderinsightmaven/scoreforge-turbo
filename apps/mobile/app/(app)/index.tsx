@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { TournamentCard } from "../../components/tournaments/TournamentCard";
+import { OfflineBanner } from "../../components/OfflineBanner";
 
 export default function TournamentsScreen() {
   const user = useQuery(api.users.currentUser);
@@ -20,9 +21,10 @@ export default function TournamentsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
 
+  // Convex provides real-time updates; brief visual confirmation only
   const onRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 500);
+    setTimeout(() => setRefreshing(false), 300);
   };
 
   if (tournaments === undefined || user === undefined) {
@@ -36,6 +38,7 @@ export default function TournamentsScreen() {
   return (
     <View className="flex-1 bg-slate-50 dark:bg-slate-950">
       <SafeAreaView className="flex-1" edges={["top"]}>
+        <OfflineBanner />
         <View className="border-b border-slate-100 bg-white px-5 py-5 dark:border-slate-800 dark:bg-slate-900">
           <View className="flex-row items-start justify-between">
             <View className="flex-1 pr-4">

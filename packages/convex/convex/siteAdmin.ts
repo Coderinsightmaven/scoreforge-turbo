@@ -415,6 +415,29 @@ export const getRegistrationStatus = query({
 });
 
 /**
+ * Get maintenance mode status (public - no auth required)
+ * Used by the app shell to display a maintenance banner
+ */
+export const getMaintenanceStatus = query({
+  args: {},
+  returns: v.object({
+    maintenanceMode: v.boolean(),
+    maintenanceMessage: v.optional(v.string()),
+  }),
+  handler: async (ctx) => {
+    const settings = await ctx.db
+      .query("systemSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+
+    return {
+      maintenanceMode: settings?.maintenanceMode ?? false,
+      maintenanceMessage: settings?.maintenanceMessage ?? undefined,
+    };
+  },
+});
+
+/**
  * Grant site admin status to a user
  */
 export const grantSiteAdmin = mutation({
@@ -823,6 +846,20 @@ export const isUserScoringLogsEnabled = query({
   },
   returns: v.boolean(),
   handler: async (ctx, args) => {
+    // Require authentication; restrict to the user themselves or a site admin
+    const currentUserId = await getAuthUserId(ctx);
+    if (currentUserId === null) {
+      return false;
+    }
+
+    // Only the user themselves or a site admin can check this setting
+    if (currentUserId !== args.userId) {
+      const isAdmin = await isSiteAdmin(ctx, currentUserId);
+      if (!isAdmin) {
+        return false;
+      }
+    }
+
     const setting = await ctx.db
       .query("userScoringLogs")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))

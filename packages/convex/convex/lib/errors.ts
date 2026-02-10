@@ -12,6 +12,7 @@ export type ErrorCode =
   | "INVALID_STATE"
   | "CONFLICT"
   | "LIMIT_EXCEEDED"
+  | "MAINTENANCE"
   | "INTERNAL_ERROR";
 
 /**
@@ -47,6 +48,13 @@ export const errors = {
 
   /** Rate limit or resource limit exceeded */
   limitExceeded: (message: string) => appError("LIMIT_EXCEEDED", message),
+
+  /** System is in maintenance mode */
+  maintenance: (message?: string) =>
+    appError(
+      "MAINTENANCE",
+      message || "System is currently under maintenance. Please try again later."
+    ),
 
   /** Internal error (use sparingly) */
   internal: (message: string) => appError("INTERNAL_ERROR", message),

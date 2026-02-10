@@ -1,4 +1,4 @@
-import { query, mutation, internalMutation } from "./_generated/server";
+import { query, mutation, internalMutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import {
   matchStatus,
@@ -167,6 +167,35 @@ export const _trackApiUsage = internalMutation({
   },
 });
 
+/**
+ * Internal query to get rate limit info for HTTP response headers.
+ * Called by httpApi after successful mutations to populate X-RateLimit-* headers.
+ */
+export const _getRateLimitInfo = internalQuery({
+  args: {
+    apiKey: v.string(),
+  },
+  returns: v.union(
+    v.object({
+      limit: v.number(),
+      remaining: v.number(),
+      reset: v.number(),
+    }),
+    v.null()
+  ),
+  handler: async (ctx, args) => {
+    const keyValidation = await validateApiKey(ctx, args.apiKey);
+    if (!keyValidation) return null;
+
+    const rateLimit = await checkRateLimit(ctx, keyValidation.keyId);
+    return {
+      limit: MAX_REQUESTS_PER_WINDOW,
+      remaining: rateLimit.remaining,
+      reset: Math.ceil(rateLimit.resetAt / 1000),
+    };
+  },
+});
+
 // ============================================
 // Public API Queries (for real-time subscriptions)
 // ============================================
@@ -202,10 +231,8 @@ export const watchMatch = query({
     }
 
     // Parse match ID
-    let matchId: Id<"matches">;
-    try {
-      matchId = args.matchId as Id<"matches">;
-    } catch {
+    const matchId = ctx.db.normalizeId("matches", args.matchId);
+    if (!matchId) {
       return { error: "Invalid match ID format" };
     }
 
@@ -341,10 +368,8 @@ export const getMatch = mutation({
     await trackApiUsage(ctx, keyValidation.keyId);
 
     // Parse match ID
-    let matchId: Id<"matches">;
-    try {
-      matchId = args.matchId as Id<"matches">;
-    } catch {
+    const matchId = ctx.db.normalizeId("matches", args.matchId);
+    if (!matchId) {
       return { error: "Invalid match ID format" };
     }
 
@@ -481,10 +506,8 @@ export const listMatches = mutation({
     await trackApiUsage(ctx, keyValidation.keyId);
 
     // Parse tournament ID
-    let tournamentId: Id<"tournaments">;
-    try {
-      tournamentId = args.tournamentId as Id<"tournaments">;
-    } catch {
+    const tournamentId = ctx.db.normalizeId("tournaments", args.tournamentId);
+    if (!tournamentId) {
       return { error: "Invalid tournament ID format" };
     }
 
@@ -501,7 +524,9 @@ export const listMatches = mutation({
 
     // Query matches with appropriate filters
     let matches;
-    const bracketId = args.bracketId ? (args.bracketId as Id<"tournamentBrackets">) : undefined;
+    const bracketId = args.bracketId
+      ? (ctx.db.normalizeId("tournamentBrackets", args.bracketId) ?? undefined)
+      : undefined;
 
     if (bracketId !== undefined) {
       // Filter by specific bracket
@@ -801,10 +826,8 @@ export const listBrackets = mutation({
     await trackApiUsage(ctx, keyValidation.keyId);
 
     // Parse tournament ID
-    let tournamentId: Id<"tournaments">;
-    try {
-      tournamentId = args.tournamentId as Id<"tournaments">;
-    } catch {
+    const tournamentId = ctx.db.normalizeId("tournaments", args.tournamentId);
+    if (!tournamentId) {
       return { error: "Invalid tournament ID format" };
     }
 

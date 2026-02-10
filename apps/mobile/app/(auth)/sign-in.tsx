@@ -1,5 +1,5 @@
 import { useAuthActions } from "@convex-dev/auth/react";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "@repo/convex";
 import { useState } from "react";
 import { useRouter } from "expo-router";
@@ -38,11 +38,26 @@ export default function SignInScreen() {
   const [loading, setLoading] = useState(false);
 
   const signInTempScorer = useMutation(api.temporaryScorers.signIn);
+  const lookupTournamentByCode = useMutation(api.temporaryScorers.getTournamentByCode);
 
-  const tournamentInfo = useQuery(
-    api.temporaryScorers.getTournamentByCode,
-    tournamentCode.length === 6 ? { code: tournamentCode } : "skip"
-  );
+  const [tournamentInfo, setTournamentInfo] = useState<{
+    _id: string;
+    name: string;
+    sport: string;
+  } | null>(null);
+  const handleCodeChange = async (code: string) => {
+    setTournamentCode(code);
+    if (code.length === 6) {
+      try {
+        const result = await lookupTournamentByCode({ code });
+        setTournamentInfo(result);
+      } catch {
+        setTournamentInfo(null);
+      }
+    } else {
+      setTournamentInfo(null);
+    }
+  };
 
   const handleRegularSubmit = async () => {
     if (!email || !password) {
@@ -299,7 +314,7 @@ export default function SignInScreen() {
                         placeholder="ABC123"
                         placeholderTextColor="#94A3B8"
                         value={tournamentCode}
-                        onChangeText={(text) => setTournamentCode(text.toUpperCase().slice(0, 6))}
+                        onChangeText={(text) => handleCodeChange(text.toUpperCase().slice(0, 6))}
                         autoCapitalize="characters"
                         maxLength={6}
                       />

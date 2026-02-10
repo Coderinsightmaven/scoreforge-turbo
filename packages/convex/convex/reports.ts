@@ -5,6 +5,7 @@ import type { Doc } from "./_generated/dataModel";
 import { api } from "./_generated/api";
 import { errors } from "./lib/errors";
 import { getTournamentRole } from "./lib/accessControl";
+import { escapeCSV } from "./lib/csv";
 
 // ============================================
 // Types
@@ -194,16 +195,6 @@ export const hasCompletedTennisMatches = query({
 // ============================================
 // Actions
 // ============================================
-
-/**
- * Escape a value for CSV
- */
-function escapeCSV(value: string): string {
-  if (value.includes(",") || value.includes('"') || value.includes("\n")) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
-}
 
 /**
  * Match score type for the CSV generation

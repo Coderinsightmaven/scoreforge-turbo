@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "ScoreForge",
+    "slug": "scoreforge",
     "version": "1.0.0",
     "web": {
       "favicon": "./assets/favicon.png"

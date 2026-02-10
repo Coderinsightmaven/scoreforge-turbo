@@ -11,6 +11,7 @@ import {
 } from "./schema";
 import { errors } from "./lib/errors";
 import { canManageTournament, canViewTournament } from "./lib/accessControl";
+import { assertNotInMaintenance } from "./lib/maintenance";
 import { generateBracketMatches } from "./tournaments";
 
 // ============================================
@@ -349,6 +350,7 @@ export const createBracket = mutation({
     if (!userId) {
       throw errors.unauthenticated();
     }
+    await assertNotInMaintenance(ctx, userId);
 
     const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {

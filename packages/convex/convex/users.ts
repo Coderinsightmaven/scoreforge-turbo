@@ -227,12 +227,18 @@ export const deleteAccount = mutation({
       await ctx.db.delete("tournamentScorers", assignment._id);
     }
 
-    // 5. Delete site admin record if exists
+    // 5. Delete site admin record if exists (guard against removing last admin)
     const siteAdminRecord = await ctx.db
       .query("siteAdmins")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .first();
     if (siteAdminRecord) {
+      const allAdmins = await ctx.db.query("siteAdmins").collect();
+      if (allAdmins.length <= 1) {
+        throw new Error(
+          "Cannot delete the last site admin account. Transfer admin privileges to another user first."
+        );
+      }
       await ctx.db.delete("siteAdmins", siteAdminRecord._id);
     }
 
@@ -286,6 +292,22 @@ export const deleteAccount = mutation({
         .collect();
       for (const scorer of tournamentScorers) {
         await ctx.db.delete("tournamentScorers", scorer._id);
+      }
+
+      // Delete temporary scorers and their sessions for this tournament
+      const tempScorers = await ctx.db
+        .query("temporaryScorers")
+        .withIndex("by_tournament", (q) => q.eq("tournamentId", tournament._id))
+        .collect();
+      for (const tempScorer of tempScorers) {
+        const tempSessions = await ctx.db
+          .query("temporaryScorerSessions")
+          .withIndex("by_scorer", (q) => q.eq("scorerId", tempScorer._id))
+          .collect();
+        for (const tempSession of tempSessions) {
+          await ctx.db.delete("temporaryScorerSessions", tempSession._id);
+        }
+        await ctx.db.delete("temporaryScorers", tempScorer._id);
       }
 
       // Delete the tournament

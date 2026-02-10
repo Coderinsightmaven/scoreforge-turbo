@@ -40,13 +40,11 @@ export function ThemeSyncProvider({ children }: { children: React.ReactNode }): 
     lastSyncedTheme.current = theme;
 
     const validThemes = ["light", "dark", "system"] as const;
-    if (validThemes.includes(theme as typeof validThemes[number])) {
-      setThemeMutation({ theme: theme as "light" | "dark" | "system" }).catch(
-        (error) => {
-          // User might not be authenticated
-          console.warn("Failed to save theme preference:", error);
-        }
-      );
+    if (validThemes.includes(theme as (typeof validThemes)[number])) {
+      setThemeMutation({ theme: theme as "light" | "dark" | "system" }).catch((error) => {
+        // User might not be authenticated
+        console.warn("Failed to save theme preference:", error);
+      });
     }
   }, [theme, setThemeMutation]);
 

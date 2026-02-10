@@ -6,6 +6,7 @@ import type { Doc } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 import { errors } from "./lib/errors";
 import { canScoreTournament, getTournamentRole } from "./lib/accessControl";
+import { assertNotInMaintenance } from "./lib/maintenance";
 import {
   type TennisState,
   addToHistory,
@@ -55,6 +56,75 @@ async function updateParticipantStats(
         pointsFor: p2.pointsFor + p2Sets,
         pointsAgainst: p2.pointsAgainst + p1Sets,
       });
+    }
+  }
+}
+
+/**
+ * Reverse participant stats when undoing a match completion.
+ * Decrements the wins/losses and pointsFor/pointsAgainst that were added when the match was completed.
+ */
+async function reverseParticipantStats(ctx: MutationCtx, match: Doc<"matches">) {
+  if (!match.winnerId) return;
+
+  const matchWinner = match.winnerId === match.participant1Id ? 1 : 2;
+  const { p1Sets, p2Sets } = countSetsWon(match.tennisState?.sets ?? []);
+
+  if (match.participant1Id) {
+    const p1 = await ctx.db.get("tournamentParticipants", match.participant1Id);
+    if (p1) {
+      await ctx.db.patch("tournamentParticipants", match.participant1Id, {
+        wins: Math.max(0, p1.wins - (matchWinner === 1 ? 1 : 0)),
+        losses: Math.max(0, p1.losses - (matchWinner === 2 ? 1 : 0)),
+        pointsFor: Math.max(0, p1.pointsFor - p1Sets),
+        pointsAgainst: Math.max(0, p1.pointsAgainst - p2Sets),
+      });
+    }
+  }
+  if (match.participant2Id) {
+    const p2 = await ctx.db.get("tournamentParticipants", match.participant2Id);
+    if (p2) {
+      await ctx.db.patch("tournamentParticipants", match.participant2Id, {
+        wins: Math.max(0, p2.wins - (matchWinner === 2 ? 1 : 0)),
+        losses: Math.max(0, p2.losses - (matchWinner === 1 ? 1 : 0)),
+        pointsFor: Math.max(0, p2.pointsFor - p2Sets),
+        pointsAgainst: Math.max(0, p2.pointsAgainst - p1Sets),
+      });
+    }
+  }
+}
+
+/**
+ * Reverse bracket advancement when undoing a match completion.
+ * Removes the winner/loser from the next match slots they were advanced to.
+ */
+async function reverseBracketAdvancement(ctx: MutationCtx, match: Doc<"matches">) {
+  const winnerId = match.winnerId;
+  const loserId = match.participant1Id === winnerId ? match.participant2Id : match.participant1Id;
+
+  // Remove winner from next match
+  if (winnerId && match.nextMatchId) {
+    const nextMatch = await ctx.db.get("matches", match.nextMatchId);
+    if (nextMatch) {
+      const slot = match.nextMatchSlot;
+      if (slot === 1 && nextMatch.participant1Id === winnerId) {
+        await ctx.db.patch("matches", match.nextMatchId, { participant1Id: undefined });
+      } else if (slot === 2 && nextMatch.participant2Id === winnerId) {
+        await ctx.db.patch("matches", match.nextMatchId, { participant2Id: undefined });
+      }
+    }
+  }
+
+  // Remove loser from loser bracket match (double elimination)
+  if (loserId && match.loserNextMatchId) {
+    const loserNextMatch = await ctx.db.get("matches", match.loserNextMatchId);
+    if (loserNextMatch) {
+      const loserSlot = match.loserNextMatchSlot;
+      if (loserSlot === 1 && loserNextMatch.participant1Id === loserId) {
+        await ctx.db.patch("matches", match.loserNextMatchId, { participant1Id: undefined });
+      } else if (loserSlot === 2 && loserNextMatch.participant2Id === loserId) {
+        await ctx.db.patch("matches", match.loserNextMatchId, { participant2Id: undefined });
+      }
     }
   }
 }
@@ -212,6 +282,7 @@ export const initTennisMatch = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
+    await assertNotInMaintenance(ctx, userId);
 
     const match = await ctx.db.get("matches", args.matchId);
     if (!match) {
@@ -324,6 +395,7 @@ export const scoreTennisPoint = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
+    await assertNotInMaintenance(ctx, userId);
 
     const match = await ctx.db.get("matches", args.matchId);
     if (!match) {
@@ -555,7 +627,13 @@ export const scoreTennisPoint = mutation({
 });
 
 /**
- * Undo the last point scored
+ * Undo the last point scored.
+ * If the match was completed by the last point, this also:
+ * - Reverts match status from "completed" to "live"
+ * - Clears winnerId and completedAt
+ * - Reverses participant stats (wins/losses/pointsFor/pointsAgainst)
+ * - Removes the winner/loser from the next bracket match slots
+ * - Reverts tournament status if it was auto-completed
  */
 export const undoTennisPoint = mutation({
   args: {
@@ -580,6 +658,11 @@ export const undoTennisPoint = mutation({
     const hasAccess = await canScoreTournament(ctx, tournament, userId, args.tempScorerToken);
     if (!hasAccess) {
       throw errors.unauthorized();
+    }
+
+    // Allow undo on both "live" and "completed" matches (to undo the match-ending point)
+    if (match.status !== "live" && match.status !== "completed") {
+      throw errors.invalidState("Match must be live or completed to undo a point");
     }
 
     if (!match.tennisState) {
@@ -613,11 +696,40 @@ export const undoTennisPoint = mutation({
     const p1Sets = restoredState.sets.filter((s) => (s[0] ?? 0) > (s[1] ?? 0)).length;
     const p2Sets = restoredState.sets.filter((s) => (s[1] ?? 0) > (s[0] ?? 0)).length;
 
-    await ctx.db.patch("matches", args.matchId, {
-      tennisState: restoredState,
-      participant1Score: p1Sets,
-      participant2Score: p2Sets,
-    });
+    // Determine if we're undoing a match completion
+    const isUndoingCompletion = match.status === "completed" && !previousSnapshot.isMatchComplete;
+
+    if (isUndoingCompletion) {
+      // Revert match status, winnerId, and completedAt
+      await ctx.db.patch("matches", args.matchId, {
+        tennisState: restoredState,
+        participant1Score: p1Sets,
+        participant2Score: p2Sets,
+        status: "live",
+        winnerId: undefined,
+        completedAt: undefined,
+      });
+
+      // Reverse participant stats
+      await reverseParticipantStats(ctx, match);
+
+      // Reverse bracket advancement (remove participants from next match slots)
+      await reverseBracketAdvancement(ctx, match);
+
+      // If tournament was auto-completed, revert it back to active
+      if (tournament.status === "completed") {
+        await ctx.db.patch("tournaments", match.tournamentId, {
+          status: "active",
+          endDate: undefined,
+        });
+      }
+    } else {
+      await ctx.db.patch("matches", args.matchId, {
+        tennisState: restoredState,
+        participant1Score: p1Sets,
+        participant2Score: p2Sets,
+      });
+    }
 
     // Check if scoring logs are enabled for this user
     const userScoringLogs = await ctx.db

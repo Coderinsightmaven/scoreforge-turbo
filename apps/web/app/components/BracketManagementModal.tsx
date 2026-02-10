@@ -6,7 +6,19 @@ import { api } from "@repo/convex";
 import { Id } from "@repo/convex/dataModel";
 import { toast } from "sonner";
 import { ConfirmDialog } from "./ConfirmDialog";
-import { FORMAT_LABELS, PARTICIPANT_TYPE_LABELS, type TournamentFormat, type ParticipantType } from "@/app/lib/constants";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  FORMAT_LABELS,
+  PARTICIPANT_TYPE_LABELS,
+  type TournamentFormat,
+  type ParticipantType,
+} from "@/app/lib/constants";
 
 type BracketManagementModalProps = {
   tournamentId: string;
@@ -20,7 +32,9 @@ export function BracketManagementModal({
   const [isCreating, setIsCreating] = useState(false);
   const [newBracketName, setNewBracketName] = useState("");
   const [newBracketFormat, setNewBracketFormat] = useState<TournamentFormat | "">("");
-  const [newBracketParticipantType, setNewBracketParticipantType] = useState<ParticipantType | "">("");
+  const [newBracketParticipantType, setNewBracketParticipantType] = useState<ParticipantType | "">(
+    ""
+  );
   const [newBracketMaxParticipants, setNewBracketMaxParticipants] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -47,7 +61,9 @@ export function BracketManagementModal({
         name: newBracketName.trim(),
         format: newBracketFormat || undefined,
         participantType: newBracketParticipantType || undefined,
-        maxParticipants: newBracketMaxParticipants ? parseInt(newBracketMaxParticipants, 10) : undefined,
+        maxParticipants: newBracketMaxParticipants
+          ? parseInt(newBracketMaxParticipants, 10)
+          : undefined,
       });
       setNewBracketName("");
       setNewBracketFormat("");
@@ -107,20 +123,15 @@ export function BracketManagementModal({
   const participantTypeLabels = PARTICIPANT_TYPE_LABELS;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-card border border-border rounded-xl shadow-xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+    <Dialog open onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent
+        showCloseButton
+        className="max-w-lg max-h-[80vh] overflow-hidden flex flex-col gap-0 p-0"
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border">
-          <h2 className="text-xl font-semibold">Manage Brackets</h2>
-          <button
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+        <DialogHeader className="p-6 pb-4 border-b border-border">
+          <DialogTitle className="text-xl">Manage Brackets</DialogTitle>
+        </DialogHeader>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
@@ -151,7 +162,13 @@ export function BracketManagementModal({
                       disabled={index === 0}
                       className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
                       </svg>
                     </button>
@@ -160,7 +177,13 @@ export function BracketManagementModal({
                       disabled={index === brackets.length - 1}
                       className="p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
@@ -170,7 +193,10 @@ export function BracketManagementModal({
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{bracket.name}</div>
                     <div className="text-xs text-muted-foreground">
-                      {bracket.participantCount}{bracket.maxParticipants ? ` / ${bracket.maxParticipants}` : ""} participants, {bracket.matchCount} matches
+                      {bracket.participantCount}
+                      {bracket.maxParticipants
+                        ? ` / ${bracket.maxParticipants}`
+                        : ""} participants, {bracket.matchCount} matches
                       {bracket.format && (
                         <span className="ml-1">
                           - {formatLabels[bracket.format as TournamentFormat]}
@@ -193,17 +219,30 @@ export function BracketManagementModal({
                   </span>
 
                   {/* Delete button - only show if more than one bracket and conditions are met */}
-                  {brackets.length > 1 && bracket.status === "draft" && bracket.participantCount === 0 && bracket.matchCount === 0 && (
-                    <button
-                      onClick={() => handleDeleteBracket(bracket._id)}
-                      className="p-1.5 text-muted-foreground hover:text-error opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Delete bracket"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  )}
+                  {brackets.length > 1 &&
+                    bracket.status === "draft" &&
+                    bracket.participantCount === 0 &&
+                    bracket.matchCount === 0 && (
+                      <button
+                        onClick={() => handleDeleteBracket(bracket._id)}
+                        className="p-1.5 text-muted-foreground hover:text-error opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Delete bracket"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
+                    )}
                 </div>
               ))}
             </div>
@@ -246,11 +285,14 @@ export function BracketManagementModal({
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Participant Type <span className="text-muted-foreground">(optional override)</span>
+                    Participant Type{" "}
+                    <span className="text-muted-foreground">(optional override)</span>
                   </label>
                   <select
                     value={newBracketParticipantType}
-                    onChange={(e) => setNewBracketParticipantType(e.target.value as ParticipantType | "")}
+                    onChange={(e) =>
+                      setNewBracketParticipantType(e.target.value as ParticipantType | "")
+                    }
                     className="w-full px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:border-brand"
                   >
                     <option value="">Use tournament default</option>
@@ -305,7 +347,13 @@ export function BracketManagementModal({
               onClick={() => setIsCreating(true)}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-border rounded-lg text-muted-foreground hover:text-brand hover:border-brand transition-colors"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
               Add Bracket
@@ -314,15 +362,15 @@ export function BracketManagementModal({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-border">
+        <DialogFooter className="p-6 pt-4 border-t border-border">
           <button
             onClick={onClose}
             className="w-full px-4 py-2 bg-secondary border border-border rounded-lg font-medium hover:bg-card transition-colors"
           >
             Done
           </button>
-        </div>
-      </div>
+        </DialogFooter>
+      </DialogContent>
       <ConfirmDialog
         open={confirmDelete !== null}
         onConfirm={executeDeleteBracket}
@@ -332,6 +380,6 @@ export function BracketManagementModal({
         confirmLabel="Delete"
         variant="danger"
       />
-    </div>
+    </Dialog>
   );
 }

@@ -26,6 +26,7 @@ bun run dev --filter=@repo/convex
 ```
 
 ### Convex Commands (from packages/convex)
+
 ```bash
 bun run dev          # Start Convex dev server
 bun run logs         # View Convex logs
@@ -34,6 +35,7 @@ npx convex deploy    # Deploy to production
 ```
 
 ### Mobile App Commands (from apps/mobile)
+
 ```bash
 bun run dev          # Start Expo dev server
 bun run ios          # Run on iOS simulator
@@ -41,6 +43,7 @@ bun run android      # Run on Android emulator
 ```
 
 ### Display App Commands (from apps/display)
+
 ```bash
 bun run dev          # Start with cargo watch (auto-reload)
 bun run build        # Build release binary (cargo build --release)
@@ -51,27 +54,33 @@ bun run build        # Build release binary (cargo build --release)
 **Turborepo monorepo** using **Bun** (v1.3.2) as the package manager.
 
 ### Apps
+
 - `apps/web` - Next.js 16 web app (React 19, port 3000)
 - `apps/mobile` - Expo/React Native app (Expo 54, React Native 0.81)
 - `apps/display` - Pure Rust scoreboard designer/display app (eframe/egui, Convex Rust SDK)
 
 ### Packages
+
 - `packages/convex` - Convex serverless backend (database, functions, real-time)
 - `packages/eslint-config` - Shared ESLint configs (`base`, `next-js`, `react-internal`)
 - `packages/typescript-config` - Shared TypeScript configs (`base.json`, `nextjs.json`, `react-library.json`)
 
 ### Package Imports
+
 - Convex functions: `import { api } from "@repo/convex"` → use as `api.filename.functionName`
 - Internal functions: `import { internal } from "@repo/convex"` → use as `internal.filename.functionName`
 
 ### Code Style
+
 - Prettier: double quotes, semicolons, 2-space tabs, trailing commas (es5), 100 char print width
 - ESLint v9 flat config throughout — web uses `@repo/eslint-config/next-js`, Convex has its own config with `@convex-dev/eslint-plugin`
 
 ## Convex Patterns
 
 ### Function Syntax
+
 Always use object syntax with validators including `returns`:
+
 ```typescript
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
@@ -86,12 +95,14 @@ export const myFunction = query({
 ```
 
 ### Public vs Internal Functions
+
 - `query`, `mutation`, `action` - Public API, exposed to clients
 - `internalQuery`, `internalMutation`, `internalAction` - Only callable by other Convex functions
 - Reference: `api.file.func` (public), `internal.file.func` (internal)
 - You CANNOT register a function through the `api` or `internal` objects
 
 ### Function Calling
+
 - Use `ctx.runQuery` to call a query from a query, mutation, or action
 - Use `ctx.runMutation` to call a mutation from a mutation or action
 - Use `ctx.runAction` to call an action from an action
@@ -100,10 +111,12 @@ export const myFunction = query({
 - When calling same-file functions, add a type annotation on the return value to avoid TypeScript circularity
 
 ### Actions
+
 - Add `"use node";` at the top of files with actions that use Node.js built-in modules
 - Actions do NOT have `ctx.db` access — use `ctx.runQuery`/`ctx.runMutation` instead
 
 ### Database Queries
+
 - **Never use `.filter()`** — use `.withIndex()` with a defined index
 - Define indexes in `convex/schema.ts`; include all fields in the name (e.g., `by_tournament_and_user`)
 - Use `.collect()` for arrays, `.first()` for single results, `.unique()` for exactly one result
@@ -111,12 +124,14 @@ export const myFunction = query({
 - Default ordering is ascending `_creationTime`; use `.order("desc")` to reverse
 
 ### Validators
+
 - Always include `returns` validator (use `v.null()` for void; implicit `undefined` returns become `null`)
 - Use `v.id("tableName")` for document IDs, not `v.string()`
 - Use `v.int64()` instead of deprecated `v.bigint()`
 - `v.map()` and `v.set()` are not supported; use `v.record(keys, values)` for dynamic keys
 
 ### Pagination
+
 ```typescript
 import { paginationOptsValidator } from "convex/server";
 // args: { paginationOpts: paginationOptsValidator }
@@ -124,11 +139,13 @@ import { paginationOptsValidator } from "convex/server";
 ```
 
 ### Crons
+
 - Only use `crons.interval()` or `crons.cron()` — do NOT use `crons.hourly/daily/weekly` helpers
 - Both take a `FunctionReference`, not a direct function
 - Existing cron: hourly cleanup of expired temporary scorer sessions and rate limits
 
 ### Authentication
+
 - Uses `@convex-dev/auth` with Password provider
 - Get user: `const userId = await getAuthUserId(ctx);`
 - Tournaments are owned by `createdBy` user; scorers can be assigned via `tournamentScorers` table
@@ -136,6 +153,7 @@ import { paginationOptsValidator } from "convex/server";
 ## Data Model
 
 ### Enums
+
 - **Tournament formats**: `single_elimination`, `double_elimination`, `round_robin`
 - **Tournament status**: `draft`, `active`, `completed`, `cancelled`
 - **Match status**: `pending`, `scheduled`, `live`, `completed`, `bye`
@@ -144,6 +162,7 @@ import { paginationOptsValidator } from "convex/server";
 - **Sports**: `tennis` (only one currently)
 
 ### Core Tables
+
 - `tournaments` — Competitions owned by `createdBy` user, with format, sport, tennisConfig, courts, scorerCode
 - `tournamentBrackets` — Categories within a tournament (e.g., "Men's Singles") with optional format/config overrides
 - `tournamentScorers` — Users assigned to score matches (not the owner)
@@ -157,9 +176,11 @@ import { paginationOptsValidator } from "convex/server";
 - `systemSettings` — Single document (key="global") for tournament limits, maintenance mode
 
 ### Tennis State
+
 `tennisState` on matches tracks: sets, currentSetGames, currentGamePoints, servingParticipant, isTiebreak, tiebreakPoints, isAdScoring, setsToWin, isMatchComplete, and `history` array (last 10 snapshots for undo).
 
 ### Access Control
+
 - Tournament owner (`createdBy`) has full control
 - Scorers (via `tournamentScorers`) can score matches but not manage tournament
 - Temporary scorers authenticate via tournament's `scorerCode` + their PIN
@@ -168,6 +189,7 @@ import { paginationOptsValidator } from "convex/server";
 ## Public API
 
 HTTP endpoints defined in `convex/http.ts`, handlers in `convex/publicApi.ts`:
+
 - `GET /api/public/match` — Single match by ID
 - `GET /api/public/matches` — List matches (filterable by status, round, court, bracketId)
 - `GET /api/public/tournaments` — List tournaments
@@ -177,20 +199,24 @@ HTTP endpoints defined in `convex/http.ts`, handlers in `convex/publicApi.ts`:
 ## Reports
 
 CSV export via `convex/reports.ts`:
+
 - `getTournamentMatchScores` — Query completed tennis matches with set scores
 - `generateMatchScoresCSV` — Action to generate downloadable CSV
 
 ## Web App Patterns
 
 ### Route Groups
+
 - `(app)` — Authenticated routes with Navigation layout
 - `(auth)` — Sign-in/sign-up flows
 - Components in `apps/web/app/components/`
 
 ### Special Routes
+
 - `/brackets/quick` — Standalone printable bracket generator (client-side only, no database)
 
 ### Convex Client Usage
+
 ```tsx
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
 const data = useQuery(api.file.query, { arg: value });
@@ -198,6 +224,7 @@ const mutate = useMutation(api.file.mutation);
 ```
 
 ### Theme
+
 - `next-themes` with `ThemeSyncProvider` syncing preference to Convex `userPreferences`
 - Dark theme CSS variables in `globals.css` under `:root.dark`
 - Theme toggle cycles: system → light → dark
@@ -214,11 +241,13 @@ const mutate = useMutation(api.file.mutation);
 ## Display App (Rust)
 
 ### Architecture
+
 - **Pure Rust** app using eframe/egui for UI — no JS/TS frontend
 - **Convex Rust SDK** for real-time data (direct connection, not HTTP polling)
 - Structure: `src/` → `main.rs`, `app.rs`, `state.rs` + `components/`, `data/`, `designer/`, `display/`, `storage/`
 - Key deps: `eframe` 0.33, `convex` 0.10, `tokio`, `serde_json`, `zip`, `wgpu`
 
 ### Key Features
+
 - Scoreboard designer and multi-monitor display
 - Image/video asset management with zip-based export/import

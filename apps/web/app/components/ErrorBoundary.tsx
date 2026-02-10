@@ -12,10 +12,7 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-export class ErrorBoundary extends React.Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -50,9 +47,7 @@ export class ErrorBoundary extends React.Component<
                 />
               </svg>
             </div>
-            <h2 className="text-heading text-foreground mb-2">
-              Something went wrong
-            </h2>
+            <h2 className="text-heading text-foreground mb-2">Something went wrong</h2>
             <p className="text-body text-muted-foreground mb-6">
               An unexpected error occurred. Please try again.
             </p>

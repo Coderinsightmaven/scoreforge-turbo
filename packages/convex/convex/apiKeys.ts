@@ -3,35 +3,9 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { errors } from "./lib/errors";
 import { validateStringLength, MAX_LENGTHS } from "./lib/validation";
+import { randomString } from "./lib/crypto";
 
 const API_KEY_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-function randomInt(maxExclusive: number): number {
-  if (maxExclusive <= 0 || maxExclusive > 0x100000000) {
-    throw new Error("maxExclusive must be between 1 and 2^32");
-  }
-
-  const range = 0x100000000;
-  const limit = Math.floor(range / maxExclusive) * maxExclusive;
-  const buffer = new Uint32Array(1);
-
-  while (true) {
-    crypto.getRandomValues(buffer);
-    const value = buffer[0]!;
-    if (value < limit) {
-      return value % maxExclusive;
-    }
-  }
-}
-
-function randomString(length: number, alphabet: string): string {
-  let result = "";
-  for (let i = 0; i < length; i++) {
-    const idx = randomInt(alphabet.length);
-    result += alphabet.charAt(idx);
-  }
-  return result;
-}
 
 /**
  * Generate a cryptographically random API key
@@ -137,6 +111,16 @@ export const generateApiKey = mutation({
     // Validate input length
     validateStringLength(args.name, "API key name", MAX_LENGTHS.apiKeyName);
 
+    // Enforce per-user API key limit
+    const existingKeys = await ctx.db
+      .query("apiKeys")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+    const activeKeys = existingKeys.filter((k) => k.isActive);
+    if (activeKeys.length >= 10) {
+      throw new Error("Maximum of 10 active API keys per user. Revoke or delete an existing key.");
+    }
+
     // Generate the key
     const { fullKey, prefix } = generateKey();
     const hashedKey = await hashKey(fullKey);
@@ -186,6 +170,53 @@ export const revokeApiKey = mutation({
     });
 
     return null;
+  },
+});
+
+/**
+ * Rotate an API key — generates a new key value for an existing key record.
+ * The old key is immediately invalidated. Returns the new full key (shown once).
+ */
+export const rotateApiKey = mutation({
+  args: { keyId: v.id("apiKeys") },
+  returns: v.object({
+    fullKey: v.string(),
+    keyPrefix: v.string(),
+  }),
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw errors.unauthenticated();
+    }
+
+    const apiKey = await ctx.db.get("apiKeys", args.keyId);
+    if (!apiKey) {
+      throw errors.notFound("API key");
+    }
+
+    if (apiKey.userId !== userId) {
+      throw errors.unauthorized("You can only rotate your own API keys");
+    }
+
+    if (!apiKey.isActive) {
+      throw new Error("Cannot rotate a revoked API key");
+    }
+
+    // Generate new key material
+    const { fullKey, prefix } = generateKey();
+    const hashedKey = await hashKey(fullKey);
+
+    // Update existing record with new key, preserving name and metadata
+    await ctx.db.patch("apiKeys", args.keyId, {
+      key: hashedKey,
+      keyPrefix: prefix,
+      lastUsedAt: undefined,
+    });
+
+    return {
+      fullKey,
+      keyPrefix: prefix,
+    };
   },
 });
 

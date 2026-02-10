@@ -98,9 +98,7 @@ export function BracketSelector({
   const statusIndicator = (status: Bracket["status"]) => {
     switch (status) {
       case "active":
-        return (
-          <span className="w-2 h-2 bg-success rounded-full animate-pulse" />
-        );
+        return <span className="w-2 h-2 bg-success rounded-full animate-pulse" />;
       case "completed":
         return <span className="w-2 h-2 bg-gold rounded-full" />;
       default:
@@ -116,92 +114,98 @@ export function BracketSelector({
   return (
     <div className="bg-bg-secondary border-b border-border">
       <div className="flex items-center gap-3 px-6 py-3 max-w-[var(--content-max)] mx-auto">
-      {/* Dropdown */}
-      <div className="relative" ref={dropdownRef}>
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-bg-card border border-border rounded-lg hover:border-text-muted transition-all min-w-[200px]"
-        >
-          <div className="flex items-center gap-2 flex-1">
-            {selectedBracket && (
-              <>
-                {statusIndicator(selectedBracket.status)}
-                <span className="text-sm font-medium text-text-primary">
-                  {selectedBracket.name}
-                </span>
-                <span className="text-xs text-text-muted">
-                  ({selectedBracket.participantCount})
-                </span>
-              </>
-            )}
-          </div>
-          <svg
-            className={`w-4 h-4 text-text-muted transition-transform ${isOpen ? "rotate-180" : ""}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+        {/* Dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-bg-card border border-border rounded-lg hover:border-text-muted transition-all min-w-[200px]"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-
-        {/* Dropdown Menu */}
-        {isOpen && (
-          <div className="absolute top-full left-0 mt-1 w-full min-w-[280px] bg-bg-card border border-border rounded-lg shadow-xl z-[9999] overflow-hidden">
-            {/* Brackets list */}
-            {brackets.map((bracket: Bracket, index: number) => (
-              <button
-                key={bracket._id}
-                onClick={() => handleSelect(bracket._id)}
-                className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
-                  selectedBracketId === bracket._id
-                    ? "bg-brand/10 text-brand"
-                    : "hover:bg-bg-secondary text-text-primary"
-                } ${index < brackets.length - 1 ? "border-b border-border/50" : ""}`}
-              >
-                <div className="flex items-center gap-2">
-                  {statusIndicator(bracket.status)}
-                  <span className="text-sm font-medium">{bracket.name}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-text-muted">
-                    {bracket.participantCount} participants
+            <div className="flex items-center gap-2 flex-1">
+              {selectedBracket && (
+                <>
+                  {statusIndicator(selectedBracket.status)}
+                  <span className="text-sm font-medium text-text-primary">
+                    {selectedBracket.name}
                   </span>
-                  {selectedBracketId === bracket._id && (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+                  <span className="text-xs text-text-muted">
+                    ({selectedBracket.participantCount})
+                  </span>
+                </>
+              )}
+            </div>
+            <svg
+              className={`w-4 h-4 text-text-muted transition-transform ${isOpen ? "rotate-180" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
 
-      {/* Manage button */}
-      {showManageButton && onManageBrackets && (
-        <button
-          onClick={onManageBrackets}
-          className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-text-muted hover:text-text-primary border border-transparent hover:border-border rounded-lg transition-all"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+          {/* Dropdown Menu */}
+          {isOpen && (
+            <div className="absolute top-full left-0 mt-1 w-full min-w-[280px] bg-bg-card border border-border rounded-lg shadow-xl z-[9999] overflow-hidden">
+              {/* Brackets list */}
+              {brackets.map((bracket: Bracket, index: number) => (
+                <button
+                  key={bracket._id}
+                  onClick={() => handleSelect(bracket._id)}
+                  className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
+                    selectedBracketId === bracket._id
+                      ? "bg-brand/10 text-brand"
+                      : "hover:bg-bg-secondary text-text-primary"
+                  } ${index < brackets.length - 1 ? "border-b border-border/50" : ""}`}
+                >
+                  <div className="flex items-center gap-2">
+                    {statusIndicator(bracket.status)}
+                    <span className="text-sm font-medium">{bracket.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-text-muted">
+                      {bracket.participantCount} participants
+                    </span>
+                    {selectedBracketId === bracket._id && (
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Manage button */}
+        {showManageButton && onManageBrackets && (
+          <button
+            onClick={onManageBrackets}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-text-muted hover:text-text-primary border border-transparent hover:border-border rounded-lg transition-all"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
-            />
-          </svg>
-          Manage
-        </button>
-      )}
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+              />
+            </svg>
+            Manage
+          </button>
+        )}
       </div>
     </div>
   );

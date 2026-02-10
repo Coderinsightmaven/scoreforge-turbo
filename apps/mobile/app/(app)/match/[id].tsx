@@ -5,33 +5,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Id } from "@repo/convex/dataModel";
 
-const statusStyles: Record<string, { bg: string; text: string; border: string }> = {
-  pending: {
-    bg: "bg-status-pending-bg",
-    text: "text-status-pending-text",
-    border: "border-status-pending-border/30",
-  },
-  scheduled: {
-    bg: "bg-status-completed-bg",
-    text: "text-status-completed-text",
-    border: "border-status-completed-border/30",
-  },
-  live: {
-    bg: "bg-status-live-bg",
-    text: "text-status-live-text",
-    border: "border-status-live-border/30",
-  },
-  completed: {
-    bg: "bg-status-active-bg",
-    text: "text-status-active-text",
-    border: "border-status-active-border/30",
-  },
-  bye: {
-    bg: "bg-status-pending-bg",
-    text: "text-status-pending-text",
-    border: "border-status-pending-border/30",
-  },
-};
+import { statusStyles } from "../../../utils/styles";
+import { formatTime, getScoreDisplay } from "../../../utils/format";
 
 export default function MatchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -63,35 +38,11 @@ export default function MatchDetailScreen() {
     );
   }
 
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return date.toLocaleString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  };
-
   const canScore =
     match.tournamentStatus === "active" &&
     (match.status === "pending" || match.status === "scheduled" || match.status === "live");
 
-  const getScoreDisplay = () => {
-    if (match.sport === "tennis" && match.tennisState) {
-      const sets = match.tennisState.sets || [];
-      const current = match.tennisState.currentSetGames || [0, 0];
-      const setScores = sets.map((s) => `${s[0]}-${s[1]}`);
-      if (!match.tennisState.isMatchComplete) {
-        setScores.push(`${current[0]}-${current[1]}*`);
-      }
-      return setScores.join("  ") || "0-0";
-    }
-    return `${match.participant1Score} - ${match.participant2Score}`;
-  };
-
-  const status = statusStyles[match.status as keyof typeof statusStyles] || statusStyles.pending;
+  const status = statusStyles[match.status] || statusStyles.pending;
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50 dark:bg-slate-950">
@@ -180,7 +131,7 @@ export default function MatchDetailScreen() {
           {match.tennisState && (
             <View className="mt-4 rounded-xl bg-slate-50 p-3 dark:bg-slate-950">
               <Text className="text-center text-sm font-medium text-text-secondary dark:text-slate-300">
-                {getScoreDisplay()}
+                {getScoreDisplay(match)}
               </Text>
             </View>
           )}

@@ -1,34 +1,9 @@
 import { View, Text, TouchableOpacity } from "react-native";
 
-type MatchStatus = "pending" | "scheduled" | "live" | "completed" | "bye";
+import { statusStyles } from "../../utils/styles";
+import { formatTimeShort, getScoreDisplayCompact } from "../../utils/format";
 
-const statusStyles: Record<MatchStatus, { bg: string; text: string; border: string }> = {
-  pending: {
-    bg: "bg-status-pending-bg",
-    text: "text-status-pending-text",
-    border: "border-status-pending-border/30",
-  },
-  scheduled: {
-    bg: "bg-status-completed-bg",
-    text: "text-status-completed-text",
-    border: "border-status-completed-border/30",
-  },
-  live: {
-    bg: "bg-status-live-bg",
-    text: "text-status-live-text",
-    border: "border-status-live-border/30",
-  },
-  completed: {
-    bg: "bg-status-active-bg",
-    text: "text-status-active-text",
-    border: "border-status-active-border/30",
-  },
-  bye: {
-    bg: "bg-status-pending-bg",
-    text: "text-status-pending-text",
-    border: "border-status-pending-border/30",
-  },
-};
+type MatchStatus = "pending" | "scheduled" | "live" | "completed" | "bye";
 
 type MatchItem = {
   _id: string;
@@ -54,27 +29,6 @@ type Props = {
   match: MatchItem;
   onPress: () => void;
 };
-
-function getScoreDisplay(match: MatchItem) {
-  if (match.sport === "tennis" && match.tennisState) {
-    const sets = match.tennisState.sets || [];
-    if (sets.length === 0 && !match.tennisState.isMatchComplete) {
-      return `${match.tennisState.currentSetGames?.[0] || 0}-${match.tennisState.currentSetGames?.[1] || 0}`;
-    }
-    return sets.map((s) => `${s[0]}-${s[1]}`).join(", ");
-  }
-  return `${match.participant1Score}-${match.participant2Score}`;
-}
-
-function formatTime(timestamp: number) {
-  const date = new Date(timestamp);
-  return date.toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
 
 export function MatchCard({ match, onPress }: Props) {
   const status = statusStyles[match.status as MatchStatus] || statusStyles.pending;
@@ -146,7 +100,7 @@ export function MatchCard({ match, onPress }: Props) {
       {/* Scheduled Time */}
       {match.scheduledTime && (
         <Text className="mt-2 text-xs text-text-tertiary dark:text-slate-400">
-          {formatTime(match.scheduledTime)}
+          {formatTimeShort(match.scheduledTime)}
         </Text>
       )}
 
@@ -155,7 +109,7 @@ export function MatchCard({ match, onPress }: Props) {
         <View className="mt-3 flex-row items-center rounded-lg bg-status-live-bg p-2">
           <View className="mr-2 h-2 w-2 rounded-full bg-status-live-border" />
           <Text className="text-sm font-medium text-status-live-text">
-            {getScoreDisplay(match)}
+            {getScoreDisplayCompact(match)}
           </Text>
         </View>
       )}

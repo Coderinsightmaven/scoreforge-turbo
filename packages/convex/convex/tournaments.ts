@@ -11,6 +11,7 @@ import {
   tennisConfig,
   tennisState,
 } from "./schema";
+import { assertNotInMaintenance } from "./lib/maintenance";
 import {
   generateSingleEliminationBracket,
   generateDoubleEliminationBracket,
@@ -588,6 +589,7 @@ export const createTournament = mutation({
     if (!userId) {
       throw errors.unauthenticated();
     }
+    await assertNotInMaintenance(ctx, userId);
 
     // Validate input lengths
     validateStringLength(args.name, "Tournament name", MAX_LENGTHS.tournamentName);
@@ -629,6 +631,14 @@ export const createTournament = mutation({
           `You have reached the maximum number of tournaments (${maxTournaments}). Please delete an existing tournament or contact an administrator`
         );
       }
+    }
+
+    // Validate maxParticipants bounds
+    if (!Number.isInteger(args.maxParticipants) || args.maxParticipants < 2) {
+      throw errors.invalidInput("Maximum participants must be an integer of at least 2");
+    }
+    if (args.maxParticipants > 256) {
+      throw errors.invalidInput("Maximum participants cannot exceed 256");
     }
 
     // Validate tennis config for tennis tournaments
@@ -689,6 +699,7 @@ export const updateTournament = mutation({
     if (!userId) {
       throw errors.unauthenticated();
     }
+    await assertNotInMaintenance(ctx, userId);
 
     const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
@@ -708,6 +719,16 @@ export const updateTournament = mutation({
     // Validate input lengths
     validateStringLength(args.name, "Tournament name", MAX_LENGTHS.tournamentName);
     validateStringLength(args.description, "Description", MAX_LENGTHS.tournamentDescription);
+
+    // Validate maxParticipants bounds
+    if (args.maxParticipants !== undefined) {
+      if (!Number.isInteger(args.maxParticipants) || args.maxParticipants < 2) {
+        throw errors.invalidInput("Maximum participants must be an integer of at least 2");
+      }
+      if (args.maxParticipants > 256) {
+        throw errors.invalidInput("Maximum participants cannot exceed 256");
+      }
+    }
 
     const updates: Partial<typeof tournament> = {};
     if (args.name !== undefined) updates.name = args.name;
@@ -732,6 +753,7 @@ export const deleteTournament = mutation({
     if (!userId) {
       throw errors.unauthenticated();
     }
+    await assertNotInMaintenance(ctx, userId);
 
     const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
@@ -794,6 +816,36 @@ export const deleteTournament = mutation({
 
     for (const bracket of brackets) {
       await ctx.db.delete("tournamentBrackets", bracket._id);
+    }
+
+    // Delete scoring input logs
+    const scoringLogs = await ctx.db
+      .query("scoringInputLogs")
+      .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
+      .collect();
+
+    for (const log of scoringLogs) {
+      await ctx.db.delete("scoringInputLogs", log._id);
+    }
+
+    // Delete temporary scorers and their sessions
+    const tempScorers = await ctx.db
+      .query("temporaryScorers")
+      .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
+      .collect();
+
+    for (const tempScorer of tempScorers) {
+      // Delete sessions for this temp scorer
+      const sessions = await ctx.db
+        .query("temporaryScorerSessions")
+        .withIndex("by_scorer", (q) => q.eq("scorerId", tempScorer._id))
+        .collect();
+
+      for (const session of sessions) {
+        await ctx.db.delete("temporaryScorerSessions", session._id);
+      }
+
+      await ctx.db.delete("temporaryScorers", tempScorer._id);
     }
 
     // Delete the tournament
@@ -981,6 +1033,7 @@ export const generateBracket = mutation({
     if (!userId) {
       throw errors.unauthenticated();
     }
+    await assertNotInMaintenance(ctx, userId);
 
     const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
@@ -1050,6 +1103,7 @@ export const startTournament = mutation({
     if (!userId) {
       throw errors.unauthenticated();
     }
+    await assertNotInMaintenance(ctx, userId);
 
     const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
@@ -1187,6 +1241,7 @@ export const generateBlankBracket = mutation({
     if (!userId) {
       throw errors.unauthenticated();
     }
+    await assertNotInMaintenance(ctx, userId);
 
     const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
@@ -1395,6 +1450,7 @@ export const cancelTournament = mutation({
     if (!userId) {
       throw errors.unauthenticated();
     }
+    await assertNotInMaintenance(ctx, userId);
 
     const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {

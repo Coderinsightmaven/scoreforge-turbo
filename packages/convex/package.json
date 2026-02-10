@@ -11,6 +11,9 @@
     },
     "./dataModel": {
       "types": "./convex/_generated/dataModel.d.ts"
+    },
+    "./types/tennis": {
+      "types": "./convex/lib/tennisScoring.ts"
     }
   },
   "scripts": {

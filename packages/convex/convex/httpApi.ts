@@ -6,19 +6,26 @@
  * like the desktop scoreboard app.
  */
 import { httpAction } from "./_generated/server";
-import { api } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 
 /**
  * Helper to create JSON response with CORS headers
  */
-function jsonResponse(data: unknown, status = 200): Response {
+function jsonResponse(
+  data: unknown,
+  status = 200,
+  extraHeaders?: Record<string, string>
+): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Headers": "Content-Type, x-api-key",
+      "Access-Control-Expose-Headers":
+        "X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset",
+      ...extraHeaders,
     },
   });
 }
@@ -32,10 +39,38 @@ function corsPreflightResponse(): Response {
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Headers": "Content-Type, x-api-key",
+      "Access-Control-Expose-Headers":
+        "X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset",
       "Access-Control-Max-Age": "86400",
     },
   });
+}
+
+/**
+ * Build rate limit headers from rate limit info
+ */
+function rateLimitHeaders(info: {
+  limit: number;
+  remaining: number;
+  reset: number;
+}): Record<string, string> {
+  return {
+    "X-RateLimit-Limit": String(info.limit),
+    "X-RateLimit-Remaining": String(info.remaining),
+    "X-RateLimit-Reset": String(info.reset),
+  };
+}
+
+/**
+ * Extract API key from request: prefers x-api-key header, falls back to query param for backwards compatibility
+ */
+function getApiKey(request: Request): string | null {
+  const headerKey = request.headers.get("x-api-key");
+  if (headerKey) return headerKey;
+  // Backwards compatibility: also check query param (deprecated)
+  const url = new URL(request.url);
+  return url.searchParams.get("apiKey");
 }
 
 /**
@@ -52,12 +87,15 @@ export const getMatch = httpAction(async (ctx, request) => {
   }
 
   try {
+    const apiKey = getApiKey(request);
     const url = new URL(request.url);
-    const apiKey = url.searchParams.get("apiKey");
     const matchId = url.searchParams.get("matchId");
 
     if (!apiKey || !matchId) {
-      return jsonResponse({ error: "Missing required parameters: apiKey and matchId" }, 400);
+      return jsonResponse(
+        { error: "Missing required parameters: apiKey (via x-api-key header) and matchId" },
+        400
+      );
     }
 
     const result = await ctx.runMutation(api.publicApi.getMatch, {
@@ -65,11 +103,16 @@ export const getMatch = httpAction(async (ctx, request) => {
       matchId,
     });
 
+    // Fetch rate limit info for response headers
+    const rlInfo = await ctx.runQuery(internal.publicApi._getRateLimitInfo, { apiKey });
+    const rlHeaders = rlInfo ? rateLimitHeaders(rlInfo) : {};
+
     if ("error" in result) {
-      return jsonResponse({ error: result.error }, 400);
+      const status = result.error?.includes("Rate limit") ? 429 : 400;
+      return jsonResponse({ error: result.error }, status, rlHeaders);
     }
 
-    return jsonResponse(result);
+    return jsonResponse(result, 200, rlHeaders);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
     return jsonResponse({ error: message }, 500);
@@ -95,12 +138,15 @@ export const listMatches = httpAction(async (ctx, request) => {
   }
 
   try {
+    const apiKey = getApiKey(request);
     const url = new URL(request.url);
-    const apiKey = url.searchParams.get("apiKey");
     const tournamentId = url.searchParams.get("tournamentId");
 
     if (!apiKey || !tournamentId) {
-      return jsonResponse({ error: "Missing required parameters: apiKey and tournamentId" }, 400);
+      return jsonResponse(
+        { error: "Missing required parameters: apiKey (via x-api-key header) and tournamentId" },
+        400
+      );
     }
 
     const args: {
@@ -134,11 +180,16 @@ export const listMatches = httpAction(async (ctx, request) => {
 
     const result = await ctx.runMutation(api.publicApi.listMatches, args);
 
+    // Fetch rate limit info for response headers
+    const rlInfo = await ctx.runQuery(internal.publicApi._getRateLimitInfo, { apiKey });
+    const rlHeaders = rlInfo ? rateLimitHeaders(rlInfo) : {};
+
     if ("error" in result) {
-      return jsonResponse({ error: result.error }, 400);
+      const status = result.error?.includes("Rate limit") ? 429 : 400;
+      return jsonResponse({ error: result.error }, status, rlHeaders);
     }
 
-    return jsonResponse(result);
+    return jsonResponse(result, 200, rlHeaders);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
     return jsonResponse({ error: message }, 500);
@@ -159,11 +210,14 @@ export const listTournaments = httpAction(async (ctx, request) => {
   }
 
   try {
+    const apiKey = getApiKey(request);
     const url = new URL(request.url);
-    const apiKey = url.searchParams.get("apiKey");
 
     if (!apiKey) {
-      return jsonResponse({ error: "Missing required parameter: apiKey" }, 400);
+      return jsonResponse(
+        { error: "Missing required parameter: apiKey (via x-api-key header)" },
+        400
+      );
     }
 
     const args: {
@@ -178,11 +232,16 @@ export const listTournaments = httpAction(async (ctx, request) => {
 
     const result = await ctx.runMutation(api.publicApi.listTournaments, args);
 
+    // Fetch rate limit info for response headers
+    const rlInfo = await ctx.runQuery(internal.publicApi._getRateLimitInfo, { apiKey });
+    const rlHeaders = rlInfo ? rateLimitHeaders(rlInfo) : {};
+
     if ("error" in result) {
-      return jsonResponse({ error: result.error }, 400);
+      const status = result.error?.includes("Rate limit") ? 429 : 400;
+      return jsonResponse({ error: result.error }, status, rlHeaders);
     }
 
-    return jsonResponse(result);
+    return jsonResponse(result, 200, rlHeaders);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
     return jsonResponse({ error: message }, 500);
@@ -203,12 +262,15 @@ export const listBrackets = httpAction(async (ctx, request) => {
   }
 
   try {
+    const apiKey = getApiKey(request);
     const url = new URL(request.url);
-    const apiKey = url.searchParams.get("apiKey");
     const tournamentId = url.searchParams.get("tournamentId");
 
     if (!apiKey || !tournamentId) {
-      return jsonResponse({ error: "Missing required parameters: apiKey and tournamentId" }, 400);
+      return jsonResponse(
+        { error: "Missing required parameters: apiKey (via x-api-key header) and tournamentId" },
+        400
+      );
     }
 
     const result = await ctx.runMutation(api.publicApi.listBrackets, {
@@ -216,11 +278,16 @@ export const listBrackets = httpAction(async (ctx, request) => {
       tournamentId,
     });
 
+    // Fetch rate limit info for response headers
+    const rlInfo = await ctx.runQuery(internal.publicApi._getRateLimitInfo, { apiKey });
+    const rlHeaders = rlInfo ? rateLimitHeaders(rlInfo) : {};
+
     if ("error" in result) {
-      return jsonResponse({ error: result.error }, 400);
+      const status = result.error?.includes("Rate limit") ? 429 : 400;
+      return jsonResponse({ error: result.error }, status, rlHeaders);
     }
 
-    return jsonResponse(result);
+    return jsonResponse(result, 200, rlHeaders);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
     return jsonResponse({ error: message }, 500);

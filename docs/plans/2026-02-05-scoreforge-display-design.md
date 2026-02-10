@@ -7,6 +7,7 @@ A pure Rust scoreboard designer and display application, replacing the existing 
 **Goals**: Native performance, single compiled binary, minimal resource usage, Rust skill-building.
 
 **Scope (Core MVP)**:
+
 - Scoreboard designer with drag-and-drop canvas
 - Tennis score components + text/image static components
 - Single fullscreen display window
@@ -15,6 +16,7 @@ A pure Rust scoreboard designer and display application, replacing the existing 
 - App-local image asset library
 
 **Out of scope (future)**:
+
 - Video components
 - Multi-monitor simultaneous display
 - ZIP export/import
@@ -207,13 +209,13 @@ All coordinates go through `canvas_to_screen(point, zoom, pan) -> screen_point` 
 
 ### Keyboard Shortcuts
 
-| Key | Action |
-|-----|--------|
-| `Delete` | Remove selected components |
+| Key                 | Action                     |
+| ------------------- | -------------------------- |
+| `Delete`            | Remove selected components |
 | `Ctrl+C` / `Ctrl+V` | Copy / paste (20px offset) |
-| `Ctrl+Z` | Undo (snapshot stack) |
-| `Ctrl+S` | Save |
-| `[` / `]` | Send back / bring forward |
+| `Ctrl+Z`            | Undo (snapshot stack)      |
+| `Ctrl+S`            | Save                       |
+| `[` / `]`           | Send back / bring forward  |
 
 ### Zoom & Pan
 
@@ -373,6 +375,7 @@ Lives in platform app data directory (`directories::ProjectDirs`):
 ```
 
 Structure:
+
 ```
 assets/
 ├── index.json          # Asset ID → filename, original name, dimensions
@@ -387,6 +390,7 @@ assets/
 ### App Config
 
 `config.json` in app data directory:
+
 - Recent files list
 - Last used Convex URL
 - Window size/position
@@ -425,14 +429,14 @@ Convex tokio task broadcasts to both designer and display windows simultaneously
 
 ## Summary of Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Language | Pure Rust | Performance, single binary, learning |
-| GUI Framework | egui (eframe) | Immediate-mode suits canvas editors, easy to start |
-| Rendering | egui for both designer + display | Single pipeline, graduate to wgpu later if needed |
-| Data Layer | Convex Rust client | Real-time subscriptions, no polling |
-| Connection UX | 3-step wizard (URL → tournament → match) | Better UX than raw match ID entry |
-| State Model | Single AppState struct | Idiomatic for egui, avoids borrow checker friction |
-| Scope | Core MVP | Designer, tennis + static components, single display, Convex live data, save/load |
-| Asset Storage | App-local library with UUID-keyed files | Self-contained, no broken paths, future ZIP export ready |
-| File Format | JSON with .sfb extension | Human-readable, easy to debug, versioned |
+| Decision      | Choice                                   | Rationale                                                                         |
+| ------------- | ---------------------------------------- | --------------------------------------------------------------------------------- |
+| Language      | Pure Rust                                | Performance, single binary, learning                                              |
+| GUI Framework | egui (eframe)                            | Immediate-mode suits canvas editors, easy to start                                |
+| Rendering     | egui for both designer + display         | Single pipeline, graduate to wgpu later if needed                                 |
+| Data Layer    | Convex Rust client                       | Real-time subscriptions, no polling                                               |
+| Connection UX | 3-step wizard (URL → tournament → match) | Better UX than raw match ID entry                                                 |
+| State Model   | Single AppState struct                   | Idiomatic for egui, avoids borrow checker friction                                |
+| Scope         | Core MVP                                 | Designer, tennis + static components, single display, Convex live data, save/load |
+| Asset Storage | App-local library with UUID-keyed files  | Self-contained, no broken paths, future ZIP export ready                          |
+| File Format   | JSON with .sfb extension                 | Human-readable, easy to debug, versioned                                          |

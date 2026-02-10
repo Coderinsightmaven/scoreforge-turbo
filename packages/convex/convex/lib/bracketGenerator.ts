@@ -56,7 +56,6 @@ export function generateSingleEliminationBracket(
   const matches: MatchData[] = [];
   const numParticipants = participantIds.length;
   const bracketSize = nextPowerOf2(numParticipants);
-  const _numByes = bracketSize - numParticipants;
   const numRounds = Math.log2(bracketSize);
 
   // Generate seed order
@@ -151,8 +150,6 @@ export function generateDoubleEliminationBracket(
   const numParticipants = participantIds.length;
   const bracketSize = nextPowerOf2(numParticipants);
   const numWinnersRounds = Math.log2(bracketSize);
-  const _numLosersRounds = numWinnersRounds * 2 - 2;
-
   // Generate seed order
   const seedOrder = generateSeedOrder(bracketSize);
 

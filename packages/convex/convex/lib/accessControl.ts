@@ -2,6 +2,37 @@ import type { QueryCtx, MutationCtx } from "../_generated/server";
 import type { Id, Doc } from "../_generated/dataModel";
 
 /**
+ * Hash a session token using SHA-256 (matches temporaryScorers.ts implementation).
+ */
+async function hashSessionToken(token: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(token);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * Look up a temp scorer session by token, trying hashed lookup first,
+ * then legacy plaintext fallback for sessions created before token hashing.
+ */
+async function findSessionByToken(ctx: QueryCtx | MutationCtx, plainToken: string) {
+  const tokenHash = await hashSessionToken(plainToken);
+  const hashedSession = await ctx.db
+    .query("temporaryScorerSessions")
+    .withIndex("by_token", (q) => q.eq("token", tokenHash))
+    .first();
+  if (hashedSession) return hashedSession;
+
+  // Fallback: plaintext token lookup (legacy sessions)
+  const plaintextSession = await ctx.db
+    .query("temporaryScorerSessions")
+    .withIndex("by_token", (q) => q.eq("token", plainToken))
+    .first();
+  return plaintextSession ?? null;
+}
+
+/**
  * Check if user can manage (edit/delete) a tournament.
  * Only the creator can manage their tournaments.
  * Pure check — no database access needed.
@@ -40,10 +71,7 @@ export async function canScoreTournament(
   tempScorerToken?: string
 ): Promise<boolean> {
   if (tempScorerToken) {
-    const session = await ctx.db
-      .query("temporaryScorerSessions")
-      .withIndex("by_token", (q) => q.eq("token", tempScorerToken))
-      .first();
+    const session = await findSessionByToken(ctx, tempScorerToken);
 
     if (session && session.expiresAt > Date.now()) {
       const tempScorer = await ctx.db.get("temporaryScorers", session.scorerId);
@@ -76,10 +104,7 @@ export async function getTournamentRole(
   tempScorerToken?: string
 ): Promise<"owner" | "scorer" | "temp_scorer" | null> {
   if (tempScorerToken) {
-    const session = await ctx.db
-      .query("temporaryScorerSessions")
-      .withIndex("by_token", (q) => q.eq("token", tempScorerToken))
-      .first();
+    const session = await findSessionByToken(ctx, tempScorerToken);
 
     if (session && session.expiresAt > Date.now()) {
       const tempScorer = await ctx.db.get("temporaryScorers", session.scorerId);

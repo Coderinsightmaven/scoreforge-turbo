@@ -6,44 +6,13 @@ import { api } from "@repo/convex";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Id } from "@repo/convex/dataModel";
-import { Skeleton } from "@/app/components/Skeleton";
+import { TabSkeleton } from "@/app/components/TabSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getDisplayMessage } from "@/lib/errors";
 import { Loader2, Plus } from "lucide-react";
-
-function TabSkeleton() {
-  return (
-    <div className="animate-fadeIn">
-      <div className="flex flex-col gap-2">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div
-            key={i}
-            className="flex flex-col p-4 bg-card border border-border rounded-lg"
-            style={{ animationDelay: `${i * 0.05}s` }}
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-4 w-20" />
-              <div className="ml-auto">
-                <Skeleton className="h-5 w-16 rounded" />
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Skeleton className="h-5 w-32" />
-              <Skeleton className="h-6 w-8" />
-              <Skeleton className="h-4 w-8 flex-shrink-0" />
-              <Skeleton className="h-6 w-8" />
-              <Skeleton className="h-5 w-32" />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 export function MatchesTab({
   tournamentId,

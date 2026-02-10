@@ -7,44 +7,13 @@ import type { Id } from "@repo/convex/dataModel";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/app/components/ConfirmDialog";
 import { getDisplayMessage } from "@/lib/errors";
-import { Skeleton } from "@/app/components/Skeleton";
+import { TabSkeleton } from "@/app/components/TabSkeleton";
 import { ScorerCodeSection } from "./scorers/ScorerCodeSection";
 import { TemporaryScorersSection } from "./scorers/TemporaryScorersSection";
 import { AccountScorersSection } from "./scorers/AccountScorersSection";
 import { AddScorerModal } from "./scorers/AddScorerModal";
 import { CreateTempScorerModal } from "./scorers/CreateTempScorerModal";
 import { ResetPinModal } from "./scorers/ResetPinModal";
-
-function TabSkeleton() {
-  return (
-    <div className="animate-fadeIn">
-      <div className="flex flex-col gap-2">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div
-            key={i}
-            className="flex flex-col p-4 bg-card border border-border rounded-lg"
-            style={{ animationDelay: `${i * 0.05}s` }}
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-4 w-20" />
-              <div className="ml-auto">
-                <Skeleton className="h-5 w-16 rounded" />
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Skeleton className="h-5 w-32" />
-              <Skeleton className="h-6 w-8" />
-              <Skeleton className="h-4 w-8 flex-shrink-0" />
-              <Skeleton className="h-6 w-8" />
-              <Skeleton className="h-5 w-32" />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 export function ScorersTab({ tournamentId }: { tournamentId: string }): React.ReactNode {
   // Regular scorers

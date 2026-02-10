@@ -10,13 +10,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/app/components/Skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Key, Copy, AlertCircle, X } from "lucide-react";
+import { Key, Copy, AlertCircle, X, RefreshCw } from "lucide-react";
 import { getDisplayMessage } from "@/lib/errors";
 import { ConfirmDialog } from "@/app/components/ConfirmDialog";
 
 export function ApiKeysSection() {
   const apiKeys = useQuery(api.apiKeys.listApiKeys);
   const generateApiKey = useMutation(api.apiKeys.generateApiKey);
+  const rotateApiKey = useMutation(api.apiKeys.rotateApiKey);
   const revokeApiKey = useMutation(api.apiKeys.revokeApiKey);
   const deleteApiKey = useMutation(api.apiKeys.deleteApiKey);
 
@@ -25,6 +26,8 @@ export function ApiKeysSection() {
   const [showNewKey, setShowNewKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirmDeleteKey, setConfirmDeleteKey] = useState<string | null>(null);
+  const [confirmRotateKey, setConfirmRotateKey] = useState<string | null>(null);
+  const [isRotating, setIsRotating] = useState(false);
 
   const handleCreateKey = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +53,23 @@ export function ApiKeysSection() {
     } catch (err) {
       setError(getDisplayMessage(err) || "Failed to revoke API key");
     }
+  };
+
+  const handleRotate = (keyId: string) => {
+    setConfirmRotateKey(keyId);
+  };
+
+  const executeRotateKey = async () => {
+    if (!confirmRotateKey) return;
+    setIsRotating(true);
+    try {
+      const result = await rotateApiKey({ keyId: confirmRotateKey as Id<"apiKeys"> });
+      setShowNewKey(result.fullKey);
+    } catch (err) {
+      setError(getDisplayMessage(err) || "Failed to rotate API key");
+    }
+    setIsRotating(false);
+    setConfirmRotateKey(null);
   };
 
   const handleDelete = (keyId: string) => {
@@ -84,7 +104,7 @@ export function ApiKeysSection() {
           {showNewKey && (
             <Alert className="mb-6 border-success/35 bg-success-light">
               <div className="flex items-center justify-between mb-2">
-                <p className="font-medium text-success">API key created!</p>
+                <p className="font-medium text-success">New API key ready!</p>
                 <Button variant="ghost" size="icon-xs" onClick={() => setShowNewKey(null)}>
                   <X className="w-4 h-4" />
                 </Button>
@@ -165,14 +185,20 @@ export function ApiKeysSection() {
                     </div>
                     <div className="flex items-center gap-2">
                       {key.isActive && (
-                        <Button
-                          onClick={() => handleRevoke(key._id)}
-                          variant="outline"
-                          size="sm"
-                          className="text-brand-hover border-brand hover:bg-brand-light dark:text-brand dark:border-brand dark:hover:bg-brand-light"
-                        >
-                          Revoke
-                        </Button>
+                        <>
+                          <Button onClick={() => handleRotate(key._id)} variant="outline" size="sm">
+                            <RefreshCw className="w-3.5 h-3.5 mr-1" />
+                            Rotate
+                          </Button>
+                          <Button
+                            onClick={() => handleRevoke(key._id)}
+                            variant="outline"
+                            size="sm"
+                            className="text-brand-hover border-brand hover:bg-brand-light dark:text-brand dark:border-brand dark:hover:bg-brand-light"
+                          >
+                            Revoke
+                          </Button>
+                        </>
                       )}
                       <Button
                         onClick={() => handleDelete(key._id)}
@@ -197,6 +223,15 @@ export function ApiKeysSection() {
         title="Delete API Key"
         description="Are you sure you want to delete this API key? Any applications using it will lose access."
         confirmLabel="Delete"
+        variant="danger"
+      />
+      <ConfirmDialog
+        open={confirmRotateKey !== null}
+        onConfirm={executeRotateKey}
+        onCancel={() => setConfirmRotateKey(null)}
+        title="Rotate API Key"
+        description="This will generate a new key and immediately invalidate the old one. Any applications using the current key will need to be updated."
+        confirmLabel={isRotating ? "Rotating..." : "Rotate Key"}
         variant="danger"
       />
     </>

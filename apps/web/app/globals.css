@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -335,7 +334,8 @@ h6 {
   top: -180px;
   right: -200px;
   pointer-events: none;
-  animation: circleExpand 1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both,
+  animation:
+    circleExpand 1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both,
     orbitSlow 60s linear infinite;
 }
 
@@ -350,7 +350,8 @@ h6 {
   bottom: -120px;
   left: -100px;
   pointer-events: none;
-  animation: circleExpand 1s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both,
+  animation:
+    circleExpand 1s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both,
     orbitSlow 45s linear infinite reverse;
 }
 
@@ -629,7 +630,9 @@ h6 {
 
 /* Hover lift for interactive cards */
 .hover-lift {
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+  transition:
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s ease;
 }
 
 .hover-lift:hover {

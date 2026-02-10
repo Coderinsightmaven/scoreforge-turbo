@@ -3,6 +3,7 @@
 ## Overview
 
 ScoreForge is a Turborepo monorepo with three main deployable components:
+
 - **Web App** - Next.js 16 (Vercel recommended)
 - **Mobile App** - Expo/React Native (EAS Build)
 - **Backend** - Convex serverless functions
@@ -14,6 +15,7 @@ ScoreForge is a Turborepo monorepo with three main deployable components:
 Deploy the backend first since both apps depend on it.
 
 ### Prerequisites
+
 - Convex account at https://convex.dev
 - Bun installed (`npm install -g bun`)
 
@@ -34,7 +36,9 @@ npx convex deploy
 ```
 
 ### Output
+
 After deployment, you'll get a production URL:
+
 ```
 https://[your-deployment].convex.cloud
 ```
@@ -46,6 +50,7 @@ Save this URL - you'll need it for the web and mobile apps.
 ## 2. Web App Deployment (Vercel)
 
 ### Prerequisites
+
 - Vercel account at https://vercel.com
 - Production Convex URL from step 1
 
@@ -73,11 +78,13 @@ vercel --prod
 ```
 
 When prompted, set the environment variable:
+
 ```
 NEXT_PUBLIC_CONVEX_URL=https://[your-deployment].convex.cloud
 ```
 
 ### Build Settings
+
 - **Framework**: Next.js
 - **Build Command**: `bun run build`
 - **Output Directory**: `.next`
@@ -88,6 +95,7 @@ NEXT_PUBLIC_CONVEX_URL=https://[your-deployment].convex.cloud
 ## 3. Mobile App Deployment (EAS)
 
 ### Prerequisites
+
 - Expo account at https://expo.dev
 - EAS CLI installed (`npm install -g eas-cli`)
 - Apple Developer account (for iOS)
@@ -134,6 +142,7 @@ eas build:configure
 ### Environment Variables
 
 Create `apps/mobile/.env`:
+
 ```
 EXPO_PUBLIC_CONVEX_URL=https://[your-deployment].convex.cloud
 ```
@@ -158,9 +167,9 @@ eas submit --platform android
 
 ## Environment Variables Summary
 
-| App | Variable | Description |
-|-----|----------|-------------|
-| Web | `NEXT_PUBLIC_CONVEX_URL` | Convex production URL |
+| App    | Variable                 | Description           |
+| ------ | ------------------------ | --------------------- |
+| Web    | `NEXT_PUBLIC_CONVEX_URL` | Convex production URL |
 | Mobile | `EXPO_PUBLIC_CONVEX_URL` | Convex production URL |
 
 ---
@@ -207,7 +216,7 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
+          vercel-args: "--prod"
 ```
 
 ---

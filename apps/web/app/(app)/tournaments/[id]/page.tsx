@@ -160,7 +160,12 @@ export default function TournamentDetailPage({
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                setActiveTab(tab.id);
+                const url = new URL(window.location.href);
+                url.searchParams.set("tab", tab.id);
+                window.history.replaceState({}, "", url.toString());
+              }}
               role="tab"
               aria-selected={activeTab === tab.id}
               className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium -mb-px border-b-2 transition-colors ${

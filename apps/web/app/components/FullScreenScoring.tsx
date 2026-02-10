@@ -3,25 +3,13 @@
 import { useMutation } from "convex/react";
 import { api } from "@repo/convex";
 import type { Id } from "@repo/convex/dataModel";
+import type { TennisState } from "@repo/convex/types/tennis";
 import { getDisplayMessage } from "@/lib/errors";
 import { getPointDisplay, isDoublesName, splitDoublesName } from "@/lib/tennis";
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/app/components/ConfirmDialog";
-
-type TennisState = {
-  sets: number[][];
-  currentSetGames: number[];
-  currentGamePoints: number[];
-  servingParticipant: number;
-  firstServerOfSet: number;
-  isAdScoring: boolean;
-  setsToWin: number;
-  isTiebreak: boolean;
-  tiebreakPoints: number[];
-  isMatchComplete: boolean;
-};
 
 type Participant = {
   _id: string;

@@ -7,38 +7,8 @@ import Link from "next/link";
 import { Id } from "@repo/convex/dataModel";
 import { getDisplayMessage } from "@/lib/errors";
 import { EditableBracket, type Match } from "@/app/components/EditableBracket";
-import { Skeleton } from "@/app/components/Skeleton";
-
-function TabSkeleton() {
-  return (
-    <div className="animate-fadeIn">
-      <div className="flex flex-col gap-2">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div
-            key={i}
-            className="flex flex-col p-4 bg-card border border-border rounded-lg"
-            style={{ animationDelay: `${i * 0.05}s` }}
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-4 w-20" />
-              <div className="ml-auto">
-                <Skeleton className="h-5 w-16 rounded" />
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Skeleton className="h-5 w-32" />
-              <Skeleton className="h-6 w-8" />
-              <Skeleton className="h-4 w-8 flex-shrink-0" />
-              <Skeleton className="h-6 w-8" />
-              <Skeleton className="h-5 w-32" />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+import { TabSkeleton } from "@/app/components/TabSkeleton";
+import { getRoundName as getRoundNameUtil } from "@/lib/bracket";
 
 // Tennis score formatter for bracket display
 function formatTennisScoreForBracket(
@@ -274,11 +244,7 @@ export function BracketTab({
 
   const getRoundName = (round: number, total: number) => {
     if (format === "round_robin") return `Round ${round}`;
-    const remaining = total - round + 1;
-    if (remaining === 1) return "Finals";
-    if (remaining === 2) return "Semifinals";
-    if (remaining === 3) return "Quarterfinals";
-    return `Round ${round}`;
+    return getRoundNameUtil(round, total);
   };
 
   const getScoreDisplay = (match: (typeof bracket.matches)[0], playerIndex: 0 | 1) => {

@@ -16,34 +16,8 @@ import { Id } from "@repo/convex/dataModel";
 
 import { useTempScorer } from "../../contexts/TempScorerContext";
 import { StatusFilter, MatchStatus } from "../../components/matches/StatusFilter";
-
-const matchStatusStyles: Record<MatchStatus, { bg: string; text: string; border: string }> = {
-  pending: {
-    bg: "bg-status-pending-bg",
-    text: "text-status-pending-text",
-    border: "border-status-pending-border/30",
-  },
-  scheduled: {
-    bg: "bg-status-completed-bg",
-    text: "text-status-completed-text",
-    border: "border-status-completed-border/30",
-  },
-  live: {
-    bg: "bg-status-live-bg",
-    text: "text-status-live-text",
-    border: "border-status-live-border/30",
-  },
-  completed: {
-    bg: "bg-status-active-bg",
-    text: "text-status-active-text",
-    border: "border-status-active-border/30",
-  },
-  bye: {
-    bg: "bg-status-pending-bg",
-    text: "text-status-pending-text",
-    border: "border-status-pending-border/30",
-  },
-};
+import { OfflineBanner } from "../../components/OfflineBanner";
+import { statusStyles } from "../../utils/styles";
 
 export default function ScorerHomeScreen() {
   const { session, signOut } = useTempScorer();
@@ -77,9 +51,10 @@ export default function ScorerHomeScreen() {
     tempScorerToken: session?.token,
   });
 
+  // Convex provides real-time updates; brief visual confirmation only
   const onRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 500);
+    setTimeout(() => setRefreshing(false), 300);
   };
 
   const handleSignOut = () => {
@@ -104,6 +79,7 @@ export default function ScorerHomeScreen() {
   return (
     <View className="flex-1 bg-white dark:bg-slate-900">
       <SafeAreaView className="flex-1" edges={["top"]}>
+        <OfflineBanner />
         {/* Header */}
         <View className="bg-white px-5 py-4 shadow-sm shadow-slate-900/5 dark:bg-slate-900">
           <View className="flex-row items-center justify-between">
@@ -173,8 +149,7 @@ export default function ScorerHomeScreen() {
             }
             renderItem={({ item }) => {
               const isReady = item.participant1 && item.participant2 && item.status !== "completed";
-              const status =
-                matchStatusStyles[item.status as MatchStatus] || matchStatusStyles.pending;
+              const status = statusStyles[item.status as MatchStatus] || statusStyles.pending;
               return (
                 <TouchableOpacity
                   className={`rounded-2xl bg-white p-5 shadow-lg shadow-slate-900/5 dark:bg-slate-900 ${

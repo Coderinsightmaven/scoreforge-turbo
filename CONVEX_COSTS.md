@@ -7,21 +7,21 @@
 
 ## ScoreForge Usage Profile
 
-| Feature | Convex Usage | Notes |
-|---------|--------------|-------|
-| Real-time scoreboards | High | Reactive queries on every point scored |
-| Bracket views | Medium | Queries on page load + subscriptions |
-| Tournament management | Low | Occasional CRUD operations |
-| Auth/Users | Low | Login/signup, preference syncs |
+| Feature               | Convex Usage | Notes                                  |
+| --------------------- | ------------ | -------------------------------------- |
+| Real-time scoreboards | High         | Reactive queries on every point scored |
+| Bracket views         | Medium       | Queries on page load + subscriptions   |
+| Tournament management | Low          | Occasional CRUD operations             |
+| Auth/Users            | Low          | Login/signup, preference syncs         |
 
 ## Cost Estimates by Scale
 
-| Scale | Users | Tournaments/Month | Monthly Cost |
-|-------|-------|-------------------|--------------|
-| Hobby | <50 | 1-5 | **Free** ($0) |
-| Small Club | ~200 | 10-20 | **Free - $25** |
-| Active League | ~500 | 50+ with frequent live scoring | **$25-50** |
-| Large Organization | 1000+ | 100s of tournaments | **$50-150+** |
+| Scale              | Users | Tournaments/Month              | Monthly Cost   |
+| ------------------ | ----- | ------------------------------ | -------------- |
+| Hobby              | <50   | 1-5                            | **Free** ($0)  |
+| Small Club         | ~200  | 10-20                          | **Free - $25** |
+| Active League      | ~500  | 50+ with frequent live scoring | **$25-50**     |
+| Large Organization | 1000+ | 100s of tournaments            | **$50-150+**   |
 
 ## Main Cost Drivers
 

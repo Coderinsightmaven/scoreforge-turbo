@@ -7,6 +7,7 @@ import { internal } from "./_generated/api";
 import { errors } from "./lib/errors";
 import { canScoreTournament, getTournamentRole } from "./lib/accessControl";
 import { MAX_LENGTHS, validateStringLength } from "./lib/validation";
+import { assertNotInMaintenance } from "./lib/maintenance";
 
 // ============================================
 // Queries
@@ -381,10 +382,6 @@ export const listMyLiveMatches = query({
       .withIndex("by_user", (q: any) => q.eq("userId", userId))
       .collect();
 
-    const _assignedTournamentIds = new Set(
-      scorerAssignments.map((a: Doc<"tournamentScorers">) => a.tournamentId)
-    );
-
     // Get tournaments the user owns that are active
     const ownedTournaments = await ctx.db
       .query("tournaments")
@@ -393,7 +390,25 @@ export const listMyLiveMatches = query({
       )
       .collect();
 
-    const results: any[] = [];
+    const results: Array<{
+      _id: Id<"matches">;
+      tournamentId: Id<"tournaments">;
+      tournamentName: string;
+      bracketName: string | undefined;
+      sport: Doc<"tournaments">["sport"];
+      round: number;
+      matchNumber: number;
+      bracketType: string | undefined;
+      participant1: { _id: Id<"tournamentParticipants">; displayName: string } | undefined;
+      participant2: { _id: Id<"tournamentParticipants">; displayName: string } | undefined;
+      participant1Score: number;
+      participant2Score: number;
+      status: Doc<"matches">["status"];
+      scheduledTime: number | undefined;
+      court: string | undefined;
+      startedAt: number | undefined;
+      tennisState: Doc<"matches">["tennisState"];
+    }> = [];
     const processedTournamentIds = new Set<string>();
 
     // Helper function to get live matches from a tournament
@@ -406,13 +421,43 @@ export const listMyLiveMatches = query({
         )
         .collect();
 
+      if (liveMatches.length === 0) return;
+
+      // Collect all unique participant and bracket IDs
+      const participantIds = new Set<Id<"tournamentParticipants">>();
+      const bracketIds = new Set<Id<"tournamentBrackets">>();
+
+      for (const match of liveMatches) {
+        if (match.participant1Id) participantIds.add(match.participant1Id);
+        if (match.participant2Id) participantIds.add(match.participant2Id);
+        if (match.bracketId) bracketIds.add(match.bracketId);
+      }
+
+      // Batch-fetch all participants and brackets in parallel
+      const [participantDocs, bracketDocs] = await Promise.all([
+        Promise.all([...participantIds].map((id) => ctx.db.get("tournamentParticipants", id))),
+        Promise.all([...bracketIds].map((id) => ctx.db.get("tournamentBrackets", id))),
+      ]);
+
+      // Build lookup maps
+      const participantMap = new Map<Id<"tournamentParticipants">, Doc<"tournamentParticipants">>();
+      for (const doc of participantDocs) {
+        if (doc) participantMap.set(doc._id, doc);
+      }
+
+      const bracketMap = new Map<Id<"tournamentBrackets">, Doc<"tournamentBrackets">>();
+      for (const doc of bracketDocs) {
+        if (doc) bracketMap.set(doc._id, doc);
+      }
+
+      // Enrich matches from the maps
       for (const match of liveMatches) {
         let participant1 = undefined;
         let participant2 = undefined;
         let bracketName = undefined;
 
         if (match.participant1Id) {
-          const p1 = await ctx.db.get("tournamentParticipants", match.participant1Id);
+          const p1 = participantMap.get(match.participant1Id);
           if (p1) {
             participant1 = {
               _id: p1._id,
@@ -422,7 +467,7 @@ export const listMyLiveMatches = query({
         }
 
         if (match.participant2Id) {
-          const p2 = await ctx.db.get("tournamentParticipants", match.participant2Id);
+          const p2 = participantMap.get(match.participant2Id);
           if (p2) {
             participant2 = {
               _id: p2._id,
@@ -431,9 +476,8 @@ export const listMyLiveMatches = query({
           }
         }
 
-        // Get bracket name if match belongs to a bracket
         if (match.bracketId) {
-          const bracket = await ctx.db.get("tournamentBrackets", match.bracketId);
+          const bracket = bracketMap.get(match.bracketId);
           if (bracket) {
             bracketName = bracket.name;
           }
@@ -505,6 +549,7 @@ export const createOneOffMatch = mutation({
     if (!userId) {
       throw errors.unauthenticated();
     }
+    await assertNotInMaintenance(ctx, userId);
 
     const tournament = await ctx.db.get("tournaments", args.tournamentId);
     if (!tournament) {
@@ -668,6 +713,7 @@ export const startMatch = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
+    await assertNotInMaintenance(ctx, userId);
 
     const match = await ctx.db.get("matches", args.matchId);
     if (!match) {
