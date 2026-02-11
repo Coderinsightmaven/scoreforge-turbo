@@ -190,7 +190,7 @@ export function FullScreenScoring({
               {tennisState.isTiebreak && (
                 <div className="flex justify-center mb-3">
                   <span className="px-3 py-1 text-xs font-semibold text-warning bg-warning/20 rounded-full">
-                    Tiebreak
+                    {tennisState.tiebreakMode === "match" ? "Match Tiebreak" : "Tiebreak"}
                   </span>
                 </div>
               )}

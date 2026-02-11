@@ -67,7 +67,7 @@ export function OpsOnboarding({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   const cardComponent = useMemo(() => {
-    return (props: CardComponentProps) => (
+    const CardComponent = (props: CardComponentProps) => (
       <OpsOnboardingCard
         {...props}
         onFinish={() => {
@@ -76,6 +76,8 @@ export function OpsOnboarding({ children }: { children: React.ReactNode }) {
         }}
       />
     );
+    CardComponent.displayName = "OpsOnboardingCardComponent";
+    return CardComponent;
   }, []);
 
   return (

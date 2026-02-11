@@ -364,16 +364,17 @@ fn parse_match_data(val: &Value) -> Option<TennisLiveData> {
     // Tennis state
     let tennis_state = get_obj(match_obj, "tennisState");
 
-    let (sets, current_game_points, serving_player, is_tiebreak, is_match_complete) =
+    let (sets, current_game_points, tiebreak_points, serving_player, is_tiebreak, is_match_complete) =
         if let Some(ts) = tennis_state {
             let sets = parse_sets(ts);
             let game_points = parse_game_points(ts);
+            let tiebreak_points = parse_tiebreak_points(ts);
             let serving = parse_serving_player(ts);
             let tiebreak = matches!(ts.get("isTiebreak"), Some(Value::Boolean(true)));
             let complete = matches!(ts.get("isMatchComplete"), Some(Value::Boolean(true)));
-            (sets, game_points, serving, tiebreak, complete)
+            (sets, game_points, tiebreak_points, serving, tiebreak, complete)
         } else {
-            (vec![], [0, 0], 1, false, false)
+            (vec![], [0, 0], [0, 0], 1, false, false)
         };
 
     Some(TennisLiveData {
@@ -383,6 +384,7 @@ fn parse_match_data(val: &Value) -> Option<TennisLiveData> {
         player2_display_name,
         sets,
         current_game_points,
+        tiebreak_points,
         serving_player,
         is_tiebreak,
         is_match_complete,
@@ -433,6 +435,16 @@ fn parse_sets(ts: &BTreeMap<String, Value>) -> Vec<SetScore> {
 
 fn parse_game_points(ts: &BTreeMap<String, Value>) -> [u32; 2] {
     if let Some(points) = get_array(ts, "currentGamePoints") {
+        let p1 = points.first().and_then(value_to_u32);
+        let p2 = points.get(1).and_then(value_to_u32);
+        [p1.unwrap_or(0), p2.unwrap_or(0)]
+    } else {
+        [0, 0]
+    }
+}
+
+fn parse_tiebreak_points(ts: &BTreeMap<String, Value>) -> [u32; 2] {
+    if let Some(points) = get_array(ts, "tiebreakPoints") {
         let p1 = points.first().and_then(value_to_u32);
         let p2 = points.get(1).and_then(value_to_u32);
         [p1.unwrap_or(0), p2.unwrap_or(0)]

@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@repo/convex";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Id } from "@repo/convex/dataModel";
 import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
@@ -39,29 +39,35 @@ export function UsersSection() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const handleToggleScoringLogs = async (userId: Id<"users">, currentEnabled: boolean) => {
-    setTogglingLogs(userId);
-    try {
-      await toggleUserScoringLogs({ userId, enabled: !currentEnabled });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to toggle scoring logs");
-    } finally {
-      setTogglingLogs(null);
-    }
-  };
+  const handleToggleScoringLogs = useCallback(
+    async (userId: Id<"users">, currentEnabled: boolean) => {
+      setTogglingLogs(userId);
+      try {
+        await toggleUserScoringLogs({ userId, enabled: !currentEnabled });
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Failed to toggle scoring logs");
+      } finally {
+        setTogglingLogs(null);
+      }
+    },
+    [toggleUserScoringLogs]
+  );
 
-  const handleEditSave = async (userId: Id<"users">) => {
-    if (!editName.trim()) return;
-    setSaving(true);
-    try {
-      await updateUser({ userId, name: editName.trim() });
-      setEditingUser(null);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to update user");
-    } finally {
-      setSaving(false);
-    }
-  };
+  const handleEditSave = useCallback(
+    async (userId: Id<"users">) => {
+      if (!editName.trim()) return;
+      setSaving(true);
+      try {
+        await updateUser({ userId, name: editName.trim() });
+        setEditingUser(null);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Failed to update user");
+      } finally {
+        setSaving(false);
+      }
+    },
+    [editName, updateUser]
+  );
 
   const columns = useMemo<ColumnDef<UserRow>[]>(
     () => [

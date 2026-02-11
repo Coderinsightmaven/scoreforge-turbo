@@ -75,6 +75,10 @@ describe("getGameStatus", () => {
     expect(getGameStatus([0, 0], true, true, "Alice", "Bob", 1)).toBe("Tiebreak");
   });
 
+  it("returns Match Tiebreak when in match tiebreak", () => {
+    expect(getGameStatus([0, 0], true, true, "Alice", "Bob", 1, "match")).toBe("Match Tiebreak");
+  });
+
   it("returns Deuce at 3-3", () => {
     expect(getGameStatus([3, 3], true, false, "Alice", "Bob", 1)).toBe("Deuce");
   });
@@ -93,10 +97,9 @@ describe("getGameStatus", () => {
     expect(getGameStatus([3, 4], true, false, "Alice Smith", "Bob Jones", 1)).toBe("Advantage Bob");
   });
 
-  it("returns Deuce at 3-3 even in no-ad scoring", () => {
-    // The deuce check fires before the no-ad deciding point check
+  it("returns Deciding Point at 3-3 in no-ad scoring", () => {
     const result = getGameStatus([3, 3], false, false, "Alice", "Bob", 1);
-    expect(result).toBe("Deuce");
+    expect(result).toBe("Deciding Point (Bob chooses side)");
   });
 
   it("returns null for normal game score (0-0)", () => {

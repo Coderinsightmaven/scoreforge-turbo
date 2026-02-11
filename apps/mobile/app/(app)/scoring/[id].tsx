@@ -141,16 +141,13 @@ export default function TennisScoringScreen() {
   };
 
   const getPointDisplay = (points: number, opponentPoints: number, isAdScoring: boolean) => {
-    if (!isAdScoring) {
-      return points.toString();
-    }
     if (points < 4) {
       return pointLabels[points];
     }
     if (points === opponentPoints) {
       return "40";
     }
-    if (points > opponentPoints) {
+    if (isAdScoring && points > opponentPoints) {
       return "AD";
     }
     return "40";
@@ -160,9 +157,19 @@ export default function TennisScoringScreen() {
     if (!state || state.isTiebreak) return null;
     const p1 = state.currentGamePoints?.[0] || 0;
     const p2 = state.currentGamePoints?.[1] || 0;
-    if (p1 >= 3 && p2 >= 3 && p1 === p2) return "Deuce";
-    if (p1 > 3 && p1 > p2) return `Advantage ${match.participant1?.displayName?.split(" ")[0]}`;
-    if (p2 > 3 && p2 > p1) return `Advantage ${match.participant2?.displayName?.split(" ")[0]}`;
+    if (isAdScoring) {
+      if (p1 >= 3 && p2 >= 3 && p1 === p2) return "Deuce";
+      if (p1 > 3 && p1 > p2) {
+        return `Advantage ${match.participant1?.displayName?.split(" ")[0]}`;
+      }
+      if (p2 > 3 && p2 > p1) {
+        return `Advantage ${match.participant2?.displayName?.split(" ")[0]}`;
+      }
+    } else if (p1 === 3 && p2 === 3) {
+      const receiver = servingParticipant === 1 ? match.participant2 : match.participant1;
+      const receiverName = receiver?.displayName?.split(" ")[0] ?? "Receiver";
+      return `Deciding Point (${receiverName} chooses side)`;
+    }
     return null;
   };
 
@@ -256,6 +263,7 @@ export default function TennisScoringScreen() {
   const currentSetGames = state?.currentSetGames || [0, 0];
   const currentGamePoints = state?.currentGamePoints || [0, 0];
   const isTiebreak = state?.isTiebreak || false;
+  const tiebreakMode = state?.tiebreakMode;
   const servingParticipant = state?.servingParticipant || 1;
   const isAdScoring = state?.isAdScoring ?? true;
   const gameStatus = getGameStatus();
@@ -271,6 +279,7 @@ export default function TennisScoringScreen() {
   const scoreboardProps = {
     isLive,
     isTiebreak,
+    tiebreakMode,
     gameStatus,
     p1Points,
     p2Points,

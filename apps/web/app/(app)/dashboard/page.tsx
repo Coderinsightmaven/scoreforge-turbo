@@ -27,7 +27,7 @@ export default function DashboardPage(): React.ReactNode {
 
   const canCreate = createStatus?.canCreate ?? true;
   const firstName = user?.name?.split(" ")[0] || "there";
-  const tournamentList = tournaments ?? [];
+  const tournamentList = useMemo(() => tournaments ?? [], [tournaments]);
 
   const filters: { value: Filter; label: string }[] = [
     { value: "all", label: "All" },
@@ -70,7 +70,7 @@ export default function DashboardPage(): React.ReactNode {
         liveMatches: tournament.liveMatchCount,
         participants: `${tournament.participantCount} / ${tournament.maxParticipants}`,
       })),
-    [tournaments, tournamentList]
+    [tournamentList]
   );
 
   const tableColumns = useMemo<ColumnDef<(typeof tableData)[number]>[]>(

@@ -49,29 +49,29 @@ export function getGameStatus(
   isTiebreak: boolean,
   participant1Name: string,
   participant2Name: string,
-  servingParticipant: number
+  servingParticipant: number,
+  tiebreakMode?: "set" | "match"
 ): string | null {
   if (isTiebreak) {
-    return "Tiebreak";
+    return tiebreakMode === "match" ? "Match Tiebreak" : "Tiebreak";
   }
 
   const p1 = points[0] ?? 0;
   const p2 = points[1] ?? 0;
 
-  if (p1 >= 3 && p2 >= 3 && p1 === p2) {
-    return "Deuce";
-  }
-
-  if (isAdScoring && p1 >= 3 && p2 >= 3) {
-    if (p1 > p2) {
-      return `Advantage ${participant1Name.split(" ")[0]}`;
+  if (isAdScoring) {
+    if (p1 >= 3 && p2 >= 3 && p1 === p2) {
+      return "Deuce";
     }
-    if (p2 > p1) {
-      return `Advantage ${participant2Name.split(" ")[0]}`;
+    if (p1 >= 3 && p2 >= 3) {
+      if (p1 > p2) {
+        return `Advantage ${participant1Name.split(" ")[0]}`;
+      }
+      if (p2 > p1) {
+        return `Advantage ${participant2Name.split(" ")[0]}`;
+      }
     }
-  }
-
-  if (!isAdScoring && p1 === 3 && p2 === 3) {
+  } else if (p1 === 3 && p2 === 3) {
     const receiver = servingParticipant === 1 ? participant2Name : participant1Name;
     return `Deciding Point (${receiver.split(" ")[0]} chooses side)`;
   }
