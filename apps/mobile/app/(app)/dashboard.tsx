@@ -34,7 +34,10 @@ export default function DashboardScreen() {
     );
   }
 
-  const tournamentList = useMemo(() => tournaments ?? [], [tournaments]);
+  const tournamentList = useMemo(
+    () => (tournaments ?? []).filter((tournament) => tournament.status === "active"),
+    [tournaments]
+  );
   const liveMatchCount = tournamentList.reduce(
     (count, tournament) => count + tournament.liveMatchCount,
     0
@@ -67,8 +70,10 @@ export default function DashboardScreen() {
               </Text>
               <Text className="mt-2 text-sm text-text-secondary dark:text-text-secondary-dark">
                 {tournamentList.length === 0
-                  ? "Create your first tournament to start tracking live matches."
-                  : `You are tracking ${tournamentList.length} tournament${tournamentList.length === 1 ? "" : "s"} right now.`}
+                  ? "No active tournaments right now."
+                  : `You are tracking ${tournamentList.length} active tournament${
+                      tournamentList.length === 1 ? "" : "s"
+                    } right now.`}
               </Text>
               {liveMatchCount > 0 && (
                 <View className="mt-4 self-start rounded-full border border-brand/40 bg-brand/10 px-3 py-1.5">

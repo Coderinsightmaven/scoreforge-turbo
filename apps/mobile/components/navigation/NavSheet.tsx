@@ -7,6 +7,8 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { useQuery } from "convex/react";
 import { api } from "@repo/convex";
 
+import { useThemePreference, type ThemePreference } from "../../contexts/ThemePreferenceContext";
+
 type NavSheetContextType = {
   isOpen: boolean;
   open: () => void;
@@ -55,6 +57,7 @@ function NavSheet({ open, onClose }: NavSheetProps) {
   const user = useQuery(api.users.currentUser);
   const isSiteAdmin = useQuery(api.siteAdmin.checkIsSiteAdmin);
   const { signOut } = useAuthActions();
+  const { themePreference, setThemePreference } = useThemePreference();
 
   const screenWidth = Dimensions.get("window").width;
   const sheetWidth = Math.min(320, screenWidth * 0.82);
@@ -114,6 +117,16 @@ function NavSheet({ open, onClose }: NavSheetProps) {
     signOut();
   };
 
+  const handleThemeToggle = () => {
+    const themeOrder: ThemePreference[] = ["system", "light", "dark"];
+    const currentIndex = Math.max(0, themeOrder.indexOf(themePreference));
+    const nextTheme = themeOrder[(currentIndex + 1) % themeOrder.length];
+    void setThemePreference(nextTheme);
+  };
+
+  const themeLabel =
+    themePreference === "system" ? "Auto" : themePreference === "light" ? "Light" : "Dark";
+
   if (!isVisible) return null;
 
   return (
@@ -168,9 +181,29 @@ function NavSheet({ open, onClose }: NavSheetProps) {
 
             <View className="mt-auto border-t border-border pt-5 dark:border-border-dark">
               <View className="mb-4 rounded-2xl border border-border bg-bg-card p-4 dark:border-border-dark dark:bg-bg-card-dark">
-                <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted dark:text-text-muted-dark">
-                  Signed in
-                </Text>
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted dark:text-text-muted-dark">
+                    Signed in
+                  </Text>
+                  <TouchableOpacity
+                    onPress={handleThemeToggle}
+                    accessibilityLabel={`Toggle theme (${themeLabel})`}
+                    className="h-7 w-7 items-center justify-center rounded-full border border-border bg-bg-secondary dark:border-border-dark dark:bg-bg-secondary-dark">
+                    {themePreference === "light" && (
+                      <View className="h-3 w-3 items-center justify-center rounded-full border border-text-secondary dark:border-text-secondary-dark">
+                        <View className="h-1.5 w-1.5 rounded-full bg-text-secondary dark:bg-text-secondary-dark" />
+                      </View>
+                    )}
+                    {themePreference === "dark" && (
+                      <View className="h-3 w-3 rounded-full bg-text-secondary dark:bg-text-secondary-dark" />
+                    )}
+                    {themePreference === "system" && (
+                      <View className="h-3 w-3 items-start justify-center overflow-hidden rounded-full border border-text-secondary dark:border-text-secondary-dark">
+                        <View className="h-full w-1.5 bg-text-secondary dark:bg-text-secondary-dark" />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                </View>
                 <Text className="mt-2 font-sans-semibold text-base text-text-primary dark:text-text-primary-dark">
                   {user?.name ?? "ScoreForge user"}
                 </Text>
