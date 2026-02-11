@@ -8,18 +8,21 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
+        "BUN_VERSION": "1.3.2",
         "EXPO_PUBLIC_CONVEX_URL": "https://knowing-alpaca-261.convex.cloud"
       }
     },
     "preview": {
       "distribution": "internal",
       "env": {
+        "BUN_VERSION": "1.3.2",
         "EXPO_PUBLIC_CONVEX_URL": "https://helpful-oyster-185.convex.cloud"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
+        "BUN_VERSION": "1.3.2",
         "EXPO_PUBLIC_CONVEX_URL": "https://helpful-oyster-185.convex.cloud"
       }
     }
