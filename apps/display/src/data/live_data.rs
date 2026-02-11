@@ -10,6 +10,7 @@ pub struct TennisLiveData {
     pub player2_display_name: String,
     pub sets: Vec<SetScore>,
     pub current_game_points: [u32; 2],
+    pub tiebreak_points: [u32; 2],
     pub serving_player: u8,
     pub is_tiebreak: bool,
     pub is_match_complete: bool,
@@ -88,10 +89,17 @@ mod tests {
             player1_display_name: "Alice Smith".to_string(),
             player2_display_name: "Bob Jones".to_string(),
             sets: vec![
-                SetScore { player1_games: 6, player2_games: 4 },
-                SetScore { player1_games: 3, player2_games: 6 },
+                SetScore {
+                    player1_games: 6,
+                    player2_games: 4,
+                },
+                SetScore {
+                    player1_games: 3,
+                    player2_games: 6,
+                },
             ],
             current_game_points: [2, 1],
+            tiebreak_points: [0, 0],
             serving_player: 1,
             is_tiebreak: false,
             is_match_complete: false,
@@ -103,6 +111,7 @@ mod tests {
         assert_eq!(deserialized.sets.len(), 2);
         assert_eq!(deserialized.sets[0].player1_games, 6);
         assert_eq!(deserialized.current_game_points, [2, 1]);
+        assert_eq!(deserialized.tiebreak_points, [0, 0]);
         assert_eq!(deserialized.serving_player, 1);
         assert!(!deserialized.is_tiebreak);
         assert!(!deserialized.is_match_complete);
@@ -110,7 +119,10 @@ mod tests {
 
     #[test]
     fn set_score_serde_round_trip() {
-        let score = SetScore { player1_games: 7, player2_games: 5 };
+        let score = SetScore {
+            player1_games: 7,
+            player2_games: 5,
+        };
         let json = serde_json::to_string(&score).unwrap();
         let deserialized: SetScore = serde_json::from_str(&json).unwrap();
         assert_eq!(deserialized.player1_games, 7);
@@ -126,6 +138,7 @@ mod tests {
             player2_display_name: "B".to_string(),
             sets: vec![],
             current_game_points: [0, 0],
+            tiebreak_points: [0, 0],
             serving_player: 2,
             is_tiebreak: false,
             is_match_complete: false,

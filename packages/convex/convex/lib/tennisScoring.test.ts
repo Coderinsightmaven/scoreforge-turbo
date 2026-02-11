@@ -21,8 +21,14 @@ function makeState(overrides: Partial<TennisState> = {}): TennisState {
     firstServerOfSet: 1,
     isAdScoring: true,
     setsToWin: 2,
+    setTiebreakTarget: 7,
+    finalSetTiebreakTarget: 7,
+    useMatchTiebreak: false,
+    matchTiebreakTarget: 10,
     isTiebreak: false,
     tiebreakPoints: [0, 0],
+    tiebreakTarget: 7,
+    tiebreakMode: undefined,
     isMatchComplete: false,
     ...overrides,
   };
@@ -199,6 +205,21 @@ describe("processTiebreakPoint", () => {
     const result = processTiebreakPoint(state, 2);
     expect(result.tiebreakOver).toBe(true);
     expect(result.tiebreakWinner).toBe(2);
+  });
+
+  it("respects custom tiebreak target", () => {
+    const state = makeState({ tiebreakPoints: [9, 8], tiebreakTarget: 10 });
+    const result = processTiebreakPoint(state, 1);
+    expect(result.tiebreakOver).toBe(true);
+    expect(result.tiebreakWinner).toBe(1);
+    expect(result.newPoints).toEqual([10, 8]);
+  });
+
+  it("does not end early when target is higher", () => {
+    const state = makeState({ tiebreakPoints: [6, 5], tiebreakTarget: 10 });
+    const result = processTiebreakPoint(state, 1);
+    expect(result.tiebreakOver).toBe(false);
+    expect(result.newPoints).toEqual([7, 5]);
   });
 });
 

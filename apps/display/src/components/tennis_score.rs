@@ -28,7 +28,11 @@ pub fn render_tennis_score(
     let display_text = if let Some(data) = live_data {
         match score_type {
             ComponentType::TennisGameScore => {
-                points_to_display(data.current_game_points[idx]).to_string()
+                if data.is_tiebreak {
+                    data.tiebreak_points[idx].to_string()
+                } else {
+                    points_to_display(data.current_game_points[idx]).to_string()
+                }
             }
             ComponentType::TennisSetScore => {
                 // set_number 0 = current (last) set, 1+ = specific set
@@ -38,7 +42,11 @@ pub fn render_tennis_score(
                     data.sets.get((set_number - 1) as usize)
                 };
                 if let Some(s) = set {
-                    let games = if idx == 0 { s.player1_games } else { s.player2_games };
+                    let games = if idx == 0 {
+                        s.player1_games
+                    } else {
+                        s.player2_games
+                    };
                     games.to_string()
                 } else {
                     String::new()

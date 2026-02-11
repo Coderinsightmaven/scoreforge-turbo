@@ -3,6 +3,7 @@ import { View, Text } from "react-native";
 type ScoreboardProps = {
   isLive: boolean;
   isTiebreak: boolean;
+  tiebreakMode?: "set" | "match";
   gameStatus: string | null;
   p1Points: string;
   p2Points: string;
@@ -19,6 +20,7 @@ type ScoreboardProps = {
 export function Scoreboard({
   isLive,
   isTiebreak,
+  tiebreakMode,
   gameStatus,
   p1Points,
   p2Points,
@@ -43,7 +45,9 @@ export function Scoreboard({
         )}
         {isTiebreak && (
           <View className="rounded-full border border-brand/30 bg-brand/20 px-3 py-1">
-            <Text className="text-[10px] font-semibold uppercase text-brand-glow">Tiebreak</Text>
+            <Text className="text-[10px] font-semibold uppercase text-brand-glow">
+              {tiebreakMode === "match" ? "Match Tiebreak" : "Tiebreak"}
+            </Text>
           </View>
         )}
       </View>
@@ -69,7 +73,9 @@ export function Scoreboard({
 
         {/* Games in Center */}
         <View className="mx-4 items-center rounded-xl border border-dark-elevated bg-dark-elevated px-4 py-2">
-          <Text className="text-xs text-slate-400">{isTiebreak ? "TB" : "GAME"}</Text>
+          <Text className="text-xs text-slate-400">
+            {isTiebreak ? (tiebreakMode === "match" ? "MTB" : "TB") : "GAME"}
+          </Text>
           <Text className="text-xl font-bold text-white">
             {currentSetGames[0]} - {currentSetGames[1]}
           </Text>

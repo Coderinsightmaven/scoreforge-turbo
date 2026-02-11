@@ -72,7 +72,8 @@ export function TennisScoreboard({
     tennisState.isTiebreak,
     p1Name,
     p2Name,
-    tennisState.servingParticipant
+    tennisState.servingParticipant,
+    tennisState.tiebreakMode
   );
 
   // Count sets won
@@ -119,7 +120,13 @@ export function TennisScoreboard({
               {showCurrentSet && (
                 <div className="text-center text-brand">Set {tennisState.sets.length + 1}</div>
               )}
-              <div className="text-center">{tennisState.isTiebreak ? "TB" : "Game"}</div>
+              <div className="text-center">
+                {tennisState.isTiebreak
+                  ? tennisState.tiebreakMode === "match"
+                    ? "MTB"
+                    : "TB"
+                  : "Game"}
+              </div>
             </div>
 
             {/* Player 1 Row */}

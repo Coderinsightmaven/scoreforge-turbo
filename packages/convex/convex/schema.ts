@@ -54,6 +54,14 @@ export const tennisConfig = v.object({
   isAdScoring: v.boolean(),
   // Best of 3 (setsToWin=2) or Best of 5 (setsToWin=3)
   setsToWin: v.number(),
+  // Points to win a standard set tiebreak (win by 2)
+  setTiebreakTarget: v.optional(v.number()),
+  // Points to win a final-set tiebreak (win by 2)
+  finalSetTiebreakTarget: v.optional(v.number()),
+  // Use a match tiebreak (e.g., 10-point) instead of a deciding set
+  useMatchTiebreak: v.optional(v.boolean()),
+  // Points to win a match tiebreak (win by 2)
+  matchTiebreakTarget: v.optional(v.number()),
 });
 
 /**
@@ -67,6 +75,8 @@ export const tennisStateSnapshot = v.object({
   firstServerOfSet: v.number(),
   isTiebreak: v.boolean(),
   tiebreakPoints: v.array(v.number()),
+  tiebreakTarget: v.optional(v.number()),
+  tiebreakMode: v.optional(v.union(v.literal("set"), v.literal("match"))),
   isMatchComplete: v.boolean(),
 });
 
@@ -90,9 +100,16 @@ export const tennisState = v.object({
   isAdScoring: v.boolean(),
   // Best of 3 (setsToWin=2) or Best of 5 (setsToWin=3)
   setsToWin: v.number(),
+  // Tiebreak configuration (resolved at match init)
+  setTiebreakTarget: v.optional(v.number()),
+  finalSetTiebreakTarget: v.optional(v.number()),
+  useMatchTiebreak: v.optional(v.boolean()),
+  matchTiebreakTarget: v.optional(v.number()),
   // Tiebreak state
   isTiebreak: v.boolean(),
   tiebreakPoints: v.array(v.number()),
+  tiebreakTarget: v.optional(v.number()),
+  tiebreakMode: v.optional(v.union(v.literal("set"), v.literal("match"))),
   // Match completed
   isMatchComplete: v.boolean(),
   // State history for undo (last 10 states)

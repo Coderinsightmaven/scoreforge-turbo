@@ -11,6 +11,7 @@ export function detectMatchPoint(
         setsToWin?: number;
         isTiebreak?: boolean;
         tiebreakPoints?: number[];
+        tiebreakTarget?: number;
         isAdScoring?: boolean;
       }
     | null
@@ -48,7 +49,8 @@ export function detectMatchPoint(
       // In tiebreak: need 6+ points and be ahead by 1+ (winning next point wins)
       const pPoints = tiebreakPoints[pIdx] ?? 0;
       const oPoints = tiebreakPoints[oIdx] ?? 0;
-      if (pPoints >= 6 && pPoints > oPoints) {
+      const target = tennisState.tiebreakTarget ?? 7;
+      if (pPoints >= target - 1 && pPoints - oPoints >= 1) {
         return participant;
       }
     } else {

@@ -24,7 +24,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }): 
       if (stored !== null) {
         setSidebarCollapsed(stored === "true");
       }
-    } catch {}
+    } catch (error) {
+      void error;
+    }
   }, []);
 
   useEffect(() => {
@@ -38,7 +40,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }): 
       const next = !prev;
       try {
         window.localStorage.setItem("scoreforge-sidebar-collapsed", String(next));
-      } catch {}
+      } catch (error) {
+        void error;
+      }
       return next;
     });
   };

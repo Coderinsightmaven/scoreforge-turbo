@@ -32,10 +32,15 @@ async function setupTennisMatch(
   options: {
     isAdScoring?: boolean;
     setsToWin?: number;
+    setTiebreakTarget?: number;
+    finalSetTiebreakTarget?: number;
+    useMatchTiebreak?: boolean;
+    matchTiebreakTarget?: number;
     tournamentStatus?: "draft" | "active" | "completed" | "cancelled";
     matchStatus?: "pending" | "scheduled" | "live" | "completed" | "bye";
     omitParticipant2?: boolean;
     omitTennisConfig?: boolean;
+    participantType?: "individual" | "doubles" | "team";
   } = {}
 ) {
   const userId = await t.run(async (ctx) => {
@@ -49,12 +54,19 @@ async function setupTennisMatch(
       name: "Tennis Tournament",
       sport: "tennis",
       format: "single_elimination",
-      participantType: "individual",
+      participantType: options.participantType ?? "individual",
       maxParticipants: 8,
       status: options.tournamentStatus ?? "active",
       tennisConfig: options.omitTennisConfig
         ? undefined
-        : { isAdScoring: options.isAdScoring ?? true, setsToWin: options.setsToWin ?? 2 },
+        : {
+            isAdScoring: options.isAdScoring ?? true,
+            setsToWin: options.setsToWin ?? 2,
+            setTiebreakTarget: options.setTiebreakTarget,
+            finalSetTiebreakTarget: options.finalSetTiebreakTarget,
+            useMatchTiebreak: options.useMatchTiebreak,
+            matchTiebreakTarget: options.matchTiebreakTarget,
+          },
     });
     const bracketId = await ctx.db.insert("tournamentBrackets", {
       tournamentId,
@@ -116,11 +128,25 @@ async function setupTennisMatch(
  */
 async function setupAndInitMatch(
   t: ReturnType<typeof getTestContext>,
-  options: { isAdScoring?: boolean; setsToWin?: number; firstServer?: number } = {}
+  options: {
+    isAdScoring?: boolean;
+    setsToWin?: number;
+    firstServer?: number;
+    setTiebreakTarget?: number;
+    finalSetTiebreakTarget?: number;
+    useMatchTiebreak?: boolean;
+    matchTiebreakTarget?: number;
+    participantType?: "individual" | "doubles" | "team";
+  } = {}
 ) {
   const setup = await setupTennisMatch(t, {
     isAdScoring: options.isAdScoring,
     setsToWin: options.setsToWin,
+    setTiebreakTarget: options.setTiebreakTarget,
+    finalSetTiebreakTarget: options.finalSetTiebreakTarget,
+    useMatchTiebreak: options.useMatchTiebreak,
+    matchTiebreakTarget: options.matchTiebreakTarget,
+    participantType: options.participantType,
   });
   await setup.asUser.mutation(api.tennis.initTennisMatch, {
     matchId: setup.matchId,
@@ -683,7 +709,7 @@ describe("scoreTennisPoint - set completion", () => {
     expect(state!.currentGamePoints).toEqual([0, 0]);
   });
 
-  it("first server alternates at start of new set", async () => {
+  it("keeps first server after even-numbered set", async () => {
     const t = getTestContext();
     const { asUser, matchId } = await setupAndInitMatch(t, { firstServer: 1 });
 
@@ -691,7 +717,28 @@ describe("scoreTennisPoint - set completion", () => {
     await scoreSet6_0(asUser, matchId, 1);
 
     const state = await getTennisState(t, matchId);
-    // After set ends, firstServerOfSet should alternate
+    // After an even-numbered set, the same player serves first
+    expect(state!.firstServerOfSet).toBe(1);
+    expect(state!.servingParticipant).toBe(1);
+  });
+
+  it("alternates first server after odd-numbered set", async () => {
+    const t = getTestContext();
+    const { asUser, matchId } = await setupAndInitMatch(t, { firstServer: 1 });
+
+    // Get to 6-6
+    for (let i = 0; i < 6; i++) {
+      await scoreGame(asUser, matchId, 1);
+      await scoreGame(asUser, matchId, 2);
+    }
+
+    // Win tiebreak 7-0 for player 1
+    for (let i = 0; i < 7; i++) {
+      await asUser.mutation(api.tennis.scoreTennisPoint, { matchId, winnerParticipant: 1 });
+    }
+
+    const state = await getTennisState(t, matchId);
+    // After an odd-numbered set (7-6), the first server flips
     expect(state!.firstServerOfSet).toBe(2);
     expect(state!.servingParticipant).toBe(2);
   });
@@ -1016,6 +1063,38 @@ describe("scoreTennisPoint - match completion", () => {
     expect(state!.sets).toHaveLength(2);
     expect(state!.sets[0]).toEqual([6, 0]);
     expect(state!.sets[1]).toEqual([7, 6]);
+  });
+
+  it("uses match tiebreak in doubles when sets are tied", async () => {
+    const t = getTestContext();
+    const { asUser, matchId, p1Id } = await setupAndInitMatch(t, {
+      setsToWin: 2,
+      participantType: "doubles",
+    });
+
+    // Split sets 1-1
+    await scoreSet6_0(asUser, matchId, 1);
+    await scoreSet6_0(asUser, matchId, 2);
+
+    let state = await getTennisState(t, matchId);
+    expect(state!.isTiebreak).toBe(true);
+    expect(state!.tiebreakMode).toBe("match");
+    expect(state!.tiebreakTarget).toBe(10);
+
+    // Win match tiebreak 10-0 for player 1
+    for (let i = 0; i < 10; i++) {
+      await asUser.mutation(api.tennis.scoreTennisPoint, { matchId, winnerParticipant: 1 });
+    }
+
+    const match = await getMatch(t, matchId);
+    expect(match!.status).toBe("completed");
+    expect(match!.winnerId).toBe(p1Id);
+    expect(match!.participant1Score).toBe(2);
+    expect(match!.participant2Score).toBe(1);
+
+    state = await getTennisState(t, matchId);
+    expect(state!.sets).toHaveLength(3);
+    expect(state!.sets[2]).toEqual([10, 0]);
   });
 
   it("cannot score after match is complete", async () => {

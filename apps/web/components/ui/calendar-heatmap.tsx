@@ -8,7 +8,7 @@ import { buttonVariants } from "@/components/ui/button";
 
 type UnionKeys<T> = T extends T ? keyof T : never;
 type Expand<T> = T extends T ? { [K in keyof T]: T[K] } : never;
-type OneOf<T extends {}[]> = {
+type OneOf<T extends object[]> = {
   [K in keyof T]: Expand<T[K] & Partial<Record<Exclude<UnionKeys<T[number]>, keyof T[K]>, never>>>;
 }[number];
 
@@ -138,6 +138,7 @@ function CalendarHeatmap({
         ...classNames,
       }}
       components={{
+        // eslint-disable-next-line react/prop-types
         Chevron: ({ orientation = "left" }) =>
           orientation === "left" ? (
             <ChevronLeft className="h-4 w-4" />

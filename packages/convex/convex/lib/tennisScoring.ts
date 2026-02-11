@@ -6,6 +6,8 @@ export type TennisStateSnapshot = {
   firstServerOfSet: number;
   isTiebreak: boolean;
   tiebreakPoints: number[];
+  tiebreakTarget?: number;
+  tiebreakMode?: "set" | "match";
   isMatchComplete: boolean;
 };
 
@@ -17,8 +19,14 @@ export type TennisState = {
   firstServerOfSet: number;
   isAdScoring: boolean;
   setsToWin: number;
+  setTiebreakTarget?: number;
+  finalSetTiebreakTarget?: number;
+  useMatchTiebreak?: boolean;
+  matchTiebreakTarget?: number;
   isTiebreak: boolean;
   tiebreakPoints: number[];
+  tiebreakTarget?: number;
+  tiebreakMode?: "set" | "match";
   isMatchComplete: boolean;
   history?: TennisStateSnapshot[];
 };
@@ -35,6 +43,8 @@ export function createSnapshot(state: TennisState): TennisStateSnapshot {
     firstServerOfSet: state.firstServerOfSet,
     isTiebreak: state.isTiebreak,
     tiebreakPoints: [...state.tiebreakPoints],
+    tiebreakTarget: state.tiebreakTarget,
+    tiebreakMode: state.tiebreakMode,
     isMatchComplete: state.isMatchComplete,
   };
 }
@@ -146,10 +156,11 @@ export function processTiebreakPoint(
 
   const p1 = newPoints[0] ?? 0;
   const p2 = newPoints[1] ?? 0;
-  // Tiebreak: first to 7 with 2-point lead
-  if ((p1 >= 7 || p2 >= 7) && Math.abs(p1 - p2) >= 2) {
+  const target = state.tiebreakTarget ?? state.setTiebreakTarget ?? 7;
+  // Tiebreak: first to target with 2-point lead
+  if ((p1 >= target || p2 >= target) && Math.abs(p1 - p2) >= 2) {
     const tiebreakWinner: 1 | 2 = p1 > p2 ? 1 : 2;
-    return { tiebreakOver: true, tiebreakWinner, newPoints: [0, 0] };
+    return { tiebreakOver: true, tiebreakWinner, newPoints };
   }
 
   return { tiebreakOver: false, tiebreakWinner: null, newPoints };
