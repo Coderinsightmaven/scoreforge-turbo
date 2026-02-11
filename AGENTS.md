@@ -30,75 +30,77 @@ bunx vitest
 
 Pre-commit hook runs `prettier --check` on staged files via husky + lint-staged.
 
-## Architecture
+## Repo Layout
 
-Turborepo monorepo with Bun (v1.3.2). Workspaces: `apps/*`, `packages/*`.
+- Turborepo monorepo with Bun (v1.3.2). Workspaces: `apps/*`, `packages/*`.
+- `apps/web`: Next.js 16, React 19, Tailwind.
+- `apps/mobile`: Expo 54, React Native 0.81, NativeWind.
+- `apps/display`: Rust (eframe/egui) + Convex Rust SDK.
+- `packages/convex`: Convex backend (schema, functions, HTTP API).
+- `packages/eslint-config`, `packages/typescript-config`: shared configs.
 
-| Package                      | Stack                                  | Notes                                            |
-| ---------------------------- | -------------------------------------- | ------------------------------------------------ |
-| `apps/web`                   | Next.js 16, React 19, Tailwind         | Route groups: `(app)` auth, `(auth)` login       |
-| `apps/mobile`                | Expo 54, React Native 0.81, NativeWind | Login only (no sign-up)                          |
-| `apps/display`               | Rust, eframe/egui, Convex Rust SDK     | Desktop scoreboard app                           |
-| `packages/convex`            | Convex serverless backend              | Schema, functions, HTTP API                      |
-| `packages/eslint-config`     | Shared ESLint v9 flat configs          | `base`, `next-js`, `react-internal`              |
-| `packages/typescript-config` | Shared tsconfig                        | `base.json`, `nextjs.json`, `react-library.json` |
+## Code Style & Conventions
 
-## Code Style
+- Formatting: Prettier (double quotes, semicolons, 2-space indent, trailing commas, 100 print width).
+- Terminology: use "ScoreCommand" instead of "Ops" in UI copy.
+- File naming:
+  - Convex functions/lib: `camelCase.ts`
+  - Web components: `PascalCase.tsx`
+  - Web UI primitives (shadcn): `kebab-case.tsx`
+  - Tests: `name.test.ts` (never `.spec.ts`)
+- Export naming:
+  - Convex functions: `camelCase` named exports
+  - React components: `PascalCase` named exports
+  - Utilities: `camelCase`
+  - Constants: `UPPER_SNAKE_CASE`
+  - Types/interfaces: `PascalCase`
+- Imports:
+  - Web alias: `@/` -> project root
+  - Mobile alias: `@/` -> `apps/mobile/src`
+  - Cross-package: `import { api, internal } from "@repo/convex";`
+  - Types: `import type { Id, Doc } from "@repo/convex/dataModel";`
+  - Convex functions use relative imports from `./lib/*`
+  - No barrel `index.ts` files (package exports are explicit)
+- TypeScript:
+  - `strict: true`, `noUncheckedIndexedAccess: true`
+  - Avoid `any`; use `unknown` + narrowing
+  - Prefix intentionally unused variables with `_`
+- Error handling:
+  - Backend throws structured `ConvexError` via `errors.*` helpers
+  - Frontend uses `parseError` + `isErrorCode` from `@/lib/errors`
+- Comments only when necessary to explain non-obvious logic.
 
-### Formatting (Prettier)
-
-Double quotes, semicolons, 2-space indent, trailing commas (es5), 100 char print width.
-
-### File Naming
-
-- Convex functions and lib: `camelCase.ts` (e.g., `tournaments.ts`, `accessControl.ts`)
-- Web components: `PascalCase.tsx` (e.g., `Navigation.tsx`, `ConfirmDialog.tsx`)
-- Web UI primitives (shadcn): `kebab-case.tsx` (e.g., `button.tsx`, `dropdown-menu.tsx`)
-- Tests: `<name>.test.ts` — never `.spec.ts`
-
-### Export Naming
-
-- Convex functions: `camelCase` named exports (`export const getTournament = query({...})`)
-- React components: `PascalCase` named exports (`export function Navigation()`)
-- Utility functions: `camelCase` (`export function parseError()`)
-- Constants: `UPPER_SNAKE_CASE` (`MAX_LENGTHS`, `ERROR_CODES`)
-- Types/interfaces: `PascalCase` (`ErrorCode`, `TennisState`, `AppError`)
-
-### Imports
+### Import Example
 
 ```ts
-// Path aliases
-import { cn } from "@/lib/utils"; // Web: @/ -> project root
-import { Something } from "@/src/thing"; // Mobile: @/ -> src/
-
-// Cross-package
 import { api, internal } from "@repo/convex";
-import type { Id, Doc } from "@repo/convex/dataModel";
-import type { TennisState } from "@repo/convex/types/tennis";
-
-// Within Convex functions — relative imports to lib/
-import { errors } from "./lib/errors";
-import { validateStringLength, MAX_LENGTHS } from "./lib/validation";
-import { getTournamentRole } from "./lib/accessControl";
-import { assertNotInMaintenance } from "./lib/maintenance";
+import type { Id } from "@repo/convex/dataModel";
+import { cn } from "@/lib/utils";
 ```
-
-No barrel `index.ts` files exist. The `@repo/convex` package uses `exports` in package.json.
-
-### TypeScript
-
-All packages use `strict: true` and `noUncheckedIndexedAccess: true`. Convex targets ESNext; web uses Bundler module resolution. Do not add `any` types (ESLint rule is off but codebase avoids them). Prefix intentionally unused variables with `_`.
 
 ## Convex Patterns
 
-### Function Syntax
+- Always use object syntax with `args` and `returns` validators.
+- `returns` is required; use `v.null()` for void.
+- Use `v.id("table")` for IDs (never `v.string()`).
+- Public: `query`, `mutation`, `action`.
+- Internal: `internalQuery`, `internalMutation`, `internalAction`.
+- Call via `FunctionReference` (`ctx.runQuery(internal.file.func, args)`).
+- Actions do not have `ctx.db`; use `ctx.runQuery`/`ctx.runMutation`.
+- If an action uses Node built-ins, add `"use node";` at top of file.
+- Queries:
+  - Never use `.filter()`; always `.withIndex()` with schema indexes.
+  - Index names include all fields (e.g., `by_tournament_and_user`).
+  - Use `.collect()` for arrays, `.first()` for one-or-none, `.unique()` for exactly one.
+  - No `.delete()` on query results; collect then `ctx.db.delete(row._id)`.
+- Validation: use `validateStringLength` + `MAX_LENGTHS` from `./lib/validation`.
+- Auth: `getAuthUserId` + `errors.unauthenticated()` if missing.
+- Access control: `getTournamentRole` (owner/scorer/temporaryScorer); site admins bypass.
+- Maintenance: write mutations call `assertNotInMaintenance(ctx)` (admins bypass).
 
-Always use object syntax with `args` and `returns` validators:
+### Convex Function Example
 
 ```ts
-import { query, mutation } from "./_generated/server";
-import { v } from "convex/values";
-
 export const getItem = query({
   args: { id: v.id("items") },
   returns: v.object({ name: v.string() }),
@@ -110,90 +112,32 @@ export const getItem = query({
 });
 ```
 
-- `returns` is required. Use `v.null()` for void (implicit `undefined` becomes `null`).
-- Use `v.id("tableName")` for IDs, never `v.string()`.
-- Public: `query`, `mutation`, `action`. Internal-only: `internalQuery`, `internalMutation`, `internalAction`.
-- Call via `FunctionReference`: `ctx.runQuery(internal.file.func, args)` — never pass the function directly.
-- Actions lack `ctx.db` — use `ctx.runQuery`/`ctx.runMutation`. Add `"use node";` at top if using Node built-ins.
-
-### Database Queries
-
-- **Never use `.filter()`** — always `.withIndex()` with an index defined in `schema.ts`.
-- Index names include all fields: `by_tournament_and_user`.
-- Use `.collect()` for arrays, `.first()` for one-or-none, `.unique()` for exactly one.
-- No `.delete()` on queries — `.collect()` then iterate with `ctx.db.delete(row._id)`.
-
-### Error Handling
-
-Backend throws structured `ConvexError({ code, message })` via factory helpers:
-
-```ts
-import { errors } from "./lib/errors";
-
-throw errors.unauthenticated(); // No auth token
-throw errors.unauthorized("Not owner"); // Insufficient permissions
-throw errors.notFound("Tournament"); // 404
-throw errors.invalidInput("Name too long");
-throw errors.invalidState("Already started");
-throw errors.conflict("Already exists");
-throw errors.limitExceeded("Max 10 keys");
-throw errors.maintenance(); // System in maintenance mode
-```
-
-Frontend parses these with `parseError(error)` and `isErrorCode(error, "NOT_FOUND")` from `@/lib/errors`.
-
-### Validation
-
-Use shared validators from `./lib/validation`:
-
-```ts
-import { validateStringLength, MAX_LENGTHS } from "./lib/validation";
-validateStringLength(args.name, "tournament name", MAX_LENGTHS.tournamentName);
-```
-
-### Authentication
-
-```ts
-import { getAuthUserId } from "@convex-dev/auth/server";
-const userId = await getAuthUserId(ctx);
-if (!userId) throw errors.unauthenticated();
-```
-
-### Access Control
-
-Tournament owner (`createdBy`) has full control. Scorers score matches only. Temp scorers use PIN + tournament code. Site admins bypass most restrictions.
-
-```ts
-import { getTournamentRole } from "./lib/accessControl";
-const role = await getTournamentRole(ctx, tournamentId);
-// role: "owner" | "scorer" | "temporaryScorer" | null
-```
-
-### Maintenance Mode
-
-Write mutations must check: `await assertNotInMaintenance(ctx);` (site admins bypass).
-
 ## Web Patterns
 
-- shadcn/ui components in `apps/web/components/ui/`
-- App components in `apps/web/app/components/`
-- Use `useQuery(api.file.func, args)` and `useMutation(api.file.func)` from `convex/react`
-- Wrap auth-dependent UI with `<Authenticated>`, `<Unauthenticated>`, `<AuthLoading>`
-- Theme via `next-themes` — dark mode CSS vars in `globals.css`
+- shadcn/ui components in `apps/web/components/ui/`.
+- App components in `apps/web/app/components/`.
+- Data hooks: `useQuery` / `useMutation` from `convex/react`.
+- Auth UI: `<Authenticated>`, `<Unauthenticated>`, `<AuthLoading>`.
+- Theme: `next-themes`, CSS vars in `apps/web/app/globals.css`.
 
-## Test Patterns
+## Mobile Patterns
 
-Vitest across all packages. Convex integration tests use `convex-test`:
+- NativeWind `className` styles; use tokens from `apps/mobile/tailwind.config.js`.
+- App header: use `AppHeader` for top-level screens.
+- Navigation: uses nav sheet (`NavSheetProvider`).
+- Theme: `ThemePreferenceContext` (Auto/Light/Dark) from root layout.
+
+## Tests
+
+- Vitest across packages; Convex integration tests use `convex-test`.
+- Prefer scoped or single-test runs to save time (see Commands).
+
+### Test Example
 
 ```ts
-import { getTestContext } from "./testSetup";
-import { expect, test, describe, it } from "vitest";
-import { api } from "../convex/_generated/api";
-
 describe("getTournament", () => {
   it("returns the tournament for its owner", async () => {
     const t = getTestContext();
-    // Create user, seed data, call functions via t
     const asUser = t.withIdentity({ subject: "user-id" });
     const result = await asUser.query(api.tournaments.getTournament, { id });
     expect(result).not.toBeNull();
@@ -201,4 +145,6 @@ describe("getTournament", () => {
 });
 ```
 
-Test descriptions use verb phrases: `"creates a tournament"`, `"throws when unauthenticated"`.
+## Cursor/Copilot Rules
+
+- No `.cursor/rules/`, `.cursorrules`, or `.github/copilot-instructions.md` found in this repo.
