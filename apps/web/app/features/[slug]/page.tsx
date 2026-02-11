@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Authenticated, AuthLoading, Unauthenticated } from "convex/react";
+import { Authenticated, Unauthenticated } from "convex/react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, ChevronRight, Gauge, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronRight } from "lucide-react";
 import { featureDetails, getFeatureBySlug } from "@/app/lib/featureData";
+import { LandingHeader } from "@/app/components/LandingHeader";
 import { use } from "react";
 
 export default function FeaturePage({
@@ -30,64 +31,13 @@ export default function FeaturePage({
   return (
     <div className="min-h-screen pb-20">
       <div className="space-y-12 sm:space-y-16">
-        {/* Header */}
-        <header className="container py-8 sm:py-10">
-          <div className="surface-panel surface-panel-rail flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-            <Link href="/" className="group flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-brand/40 bg-brand/15 text-brand">
-                <Gauge className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-lg font-semibold text-foreground">ScoreForge</p>
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                  ScoreCommand
-                </p>
-              </div>
-            </Link>
-
-            <nav className="flex flex-1 flex-wrap items-center justify-center gap-4 text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-              <Link href="/#overview" className="transition-colors hover:text-foreground">
-                Overview
-              </Link>
-              <Link href="/#capabilities" className="transition-colors hover:text-foreground">
-                Capabilities
-              </Link>
-              <Link href="/#ops-flow" className="transition-colors hover:text-foreground">
-                Command Flow
-              </Link>
-            </nav>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <AuthLoading>
-                <Button variant="outline" size="sm" disabled>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Loading
-                </Button>
-              </AuthLoading>
-              <Authenticated>
-                <Button variant="brand" size="sm" asChild>
-                  <Link href="/dashboard">
-                    Open Dashboard
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </Authenticated>
-              <Unauthenticated>
-                <>
-                  <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex">
-                    <Link href="/sign-in">Sign In</Link>
-                  </Button>
-                  <Button variant="brand" size="sm" asChild>
-                    <Link href="/sign-up">
-                      Start Ops
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </>
-              </Unauthenticated>
-            </div>
-          </div>
-        </header>
+        <LandingHeader
+          navLinks={[
+            { href: "/#overview", label: "Overview" },
+            { href: "/#capabilities", label: "Capabilities" },
+            { href: "/#ops-flow", label: "Command Flow" },
+          ]}
+        />
 
         {/* Breadcrumb */}
         <div className="container -mt-4 sm:-mt-6">
