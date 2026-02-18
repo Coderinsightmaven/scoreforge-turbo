@@ -1,4 +1,3 @@
-import { getAuthUserId } from "@convex-dev/auth/server";
 import { query, mutation, internalMutation } from "./_generated/server";
 import type { QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
@@ -36,21 +35,15 @@ export const currentUser = query({
     v.object({
       _id: v.id("users"),
       _creationTime: v.number(),
-      name: v.optional(v.string()),
-      email: v.optional(v.string()),
-      emailVerificationTime: v.optional(v.number()),
+      name: v.string(),
+      email: v.string(),
       image: v.optional(v.string()),
-      isAnonymous: v.optional(v.boolean()),
+      externalId: v.string(),
     }),
     v.null()
   ),
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      return null;
-    }
-    // eslint-disable-next-line @convex-dev/explicit-table-ids -- userId is typed as Id<"users">
-    return await ctx.db.get(userId);
+    return await getCurrentUser(ctx);
   },
 });
 
@@ -61,10 +54,8 @@ export const updateProfile = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      throw errors.unauthenticated();
-    }
+    const user = await getCurrentUserOrThrow(ctx);
+    const userId = user._id;
 
     await assertNotInMaintenance(ctx, userId);
 
@@ -101,15 +92,11 @@ export const getOnboardingState = query({
     v.null()
   ),
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      return null;
-    }
-
-    const user = await ctx.db.get("users", userId);
+    const user = await getCurrentUser(ctx);
     if (!user) {
       return null;
     }
+    const userId = user._id;
 
     // Check if user has a name set
     const hasName = !!user.name && user.name.trim().length > 0;
@@ -148,10 +135,11 @@ export const getThemePreference = query({
   args: {},
   returns: v.union(themePreference, v.null()),
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
+    const user = await getCurrentUser(ctx);
+    if (!user) {
       return null;
     }
+    const userId = user._id;
 
     const preferences = await ctx.db
       .query("userPreferences")
@@ -171,10 +159,8 @@ export const setThemePreference = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      throw errors.unauthenticated();
-    }
+    const user = await getCurrentUserOrThrow(ctx);
+    const userId = user._id;
 
     await assertNotInMaintenance(ctx, userId);
 
@@ -207,10 +193,8 @@ export const deleteAccount = mutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      throw errors.unauthenticated();
-    }
+    const user = await getCurrentUserOrThrow(ctx);
+    const userId = user._id;
 
     await assertNotInMaintenance(ctx, userId);
 
@@ -345,26 +329,7 @@ export const deleteAccount = mutation({
       await ctx.db.delete("tournaments", tournament._id);
     }
 
-    // 7. Delete auth-related records
-    // Delete from authSessions
-    const authSessions = await ctx.db
-      .query("authSessions")
-      .withIndex("userId", (q) => q.eq("userId", userId))
-      .collect();
-    for (const session of authSessions) {
-      await ctx.db.delete("authSessions", session._id);
-    }
-
-    // Delete from authAccounts
-    const authAccounts = await ctx.db
-      .query("authAccounts")
-      .withIndex("userIdAndProvider", (q) => q.eq("userId", userId))
-      .collect();
-    for (const account of authAccounts) {
-      await ctx.db.delete("authAccounts", account._id);
-    }
-
-    // 8. Finally, delete the user record
+    // 7. Finally, delete the user record
     await ctx.db.delete("users", userId);
 
     return null;
