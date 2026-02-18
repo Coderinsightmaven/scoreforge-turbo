@@ -1,4 +1,4 @@
-import { useAuthActions } from "@convex-dev/auth/react";
+import { useClerk } from "@clerk/clerk-expo";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@repo/convex";
 import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -17,7 +17,7 @@ const themeOptions: { label: string; value: ThemePreference; description: string
 ];
 
 export default function SettingsScreen() {
-  const { signOut } = useAuthActions();
+  const { signOut } = useClerk();
   const user = useQuery(api.users.currentUser);
   const updateProfile = useMutation(api.users.updateProfile);
   const deleteAccount = useMutation(api.users.deleteAccount);

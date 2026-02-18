@@ -1,5 +1,6 @@
 import { ConvexReactClient } from "convex/react";
-import { ConvexAuthProvider } from "@convex-dev/auth/react";
+import { ConvexProviderWithClerk } from "convex/react-clerk";
+import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
 import * as SecureStore from "expo-secure-store";
 import { ReactNode } from "react";
 
@@ -7,22 +8,26 @@ const convex = new ConvexReactClient(process.env.EXPO_PUBLIC_CONVEX_URL!, {
   unsavedChangesWarning: false,
 });
 
-const secureStorage = {
-  getItem: async (key: string) => {
+const tokenCache = {
+  async getToken(key: string) {
     return await SecureStore.getItemAsync(key);
   },
-  setItem: async (key: string, value: string) => {
+  async saveToken(key: string, value: string) {
     await SecureStore.setItemAsync(key, value);
   },
-  removeItem: async (key: string) => {
+  async clearToken(key: string) {
     await SecureStore.deleteItemAsync(key);
   },
 };
 
 export function ConvexProvider({ children }: { children: ReactNode }) {
   return (
-    <ConvexAuthProvider client={convex} storage={secureStorage}>
-      {children}
-    </ConvexAuthProvider>
+    <ClerkProvider
+      publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
+      tokenCache={tokenCache}>
+      <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+        {children}
+      </ConvexProviderWithClerk>
+    </ClerkProvider>
   );
 }

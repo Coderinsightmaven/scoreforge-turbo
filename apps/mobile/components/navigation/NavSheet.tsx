@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState } from 
 import { Animated, Dimensions, Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePathname, useRouter } from "expo-router";
-import { useAuthActions } from "@convex-dev/auth/react";
+import { useClerk } from "@clerk/clerk-expo";
 import { useQuery } from "convex/react";
 import { api } from "@repo/convex";
 
@@ -56,7 +56,7 @@ function NavSheet({ open, onClose }: NavSheetProps) {
   const insets = useSafeAreaInsets();
   const user = useQuery(api.users.currentUser);
   const isSiteAdmin = useQuery(api.siteAdmin.checkIsSiteAdmin);
-  const { signOut } = useAuthActions();
+  const { signOut } = useClerk();
   const { themePreference, setThemePreference } = useThemePreference();
 
   const screenWidth = Dimensions.get("window").width;

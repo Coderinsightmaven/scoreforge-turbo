@@ -1,4 +1,4 @@
-import { useAuthActions } from "@convex-dev/auth/react";
+import { useSignIn } from "@clerk/clerk-expo";
 import { useMutation } from "convex/react";
 import { api } from "@repo/convex";
 import { useState } from "react";
@@ -21,7 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 type LoginType = "regular" | "scorer";
 
 export default function SignInScreen() {
-  const { signIn } = useAuthActions();
+  const { signIn: clerkSignIn, setActive, isLoaded } = useSignIn();
   const { setSession } = useTempScorer();
   const router = useRouter();
   const [loginType, setLoginType] = useState<LoginType>("regular");
@@ -70,31 +70,20 @@ export default function SignInScreen() {
     setLoading(true);
 
     try {
-      await signIn("password", { email, password, flow: "signIn" });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "";
-      if (
-        message.includes("InvalidSecret") ||
-        message.toLowerCase().includes("invalid") ||
-        message.toLowerCase().includes("incorrect") ||
-        message.toLowerCase().includes("credentials") ||
-        message.toLowerCase().includes("password")
-      ) {
-        setError("Invalid email or password. Please try again.");
-      } else if (
-        message.includes("InvalidAccountId") ||
-        message.toLowerCase().includes("not found") ||
-        message.toLowerCase().includes("no user") ||
-        message.toLowerCase().includes("does not exist")
-      ) {
-        setError("No account found with this email address.");
-      } else if (
-        message.toLowerCase().includes("too many") ||
-        message.toLowerCase().includes("rate limit")
-      ) {
-        setError("Too many attempts. Please wait a moment and try again.");
+      if (!isLoaded) return;
+      const result = await clerkSignIn.create({
+        identifier: email,
+        password,
+      });
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+      }
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "errors" in err) {
+        const clerkErr = err as { errors: Array<{ message: string }> };
+        setError(clerkErr.errors[0]?.message ?? "Sign in failed");
       } else {
-        setError("Unable to sign in. Please check your credentials and try again.");
+        setError("Something went wrong. Please try again.");
       }
     } finally {
       setLoading(false);
