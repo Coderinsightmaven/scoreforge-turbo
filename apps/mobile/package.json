@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.28.6",
-    "@convex-dev/auth": "^0.0.90",
+    "@clerk/clerk-expo": "^2.19.25",
     "@expo-google-fonts/lexend": "^0.4.1",
     "@expo-google-fonts/teko": "^0.4.1",
     "@react-native-community/netinfo": "^11.5.2",
