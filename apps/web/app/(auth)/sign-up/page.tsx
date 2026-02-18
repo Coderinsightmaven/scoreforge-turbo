@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuthActions } from "@convex-dev/auth/react";
+import { useSignUp } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { api } from "@repo/convex";
 import { useState } from "react";
@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowRight, Gauge, Loader2, ShieldCheck, UserPlus } from "lucide-react";
 
 export default function SignUpPage(): React.ReactNode {
-  const { signIn } = useAuthActions();
+  const { signUp, setActive, isLoaded } = useSignUp();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -21,12 +21,14 @@ export default function SignUpPage(): React.ReactNode {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!isLoaded) return;
     setError(null);
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
     const firstName = (formData.get("firstName") as string)?.trim();
     const lastName = (formData.get("lastName") as string)?.trim();
+    const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirmPassword") as string;
 
@@ -48,40 +50,22 @@ export default function SignUpPage(): React.ReactNode {
       return;
     }
 
-    formData.set("name", `${firstName} ${lastName}`);
-    formData.delete("firstName");
-    formData.delete("lastName");
-    formData.set("flow", "signUp");
-    formData.delete("confirmPassword");
-
     try {
-      await signIn("password", formData);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "";
-      if (
-        message.toLowerCase().includes("already") ||
-        message.toLowerCase().includes("exists") ||
-        message.toLowerCase().includes("duplicate") ||
-        message.toLowerCase().includes("in use")
-      ) {
-        setError("An account with this email already exists. Try signing in instead.");
-      } else if (
-        message.toLowerCase().includes("invalid email") ||
-        message.toLowerCase().includes("email format")
-      ) {
-        setError("Please enter a valid email address.");
-      } else if (
-        message.toLowerCase().includes("password") &&
-        message.toLowerCase().includes("weak")
-      ) {
-        setError("Password is too weak. Please use a stronger password.");
-      } else if (
-        message.toLowerCase().includes("too many") ||
-        message.toLowerCase().includes("rate limit")
-      ) {
-        setError("Too many attempts. Please wait a moment and try again.");
+      const result = await signUp.create({
+        emailAddress: email,
+        password,
+        firstName,
+        lastName,
+      });
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+      }
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "errors" in err) {
+        const clerkErr = err as { errors: Array<{ message: string }> };
+        setError(clerkErr.errors[0]?.message ?? "Sign up failed");
       } else {
-        setError("Unable to create account. Please try again.");
+        setError("Something went wrong. Please try again.");
       }
     } finally {
       setLoading(false);

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Authenticated, AuthLoading, Unauthenticated, useQuery } from "convex/react";
-import { useAuthActions } from "@convex-dev/auth/react";
+import { useClerk } from "@clerk/nextjs";
 import { api } from "@repo/convex";
 import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
@@ -55,7 +55,7 @@ export function Navigation({
   onToggleCollapse,
 }: NavigationProps): React.ReactNode {
   const pathname = usePathname();
-  const { signOut } = useAuthActions();
+  const { signOut } = useClerk();
   const user = useQuery(api.users.currentUser);
   const isSiteAdmin = useQuery(api.siteAdmin.checkIsSiteAdmin);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuthActions } from "@convex-dev/auth/react";
+import { useSignIn } from "@clerk/nextjs";
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -10,44 +10,34 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowRight, Gauge, Loader2, ShieldCheck } from "lucide-react";
 
 export default function SignInPage(): React.ReactNode {
-  const { signIn } = useAuthActions();
+  const { signIn, setActive, isLoaded } = useSignIn();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!isLoaded) return;
     setError(null);
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    formData.set("flow", "signIn");
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
 
     try {
-      await signIn("password", formData);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "";
-      if (
-        message.includes("InvalidSecret") ||
-        message.toLowerCase().includes("invalid") ||
-        message.toLowerCase().includes("incorrect") ||
-        message.toLowerCase().includes("credentials") ||
-        message.toLowerCase().includes("password")
-      ) {
-        setError("Invalid email or password. Please try again.");
-      } else if (
-        message.includes("InvalidAccountId") ||
-        message.toLowerCase().includes("not found") ||
-        message.toLowerCase().includes("no user") ||
-        message.toLowerCase().includes("does not exist")
-      ) {
-        setError("No account found with this email address.");
-      } else if (
-        message.toLowerCase().includes("too many") ||
-        message.toLowerCase().includes("rate limit")
-      ) {
-        setError("Too many attempts. Please wait a moment and try again.");
+      const result = await signIn.create({
+        identifier: email,
+        password,
+      });
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+      }
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "errors" in err) {
+        const clerkErr = err as { errors: Array<{ message: string }> };
+        setError(clerkErr.errors[0]?.message ?? "Sign in failed");
       } else {
-        setError("Unable to sign in. Please check your credentials and try again.");
+        setError("Something went wrong. Please try again.");
       }
     } finally {
       setLoading(false);

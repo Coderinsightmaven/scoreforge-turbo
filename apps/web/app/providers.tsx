@@ -1,6 +1,7 @@
 "use client";
 
-import { ConvexAuthProvider } from "@convex-dev/auth/react";
+import { ClerkProvider, useAuth } from "@clerk/nextjs";
+import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ConvexReactClient } from "convex/react";
 import { ThemeProvider } from "next-themes";
 import { ReactNode } from "react";
@@ -12,13 +13,15 @@ const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export function Providers({ children }: { children: ReactNode }): ReactNode {
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-      <ConvexAuthProvider client={convex}>
-        <ThemeSyncProvider>
-          <ScoreCommandOnboarding>{children}</ScoreCommandOnboarding>
-          <Toaster richColors closeButton toastOptions={{ style: { borderRadius: "6px" } }} />
-        </ThemeSyncProvider>
-      </ConvexAuthProvider>
-    </ThemeProvider>
+    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}>
+      <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+          <ThemeSyncProvider>
+            <ScoreCommandOnboarding>{children}</ScoreCommandOnboarding>
+            <Toaster richColors closeButton toastOptions={{ style: { borderRadius: "6px" } }} />
+          </ThemeSyncProvider>
+        </ThemeProvider>
+      </ConvexProviderWithClerk>
+    </ClerkProvider>
   );
 }
