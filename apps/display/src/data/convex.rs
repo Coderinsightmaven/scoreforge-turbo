@@ -68,9 +68,13 @@ async fn convex_task(
                                 maplit::btreemap! { "apiKey".into() => key.into() };
                             match c.mutation("publicApi:listTournaments", args).await {
                                 Ok(FunctionResult::Value(val)) => {
-                                    let tournaments = parse_tournament_list(&val);
-                                    let _ = message_tx
-                                        .send(LiveDataMessage::TournamentList(tournaments));
+                                    if let Some(err) = get_error_string(&val) {
+                                        let _ = message_tx.send(LiveDataMessage::Error(err));
+                                    } else {
+                                        let tournaments = parse_tournament_list(&val);
+                                        let _ = message_tx
+                                            .send(LiveDataMessage::TournamentList(tournaments));
+                                    }
                                 }
                                 Ok(FunctionResult::ErrorMessage(e)) => {
                                     let _ = message_tx.send(LiveDataMessage::Error(e));
@@ -103,8 +107,13 @@ async fn convex_task(
                     };
                     match c.mutation("publicApi:listBrackets", args).await {
                         Ok(FunctionResult::Value(val)) => {
-                            let brackets = parse_bracket_list(&val);
-                            let _ = message_tx.send(LiveDataMessage::BracketList(brackets));
+                            if let Some(err) = get_error_string(&val) {
+                                let _ = message_tx.send(LiveDataMessage::Error(err));
+                            } else {
+                                let brackets = parse_bracket_list(&val);
+                                let _ =
+                                    message_tx.send(LiveDataMessage::BracketList(brackets));
+                            }
                         }
                         Ok(FunctionResult::ErrorMessage(e)) => {
                             let _ = message_tx.send(LiveDataMessage::Error(e));
@@ -131,8 +140,13 @@ async fn convex_task(
                     };
                     match c.mutation("publicApi:listMatches", args).await {
                         Ok(FunctionResult::Value(val)) => {
-                            let matches = parse_match_list(&val);
-                            let _ = message_tx.send(LiveDataMessage::MatchList(matches));
+                            if let Some(err) = get_error_string(&val) {
+                                let _ = message_tx.send(LiveDataMessage::Error(err));
+                            } else {
+                                let matches = parse_match_list(&val);
+                                let _ =
+                                    message_tx.send(LiveDataMessage::MatchList(matches));
+                            }
                         }
                         Ok(FunctionResult::ErrorMessage(e)) => {
                             let _ = message_tx.send(LiveDataMessage::Error(e));

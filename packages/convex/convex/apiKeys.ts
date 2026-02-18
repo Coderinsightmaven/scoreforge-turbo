@@ -292,6 +292,12 @@ export async function validateApiKey(
     return null;
   }
 
+  // Verify the referenced user still exists (keys from before auth migration may be orphaned)
+  const user = await ctx.db.get(keyRecord.userId);
+  if (!user) {
+    return null;
+  }
+
   return {
     userId: keyRecord.userId as Id<"users">,
     keyId: keyRecord._id as Id<"apiKeys">,

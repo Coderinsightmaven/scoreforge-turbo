@@ -90,6 +90,9 @@ export function MatchesTab({
     return a.matchNumber - b.matchNumber;
   });
 
+  const oneOffMatches = sortedMatches.filter((m) => m.bracketType === "one_off");
+  const bracketMatches = sortedMatches.filter((m) => m.bracketType !== "one_off");
+
   const matchStatusStyles: Record<string, string> = {
     pending: "text-muted-foreground bg-secondary",
     scheduled: "text-info bg-info/10",
@@ -97,9 +100,6 @@ export function MatchesTab({
     completed: "text-gold bg-gold/10",
     bye: "text-muted-foreground bg-secondary",
   };
-
-  // Allow clicking matches in draft mode to set court
-  const isClickable = true;
 
   return (
     <div className="animate-fadeIn space-y-4">
@@ -228,106 +228,136 @@ export function MatchesTab({
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          {sortedMatches.map((match, index) => {
-            const roundLabel = match.bracketType === "one_off" ? "One-Off" : `Round ${match.round}`;
-            const isWinner1 = match.winnerId === match.participant1?._id;
-            const isWinner2 = match.winnerId === match.participant2?._id;
-
-            const content = (
-              <>
-                <div className="absolute inset-x-4 top-0 h-px bg-brand/40" />
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                    {roundLabel}
-                  </span>
-                  <span className="text-xs font-semibold text-muted-foreground">
-                    Match {match.matchNumber}
-                  </span>
-                  {match.court && (
-                    <span className="text-xs font-semibold text-brand">@ {match.court}</span>
-                  )}
-                  <span
-                    className={`ml-auto flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] ${matchStatusStyles[match.status]}`}
-                  >
-                    {match.status === "live" && (
-                      <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
-                    )}
-                    {match.status}
-                  </span>
-                </div>
-                <div className="mt-3 grid gap-2">
-                  <div
-                    className={`flex items-center justify-between rounded-xl border px-3 py-2 ${
-                      isWinner1 ? "border-brand/30 bg-brand/10" : "border-border/60 bg-bg-secondary"
-                    }`}
-                  >
-                    <span
-                      className={`text-sm font-semibold ${
-                        isWinner1 ? "text-brand" : "text-foreground"
-                      }`}
-                    >
-                      {match.participant1?.displayName || "TBD"}
-                    </span>
-                    <span className="text-lg font-bold text-foreground">
-                      {match.participant1Score}
-                    </span>
-                  </div>
-                  <div
-                    className={`flex items-center justify-between rounded-xl border px-3 py-2 ${
-                      isWinner2 ? "border-brand/30 bg-brand/10" : "border-border/60 bg-bg-secondary"
-                    }`}
-                  >
-                    <span
-                      className={`text-sm font-semibold ${
-                        isWinner2 ? "text-brand" : "text-foreground"
-                      }`}
-                    >
-                      {match.participant2?.displayName || "TBD"}
-                    </span>
-                    <span className="text-lg font-bold text-foreground">
-                      {match.participant2Score}
-                    </span>
-                  </div>
-                </div>
-                {match.scheduledTime && (
-                  <div className="text-xs text-muted-foreground mt-3 pt-3 border-t border-border/70">
-                    {new Date(match.scheduledTime).toLocaleString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
-                  </div>
-                )}
-              </>
-            );
-
-            if (isClickable) {
-              return (
-                <Link
-                  key={match._id}
-                  href={`/matches/${match._id}`}
-                  className="surface-panel surface-panel-rail relative flex flex-col gap-3 p-4 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md animate-fadeInUp"
-                  style={{ animationDelay: `${index * 0.03}s` }}
-                >
-                  {content}
-                </Link>
-              );
-            }
-
-            return (
-              <div
-                key={match._id}
-                className="surface-panel surface-panel-rail relative flex flex-col gap-3 p-4 animate-fadeInUp"
-                style={{ animationDelay: `${index * 0.03}s` }}
-              >
-                {content}
+        <div className="space-y-6">
+          {oneOffMatches.length > 0 && (
+            <section>
+              <h3 className="text-heading mb-3">One-Off Matches</h3>
+              <div className="flex flex-col gap-3">
+                {oneOffMatches.map((match, index) => (
+                  <MatchCard
+                    key={match._id}
+                    match={match}
+                    index={index}
+                    matchStatusStyles={matchStatusStyles}
+                  />
+                ))}
               </div>
-            );
-          })}
+            </section>
+          )}
+
+          {bracketMatches.length > 0 && (
+            <section>
+              <h3 className="text-heading mb-3">Tournament Matches</h3>
+              <div className="flex flex-col gap-3">
+                {bracketMatches.map((match, index) => (
+                  <MatchCard
+                    key={match._id}
+                    match={match}
+                    index={index}
+                    matchStatusStyles={matchStatusStyles}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {oneOffMatches.length === 0 && bracketMatches.length === 0 && (
+            <p className="text-sm text-muted-foreground">No matches to display.</p>
+          )}
         </div>
       )}
     </div>
+  );
+}
+
+function MatchCard({
+  match,
+  index,
+  matchStatusStyles,
+}: {
+  match: {
+    _id: string;
+    bracketType?: string;
+    round: number;
+    matchNumber: number;
+    court?: string;
+    status: string;
+    winnerId?: string;
+    participant1?: { _id: string; displayName: string };
+    participant2?: { _id: string; displayName: string };
+    participant1Score: number;
+    participant2Score: number;
+    scheduledTime?: number;
+  };
+  index: number;
+  matchStatusStyles: Record<string, string>;
+}): React.ReactNode {
+  const roundLabel = match.bracketType === "one_off" ? "One-Off" : `Round ${match.round}`;
+  const isWinner1 = match.winnerId === match.participant1?._id;
+  const isWinner2 = match.winnerId === match.participant2?._id;
+
+  const content = (
+    <>
+      <div className="absolute inset-x-4 top-0 h-px bg-brand/40" />
+      <div className="flex items-center gap-3">
+        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          {roundLabel}
+        </span>
+        <span className="text-xs font-semibold text-muted-foreground">
+          Match {match.matchNumber}
+        </span>
+        {match.court && <span className="text-xs font-semibold text-brand">@ {match.court}</span>}
+        <span
+          className={`ml-auto flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] ${matchStatusStyles[match.status]}`}
+        >
+          {match.status === "live" && (
+            <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
+          )}
+          {match.status}
+        </span>
+      </div>
+      <div className="mt-3 grid gap-2">
+        <div
+          className={`flex items-center justify-between rounded-xl border px-3 py-2 ${
+            isWinner1 ? "border-brand/30 bg-brand/10" : "border-border/60 bg-bg-secondary"
+          }`}
+        >
+          <span className={`text-sm font-semibold ${isWinner1 ? "text-brand" : "text-foreground"}`}>
+            {match.participant1?.displayName || "TBD"}
+          </span>
+          <span className="text-lg font-bold text-foreground">{match.participant1Score}</span>
+        </div>
+        <div
+          className={`flex items-center justify-between rounded-xl border px-3 py-2 ${
+            isWinner2 ? "border-brand/30 bg-brand/10" : "border-border/60 bg-bg-secondary"
+          }`}
+        >
+          <span className={`text-sm font-semibold ${isWinner2 ? "text-brand" : "text-foreground"}`}>
+            {match.participant2?.displayName || "TBD"}
+          </span>
+          <span className="text-lg font-bold text-foreground">{match.participant2Score}</span>
+        </div>
+      </div>
+      {match.scheduledTime && (
+        <div className="text-xs text-muted-foreground mt-3 pt-3 border-t border-border/70">
+          {new Date(match.scheduledTime).toLocaleString("en-US", {
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+          })}
+        </div>
+      )}
+    </>
+  );
+
+  return (
+    <Link
+      href={`/matches/${match._id}`}
+      className="surface-panel surface-panel-rail relative flex flex-col gap-3 p-4 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md animate-fadeInUp"
+      style={{ animationDelay: `${index * 0.03}s` }}
+    >
+      {content}
+    </Link>
   );
 }

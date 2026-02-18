@@ -455,15 +455,6 @@ function TournamentActions({
   return (
     <>
       <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
-        {tournament.status === "draft" && tournament.participantCount >= 2 && (
-          <button
-            onClick={handleGenerateBracket}
-            disabled={generating}
-            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 text-xs"
-          >
-            {generating ? "..." : "Generate Bracket"}
-          </button>
-        )}
         {tournament.status === "draft" && supportsBlankBracket && (
           <button
             onClick={() => setShowBlankBracketModal(true)}
@@ -476,7 +467,7 @@ function TournamentActions({
           <button
             onClick={handleStart}
             disabled={loading || tournament.participantCount < 2}
-            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-brand text-white hover:bg-brand-hover shadow-sm h-9 px-4 py-2 text-xs"
+            className="px-4 py-2 text-xs font-semibold tracking-wide text-brand bg-brand/10 border border-brand/30 rounded-lg hover:bg-brand hover:text-text-inverse transition-all"
           >
             {loading ? "..." : "Start Tournament"}
           </button>
