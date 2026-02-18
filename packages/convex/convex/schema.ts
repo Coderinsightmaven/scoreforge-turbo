@@ -1,5 +1,4 @@
 import { defineSchema, defineTable } from "convex/server";
-import { authTables } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 
 /**
@@ -141,10 +140,13 @@ export const bracketStatus = v.union(
 );
 
 export default defineSchema({
-  ...authTables,
-
-  // Override users table from authTables to add search index
-  users: authTables.users
+  users: defineTable({
+    name: v.string(),
+    email: v.string(),
+    image: v.optional(v.string()),
+    externalId: v.string(),
+  })
+    .index("by_externalId", ["externalId"])
     .searchIndex("search_name", { searchField: "name", filterFields: [] })
     .searchIndex("search_email", { searchField: "email", filterFields: [] }),
 
