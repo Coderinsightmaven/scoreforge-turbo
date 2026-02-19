@@ -70,13 +70,6 @@ export default function LandingPage(): React.ReactNode {
           className="container grid items-center gap-16 pb-20 pt-16 sm:pt-20 lg:grid-cols-[1.1fr_0.9fr]"
         >
           <div className="space-y-10">
-            <Image
-              src="/logo.png"
-              alt="ScoreForge"
-              width={120}
-              height={120}
-              className="h-[120px] w-[120px] object-contain animate-scaleIn"
-            />
             <div className="inline-flex items-center gap-2 rounded-full border border-brand/40 bg-brand/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-brand animate-scaleIn">
               <span className="live-dot" />
               Real-time tournament ops
