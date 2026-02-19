@@ -26,14 +26,6 @@ export default function DashboardScreen() {
     setTimeout(() => setRefreshing(false), 300);
   };
 
-  if (tournaments === undefined || user === undefined) {
-    return (
-      <View className="flex-1 items-center justify-center bg-bg-page dark:bg-bg-page-dark">
-        <ActivityIndicator size="large" color="#70AC15" />
-      </View>
-    );
-  }
-
   const tournamentList = useMemo(
     () => (tournaments ?? []).filter((tournament) => tournament.status === "active"),
     [tournaments]
@@ -43,6 +35,14 @@ export default function DashboardScreen() {
     0
   );
   const firstName = user?.name?.split(" ")[0] || "there";
+
+  if (tournaments === undefined || user === undefined) {
+    return (
+      <View className="flex-1 items-center justify-center bg-bg-page dark:bg-bg-page-dark">
+        <ActivityIndicator size="large" color="#70AC15" />
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-bg-page dark:bg-bg-page-dark">
