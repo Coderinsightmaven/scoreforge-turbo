@@ -1,24 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Authenticated, Unauthenticated } from "convex/react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Braces, Zap, Users, LayoutDashboard } from "lucide-react";
+import { ArrowRight, Braces, Zap, QrCode, Monitor } from "lucide-react";
 import { featureDetails } from "@/app/lib/featureData";
 import { LandingHeader } from "@/app/components/LandingHeader";
 
 const opsHighlights = [
-  { icon: Zap, title: "Real-time scoring", desc: "Every point syncs live across all devices" },
   {
-    icon: Users,
-    title: "Team collaboration",
-    desc: "Invite scorers with a PIN — no account needed",
+    icon: Zap,
+    title: "Real-time scoring",
+    desc: "Point-by-point sync across web, mobile, and display apps",
   },
   {
-    icon: LayoutDashboard,
-    title: "Full event control",
-    desc: "Brackets, courts, and schedules in one place",
+    icon: QrCode,
+    title: "QR code scorer access",
+    desc: "Volunteers scan a code, enter a PIN, and start scoring — no account needed",
+  },
+  {
+    icon: Monitor,
+    title: "Live scoreboards",
+    desc: "Design custom layouts in the desktop app and broadcast to any screen",
   },
 ] as const;
 
@@ -83,8 +86,9 @@ export default function LandingPage(): React.ReactNode {
               className="max-w-xl text-body-lg text-muted-foreground animate-slideUp"
               style={{ animationDelay: "200ms", opacity: 0 }}
             >
-              ScoreForge centralizes brackets, live scoring, and court flow in one Command. Keep
-              every match in sync, from the first serve to the final trophy.
+              ScoreForge unifies brackets, live tennis scoring, court scheduling, and custom
+              scoreboards across web, mobile, and desktop. Hand off scoring with QR codes, track
+              every point in real time, and broadcast results to any screen.
             </p>
             <div
               className="flex flex-wrap items-center gap-3 animate-slideUp"
@@ -257,8 +261,9 @@ export default function LandingPage(): React.ReactNode {
             className="text-muted-foreground"
             style={{ maxWidth: "32rem", fontSize: "1.15rem", lineHeight: 1.75 }}
           >
-            From bracket generation to court scheduling, ScoreForge, Command gives your operations
-            team the visibility and speed required to run a full event.
+            From bracket generation and court-based QR scorer access to live scoreboard broadcasts
+            and a public API — everything your ops team needs to run a full event across every
+            device.
           </p>
         </div>
 
@@ -327,15 +332,16 @@ export default function LandingPage(): React.ReactNode {
             <p className="text-caption text-muted-foreground">Command Flow</p>
             <h2 className="mt-5 text-hero">From setup to finals in a single Command.</h2>
             <p className="mt-6 text-body-lg text-muted-foreground">
-              Keep your tournament moving without chasing spreadsheets or manual score updates.
-              ScoreForge syncs brackets, courts, and scoring in one place.
+              No spreadsheets. No manual score updates. Build your draw, hand off scoring via QR
+              code, and watch results sync across every connected device in real time.
             </p>
           </div>
           <div className="space-y-5">
             {[
-              "Build brackets and seed participants",
-              "Assign courts and manage match flow",
-              "Score live and broadcast instantly",
+              "Build brackets, seed participants, and assign courts",
+              "Share QR codes so volunteers can score from their phones",
+              "Track live scores and broadcast to custom scoreboards",
+              "Export results as CSV or pull data via the public API",
             ].map((step, index) => (
               <div
                 key={step}

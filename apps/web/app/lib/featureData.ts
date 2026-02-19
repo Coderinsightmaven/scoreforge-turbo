@@ -1,5 +1,13 @@
 import type { LucideIcon } from "lucide-react";
-import { Activity, GitBranch, KeyRound, Monitor, Smartphone, Users } from "lucide-react";
+import {
+  Activity,
+  FileSpreadsheet,
+  GitBranch,
+  KeyRound,
+  Monitor,
+  Smartphone,
+  Users,
+} from "lucide-react";
 
 export interface FeatureDetail {
   slug: string;
@@ -148,10 +156,20 @@ export const featureDetails: FeatureDetail[] = [
     title: "Temporary Scorers",
     tagline: "Hand off the clipboard. Keep the control.",
     description:
-      "Hand off match scoring with PIN-based access. Temp scorers authenticate with a tournament code, get scoped permissions, and sessions auto-expire.",
+      "Auto-generate court-based scorers, share QR codes, and let volunteers start scoring with a PIN — no account needed. Sessions auto-expire in 24 hours.",
     heroDescription:
-      "Tournament day means delegating scoring to volunteers, parents, or officials who don't need a full account. ScoreForge's temporary scorer system lets you create short-lived, PIN-authenticated access that's scoped to a single tournament. Scorers get exactly the controls they need and nothing else — sessions expire automatically and can be revoked instantly.",
+      "Tournament day means delegating scoring to volunteers, parents, or officials who don't need a full account. ScoreForge auto-generates a temporary scorer for each court and produces a QR code that links directly to the mobile scoring flow. Volunteers scan, enter their PIN, and start scoring — sessions expire automatically and can be revoked instantly.",
     sections: [
+      {
+        heading: "Court-based QR code access",
+        body: "When you add courts to a tournament, ScoreForge auto-generates a temporary scorer for each one. Each court gets a printable QR code that encodes the tournament code and scorer username. Volunteers scan the QR code on their phone, enter the court's PIN, and land directly in the scoring flow — no app account, no setup.",
+        details: [
+          "One temporary scorer auto-created per court with matching display name",
+          "QR code encodes tournament code + scorer username for one-tap login",
+          "Printable QR codes for posting at each court",
+          "PIN shown once to the tournament owner for secure handoff",
+        ],
+      },
       {
         heading: "PIN-based authentication",
         body: "Each temporary scorer gets a 4-digit numeric PIN paired with the tournament's 6-character alphanumeric code. The scorer enters the code and PIN on the mobile app to start a scoring session. PINs are bcrypt-hashed before storage — the plaintext is shown once to the tournament owner and never stored.",
@@ -386,6 +404,48 @@ export const featureDetails: FeatureDetail[] = [
           "Generate, revoke (soft disable), rotate (new key material), or delete keys",
           "Each key has a name, creation date, and last-used timestamp",
           "CORS enabled with exposed rate limit headers for browser clients",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "reports-and-export",
+    icon: FileSpreadsheet,
+    title: "Reports & Export",
+    tagline: "Tournament data. Ready when you are.",
+    description:
+      "Export completed match scores, set-by-set breakdowns, and scoring audit logs as CSV. Pull the same data programmatically through the public API.",
+    heroDescription:
+      "When the last point is scored, the work isn't over. ScoreForge makes it easy to pull match results, scoring histories, and audit logs out of the system in structured CSV format — ready for federation reporting, record-keeping, or post-tournament analysis. Everything available in the export is also accessible through the public API.",
+    sections: [
+      {
+        heading: "Match score CSV export",
+        body: "Generate a CSV of all completed matches for a tournament with a single click. Each row includes the match number, round, court assignment, participant names, final winner, set-by-set game scores (up to 5 sets), and start/completion timestamps.",
+        details: [
+          "One-click CSV download from the tournament dashboard",
+          "Includes match number, round, court, and bracket name",
+          "Set-by-set game scores for up to 5 sets per match",
+          "Start and completion timestamps for scheduling analysis",
+        ],
+      },
+      {
+        heading: "Scoring audit logs",
+        body: "When scoring logs are enabled, every action — point scored, undo, server change, match initialization — is recorded with a full state snapshot. Logs can be viewed in the admin panel and exported as CSV for post-match review or dispute resolution.",
+        details: [
+          "Every action logged: score_point, undo, set_server, init_match",
+          "Full state snapshot before and after each action",
+          "Filterable by tournament with admin-level access",
+          "CSV export for offline review and archival",
+        ],
+      },
+      {
+        heading: "Round-robin standings",
+        body: "Round-robin brackets automatically compute standings from match results. Points per win, draw, and loss are configurable at the tournament level. Standings sort by total points, then point differential, then points scored — giving you a clear leaderboard at any point during the event.",
+        details: [
+          "Automatic standings calculation from completed match results",
+          "Configurable points per win, draw, and loss",
+          "Tiebreaker: points → point differential → points for",
+          "Live standings update as matches complete",
         ],
       },
     ],
