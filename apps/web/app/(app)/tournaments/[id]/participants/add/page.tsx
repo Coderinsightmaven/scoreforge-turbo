@@ -205,6 +205,14 @@ export default function AddParticipantPage({
           .split(",")
           .map((n) => n.trim())
           .filter((n) => n.length > 0);
+        if (maxParticipants && currentParticipantCount + names.length > maxParticipants) {
+          const remaining = maxParticipants - currentParticipantCount;
+          setError(
+            `Cannot add ${names.length} participants. Only ${remaining} spot${remaining === 1 ? "" : "s"} remaining in this bracket.`
+          );
+          setLoading(false);
+          return;
+        }
         for (let i = 0; i < names.length; i++) {
           await addParticipant({
             tournamentId: tournamentId as Id<"tournaments">,
@@ -235,6 +243,15 @@ export default function AddParticipantPage({
           return;
         }
 
+        if (maxParticipants && currentParticipantCount + players1.length > maxParticipants) {
+          const remaining = maxParticipants - currentParticipantCount;
+          setError(
+            `Cannot add ${players1.length} pairs. Only ${remaining} spot${remaining === 1 ? "" : "s"} remaining in this bracket.`
+          );
+          setLoading(false);
+          return;
+        }
+
         for (let i = 0; i < players1.length; i++) {
           await addParticipant({
             tournamentId: tournamentId as Id<"tournaments">,
@@ -255,6 +272,14 @@ export default function AddParticipantPage({
           .split(",")
           .map((n) => n.trim())
           .filter((n) => n.length > 0);
+        if (maxParticipants && currentParticipantCount + names.length > maxParticipants) {
+          const remaining = maxParticipants - currentParticipantCount;
+          setError(
+            `Cannot add ${names.length} teams. Only ${remaining} spot${remaining === 1 ? "" : "s"} remaining in this bracket.`
+          );
+          setLoading(false);
+          return;
+        }
         for (let i = 0; i < names.length; i++) {
           await addParticipant({
             tournamentId: tournamentId as Id<"tournaments">,
@@ -324,6 +349,25 @@ export default function AddParticipantPage({
       ? "Columns: player1, player2 (or use the first two columns). One row per pair."
       : "Column: name (or use the first column). One row per participant.";
 
+  const downloadTemplate = () => {
+    let content: string;
+    if (effectiveParticipantType === "doubles") {
+      content =
+        "player 1,player 2\nJohn Doe,Jane Smith\nBob Wilson,Alice Brown\nMike Chen,Sarah Lee";
+    } else if (effectiveParticipantType === "team") {
+      content = "name\nTeam Alpha\nTeam Beta\nTeam Gamma";
+    } else {
+      content = "name\nJohn Doe\nJane Smith\nBob Wilson";
+    }
+    const blob = new Blob([content], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `participants-template-${effectiveParticipantType}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleCsvImport = async (files: File[]) => {
     setImportSummary(null);
     setImportError(null);
@@ -383,6 +427,14 @@ export default function AddParticipantPage({
           return;
         }
 
+        if (maxParticipants && currentParticipantCount + player1Values.length > maxParticipants) {
+          const remaining = maxParticipants - currentParticipantCount;
+          setImportError(
+            `CSV contains ${player1Values.length} pairs but only ${remaining} spot${remaining === 1 ? "" : "s"} remaining in this bracket.`
+          );
+          return;
+        }
+
         setPlayer1Name(player1Values.join(", "));
         setPlayer2Name(player2Values.join(", "));
         setPlayerName("");
@@ -405,6 +457,14 @@ export default function AddParticipantPage({
 
       if (names.length === 0) {
         setImportError("No valid names found in the CSV.");
+        return;
+      }
+
+      if (maxParticipants && currentParticipantCount + names.length > maxParticipants) {
+        const remaining = maxParticipants - currentParticipantCount;
+        setImportError(
+          `CSV contains ${names.length} participants but only ${remaining} spot${remaining === 1 ? "" : "s"} remaining in this bracket.`
+        );
         return;
       }
 
@@ -553,6 +613,13 @@ export default function AddParticipantPage({
                   label="Drop CSV here or click to upload"
                   helperText={csvHelperText}
                 />
+                <button
+                  type="button"
+                  onClick={downloadTemplate}
+                  className="text-xs text-brand hover:text-brand-bright transition-colors underline underline-offset-2"
+                >
+                  Download template CSV
+                </button>
                 {importSummary && <p className="text-xs text-success">{importSummary}</p>}
                 {importError && <p className="text-xs text-error">{importError}</p>}
               </div>
