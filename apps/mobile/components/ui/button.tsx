@@ -1,7 +1,14 @@
 import * as React from "react";
-import { Text, TouchableOpacity, type TouchableOpacityProps } from "react-native";
-
-import { cn } from "../../utils/cn";
+import {
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  type TouchableOpacityProps,
+  type ViewStyle,
+  type TextStyle,
+} from "react-native";
+import { useThemeColors } from "@/hooks/use-theme-colors";
+import { Fonts, BorderRadius } from "@/constants/colors";
 
 type ButtonVariant =
   | "default"
@@ -13,70 +20,81 @@ type ButtonVariant =
   | "link";
 type ButtonSize = "default" | "sm" | "lg" | "icon";
 
-const variantClasses: Record<ButtonVariant, string> = {
-  default:
-    "border-border bg-foreground text-background dark:border-border-dark dark:bg-foreground-dark dark:text-background-dark",
-  secondary:
-    "border-border bg-secondary text-secondary-foreground dark:border-border-dark dark:bg-secondary-dark dark:text-secondary-foreground-dark",
-  outline:
-    "border-border bg-transparent text-foreground dark:border-border-dark dark:text-foreground-dark",
-  ghost: "border-transparent bg-transparent text-muted-foreground dark:text-muted-foreground-dark",
-  destructive:
-    "border-error bg-error text-text-inverse dark:border-error-dark dark:bg-error-dark dark:text-text-inverse-dark",
-  brand:
-    "border-brand/60 bg-brand text-text-inverse shadow-lg shadow-brand/20 dark:border-brand-dark/60 dark:bg-brand-dark dark:text-text-inverse-dark",
-  link: "border-transparent bg-transparent text-foreground underline",
-};
-
-const sizeClasses: Record<ButtonSize, string> = {
-  default: "h-11 px-5",
-  sm: "h-9 px-4",
-  lg: "h-12 px-6",
-  icon: "h-10 w-10",
-};
-
-const textClasses: Record<ButtonVariant, string> = {
-  default: "text-background dark:text-background-dark",
-  secondary: "text-secondary-foreground dark:text-secondary-foreground-dark",
-  outline: "text-foreground dark:text-foreground-dark",
-  ghost: "text-muted-foreground dark:text-muted-foreground-dark",
-  destructive: "text-text-inverse dark:text-text-inverse-dark",
-  brand: "text-text-inverse dark:text-text-inverse-dark",
-  link: "text-foreground dark:text-foreground-dark",
-};
-
-const textSizeClasses: Record<ButtonSize, string> = {
-  default: "text-sm",
-  sm: "text-xs",
-  lg: "text-base",
-  icon: "text-sm",
-};
-
 export type ButtonProps = TouchableOpacityProps & {
   variant?: ButtonVariant;
   size?: ButtonSize;
-  className?: string;
-  textClassName?: string;
+  style?: ViewStyle;
+  textStyle?: TextStyle;
 };
 
 export function Button({
   variant = "default",
   size = "default",
-  className,
-  textClassName,
+  style,
+  textStyle,
   disabled,
   children,
   ...props
 }: ButtonProps) {
-  const buttonTextClassName = cn(
-    "font-semibold tracking-[0.06em]",
-    textSizeClasses[size],
-    textClasses[variant],
-    textClassName
-  );
+  const colors = useThemeColors();
+
+  const variantStyles: Record<ButtonVariant, { container: ViewStyle; text: TextStyle }> = {
+    default: {
+      container: { backgroundColor: colors.foreground, borderColor: colors.border },
+      text: { color: colors.background },
+    },
+    secondary: {
+      container: { backgroundColor: colors.secondary, borderColor: colors.border },
+      text: { color: colors.secondaryForeground },
+    },
+    outline: {
+      container: { backgroundColor: "transparent", borderColor: colors.border },
+      text: { color: colors.foreground },
+    },
+    ghost: {
+      container: { backgroundColor: "transparent", borderColor: "transparent" },
+      text: { color: colors.mutedForeground },
+    },
+    destructive: {
+      container: { backgroundColor: colors.semantic.error, borderColor: colors.semantic.error },
+      text: { color: colors.textInverse },
+    },
+    brand: {
+      container: {
+        backgroundColor: colors.isDark ? colors.brand.dark : colors.brand.DEFAULT,
+        borderColor: colors.isDark ? colors.brand.dark : colors.brand.DEFAULT,
+      },
+      text: { color: colors.textInverse },
+    },
+    link: {
+      container: { backgroundColor: "transparent", borderColor: "transparent" },
+      text: { color: colors.foreground, textDecorationLine: "underline" },
+    },
+  };
+
+  const sizeStyles: Record<ButtonSize, ViewStyle> = {
+    default: { height: 44, paddingHorizontal: 20 },
+    sm: { height: 36, paddingHorizontal: 16 },
+    lg: { height: 48, paddingHorizontal: 24 },
+    icon: { height: 40, width: 40 },
+  };
+
+  const textSizes: Record<ButtonSize, number> = {
+    default: 14,
+    sm: 12,
+    lg: 16,
+    icon: 14,
+  };
+
+  const vs = variantStyles[variant];
+
   const content = React.Children.map(children, (child) => {
     if (typeof child === "string" || typeof child === "number") {
-      return <Text className={buttonTextClassName}>{child}</Text>;
+      return (
+        <Text style={[styles.text, { fontSize: textSizes[size] }, vs.text, textStyle]}>
+          {child}
+        </Text>
+      );
     }
     return child;
   });
@@ -85,15 +103,27 @@ export function Button({
     <TouchableOpacity
       activeOpacity={0.8}
       disabled={disabled}
-      className={cn(
-        "flex-row items-center justify-center gap-2 rounded-xl border",
-        sizeClasses[size],
-        variantClasses[variant],
-        disabled && "opacity-40",
-        className
-      )}
+      style={[styles.container, sizeStyles[size], vs.container, disabled && styles.disabled, style]}
       {...props}>
       {content}
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  text: {
+    fontWeight: "600",
+    letterSpacing: 0.06 * 14,
+  },
+  disabled: {
+    opacity: 0.4,
+  },
+});

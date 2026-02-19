@@ -8,6 +8,7 @@ import {
   Alert,
   Animated,
   useWindowDimensions,
+  StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -15,10 +16,12 @@ import { Id } from "@repo/convex/dataModel";
 import { useRef, useCallback } from "react";
 import * as Haptics from "expo-haptics";
 import { useKeepAwake } from "expo-keep-awake";
-import { getDisplayMessage } from "../../../utils/errors";
-import { detectMatchPoint } from "../../../utils/matchPoint";
-import { OfflineBanner } from "../../../components/OfflineBanner";
-import { Scoreboard } from "../../../components/scoring/Scoreboard";
+import { getDisplayMessage } from "@/utils/errors";
+import { detectMatchPoint } from "@/utils/matchPoint";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import { Scoreboard } from "@/components/scoring/Scoreboard";
+import { useThemeColors } from "@/hooks/use-theme-colors";
+import { Colors, Fonts } from "@/constants/colors";
 
 const pointLabels = ["0", "15", "30", "40", "AD"];
 
@@ -26,6 +29,7 @@ export default function TennisScoringScreen() {
   // Keep the screen awake while actively scoring
   useKeepAwake();
 
+  const colors = useThemeColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const matchId = id as Id<"matches">;
@@ -121,21 +125,28 @@ export default function TennisScoringScreen() {
 
   if (match === undefined) {
     return (
-      <View className="flex-1 items-center justify-center bg-bg-page dark:bg-bg-page-dark">
-        <ActivityIndicator size="large" color="#70AC15" />
+      <View style={[styles.centered, { backgroundColor: colors.bgPage }]}>
+        <ActivityIndicator size="large" color={Colors.brand.DEFAULT} />
       </View>
     );
   }
 
   if (match === null) {
     return (
-      <SafeAreaView className="flex-1 bg-bg-page dark:bg-bg-page-dark">
-        <View className="flex-1 items-center justify-center px-6">
-          <Text className="font-display-semibold text-lg text-text-primary dark:text-text-primary-dark">
+      <SafeAreaView style={[styles.flex1, { backgroundColor: colors.bgPage }]}>
+        <View style={[styles.centered, { paddingHorizontal: 24 }]}>
+          <Text
+            style={{
+              fontFamily: Fonts.displaySemibold,
+              fontSize: 18,
+              color: colors.textPrimary,
+            }}>
             Match not found
           </Text>
-          <TouchableOpacity className="mt-4" onPress={() => router.back()}>
-            <Text className="text-brand dark:text-brand-dark">Go back</Text>
+          <TouchableOpacity style={{ marginTop: 16 }} onPress={() => router.back()}>
+            <Text style={{ color: colors.isDark ? Colors.brand.dark : Colors.brand.DEFAULT }}>
+              Go back
+            </Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -208,52 +219,95 @@ export default function TennisScoringScreen() {
   // Not initialized - show server selection
   if (!isInitialized && !isCompleted) {
     return (
-      <SafeAreaView className="flex-1 bg-bg-page dark:bg-bg-page-dark">
-        <View className="flex-row items-center border-b border-border px-4 py-3 dark:border-border-dark">
-          <TouchableOpacity onPress={() => router.back()} className="mr-3 p-1">
-            <Text className="text-2xl text-text-primary dark:text-text-primary-dark">←</Text>
+      <SafeAreaView style={[styles.flex1, { backgroundColor: colors.bgPage }]}>
+        <View style={[styles.initHeader, { borderBottomColor: colors.border }]}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.initBackButton}>
+            <Text style={{ fontSize: 24, color: colors.textPrimary }}>←</Text>
           </TouchableOpacity>
-          <Text className="font-display-semibold text-lg text-text-primary dark:text-text-primary-dark">
+          <Text
+            style={{
+              fontFamily: Fonts.displaySemibold,
+              fontSize: 18,
+              color: colors.textPrimary,
+            }}>
             Start Match
           </Text>
         </View>
 
-        <View className="flex-1 items-center justify-center px-6">
-          <Text className="mb-2 font-display-bold text-xl text-text-primary dark:text-text-primary-dark">
+        <View style={[styles.centered, { paddingHorizontal: 24 }]}>
+          <Text
+            style={{
+              marginBottom: 8,
+              fontFamily: Fonts.displayBold,
+              fontSize: 20,
+              color: colors.textPrimary,
+            }}>
             Who serves first?
           </Text>
-          <Text className="mb-8 text-center text-text-muted dark:text-text-muted-dark">
+          <Text
+            style={{
+              marginBottom: 32,
+              textAlign: "center",
+              color: colors.textMuted,
+            }}>
             Select the player who will serve first
           </Text>
 
           <TouchableOpacity
-            className={`mb-4 w-full rounded-xl py-4 ${
-              startDisabledDueToCourtConflict
-                ? "bg-brand/50 shadow-none"
-                : "bg-brand shadow-lg shadow-brand/30"
-            }`}
+            style={[
+              styles.serverButton,
+              {
+                marginBottom: 16,
+                backgroundColor: startDisabledDueToCourtConflict
+                  ? "rgba(112,172,21,0.5)"
+                  : Colors.brand.DEFAULT,
+                shadowColor: startDisabledDueToCourtConflict
+                  ? "transparent"
+                  : "rgba(112,172,21,0.3)",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: startDisabledDueToCourtConflict ? 0 : 1,
+                shadowRadius: 8,
+              },
+            ]}
             onPress={() => handleInitMatch(1)}
             disabled={startDisabledDueToCourtConflict}>
-            <Text className="text-center text-lg font-bold text-text-inverse dark:text-text-inverse-dark">
+            <Text
+              style={{
+                textAlign: "center",
+                fontSize: 18,
+                fontWeight: "700",
+                color: colors.textInverse,
+              }}>
               {match.participant1?.displayName || "Player 1"}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            className={`w-full rounded-xl border border-border py-4 dark:border-border-dark ${
-              startDisabledDueToCourtConflict
-                ? "bg-bg-secondary/70 dark:bg-bg-secondary-dark/70"
-                : "bg-bg-secondary dark:bg-bg-secondary-dark"
-            }`}
+            style={[
+              styles.serverButton,
+              {
+                borderWidth: 1,
+                borderColor: colors.border,
+                backgroundColor: startDisabledDueToCourtConflict
+                  ? "rgba(234,237,240,0.7)"
+                  : colors.bgSecondary,
+              },
+            ]}
             onPress={() => handleInitMatch(2)}
             disabled={startDisabledDueToCourtConflict}>
-            <Text className="text-center text-lg font-bold text-text-primary dark:text-text-primary-dark">
+            <Text
+              style={{
+                textAlign: "center",
+                fontSize: 18,
+                fontWeight: "700",
+                color: colors.textPrimary,
+              }}>
               {match.participant2?.displayName || "Player 2"}
             </Text>
           </TouchableOpacity>
           {startDisabledDueToCourtConflict && (
-            <View className="mt-4 rounded-xl border border-brand/30 bg-brand-light px-4 py-3">
-              <Text className="text-center text-sm text-brand-text">{startDisabledReason}</Text>
+            <View style={styles.courtConflictBanner}>
+              <Text style={styles.courtConflictText}>{startDisabledReason}</Text>
             </View>
           )}
         </View>
@@ -265,17 +319,35 @@ export default function TennisScoringScreen() {
   if (isCompleted) {
     const sets = state?.sets || [];
     return (
-      <SafeAreaView className="flex-1 bg-bg-page dark:bg-bg-page-dark">
-        <View className="flex-1 items-center justify-center px-6">
-          <View className="mb-6 rounded-full border border-brand/40 bg-brand/10 px-6 py-2">
-            <Text className="text-sm font-semibold uppercase tracking-wide text-brand dark:text-brand-dark">
+      <SafeAreaView style={[styles.flex1, { backgroundColor: colors.bgPage }]}>
+        <View style={[styles.centered, { paddingHorizontal: 24 }]}>
+          <View style={styles.completedBadge}>
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: "600",
+                textTransform: "uppercase",
+                letterSpacing: 1,
+                color: colors.isDark ? Colors.brand.dark : Colors.brand.DEFAULT,
+              }}>
               Completed
             </Text>
           </View>
-          <Text className="mb-2 font-display-bold text-4xl text-text-primary dark:text-text-primary-dark">
+          <Text
+            style={{
+              marginBottom: 8,
+              fontFamily: Fonts.displayBold,
+              fontSize: 36,
+              color: colors.textPrimary,
+            }}>
             Match Complete
           </Text>
-          <Text className="mb-8 text-xl text-brand dark:text-brand-dark">
+          <Text
+            style={{
+              marginBottom: 32,
+              fontSize: 20,
+              color: colors.isDark ? Colors.brand.dark : Colors.brand.DEFAULT,
+            }}>
             {match.winnerId === match.participant1?._id
               ? match.participant1?.displayName
               : match.participant2?.displayName}{" "}
@@ -283,33 +355,71 @@ export default function TennisScoringScreen() {
           </Text>
 
           {/* Final Score */}
-          <View className="mb-8 w-full rounded-2xl border border-border bg-bg-card p-6 dark:border-border-dark dark:bg-bg-card-dark">
-            <Text className="mb-3 text-center font-display-semibold text-sm uppercase text-text-muted dark:text-text-muted-dark">
+          <View
+            style={[
+              styles.finalScoreCard,
+              { borderColor: colors.border, backgroundColor: colors.bgCard },
+            ]}>
+            <Text
+              style={{
+                marginBottom: 12,
+                textAlign: "center",
+                fontFamily: Fonts.displaySemibold,
+                fontSize: 14,
+                textTransform: "uppercase",
+                color: colors.textMuted,
+              }}>
               Final Score
             </Text>
-            <View className="flex-row items-center justify-between px-4">
-              <Text className="flex-1 text-lg font-semibold text-text-primary dark:text-text-primary-dark">
+            <View style={styles.finalScoreRow}>
+              <Text
+                style={{
+                  flex: 1,
+                  fontSize: 18,
+                  fontWeight: "600",
+                  color: colors.textPrimary,
+                }}>
                 {match.participant1?.displayName}
               </Text>
-              <Text className="text-lg text-text-secondary dark:text-text-secondary-dark">
+              <Text style={{ fontSize: 18, color: colors.textSecondary }}>
                 {sets.map((s) => s[0]).join("  ")}
               </Text>
             </View>
-            <View className="my-2 h-px bg-border/60 dark:bg-border-dark/60" />
-            <View className="flex-row items-center justify-between px-4">
-              <Text className="flex-1 text-lg font-semibold text-text-primary dark:text-text-primary-dark">
+            <View
+              style={[styles.finalScoreDivider, { backgroundColor: colors.border, opacity: 0.6 }]}
+            />
+            <View style={styles.finalScoreRow}>
+              <Text
+                style={{
+                  flex: 1,
+                  fontSize: 18,
+                  fontWeight: "600",
+                  color: colors.textPrimary,
+                }}>
                 {match.participant2?.displayName}
               </Text>
-              <Text className="text-lg text-text-secondary dark:text-text-secondary-dark">
+              <Text style={{ fontSize: 18, color: colors.textSecondary }}>
                 {sets.map((s) => s[1]).join("  ")}
               </Text>
             </View>
           </View>
 
           <TouchableOpacity
-            className="w-full rounded-xl border border-border bg-bg-secondary py-4 dark:border-border-dark dark:bg-bg-secondary-dark"
+            style={[
+              styles.backToMatchButton,
+              {
+                borderColor: colors.border,
+                backgroundColor: colors.bgSecondary,
+              },
+            ]}
             onPress={() => router.back()}>
-            <Text className="text-center text-lg font-semibold text-text-primary dark:text-text-primary-dark">
+            <Text
+              style={{
+                textAlign: "center",
+                fontSize: 18,
+                fontWeight: "600",
+                color: colors.textPrimary,
+              }}>
               Back to Match
             </Text>
           </TouchableOpacity>
@@ -351,26 +461,36 @@ export default function TennisScoringScreen() {
   // LANDSCAPE LAYOUT - Left/Right split
   if (isLandscape) {
     return (
-      <View className="flex-1 flex-row bg-bg-page dark:bg-bg-page-dark">
+      <View style={[styles.flex1, { flexDirection: "row", backgroundColor: colors.bgPage }]}>
         {/* Player 1 Tap Zone (Left) */}
         <TouchableOpacity
-          className="flex-1 bg-bg-card dark:bg-bg-card-dark"
+          style={[styles.flex1, { backgroundColor: colors.bgCard }]}
           onPress={() => handleScorePoint(1)}
           activeOpacity={1}
           disabled={!isLive}>
           <Animated.View
-            className="absolute inset-0 bg-brand"
-            style={{ opacity: flash1 }}
+            style={[
+              styles.flashOverlay,
+              { backgroundColor: Colors.brand.DEFAULT, opacity: flash1 },
+            ]}
             pointerEvents="none"
           />
-          <SafeAreaView className="flex-1 items-start justify-center pl-8">
-            <View className="items-center">
+          <SafeAreaView
+            style={[
+              styles.flex1,
+              { alignItems: "flex-start", justifyContent: "center", paddingLeft: 32 },
+            ]}>
+            <View style={{ alignItems: "center" }}>
               <Text
-                className="font-display-semibold text-3xl text-text-primary dark:text-text-primary-dark"
+                style={{
+                  fontFamily: Fonts.displaySemibold,
+                  fontSize: 30,
+                  color: colors.textPrimary,
+                }}
                 numberOfLines={2}>
                 {match.participant1?.displayName || "Player 1"}
               </Text>
-              <Text className="mt-2 text-sm text-text-muted dark:text-text-muted-dark">
+              <Text style={{ marginTop: 8, fontSize: 14, color: colors.textMuted }}>
                 Tap to score
               </Text>
             </View>
@@ -379,23 +499,33 @@ export default function TennisScoringScreen() {
 
         {/* Player 2 Tap Zone (Right) */}
         <TouchableOpacity
-          className="flex-1 bg-bg-secondary dark:bg-bg-secondary-dark"
+          style={[styles.flex1, { backgroundColor: colors.bgSecondary }]}
           onPress={() => handleScorePoint(2)}
           activeOpacity={1}
           disabled={!isLive}>
           <Animated.View
-            className="absolute inset-0 bg-brand"
-            style={{ opacity: flash2 }}
+            style={[
+              styles.flashOverlay,
+              { backgroundColor: Colors.brand.DEFAULT, opacity: flash2 },
+            ]}
             pointerEvents="none"
           />
-          <SafeAreaView className="flex-1 items-end justify-center pr-8">
-            <View className="items-center">
+          <SafeAreaView
+            style={[
+              styles.flex1,
+              { alignItems: "flex-end", justifyContent: "center", paddingRight: 32 },
+            ]}>
+            <View style={{ alignItems: "center" }}>
               <Text
-                className="font-display-semibold text-3xl text-text-primary dark:text-text-primary-dark"
+                style={{
+                  fontFamily: Fonts.displaySemibold,
+                  fontSize: 30,
+                  color: colors.textPrimary,
+                }}
                 numberOfLines={2}>
                 {match.participant2?.displayName || "Player 2"}
               </Text>
-              <Text className="mt-2 text-sm text-text-muted dark:text-text-muted-dark">
+              <Text style={{ marginTop: 8, fontSize: 14, color: colors.textMuted }}>
                 Tap to score
               </Text>
             </View>
@@ -403,34 +533,42 @@ export default function TennisScoringScreen() {
         </TouchableOpacity>
 
         {/* Center Scoreboard Overlay */}
-        <View className="absolute inset-0 items-center justify-center" pointerEvents="box-none">
+        <View style={styles.centerOverlay} pointerEvents="box-none">
           <Scoreboard {...scoreboardProps} />
           {/* Undo Button */}
           <TouchableOpacity
-            className={`mt-4 flex-row items-center rounded-xl border-2 px-8 py-3.5 ${
+            style={[
+              styles.undoButton,
               state?.history?.length
-                ? "border-border bg-bg-card dark:border-border-dark dark:bg-bg-card-dark"
-                : "border-border/50 bg-bg-card/50 dark:border-border-dark/50 dark:bg-bg-card-dark/50"
-            }`}
+                ? { borderColor: colors.border, backgroundColor: colors.bgCard }
+                : {
+                    borderColor: "rgba(192,199,206,0.5)",
+                    backgroundColor: "rgba(255,255,255,0.5)",
+                  },
+            ]}
             onPress={handleUndo}
             disabled={!state?.history?.length}>
             <Text
-              className={`text-base font-medium ${
-                state?.history?.length
-                  ? "text-text-primary dark:text-text-primary-dark"
-                  : "text-text-muted dark:text-text-muted-dark"
-              }`}>
+              style={[
+                styles.undoText,
+                {
+                  color: state?.history?.length ? colors.textPrimary : colors.textMuted,
+                },
+              ]}>
               ↩ Undo
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* Back Button */}
-        <SafeAreaView className="absolute left-4 top-4" pointerEvents="box-none">
+        <SafeAreaView style={styles.landscapeBackContainer} pointerEvents="box-none">
           <TouchableOpacity
-            className="h-14 w-14 items-center justify-center rounded-full border-2 border-border bg-bg-card shadow-2xl dark:border-border-dark dark:bg-bg-card-dark"
+            style={[
+              styles.floatingBackButton,
+              { borderColor: colors.border, backgroundColor: colors.bgCard },
+            ]}
             onPress={() => router.back()}>
-            <Text className="text-xl text-text-primary dark:text-text-primary-dark">←</Text>
+            <Text style={{ fontSize: 20, color: colors.textPrimary }}>←</Text>
           </TouchableOpacity>
         </SafeAreaView>
       </View>
@@ -439,47 +577,54 @@ export default function TennisScoringScreen() {
 
   // PORTRAIT LAYOUT - Top/Bottom split
   return (
-    <View className="flex-1 bg-bg-page dark:bg-bg-page-dark">
+    <View style={[styles.flex1, { backgroundColor: colors.bgPage }]}>
       <OfflineBanner />
       {/* Player 1 Tap Zone (Top) */}
       <TouchableOpacity
-        className="flex-1 bg-bg-card dark:bg-bg-card-dark"
+        style={[styles.flex1, { backgroundColor: colors.bgCard }]}
         onPress={() => handleScorePoint(1)}
         activeOpacity={1}
         disabled={!isLive}>
         <Animated.View
-          className="absolute inset-0 bg-brand"
-          style={{ opacity: flash1 }}
+          style={[styles.flashOverlay, { backgroundColor: Colors.brand.DEFAULT, opacity: flash1 }]}
           pointerEvents="none"
         />
-        <SafeAreaView className="flex-1 items-center justify-center" edges={["top"]}>
+        <SafeAreaView style={[styles.flex1, styles.portraitTapZone]} edges={["top"]}>
           <Text
-            className="px-4 text-center font-display-semibold text-3xl text-text-primary dark:text-text-primary-dark"
+            style={{
+              paddingHorizontal: 16,
+              textAlign: "center",
+              fontFamily: Fonts.displaySemibold,
+              fontSize: 30,
+              color: colors.textPrimary,
+            }}
             numberOfLines={2}>
             {match.participant1?.displayName || "Player 1"}
           </Text>
-          <Text className="mt-2 text-text-muted dark:text-text-muted-dark">Tap to score</Text>
+          <Text style={{ marginTop: 8, color: colors.textMuted }}>Tap to score</Text>
         </SafeAreaView>
       </TouchableOpacity>
 
       {/* Center Scoreboard */}
-      <View className="items-center bg-bg-page py-4 dark:bg-bg-page-dark">
+      <View style={[styles.portraitScoreboardContainer, { backgroundColor: colors.bgPage }]}>
         <Scoreboard {...scoreboardProps} />
         {/* Undo Button */}
         <TouchableOpacity
-          className={`mt-4 flex-row items-center rounded-xl border-2 px-8 py-3.5 ${
+          style={[
+            styles.undoButton,
             state?.history?.length
-              ? "border-border bg-bg-card dark:border-border-dark dark:bg-bg-card-dark"
-              : "border-border/50 bg-bg-card/50 dark:border-border-dark/50 dark:bg-bg-card-dark/50"
-          }`}
+              ? { borderColor: colors.border, backgroundColor: colors.bgCard }
+              : { borderColor: "rgba(192,199,206,0.5)", backgroundColor: "rgba(255,255,255,0.5)" },
+          ]}
           onPress={handleUndo}
           disabled={!state?.history?.length}>
           <Text
-            className={`text-base font-medium ${
-              state?.history?.length
-                ? "text-text-primary dark:text-text-primary-dark"
-                : "text-text-muted dark:text-text-muted-dark"
-            }`}>
+            style={[
+              styles.undoText,
+              {
+                color: state?.history?.length ? colors.textPrimary : colors.textMuted,
+              },
+            ]}>
             ↩ Undo
           </Text>
         </TouchableOpacity>
@@ -487,33 +632,174 @@ export default function TennisScoringScreen() {
 
       {/* Player 2 Tap Zone (Bottom) */}
       <TouchableOpacity
-        className="flex-1 bg-bg-secondary dark:bg-bg-secondary-dark"
+        style={[styles.flex1, { backgroundColor: colors.bgSecondary }]}
         onPress={() => handleScorePoint(2)}
         activeOpacity={1}
         disabled={!isLive}>
         <Animated.View
-          className="absolute inset-0 bg-brand"
-          style={{ opacity: flash2 }}
+          style={[styles.flashOverlay, { backgroundColor: Colors.brand.DEFAULT, opacity: flash2 }]}
           pointerEvents="none"
         />
-        <SafeAreaView className="flex-1 items-center justify-center" edges={["bottom"]}>
+        <SafeAreaView style={[styles.flex1, styles.portraitTapZone]} edges={["bottom"]}>
           <Text
-            className="px-4 text-center font-display-semibold text-3xl text-text-primary dark:text-text-primary-dark"
+            style={{
+              paddingHorizontal: 16,
+              textAlign: "center",
+              fontFamily: Fonts.displaySemibold,
+              fontSize: 30,
+              color: colors.textPrimary,
+            }}
             numberOfLines={2}>
             {match.participant2?.displayName || "Player 2"}
           </Text>
-          <Text className="mt-2 text-text-muted dark:text-text-muted-dark">Tap to score</Text>
+          <Text style={{ marginTop: 8, color: colors.textMuted }}>Tap to score</Text>
         </SafeAreaView>
       </TouchableOpacity>
 
       {/* Back Button */}
-      <SafeAreaView className="absolute left-4 top-4" pointerEvents="box-none" edges={["top"]}>
+      <SafeAreaView style={styles.portraitBackContainer} pointerEvents="box-none" edges={["top"]}>
         <TouchableOpacity
-          className="h-14 w-14 items-center justify-center rounded-full border-2 border-border bg-bg-card shadow-2xl dark:border-border-dark dark:bg-bg-card-dark"
+          style={[
+            styles.floatingBackButton,
+            { borderColor: colors.border, backgroundColor: colors.bgCard },
+          ]}
           onPress={() => router.back()}>
-          <Text className="text-xl text-text-primary dark:text-text-primary-dark">←</Text>
+          <Text style={{ fontSize: 20, color: colors.textPrimary }}>←</Text>
         </TouchableOpacity>
       </SafeAreaView>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  flex1: {
+    flex: 1,
+  },
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  initHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  initBackButton: {
+    marginRight: 12,
+    padding: 4,
+  },
+  serverButton: {
+    width: "100%",
+    borderRadius: 12,
+    paddingVertical: 16,
+  },
+  courtConflictBanner: {
+    marginTop: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(112,172,21,0.3)",
+    backgroundColor: Colors.brand.light,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  courtConflictText: {
+    textAlign: "center",
+    fontSize: 14,
+    color: Colors.brand.text,
+  },
+  completedBadge: {
+    marginBottom: 24,
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: "rgba(112,172,21,0.4)",
+    backgroundColor: "rgba(112,172,21,0.1)",
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+  },
+  finalScoreCard: {
+    marginBottom: 32,
+    width: "100%",
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 24,
+  },
+  finalScoreRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+  },
+  finalScoreDivider: {
+    marginVertical: 8,
+    height: 1,
+  },
+  backToMatchButton: {
+    width: "100%",
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 16,
+  },
+  flashOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  centerOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  undoButton: {
+    marginTop: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 12,
+    borderWidth: 2,
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+  },
+  undoText: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  landscapeBackContainer: {
+    position: "absolute",
+    left: 16,
+    top: 16,
+  },
+  floatingBackButton: {
+    height: 56,
+    width: 56,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 9999,
+    borderWidth: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 5,
+  },
+  portraitTapZone: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  portraitScoreboardContainer: {
+    alignItems: "center",
+    paddingVertical: 16,
+  },
+  portraitBackContainer: {
+    position: "absolute",
+    left: 16,
+    top: 16,
+  },
+});

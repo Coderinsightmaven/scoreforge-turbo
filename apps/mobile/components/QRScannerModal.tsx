@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Colors } from "@/constants/colors";
 
 interface QRScannerModalProps {
   visible: boolean;
@@ -19,8 +20,6 @@ export function QRScannerModal({ visible, onClose, onScanned }: QRScannerModalPr
   const handleBarCodeScanned = ({ data }: { data: string }) => {
     if (scannedRef.current) return;
 
-    // Parse: scoreforge://scorer?code=ABC123&court=court-1&pin=XYZ789
-    // Manual parsing to avoid Hermes URL/searchParams issues with custom schemes
     if (!data.startsWith("scoreforge://scorer")) {
       setError("Not a valid ScoreForge QR code");
       return;
@@ -64,37 +63,33 @@ export function QRScannerModal({ visible, onClose, onScanned }: QRScannerModalPr
     onClose();
   };
 
-  // Permission not yet determined
   if (!permission) {
     return (
-      <View style={StyleSheet.absoluteFill} className="z-50 bg-black">
-        <SafeAreaView className="flex-1 items-center justify-center">
-          <Text className="text-white">Loading camera...</Text>
+      <View style={[StyleSheet.absoluteFill, styles.fullscreen]}>
+        <SafeAreaView style={styles.centered}>
+          <Text style={styles.whiteText}>Loading camera...</Text>
         </SafeAreaView>
       </View>
     );
   }
 
-  // Permission denied
   if (!permission.granted) {
     return (
-      <View style={StyleSheet.absoluteFill} className="z-50 bg-black">
-        <SafeAreaView className="flex-1 items-center justify-center px-8">
-          <Text className="mb-2 text-center text-lg font-bold text-white">Camera Access</Text>
-          <Text className="mb-6 text-center text-sm text-white/70">
-            Camera permission is needed to scan QR codes.
-          </Text>
+      <View style={[StyleSheet.absoluteFill, styles.fullscreen]}>
+        <SafeAreaView style={[styles.centered, { paddingHorizontal: 32 }]}>
+          <Text style={styles.permTitle}>Camera Access</Text>
+          <Text style={styles.permDesc}>Camera permission is needed to scan QR codes.</Text>
           <TouchableOpacity
-            className="mb-3 w-full rounded-xl bg-brand py-4"
+            style={styles.allowButton}
             onPress={requestPermission}
             activeOpacity={0.8}>
-            <Text className="text-center text-base font-bold text-white">Allow Camera</Text>
+            <Text style={styles.allowButtonText}>Allow Camera</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className="w-full rounded-xl border border-white/20 py-4"
+            style={styles.cancelButtonPerm}
             onPress={handleClose}
             activeOpacity={0.8}>
-            <Text className="text-center text-base font-medium text-white/70">Cancel</Text>
+            <Text style={styles.cancelButtonPermText}>Cancel</Text>
           </TouchableOpacity>
         </SafeAreaView>
       </View>
@@ -102,7 +97,7 @@ export function QRScannerModal({ visible, onClose, onScanned }: QRScannerModalPr
   }
 
   return (
-    <View style={StyleSheet.absoluteFill} className="z-50 bg-black">
+    <View style={[StyleSheet.absoluteFill, styles.fullscreen]}>
       <CameraView
         style={StyleSheet.absoluteFill}
         facing="back"
@@ -110,37 +105,30 @@ export function QRScannerModal({ visible, onClose, onScanned }: QRScannerModalPr
         onBarcodeScanned={handleBarCodeScanned}
       />
 
-      {/* Overlay */}
-      <SafeAreaView className="flex-1">
-        {/* Top bar */}
-        <View className="flex-row items-center justify-between px-5 py-3">
-          <TouchableOpacity
-            className="rounded-full bg-black/50 px-4 py-2"
-            onPress={handleClose}
-            activeOpacity={0.8}>
-            <Text className="text-base font-medium text-white">Cancel</Text>
+      <SafeAreaView style={styles.overlayContainer}>
+        <View style={styles.topBar}>
+          <TouchableOpacity style={styles.cancelButton} onPress={handleClose} activeOpacity={0.8}>
+            <Text style={styles.cancelText}>Cancel</Text>
           </TouchableOpacity>
-          <View className="rounded-full bg-black/50 px-4 py-2">
-            <Text className="text-sm font-medium text-white">Scan Court QR Code</Text>
+          <View style={styles.titlePill}>
+            <Text style={styles.titlePillText}>Scan Court QR Code</Text>
           </View>
         </View>
 
-        {/* Center viewfinder */}
-        <View className="flex-1 items-center justify-center">
-          <View className="h-64 w-64 rounded-3xl border-4 border-white/50" />
+        <View style={styles.viewfinderContainer}>
+          <View style={styles.viewfinder} />
         </View>
 
-        {/* Error message */}
         {error && (
-          <View className="mx-6 mb-6 rounded-xl bg-error/90 px-4 py-3">
-            <Text className="text-center text-sm font-medium text-white">{error}</Text>
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity
               onPress={() => {
                 setError(null);
                 scannedRef.current = false;
               }}
-              className="mt-2">
-              <Text className="text-center text-sm text-white/80 underline">Try again</Text>
+              style={styles.tryAgain}>
+              <Text style={styles.tryAgainText}>Try again</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -148,3 +136,124 @@ export function QRScannerModal({ visible, onClose, onScanned }: QRScannerModalPr
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  fullscreen: {
+    zIndex: 50,
+    backgroundColor: "#000000",
+  },
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  whiteText: {
+    color: "#FFFFFF",
+  },
+  permTitle: {
+    marginBottom: 8,
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  permDesc: {
+    marginBottom: 24,
+    textAlign: "center",
+    fontSize: 14,
+    color: "rgba(255,255,255,0.7)",
+  },
+  allowButton: {
+    marginBottom: 12,
+    width: "100%",
+    borderRadius: 12,
+    backgroundColor: Colors.brand.DEFAULT,
+    paddingVertical: 16,
+  },
+  allowButtonText: {
+    textAlign: "center",
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  cancelButtonPerm: {
+    width: "100%",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+    paddingVertical: 16,
+  },
+  cancelButtonPermText: {
+    textAlign: "center",
+    fontSize: 16,
+    fontWeight: "500",
+    color: "rgba(255,255,255,0.7)",
+  },
+  overlayContainer: {
+    flex: 1,
+  },
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  cancelButton: {
+    borderRadius: 9999,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  cancelText: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#FFFFFF",
+  },
+  titlePill: {
+    borderRadius: 9999,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  titlePillText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#FFFFFF",
+  },
+  viewfinderContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  viewfinder: {
+    height: 256,
+    width: 256,
+    borderRadius: 24,
+    borderWidth: 4,
+    borderColor: "rgba(255,255,255,0.5)",
+  },
+  errorBox: {
+    marginHorizontal: 24,
+    marginBottom: 24,
+    borderRadius: 12,
+    backgroundColor: "rgba(208,37,60,0.9)",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  errorText: {
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#FFFFFF",
+  },
+  tryAgain: {
+    marginTop: 8,
+  },
+  tryAgainText: {
+    textAlign: "center",
+    fontSize: 14,
+    color: "rgba(255,255,255,0.8)",
+    textDecorationLine: "underline",
+  },
+});

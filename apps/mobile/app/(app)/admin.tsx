@@ -1,9 +1,18 @@
 import { useQuery } from "convex/react";
 import { api } from "@repo/convex";
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+} from "react-native";
 import { useState } from "react";
 
-import { AppHeader } from "../../components/navigation/AppHeader";
+import { AppHeader } from "@/components/navigation/AppHeader";
+import { useThemeColors } from "@/hooks/use-theme-colors";
+import { Colors } from "@/constants/colors";
 
 type Tab = "users" | "admins" | "settings";
 
@@ -13,10 +22,13 @@ export default function AdminScreen() {
   const admins = useQuery(api.siteAdmin.listSiteAdmins, isSiteAdmin ? {} : "skip");
   const settings = useQuery(api.siteAdmin.getSystemSettings, isSiteAdmin ? {} : "skip");
   const [activeTab, setActiveTab] = useState<Tab>("users");
+  const colors = useThemeColors();
+
+  const brandColor = colors.isDark ? colors.brand.dark : colors.brand.DEFAULT;
 
   if (isSiteAdmin === undefined) {
     return (
-      <View className="flex-1 items-center justify-center bg-bg-page dark:bg-bg-page-dark">
+      <View style={[styles.loadingContainer, { backgroundColor: colors.bgPage }]}>
         <ActivityIndicator size="large" color="#70AC15" />
       </View>
     );
@@ -24,10 +36,10 @@ export default function AdminScreen() {
 
   if (!isSiteAdmin) {
     return (
-      <View className="flex-1 bg-bg-page dark:bg-bg-page-dark">
+      <View style={[styles.root, { backgroundColor: colors.bgPage }]}>
         <AppHeader title="Admin" subtitle="Site administration" showBack />
-        <View className="flex-1 items-center justify-center px-6">
-          <Text className="text-center text-sm text-text-secondary dark:text-text-secondary-dark">
+        <View style={styles.centeredMessage}>
+          <Text style={[styles.messageText, { color: colors.textSecondary }]}>
             You do not have access to site administration.
           </Text>
         </View>
@@ -36,15 +48,14 @@ export default function AdminScreen() {
   }
 
   return (
-    <View className="flex-1 bg-bg-page dark:bg-bg-page-dark">
+    <View style={[styles.root, { backgroundColor: colors.bgPage }]}>
       <AppHeader title="Admin" subtitle="Site administration" />
-      <ScrollView className="flex-1 px-4" contentContainerStyle={{ paddingBottom: 32 }}>
-        <View className="pt-4">
-          <View className="rounded-3xl border border-border bg-bg-card p-4 shadow-sm shadow-black/5 dark:border-border-dark dark:bg-bg-card-dark">
-            <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted dark:text-text-muted-dark">
-              Sections
-            </Text>
-            <View className="mt-3 flex-row flex-wrap gap-2">
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.topSection}>
+          <View
+            style={[styles.card, { borderColor: colors.border, backgroundColor: colors.bgCard }]}>
+            <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Sections</Text>
+            <View style={styles.tabsRow}>
               {(
                 [
                   { id: "users" as Tab, label: "Users" },
@@ -57,17 +68,23 @@ export default function AdminScreen() {
                   <TouchableOpacity
                     key={tab.id}
                     onPress={() => setActiveTab(tab.id)}
-                    className={`rounded-full border px-4 py-2 ${
+                    style={[
+                      styles.tabButton,
                       isActive
-                        ? "border-brand/40 bg-brand/10"
-                        : "border-border bg-bg-secondary dark:border-border-dark dark:bg-bg-secondary-dark"
-                    }`}>
+                        ? {
+                            borderColor: "rgba(112,172,21,0.4)",
+                            backgroundColor: "rgba(112,172,21,0.1)",
+                          }
+                        : {
+                            borderColor: colors.border,
+                            backgroundColor: colors.bgSecondary,
+                          },
+                    ]}>
                     <Text
-                      className={`text-xs font-semibold uppercase tracking-[0.18em] ${
-                        isActive
-                          ? "text-brand"
-                          : "text-text-secondary dark:text-text-secondary-dark"
-                      }`}>
+                      style={[
+                        styles.tabText,
+                        { color: isActive ? brandColor : colors.textSecondary },
+                      ]}>
                       {tab.label}
                     </Text>
                   </TouchableOpacity>
@@ -78,39 +95,59 @@ export default function AdminScreen() {
         </View>
 
         {activeTab === "users" && (
-          <View className="mt-4 rounded-3xl border border-border bg-bg-card p-5 shadow-sm shadow-black/5 dark:border-border-dark dark:bg-bg-card-dark">
-            <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted dark:text-text-muted-dark">
-              Recent users
-            </Text>
-            <View className="mt-4 gap-3">
+          <View
+            style={[
+              styles.contentCard,
+              { borderColor: colors.border, backgroundColor: colors.bgCard },
+            ]}>
+            <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Recent users</Text>
+            <View style={styles.listContainer}>
               {usersData?.users?.length ? (
                 usersData.users.map((user) => (
                   <View
                     key={user._id}
-                    className="rounded-2xl border border-border/70 bg-bg-secondary p-4 dark:border-border-dark dark:bg-bg-secondary-dark">
-                    <Text className="text-sm font-semibold text-text-primary dark:text-text-primary-dark">
+                    style={[
+                      styles.listItem,
+                      {
+                        borderColor: `${colors.border}B3`,
+                        backgroundColor: colors.bgSecondary,
+                      },
+                    ]}>
+                    <Text style={[styles.itemTitle, { color: colors.textPrimary }]}>
                       {user.name ?? user.email ?? "Unnamed user"}
                     </Text>
                     {user.email ? (
-                      <Text className="mt-1 text-xs text-text-muted dark:text-text-muted-dark">
+                      <Text style={[styles.itemSubtext, { color: colors.textMuted }]}>
                         {user.email}
                       </Text>
                     ) : null}
-                    <View className="mt-3 flex-row flex-wrap gap-2">
+                    <View style={styles.badgesRow}>
                       {user.isSiteAdmin ? (
-                        <View className="rounded-full border border-brand/30 bg-brand/10 px-3 py-1">
-                          <Text className="text-[10px] font-semibold uppercase tracking-[0.16em] text-brand">
-                            Admin
-                          </Text>
+                        <View style={styles.adminBadge}>
+                          <Text style={[styles.badgeText, { color: brandColor }]}>Admin</Text>
                         </View>
                       ) : null}
-                      <View className="rounded-full border border-border/70 bg-bg-card px-3 py-1 dark:border-border-dark dark:bg-bg-card-dark">
-                        <Text className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-muted dark:text-text-muted-dark">
+                      <View
+                        style={[
+                          styles.infoBadge,
+                          {
+                            borderColor: `${colors.border}B3`,
+                            backgroundColor: colors.bgCard,
+                          },
+                        ]}>
+                        <Text style={[styles.badgeText, { color: colors.textMuted }]}>
                           {user.tournamentCount} tournaments
                         </Text>
                       </View>
-                      <View className="rounded-full border border-border/70 bg-bg-card px-3 py-1 dark:border-border-dark dark:bg-bg-card-dark">
-                        <Text className="text-[10px] font-semibold uppercase tracking-[0.16em] text-text-muted dark:text-text-muted-dark">
+                      <View
+                        style={[
+                          styles.infoBadge,
+                          {
+                            borderColor: `${colors.border}B3`,
+                            backgroundColor: colors.bgCard,
+                          },
+                        ]}>
+                        <Text style={[styles.badgeText, { color: colors.textMuted }]}>
                           Logs {user.scoringLogsEnabled ? "on" : "off"}
                         </Text>
                       </View>
@@ -118,7 +155,7 @@ export default function AdminScreen() {
                   </View>
                 ))
               ) : (
-                <Text className="text-sm text-text-secondary dark:text-text-secondary-dark">
+                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
                   No users found.
                 </Text>
               )}
@@ -127,31 +164,39 @@ export default function AdminScreen() {
         )}
 
         {activeTab === "admins" && (
-          <View className="mt-4 rounded-3xl border border-border bg-bg-card p-5 shadow-sm shadow-black/5 dark:border-border-dark dark:bg-bg-card-dark">
-            <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted dark:text-text-muted-dark">
-              Site admins
-            </Text>
-            <View className="mt-4 gap-3">
+          <View
+            style={[
+              styles.contentCard,
+              { borderColor: colors.border, backgroundColor: colors.bgCard },
+            ]}>
+            <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Site admins</Text>
+            <View style={styles.listContainer}>
               {admins?.length ? (
                 admins.map((admin) => (
                   <View
                     key={admin._id}
-                    className="rounded-2xl border border-border/70 bg-bg-secondary p-4 dark:border-border-dark dark:bg-bg-secondary-dark">
-                    <Text className="text-sm font-semibold text-text-primary dark:text-text-primary-dark">
+                    style={[
+                      styles.listItem,
+                      {
+                        borderColor: `${colors.border}B3`,
+                        backgroundColor: colors.bgSecondary,
+                      },
+                    ]}>
+                    <Text style={[styles.itemTitle, { color: colors.textPrimary }]}>
                       {admin.userName ?? admin.userEmail ?? "Admin"}
                     </Text>
                     {admin.userEmail ? (
-                      <Text className="mt-1 text-xs text-text-muted dark:text-text-muted-dark">
+                      <Text style={[styles.itemSubtext, { color: colors.textMuted }]}>
                         {admin.userEmail}
                       </Text>
                     ) : null}
-                    <Text className="mt-2 text-xs text-text-muted dark:text-text-muted-dark">
+                    <Text style={[styles.grantedText, { color: colors.textMuted }]}>
                       Granted {new Date(admin.grantedAt).toLocaleDateString("en-US")}
                     </Text>
                   </View>
                 ))
               ) : (
-                <Text className="text-sm text-text-secondary dark:text-text-secondary-dark">
+                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
                   No admins found.
                 </Text>
               )}
@@ -160,37 +205,47 @@ export default function AdminScreen() {
         )}
 
         {activeTab === "settings" && (
-          <View className="mt-4 rounded-3xl border border-border bg-bg-card p-5 shadow-sm shadow-black/5 dark:border-border-dark dark:bg-bg-card-dark">
-            <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted dark:text-text-muted-dark">
-              System settings
-            </Text>
+          <View
+            style={[
+              styles.contentCard,
+              { borderColor: colors.border, backgroundColor: colors.bgCard },
+            ]}>
+            <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>System settings</Text>
             {settings ? (
-              <View className="mt-4 gap-3">
+              <View style={styles.listContainer}>
                 <SettingRow
                   label="Max tournaments per user"
                   value={String(settings.maxTournamentsPerUser)}
+                  colors={colors}
                 />
                 <SettingRow
                   label="Public registration"
                   value={settings.allowPublicRegistration ? "Enabled" : "Disabled"}
+                  colors={colors}
                 />
                 <SettingRow
                   label="Maintenance mode"
                   value={settings.maintenanceMode ? "Enabled" : "Disabled"}
+                  colors={colors}
                 />
                 {settings.maintenanceMessage ? (
-                  <View className="rounded-2xl border border-border/70 bg-bg-secondary p-4 dark:border-border-dark dark:bg-bg-secondary-dark">
-                    <Text className="text-xs font-semibold uppercase tracking-[0.16em] text-text-muted dark:text-text-muted-dark">
-                      Message
-                    </Text>
-                    <Text className="mt-2 text-sm text-text-secondary dark:text-text-secondary-dark">
+                  <View
+                    style={[
+                      styles.listItem,
+                      {
+                        borderColor: `${colors.border}B3`,
+                        backgroundColor: colors.bgSecondary,
+                      },
+                    ]}>
+                    <Text style={[styles.settingLabel, { color: colors.textMuted }]}>Message</Text>
+                    <Text style={[styles.settingMessage, { color: colors.textSecondary }]}>
                       {settings.maintenanceMessage}
                     </Text>
                   </View>
                 ) : null}
               </View>
             ) : (
-              <Text className="mt-4 text-sm text-text-secondary dark:text-text-secondary-dark">
+              <Text style={[styles.noSettingsText, { color: colors.textSecondary }]}>
                 No system settings found.
               </Text>
             )}
@@ -201,15 +256,171 @@ export default function AdminScreen() {
   );
 }
 
-function SettingRow({ label, value }: { label: string; value: string }) {
+function SettingRow({
+  label,
+  value,
+  colors,
+}: {
+  label: string;
+  value: string;
+  colors: ReturnType<typeof useThemeColors>;
+}) {
   return (
-    <View className="rounded-2xl border border-border/70 bg-bg-secondary p-4 dark:border-border-dark dark:bg-bg-secondary-dark">
-      <Text className="text-xs font-semibold uppercase tracking-[0.16em] text-text-muted dark:text-text-muted-dark">
-        {label}
-      </Text>
-      <Text className="mt-2 text-sm font-semibold text-text-primary dark:text-text-primary-dark">
-        {value}
-      </Text>
+    <View
+      style={[
+        styles.listItem,
+        {
+          borderColor: `${colors.border}B3`,
+          backgroundColor: colors.bgSecondary,
+        },
+      ]}>
+      <Text style={[styles.settingLabel, { color: colors.textMuted }]}>{label}</Text>
+      <Text style={[styles.settingValue, { color: colors.textPrimary }]}>{value}</Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  centeredMessage: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+  },
+  messageText: {
+    textAlign: "center",
+    fontSize: 14,
+  },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  scrollContent: {
+    paddingBottom: 32,
+  },
+  topSection: {
+    paddingTop: 16,
+  },
+  card: {
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.18 * 12,
+  },
+  tabsRow: {
+    marginTop: 12,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  tabButton: {
+    borderRadius: 9999,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  tabText: {
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.18 * 12,
+  },
+  contentCard: {
+    marginTop: 16,
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  listContainer: {
+    marginTop: 16,
+    gap: 12,
+  },
+  listItem: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+  },
+  itemTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  itemSubtext: {
+    marginTop: 4,
+    fontSize: 12,
+  },
+  badgesRow: {
+    marginTop: 12,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  adminBadge: {
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: "rgba(112,172,21,0.3)",
+    backgroundColor: "rgba(112,172,21,0.1)",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  infoBadge: {
+    borderRadius: 9999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.16 * 10,
+  },
+  emptyText: {
+    fontSize: 14,
+  },
+  grantedText: {
+    marginTop: 8,
+    fontSize: 12,
+  },
+  settingLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.16 * 12,
+  },
+  settingValue: {
+    marginTop: 8,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  settingMessage: {
+    marginTop: 8,
+    fontSize: 14,
+  },
+  noSettingsText: {
+    marginTop: 16,
+    fontSize: 14,
+  },
+});

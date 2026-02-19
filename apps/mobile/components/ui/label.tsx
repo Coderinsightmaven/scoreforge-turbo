@@ -1,16 +1,17 @@
 import * as React from "react";
-import { Text, type TextProps } from "react-native";
+import { Text, StyleSheet, type TextProps, type TextStyle } from "react-native";
+import { useThemeColors } from "@/hooks/use-theme-colors";
 
-import { cn } from "../../utils/cn";
-
-export function Label({ className, ...props }: TextProps & { className?: string }) {
-  return (
-    <Text
-      className={cn(
-        "text-xs font-semibold uppercase tracking-[0.16em] text-text-muted dark:text-text-muted-dark",
-        className
-      )}
-      {...props}
-    />
-  );
+export function Label({ style, ...props }: TextProps & { style?: TextStyle }) {
+  const colors = useThemeColors();
+  return <Text style={[styles.label, { color: colors.textMuted }, style]} {...props} />;
 }
+
+const styles = StyleSheet.create({
+  label: {
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.16 * 12,
+  },
+});

@@ -1,27 +1,29 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
-import { formatTournamentName } from "../../utils/format";
+import { formatTournamentName } from "@/utils/format";
+import { useThemeColors } from "@/hooks/use-theme-colors";
+import { Colors, Fonts } from "@/constants/colors";
 
-const statusStyles: Record<string, { bg: string; text: string; border: string }> = {
+const tournamentStatusStyles: Record<string, { bg: string; text: string; border: string }> = {
   draft: {
-    bg: "bg-status-pending-bg",
-    text: "text-status-pending-text",
-    border: "border-status-pending-border/30",
+    bg: Colors.status.pending.bg,
+    text: Colors.status.pending.text,
+    border: Colors.status.pending.border,
   },
   active: {
-    bg: "bg-status-active-bg",
-    text: "text-status-active-text",
-    border: "border-status-active-border/30",
+    bg: Colors.status.active.bg,
+    text: Colors.status.active.text,
+    border: Colors.status.active.border,
   },
   completed: {
-    bg: "bg-status-completed-bg",
-    text: "text-status-completed-text",
-    border: "border-status-completed-border/30",
+    bg: Colors.status.completed.bg,
+    text: Colors.status.completed.text,
+    border: Colors.status.completed.border,
   },
   cancelled: {
-    bg: "bg-status-live-bg",
-    text: "text-status-live-text",
-    border: "border-status-live-border/30",
+    bg: Colors.status.live.bg,
+    text: Colors.status.live.text,
+    border: Colors.status.live.border,
   },
 };
 
@@ -42,39 +44,41 @@ type Props = {
 };
 
 export function TournamentCard({ tournament, onPress }: Props) {
-  const status = statusStyles[tournament.status] || statusStyles.draft;
+  const colors = useThemeColors();
+  const status = tournamentStatusStyles[tournament.status] || tournamentStatusStyles.draft;
   const sportLabel = tournament.sport ? tournament.sport.toUpperCase() : "SPORT";
   const liveLabel = `${tournament.liveMatchCount} Live Matches`;
   const roleLabel = tournament.isOwner ? "Owner" : "Scorer";
-  const roleClasses = tournament.isOwner
-    ? "border-brand/30 bg-brand-light"
-    : "border-border bg-bg-secondary dark:border-border-dark dark:bg-bg-secondary-dark";
-  const roleTextClasses = tournament.isOwner
-    ? "text-brand-text"
-    : "text-text-secondary dark:text-text-secondary-dark";
 
   return (
     <TouchableOpacity
-      className="mb-4 rounded-3xl border border-border bg-bg-card p-5 shadow-lg shadow-black/5 dark:border-border-dark dark:bg-bg-card-dark"
+      style={[styles.card, { borderColor: colors.border, backgroundColor: colors.bgCard }]}
       onPress={onPress}
       activeOpacity={0.7}>
-      <View className="gap-4">
-        <View className="gap-3">
-          <View className="flex-row items-start justify-between gap-3">
+      <View style={styles.content}>
+        <View style={styles.topSection}>
+          <View style={styles.titleRow}>
             <Text
-              className="flex-1 font-display-semibold text-xl leading-6 tracking-tight text-text-primary dark:text-text-primary-dark"
+              style={[
+                styles.title,
+                { color: colors.textPrimary, fontFamily: Fonts.displaySemibold },
+              ]}
               numberOfLines={2}>
               {formatTournamentName(tournament.name)}
             </Text>
             {tournament.liveMatchCount > 0 ? (
-              <View className="rounded-full bg-live px-3 py-1.5 shadow-lg shadow-black/10">
-                <Text className="text-xs font-semibold tracking-wide text-text-inverse">
+              <View style={[styles.liveBadge, { backgroundColor: Colors.semantic.live }]}>
+                <Text style={[styles.liveBadgeText, { color: colors.textInverse }]}>
                   {liveLabel}
                 </Text>
               </View>
             ) : (
-              <View className="rounded-full border border-border bg-bg-secondary px-3 py-1.5 dark:border-border-dark dark:bg-bg-secondary-dark">
-                <Text className="text-xs font-semibold tracking-wide text-text-secondary dark:text-text-secondary-dark">
+              <View
+                style={[
+                  styles.sportBadge,
+                  { borderColor: colors.border, backgroundColor: colors.bgSecondary },
+                ]}>
+                <Text style={[styles.sportBadgeText, { color: colors.textSecondary }]}>
                   {sportLabel}
                 </Text>
               </View>
@@ -82,25 +86,35 @@ export function TournamentCard({ tournament, onPress }: Props) {
           </View>
 
           {tournament.description && (
-            <Text
-              className="text-sm leading-5 text-text-secondary dark:text-text-secondary-dark"
-              numberOfLines={3}>
+            <Text style={[styles.description, { color: colors.textSecondary }]} numberOfLines={3}>
               {tournament.description}
             </Text>
           )}
         </View>
 
-        <View className="border-t border-border pt-4 dark:border-border-dark">
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row flex-wrap items-center gap-2">
-              <View className={`rounded-full border px-3 py-1.5 ${status.bg} ${status.border}`}>
-                <Text className={`text-xs font-medium capitalize ${status.text}`}>
-                  {tournament.status}
-                </Text>
+        <View style={[styles.footer, { borderTopColor: colors.border }]}>
+          <View style={styles.footerRow}>
+            <View style={styles.badgesRow}>
+              <View
+                style={[
+                  styles.statusBadge,
+                  { backgroundColor: status.bg, borderColor: status.border },
+                ]}>
+                <Text style={[styles.statusText, { color: status.text }]}>{tournament.status}</Text>
               </View>
             </View>
-            <View className={`rounded-full border px-3 py-1.5 ${roleClasses}`}>
-              <Text className={`text-xs font-medium uppercase tracking-wide ${roleTextClasses}`}>
+            <View
+              style={[
+                styles.roleBadge,
+                tournament.isOwner
+                  ? { borderColor: "rgba(112,172,21,0.3)", backgroundColor: Colors.brand.light }
+                  : { borderColor: colors.border, backgroundColor: colors.bgSecondary },
+              ]}>
+              <Text
+                style={[
+                  styles.roleText,
+                  { color: tournament.isOwner ? Colors.brand.text : colors.textSecondary },
+                ]}>
                 {roleLabel}
               </Text>
             </View>
@@ -110,3 +124,93 @@ export function TournamentCard({ tournament, onPress }: Props) {
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    marginBottom: 16,
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 20,
+  },
+  content: {
+    gap: 16,
+  },
+  topSection: {
+    gap: 12,
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  title: {
+    flex: 1,
+    fontSize: 20,
+    lineHeight: 24,
+    letterSpacing: -0.3,
+  },
+  liveBadge: {
+    borderRadius: 9999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  liveBadgeText: {
+    fontSize: 12,
+    fontWeight: "600",
+    letterSpacing: 0.4,
+  },
+  sportBadge: {
+    borderRadius: 9999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  sportBadgeText: {
+    fontSize: 12,
+    fontWeight: "600",
+    letterSpacing: 0.4,
+  },
+  description: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  footer: {
+    borderTopWidth: 1,
+    paddingTop: 16,
+  },
+  footerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  badgesRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: 8,
+  },
+  statusBadge: {
+    borderRadius: 9999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: "500",
+    textTransform: "capitalize",
+  },
+  roleBadge: {
+    borderRadius: 9999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  roleText: {
+    fontSize: 12,
+    fontWeight: "500",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+  },
+});

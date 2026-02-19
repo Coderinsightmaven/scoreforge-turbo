@@ -1,53 +1,98 @@
 import * as React from "react";
-import { Text, View, type TextProps, type ViewProps } from "react-native";
+import {
+  Text,
+  View,
+  StyleSheet,
+  type TextProps,
+  type ViewProps,
+  type ViewStyle,
+  type TextStyle,
+} from "react-native";
+import { useThemeColors } from "@/hooks/use-theme-colors";
+import { Fonts } from "@/constants/colors";
 
-import { cn } from "../../utils/cn";
-
-export function Card({ className, ...props }: ViewProps & { className?: string }) {
+export function Card({ style, ...props }: ViewProps & { style?: ViewStyle }) {
+  const colors = useThemeColors();
   return (
     <View
-      className={cn(
-        "flex flex-col gap-4 rounded-2xl border border-border/80 bg-card py-6 text-card-foreground shadow-lg shadow-black/10 dark:border-border-dark/80 dark:bg-card-dark dark:text-card-foreground-dark",
-        className
-      )}
+      style={[
+        styles.card,
+        {
+          borderColor: colors.border,
+          backgroundColor: colors.card,
+        },
+        style,
+      ]}
       {...props}
     />
   );
 }
 
-export function CardHeader({ className, ...props }: ViewProps & { className?: string }) {
-  return <View className={cn("gap-2.5 px-6", className)} {...props} />;
+export function CardHeader({ style, ...props }: ViewProps & { style?: ViewStyle }) {
+  return <View style={[styles.cardHeader, style]} {...props} />;
 }
 
-export function CardTitle({ className, ...props }: TextProps & { className?: string }) {
+export function CardTitle({ style, ...props }: TextProps & { style?: TextStyle }) {
+  const colors = useThemeColors();
   return (
     <Text
-      className={cn(
-        "font-display-semibold text-base tracking-[0.04em] text-text-primary dark:text-text-primary-dark",
-        className
-      )}
+      style={[
+        styles.cardTitle,
+        { color: colors.textPrimary, fontFamily: Fonts.displaySemibold },
+        style,
+      ]}
       {...props}
     />
   );
 }
 
-export function CardDescription({ className, ...props }: TextProps & { className?: string }) {
+export function CardDescription({ style, ...props }: TextProps & { style?: TextStyle }) {
+  const colors = useThemeColors();
   return (
-    <Text
-      className={cn("text-sm text-muted-foreground dark:text-muted-foreground-dark", className)}
-      {...props}
-    />
+    <Text style={[styles.cardDescription, { color: colors.mutedForeground }, style]} {...props} />
   );
 }
 
-export function CardContent({ className, ...props }: ViewProps & { className?: string }) {
-  return <View className={cn("px-6", className)} {...props} />;
+export function CardContent({ style, ...props }: ViewProps & { style?: ViewStyle }) {
+  return <View style={[styles.cardContent, style]} {...props} />;
 }
 
-export function CardFooter({ className, ...props }: ViewProps & { className?: string }) {
-  return <View className={cn("flex-row items-center px-6", className)} {...props} />;
+export function CardFooter({ style, ...props }: ViewProps & { style?: ViewStyle }) {
+  return <View style={[styles.cardFooter, style]} {...props} />;
 }
 
-export function CardAction({ className, ...props }: ViewProps & { className?: string }) {
-  return <View className={cn("self-start", className)} {...props} />;
+export function CardAction({ style, ...props }: ViewProps & { style?: ViewStyle }) {
+  return <View style={[styles.cardAction, style]} {...props} />;
 }
+
+const styles = StyleSheet.create({
+  card: {
+    flexDirection: "column",
+    gap: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingVertical: 24,
+  },
+  cardHeader: {
+    gap: 10,
+    paddingHorizontal: 24,
+  },
+  cardTitle: {
+    fontSize: 16,
+    letterSpacing: 0.04 * 16,
+  },
+  cardDescription: {
+    fontSize: 14,
+  },
+  cardContent: {
+    paddingHorizontal: 24,
+  },
+  cardFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  cardAction: {
+    alignSelf: "flex-start",
+  },
+});

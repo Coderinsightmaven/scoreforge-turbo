@@ -9,14 +9,17 @@ import {
   Text,
   TouchableOpacity,
   View,
+  StyleSheet,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { usePathname, useRouter } from "expo-router";
+import { usePathname, useRouter, type RelativePathString } from "expo-router";
 import { useClerk } from "@clerk/clerk-expo";
 import { useQuery } from "convex/react";
 import { api } from "@repo/convex";
 
-import { useThemePreference, type ThemePreference } from "../../contexts/ThemePreferenceContext";
+import { useThemePreference, type ThemePreference } from "@/contexts/ThemePreferenceContext";
+import { useThemeColors } from "@/hooks/use-theme-colors";
+import { Fonts } from "@/constants/colors";
 
 type NavSheetContextType = {
   isOpen: boolean;
@@ -67,6 +70,7 @@ function NavSheet({ open, onClose }: NavSheetProps) {
   const isSiteAdmin = useQuery(api.siteAdmin.checkIsSiteAdmin);
   const { signOut } = useClerk();
   const { themePreference, setThemePreference } = useThemePreference();
+  const colors = useThemeColors();
 
   const screenWidth = Dimensions.get("window").width;
   const sheetWidth = Math.min(320, screenWidth * 0.82);
@@ -118,7 +122,7 @@ function NavSheet({ open, onClose }: NavSheetProps) {
 
   const handleNavigate = (href: string) => {
     onClose();
-    router.replace(href);
+    router.replace(href as RelativePathString);
   };
 
   const handleSignOut = () => {
@@ -140,49 +144,61 @@ function NavSheet({ open, onClose }: NavSheetProps) {
 
   return (
     <Modal transparent visible={isVisible} onRequestClose={onClose} animationType="none">
-      <Pressable className="flex-1 bg-black/40" onPress={onClose}>
+      <Pressable style={styles.backdrop} onPress={onClose}>
         <Animated.View
-          style={{
-            width: sheetWidth,
-            transform: [{ translateX }],
-            paddingTop: Math.max(insets.top, 12),
-            paddingBottom: Math.max(insets.bottom, 16),
-          }}
-          onStartShouldSetResponder={() => true}
-          className="h-full bg-bg-primary px-5 dark:bg-bg-primary-dark">
-          <SafeAreaView edges={[]} className="flex-1">
-            <View className="mb-6 flex-row items-center gap-3">
+          style={[
+            styles.sheet,
+            {
+              width: sheetWidth,
+              transform: [{ translateX }],
+              paddingTop: Math.max(insets.top, 12),
+              paddingBottom: Math.max(insets.bottom, 16),
+              backgroundColor: colors.bgPrimary,
+            },
+          ]}
+          onStartShouldSetResponder={() => true}>
+          <SafeAreaView edges={[]} style={styles.safeArea}>
+            {/* Logo + Title */}
+            <View style={styles.logoRow}>
               <Image
-                source={require("../../assets/logo.png")}
-                className="h-16 w-16"
+                source={require("@/assets/images/icon.png")}
+                style={styles.logo}
                 resizeMode="contain"
               />
               <View>
-                <Text className="font-display-semibold text-lg text-text-primary dark:text-text-primary-dark">
+                <Text
+                  style={[
+                    styles.appName,
+                    { color: colors.textPrimary, fontFamily: Fonts.displaySemibold },
+                  ]}>
                   ScoreForge
                 </Text>
-                <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted dark:text-text-muted-dark">
-                  Navigation
-                </Text>
+                <Text style={[styles.navLabel, { color: colors.textMuted }]}>Navigation</Text>
               </View>
             </View>
 
-            <View className="gap-2">
+            {/* Nav Items */}
+            <View style={styles.navList}>
               {navItems.map((item) => {
                 const active = isActive(item.href);
                 return (
                   <TouchableOpacity
                     key={item.href}
                     onPress={() => handleNavigate(item.href)}
-                    className={`rounded-2xl border px-4 py-3 ${
+                    style={[
+                      styles.navItem,
                       active
-                        ? "border-brand/40 bg-brand/10"
-                        : "border-border bg-bg-card dark:border-border-dark dark:bg-bg-card-dark"
-                    }`}>
+                        ? {
+                            borderColor: "rgba(112,172,21,0.4)",
+                            backgroundColor: "rgba(112,172,21,0.1)",
+                          }
+                        : { borderColor: colors.border, backgroundColor: colors.bgCard },
+                    ]}>
                     <Text
-                      className={`text-sm font-semibold uppercase tracking-[0.16em] ${
-                        active ? "text-brand" : "text-text-secondary dark:text-text-secondary-dark"
-                      }`}>
+                      style={[
+                        styles.navItemText,
+                        { color: active ? colors.brand.DEFAULT : colors.textSecondary },
+                      ]}>
                       {item.label}
                     </Text>
                   </TouchableOpacity>
@@ -190,36 +206,65 @@ function NavSheet({ open, onClose }: NavSheetProps) {
               })}
             </View>
 
-            <View className="mt-auto border-t border-border pt-5 dark:border-border-dark">
-              <View className="mb-4 rounded-2xl border border-border bg-bg-card p-4 dark:border-border-dark dark:bg-bg-card-dark">
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted dark:text-text-muted-dark">
-                    Signed in
-                  </Text>
+            {/* Bottom Section */}
+            <View style={[styles.bottomSection, { borderTopColor: colors.border }]}>
+              <View
+                style={[
+                  styles.userCard,
+                  { borderColor: colors.border, backgroundColor: colors.bgCard },
+                ]}>
+                <View style={styles.userCardHeader}>
+                  <Text style={[styles.navLabel, { color: colors.textMuted }]}>Signed in</Text>
                   <TouchableOpacity
                     onPress={handleThemeToggle}
                     accessibilityLabel={`Toggle theme (${themeLabel})`}
-                    className="h-7 w-7 items-center justify-center rounded-full border border-border bg-bg-secondary dark:border-border-dark dark:bg-bg-secondary-dark">
+                    style={[
+                      styles.themeButton,
+                      { borderColor: colors.border, backgroundColor: colors.bgSecondary },
+                    ]}>
                     {themePreference === "light" && (
-                      <View className="h-3 w-3 items-center justify-center rounded-full border border-text-secondary dark:border-text-secondary-dark">
-                        <View className="h-1.5 w-1.5 rounded-full bg-text-secondary dark:bg-text-secondary-dark" />
+                      <View style={[styles.themeIconOuter, { borderColor: colors.textSecondary }]}>
+                        <View
+                          style={[styles.themeIconInner, { backgroundColor: colors.textSecondary }]}
+                        />
                       </View>
                     )}
                     {themePreference === "dark" && (
-                      <View className="h-3 w-3 rounded-full bg-text-secondary dark:bg-text-secondary-dark" />
+                      <View
+                        style={[styles.themeIconFilled, { backgroundColor: colors.textSecondary }]}
+                      />
                     )}
                     {themePreference === "system" && (
-                      <View className="h-3 w-3 items-start justify-center overflow-hidden rounded-full border border-text-secondary dark:border-text-secondary-dark">
-                        <View className="h-full w-1.5 bg-text-secondary dark:bg-text-secondary-dark" />
+                      <View
+                        style={[
+                          styles.themeIconOuter,
+                          {
+                            borderColor: colors.textSecondary,
+                            overflow: "hidden",
+                            alignItems: "flex-start",
+                            justifyContent: "center",
+                          },
+                        ]}>
+                        <View
+                          style={{
+                            height: "100%",
+                            width: 6,
+                            backgroundColor: colors.textSecondary,
+                          }}
+                        />
                       </View>
                     )}
                   </TouchableOpacity>
                 </View>
-                <Text className="mt-2 font-sans-semibold text-base text-text-primary dark:text-text-primary-dark">
+                <Text
+                  style={[
+                    styles.userName,
+                    { color: colors.textPrimary, fontFamily: Fonts.sansSemibold },
+                  ]}>
                   {user?.name ?? "ScoreForge user"}
                 </Text>
                 {user?.email ? (
-                  <Text className="mt-1 text-sm text-text-secondary dark:text-text-secondary-dark">
+                  <Text style={[styles.userEmail, { color: colors.textSecondary }]}>
                     {user.email}
                   </Text>
                 ) : null}
@@ -227,10 +272,11 @@ function NavSheet({ open, onClose }: NavSheetProps) {
 
               <TouchableOpacity
                 onPress={handleSignOut}
-                className="items-center rounded-2xl border border-error/30 bg-error/10 py-3">
-                <Text className="text-sm font-semibold uppercase tracking-[0.16em] text-error">
-                  Sign Out
-                </Text>
+                style={[
+                  styles.signOutButton,
+                  { borderColor: "rgba(208,37,60,0.3)", backgroundColor: "rgba(208,37,60,0.1)" },
+                ]}>
+                <Text style={[styles.signOutText, { color: colors.semantic.error }]}>Sign Out</Text>
               </TouchableOpacity>
             </View>
           </SafeAreaView>
@@ -239,3 +285,113 @@ function NavSheet({ open, onClose }: NavSheetProps) {
     </Modal>
   );
 }
+
+const styles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+  },
+  sheet: {
+    height: "100%",
+    paddingHorizontal: 20,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  logoRow: {
+    marginBottom: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  logo: {
+    height: 64,
+    width: 64,
+  },
+  appName: {
+    fontSize: 18,
+  },
+  navLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.18 * 12,
+  },
+  navList: {
+    gap: 8,
+  },
+  navItem: {
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  navItemText: {
+    fontSize: 14,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.16 * 14,
+  },
+  bottomSection: {
+    marginTop: "auto",
+    borderTopWidth: 1,
+    paddingTop: 20,
+  },
+  userCard: {
+    marginBottom: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+  },
+  userCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  themeButton: {
+    height: 28,
+    width: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 9999,
+    borderWidth: 1,
+  },
+  themeIconOuter: {
+    height: 12,
+    width: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 9999,
+    borderWidth: 1,
+  },
+  themeIconInner: {
+    height: 6,
+    width: 6,
+    borderRadius: 9999,
+  },
+  themeIconFilled: {
+    height: 12,
+    width: 12,
+    borderRadius: 9999,
+  },
+  userName: {
+    marginTop: 8,
+    fontSize: 16,
+  },
+  userEmail: {
+    marginTop: 4,
+    fontSize: 14,
+  },
+  signOutButton: {
+    alignItems: "center",
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingVertical: 12,
+  },
+  signOutText: {
+    fontSize: 14,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.16 * 14,
+  },
+});

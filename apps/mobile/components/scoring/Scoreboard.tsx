@@ -1,4 +1,6 @@
-import { View, Text } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import { useThemeColors } from "@/hooks/use-theme-colors";
+import { Colors, Fonts } from "@/constants/colors";
 
 type ScoreboardProps = {
   isLive: boolean;
@@ -13,10 +15,6 @@ type ScoreboardProps = {
   isLandscape: boolean;
 };
 
-/**
- * Shared tennis scoreboard display for scoring screens.
- * Extracted from the inline definitions in both (app) and (scorer) scoring screens.
- */
 export function Scoreboard({
   isLive,
   isTiebreak,
@@ -29,23 +27,51 @@ export function Scoreboard({
   servingParticipant,
   isLandscape,
 }: ScoreboardProps) {
+  const colors = useThemeColors();
+
   return (
     <View
-      className={`relative overflow-hidden rounded-2xl border border-border bg-bg-card p-6 shadow-lg shadow-black/10 dark:border-border-dark dark:bg-bg-card-dark ${
-        isLandscape ? "w-72" : "w-80"
-      }`}>
-      <View className="absolute left-6 right-6 top-3 h-px bg-brand/40" />
+      style={[
+        styles.container,
+        {
+          borderColor: colors.border,
+          backgroundColor: colors.bgCard,
+          width: isLandscape ? 288 : 320,
+        },
+      ]}>
+      <View
+        style={[
+          styles.topAccent,
+          {
+            backgroundColor: colors.isDark ? colors.brand.dark : colors.brand.DEFAULT,
+            opacity: 0.4,
+          },
+        ]}
+      />
+
       {/* Status Badges */}
-      <View className="mb-3 flex-row items-center justify-center space-x-2">
+      <View style={styles.badgeRow}>
         {isLive && (
-          <View className="flex-row items-center rounded-full border border-status-live-border/30 bg-status-live-bg px-3 py-1">
-            <View className="mr-1.5 h-2 w-2 rounded-full bg-status-live-border" />
-            <Text className="text-[10px] font-semibold uppercase text-status-live-text">Live</Text>
+          <View
+            style={[
+              styles.liveBadge,
+              { borderColor: "rgba(238,56,43,0.3)", backgroundColor: Colors.status.live.bg },
+            ]}>
+            <View style={[styles.liveDot, { backgroundColor: Colors.status.live.border }]} />
+            <Text style={[styles.liveText, { color: Colors.status.live.text }]}>Live</Text>
           </View>
         )}
         {isTiebreak && (
-          <View className="rounded-full border border-brand/30 bg-brand/10 px-3 py-1">
-            <Text className="text-[10px] font-semibold uppercase text-brand dark:text-brand-dark">
+          <View
+            style={[
+              styles.tiebreakBadge,
+              { borderColor: "rgba(112,172,21,0.3)", backgroundColor: "rgba(112,172,21,0.1)" },
+            ]}>
+            <Text
+              style={[
+                styles.tiebreakText,
+                { color: colors.isDark ? colors.brand.dark : colors.brand.DEFAULT },
+              ]}>
               {tiebreakMode === "match" ? "Match Tiebreak" : "Tiebreak"}
             </Text>
           </View>
@@ -54,47 +80,54 @@ export function Scoreboard({
 
       {/* Game Status */}
       {gameStatus && (
-        <View className="mb-3 items-center">
-          <Text className="text-sm font-medium text-text-secondary dark:text-text-secondary-dark">
-            {gameStatus}
-          </Text>
+        <View style={styles.gameStatusRow}>
+          <Text style={[styles.gameStatusText, { color: colors.textSecondary }]}>{gameStatus}</Text>
         </View>
       )}
 
       {/* Main Score Display */}
-      <View className="mb-4 flex-row items-center justify-center">
-        {/* Player 1 Points */}
-        <View className="flex-1 items-center">
+      <View style={styles.scoreRow}>
+        <View style={styles.pointsContainer}>
           {servingParticipant === 1 && (
-            <View className="mb-1 h-2 w-2 rounded-full bg-brand shadow-lg shadow-brand/40" />
+            <View style={[styles.servingDot, { backgroundColor: colors.brand.DEFAULT }]} />
           )}
           <Text
-            className={`font-bold text-brand dark:text-brand-dark ${
-              isLandscape ? "text-5xl" : "text-6xl"
-            }`}>
+            style={[
+              styles.points,
+              {
+                color: colors.isDark ? colors.brand.dark : colors.brand.DEFAULT,
+                fontSize: isLandscape ? 48 : 60,
+              },
+            ]}>
             {p1Points}
           </Text>
         </View>
 
-        {/* Games in Center */}
-        <View className="mx-4 items-center rounded-xl border border-border bg-bg-secondary px-4 py-2 dark:border-border-dark dark:bg-bg-secondary-dark">
-          <Text className="text-xs text-text-muted dark:text-text-muted-dark">
+        <View
+          style={[
+            styles.gamesBox,
+            { borderColor: colors.border, backgroundColor: colors.bgSecondary },
+          ]}>
+          <Text style={[styles.gamesLabel, { color: colors.textMuted }]}>
             {isTiebreak ? (tiebreakMode === "match" ? "MTB" : "TB") : "GAME"}
           </Text>
-          <Text className="text-xl font-bold text-text-primary dark:text-text-primary-dark">
+          <Text style={[styles.gamesScore, { color: colors.textPrimary }]}>
             {currentSetGames[0]} - {currentSetGames[1]}
           </Text>
         </View>
 
-        {/* Player 2 Points */}
-        <View className="flex-1 items-center">
+        <View style={styles.pointsContainer}>
           {servingParticipant === 2 && (
-            <View className="mb-1 h-2 w-2 rounded-full bg-brand shadow-lg shadow-brand/40" />
+            <View style={[styles.servingDot, { backgroundColor: colors.brand.DEFAULT }]} />
           )}
           <Text
-            className={`font-bold text-brand dark:text-brand-dark ${
-              isLandscape ? "text-5xl" : "text-6xl"
-            }`}>
+            style={[
+              styles.points,
+              {
+                color: colors.isDark ? colors.brand.dark : colors.brand.DEFAULT,
+                fontSize: isLandscape ? 48 : 60,
+              },
+            ]}>
             {p2Points}
           </Text>
         </View>
@@ -102,8 +135,8 @@ export function Scoreboard({
 
       {/* Set Scores */}
       {sets.length > 0 && (
-        <View className="items-center">
-          <Text className="text-sm text-text-muted dark:text-text-muted-dark">
+        <View style={styles.setsRow}>
+          <Text style={[styles.setsText, { color: colors.textMuted }]}>
             {sets.map((s) => `${s[0]}-${s[1]}`).join("   ")}
           </Text>
         </View>
@@ -111,3 +144,105 @@ export function Scoreboard({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    position: "relative",
+    overflow: "hidden",
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 24,
+  },
+  topAccent: {
+    position: "absolute",
+    left: 24,
+    right: 24,
+    top: 12,
+    height: 1,
+  },
+  badgeRow: {
+    marginBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  liveBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 9999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  liveDot: {
+    marginRight: 6,
+    height: 8,
+    width: 8,
+    borderRadius: 4,
+  },
+  liveText: {
+    fontSize: 10,
+    fontWeight: "600",
+    textTransform: "uppercase",
+  },
+  tiebreakBadge: {
+    borderRadius: 9999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  tiebreakText: {
+    fontSize: 10,
+    fontWeight: "600",
+    textTransform: "uppercase",
+  },
+  gameStatusRow: {
+    marginBottom: 12,
+    alignItems: "center",
+  },
+  gameStatusText: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  scoreRow: {
+    marginBottom: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pointsContainer: {
+    flex: 1,
+    alignItems: "center",
+  },
+  servingDot: {
+    marginBottom: 4,
+    height: 8,
+    width: 8,
+    borderRadius: 4,
+  },
+  points: {
+    fontWeight: "bold",
+  },
+  gamesBox: {
+    marginHorizontal: 16,
+    alignItems: "center",
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  gamesLabel: {
+    fontSize: 12,
+  },
+  gamesScore: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  setsRow: {
+    alignItems: "center",
+  },
+  setsText: {
+    fontSize: 14,
+  },
+});

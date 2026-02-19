@@ -1,5 +1,4 @@
 const { getDefaultConfig } = require("expo/metro-config");
-const { withNativeWind } = require("nativewind/metro");
 const path = require("path");
 
 // Find the project root (monorepo root)
@@ -27,10 +26,12 @@ config.resolver.extraNodeModules = {
 const PINNED_CORE_MODULES = new Set(["react", "react-dom", "react-native"]);
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (PINNED_CORE_MODULES.has(moduleName)) {
-    const pinnedPath = require.resolve(moduleName, { paths: [path.resolve(projectRoot, "node_modules")] });
+    const pinnedPath = require.resolve(moduleName, {
+      paths: [path.resolve(projectRoot, "node_modules")],
+    });
     return { type: "sourceFile", filePath: pinnedPath };
   }
   return context.resolveRequest(context, moduleName, platform);
 };
 
-module.exports = withNativeWind(config, { input: "./global.css" });
+module.exports = config;

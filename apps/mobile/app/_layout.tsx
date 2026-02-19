@@ -1,6 +1,6 @@
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { View, ActivityIndicator, Text, Image } from "react-native";
+import { View, ActivityIndicator, Text, Image, StyleSheet, useColorScheme } from "react-native";
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
 import { useState, useEffect, useCallback } from "react";
 import * as SecureStore from "expo-secure-store";
@@ -17,38 +17,50 @@ import {
   Teko_600SemiBold,
   Teko_700Bold,
 } from "@expo-google-fonts/teko";
-import { useColorScheme } from "nativewind";
 
-import { ConvexProvider } from "../providers/ConvexProvider";
+import { ConvexProvider } from "@/providers/ConvexProvider";
 import {
   TempScorerContext,
   TempScorerSession,
   TempScorerContextType,
-} from "../contexts/TempScorerContext";
+} from "@/contexts/TempScorerContext";
 import {
   ThemePreferenceContext,
   ThemePreference,
   ThemePreferenceContextType,
-} from "../contexts/ThemePreferenceContext";
-import { ErrorBoundary } from "../components/ErrorBoundary";
-import { getStackBackground } from "../utils/theme";
+} from "@/contexts/ThemePreferenceContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { getStackBackground } from "@/utils/theme";
+import { Colors, Fonts } from "@/constants/colors";
 
 import "react-native-reanimated";
-import "../global.css";
 
 const TEMP_SCORER_SESSION_KEY = "tempScorerSession";
 const THEME_PREFERENCE_KEY = "themePreference";
 
 function LoadingScreen() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
   return (
-    <View className="flex-1 items-center justify-center bg-bg-page dark:bg-bg-page-dark">
+    <View
+      style={[
+        styles.loadingContainer,
+        { backgroundColor: isDark ? Colors.dark.bgPage : Colors.light.bgPage },
+      ]}>
       <Image
-        source={require("../assets/logo.png")}
-        className="mb-6 h-28 w-28"
+        source={require("@/assets/images/icon.png")}
+        style={styles.loadingLogo}
         resizeMode="contain"
       />
       <ActivityIndicator size="large" color="#70AC15" />
-      <Text className="mt-4 font-sans-medium text-sm text-text-tertiary dark:text-text-tertiary-dark">
+      <Text
+        style={[
+          styles.loadingText,
+          {
+            color: isDark ? Colors.dark.textTertiary : Colors.light.textTertiary,
+            fontFamily: Fonts.sansMedium,
+          },
+        ]}>
         Loading ScoreForge
       </Text>
     </View>
@@ -98,7 +110,7 @@ function AuthRedirectHandler({
 }
 
 function RootNavigation() {
-  const { colorScheme, setColorScheme } = useColorScheme();
+  const colorScheme = useColorScheme();
   const stackBackground = getStackBackground(colorScheme);
   const [tempScorerSession, setTempScorerSession] = useState<TempScorerSession | null>(null);
   const [themePreference, setThemePreferenceState] = useState<ThemePreference>("system");
@@ -106,7 +118,6 @@ function RootNavigation() {
   const segments = useSegments();
   const router = useRouter();
 
-  // Load temp scorer session from SecureStore on mount
   useEffect(() => {
     async function loadSession() {
       try {
@@ -124,10 +135,8 @@ function RootNavigation() {
 
         if (storedTheme === "light" || storedTheme === "dark" || storedTheme === "system") {
           setThemePreferenceState(storedTheme);
-          setColorScheme(storedTheme);
         } else {
           setThemePreferenceState("system");
-          setColorScheme("system");
         }
       } catch (e) {
         console.error("Failed to load temp scorer session:", e);
@@ -136,9 +145,8 @@ function RootNavigation() {
       }
     }
     loadSession();
-  }, [setColorScheme]);
+  }, []);
 
-  // Redirect to scorer flow when session is active
   useEffect(() => {
     if (isLoadingSession) return;
     if (tempScorerSession) {
@@ -163,14 +171,10 @@ function RootNavigation() {
     setTempScorerSession(null);
   }, []);
 
-  const handleSetThemePreference = useCallback(
-    async (preference: ThemePreference) => {
-      setThemePreferenceState(preference);
-      setColorScheme(preference);
-      await SecureStore.setItemAsync(THEME_PREFERENCE_KEY, preference);
-    },
-    [setColorScheme]
-  );
+  const handleSetThemePreference = useCallback(async (preference: ThemePreference) => {
+    setThemePreferenceState(preference);
+    await SecureStore.setItemAsync(THEME_PREFERENCE_KEY, preference);
+  }, []);
 
   const contextValue: TempScorerContextType = {
     session: tempScorerSession,
@@ -229,3 +233,20 @@ export default function RootLayout() {
     </ErrorBoundary>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingLogo: {
+    marginBottom: 24,
+    height: 112,
+    width: 112,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 14,
+  },
+});

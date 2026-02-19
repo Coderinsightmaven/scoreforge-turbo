@@ -5,10 +5,10 @@ import { useMutation } from "convex/react";
 import { api } from "@repo/convex";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "expo-router";
-import { getDisplayMessage } from "../../utils/errors";
-import { formatTournamentName } from "../../utils/format";
-import { useTempScorer } from "../../contexts/TempScorerContext";
-import { QRScannerModal } from "../../components/QRScannerModal";
+import { getDisplayMessage } from "@/utils/errors";
+import { formatTournamentName } from "@/utils/format";
+import { useTempScorer } from "@/contexts/TempScorerContext";
+import { QRScannerModal } from "@/components/QRScannerModal";
 import {
   View,
   Text,
@@ -19,8 +19,11 @@ import {
   Platform,
   ScrollView,
   Image,
+  StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useThemeColors } from "@/hooks/use-theme-colors";
+import { Colors, Fonts } from "@/constants/colors";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -31,6 +34,7 @@ export default function SignInScreen() {
   const { startSSOFlow } = useSSO();
   const { setSession } = useTempScorer();
   const router = useRouter();
+  const colors = useThemeColors();
   const [loginType, setLoginType] = useState<LoginType>("regular");
 
   // Regular login state
@@ -204,109 +208,140 @@ export default function SignInScreen() {
     }
   };
 
+  const brandColor = colors.isDark ? colors.brand.dark : colors.brand.DEFAULT;
+
   return (
-    <View className="flex-1 bg-bg-page dark:bg-bg-page-dark">
-      <SafeAreaView className="flex-1">
+    <View style={[styles.root, { backgroundColor: colors.bgPage }]}>
+      <SafeAreaView style={styles.flex1}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1">
+          style={styles.flex1}>
           <ScrollView
-            contentContainerClassName="flex-grow justify-center px-6 py-8"
+            contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="always">
             {/* Logo & Branding */}
-            <View className="mb-8 items-center">
+            <View style={styles.logoContainer}>
               <Image
-                source={require("../../assets/logo.png")}
-                className="mb-2 h-28 w-28"
+                source={require("@/assets/images/icon.png")}
+                style={styles.logo}
                 resizeMode="contain"
               />
-              <Text className="mb-1 font-display-semibold text-2xl text-text-tertiary dark:text-text-tertiary-dark">
+              <Text
+                style={[
+                  styles.welcomeTitle,
+                  { color: colors.textTertiary, fontFamily: Fonts.displaySemibold },
+                ]}>
                 Welcome to ScoreForge
               </Text>
-              <Text className="font-sans text-sm text-text-tertiary dark:text-text-tertiary-dark">
+              <Text style={[styles.welcomeSubtitle, { color: colors.textTertiary }]}>
                 Tournament Scoring Made Simple
               </Text>
             </View>
 
             {/* Login Mode Toggle */}
-            <View className="mb-6 flex-row rounded-full border border-border bg-bg-card p-1 dark:border-border-dark dark:bg-bg-card-dark">
+            <View
+              style={[
+                styles.toggleContainer,
+                { borderColor: colors.border, backgroundColor: colors.bgCard },
+              ]}>
               <TouchableOpacity
-                className={`flex-1 rounded-full py-2.5 ${
-                  loginType === "regular" ? "bg-brand" : ""
-                }`}
+                style={[
+                  styles.toggleButton,
+                  loginType === "regular" && { backgroundColor: brandColor },
+                ]}
                 onPress={() => {
                   setLoginType("regular");
                   setError(null);
                 }}
                 activeOpacity={0.8}>
                 <Text
-                  className={`text-center text-sm font-semibold ${
-                    loginType === "regular"
-                      ? "text-white"
-                      : "text-text-tertiary dark:text-text-tertiary-dark"
-                  }`}>
+                  style={[
+                    styles.toggleText,
+                    {
+                      color: loginType === "regular" ? "#FFFFFF" : colors.textTertiary,
+                    },
+                  ]}>
                   Account
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className={`flex-1 rounded-full py-2.5 ${loginType === "scorer" ? "bg-brand" : ""}`}
+                style={[
+                  styles.toggleButton,
+                  loginType === "scorer" && { backgroundColor: brandColor },
+                ]}
                 onPress={() => {
                   setLoginType("scorer");
                   setError(null);
                 }}
                 activeOpacity={0.8}>
                 <Text
-                  className={`text-center text-sm font-semibold ${
-                    loginType === "scorer"
-                      ? "text-white"
-                      : "text-text-tertiary dark:text-text-tertiary-dark"
-                  }`}>
+                  style={[
+                    styles.toggleText,
+                    {
+                      color: loginType === "scorer" ? "#FFFFFF" : colors.textTertiary,
+                    },
+                  ]}>
                   Scorer
                 </Text>
               </TouchableOpacity>
             </View>
 
             {/* Login Card */}
-            <View className="rounded-2xl bg-bg-card p-8 shadow-2xl shadow-black/10 dark:bg-bg-card-dark">
+            <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
               {loginType === "regular" ? (
                 <>
-                  <Text className="mb-1 text-center font-display-bold text-xl text-text-primary dark:text-text-primary-dark">
+                  <Text
+                    style={[
+                      styles.cardTitle,
+                      { color: colors.textPrimary, fontFamily: Fonts.displayBold },
+                    ]}>
                     Welcome Back
                   </Text>
-                  <Text className="mb-6 text-center font-sans text-sm text-text-tertiary dark:text-text-tertiary-dark">
+                  <Text style={[styles.cardSubtitle, { color: colors.textTertiary }]}>
                     Sign in with your account
                   </Text>
 
-                  <View className="gap-3">
+                  <View style={styles.gap12}>
                     <TouchableOpacity
-                      className="w-full flex-row items-center justify-center gap-3 rounded-xl border-2 border-border bg-bg-secondary py-4 dark:border-border-dark dark:bg-bg-secondary-dark"
+                      style={[
+                        styles.oauthButton,
+                        {
+                          borderColor: colors.border,
+                          backgroundColor: colors.bgSecondary,
+                        },
+                      ]}
                       onPress={handleOAuthSignIn}
                       disabled={loading}
                       activeOpacity={0.8}>
-                      <Text className="text-base font-semibold text-text-primary dark:text-text-primary-dark">
-                        G
-                      </Text>
-                      <Text className="text-base font-semibold text-text-primary dark:text-text-primary-dark">
+                      <Text style={[styles.oauthButtonText, { color: colors.textPrimary }]}>G</Text>
+                      <Text style={[styles.oauthButtonText, { color: colors.textPrimary }]}>
                         Continue with Google
                       </Text>
                     </TouchableOpacity>
                   </View>
 
-                  <View className="my-5 flex-row items-center">
-                    <View className="h-[1px] flex-1 bg-border dark:bg-border-dark" />
-                    <Text className="mx-3 text-xs uppercase text-text-tertiary dark:text-text-tertiary-dark">
+                  <View style={styles.dividerRow}>
+                    <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+                    <Text style={[styles.dividerText, { color: colors.textTertiary }]}>
                       or continue with email
                     </Text>
-                    <View className="h-[1px] flex-1 bg-border dark:bg-border-dark" />
+                    <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
                   </View>
 
-                  <View className="space-y-4">
+                  <View style={styles.gap16}>
                     <View>
-                      <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-tertiary dark:text-text-tertiary-dark">
+                      <Text style={[styles.fieldLabel, { color: colors.textTertiary }]}>
                         Email Address
                       </Text>
                       <TextInput
-                        className="w-full rounded-xl border-2 border-border bg-bg-secondary px-5 py-4 text-base text-text-primary dark:border-border-dark dark:bg-bg-secondary-dark dark:text-text-primary-dark"
+                        style={[
+                          styles.input,
+                          {
+                            borderColor: colors.border,
+                            backgroundColor: colors.bgSecondary,
+                            color: colors.textPrimary,
+                          },
+                        ]}
                         placeholder="you@example.com"
                         placeholderTextColor="#94A3B8"
                         value={email}
@@ -318,11 +353,18 @@ export default function SignInScreen() {
                     </View>
 
                     <View>
-                      <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-tertiary dark:text-text-tertiary-dark">
+                      <Text style={[styles.fieldLabel, { color: colors.textTertiary }]}>
                         Password
                       </Text>
                       <TextInput
-                        className="w-full rounded-xl border-2 border-border bg-bg-secondary px-5 py-4 text-base text-text-primary dark:border-border-dark dark:bg-bg-secondary-dark dark:text-text-primary-dark"
+                        style={[
+                          styles.input,
+                          {
+                            borderColor: colors.border,
+                            backgroundColor: colors.bgSecondary,
+                            color: colors.textPrimary,
+                          },
+                        ]}
                         placeholder="Enter your password"
                         placeholderTextColor="#94A3B8"
                         value={password}
@@ -333,56 +375,72 @@ export default function SignInScreen() {
                     </View>
 
                     {error && (
-                      <View className="rounded-xl border border-error/30 bg-error/10 p-4">
-                        <Text className="text-center text-sm text-error">{error}</Text>
+                      <View style={styles.errorBox}>
+                        <Text style={styles.errorText}>{error}</Text>
                       </View>
                     )}
 
                     <TouchableOpacity
-                      className="mt-2 w-full items-center rounded-xl bg-brand py-5 shadow-lg shadow-brand/30"
+                      style={[styles.submitButton, { backgroundColor: brandColor }]}
                       onPress={handleRegularSubmit}
                       disabled={loading}
                       activeOpacity={0.8}>
                       {loading ? (
                         <ActivityIndicator color="white" />
                       ) : (
-                        <Text className="text-base font-bold text-white">Sign In</Text>
+                        <Text style={styles.submitButtonText}>Sign In</Text>
                       )}
                     </TouchableOpacity>
                   </View>
                 </>
               ) : (
                 <>
-                  <Text className="mb-1 text-center font-display-bold text-xl text-text-primary dark:text-text-primary-dark">
+                  <Text
+                    style={[
+                      styles.cardTitle,
+                      { color: colors.textPrimary, fontFamily: Fonts.displayBold },
+                    ]}>
                     Scorer Login
                   </Text>
-                  <Text className="mb-4 text-center font-sans text-sm text-text-tertiary dark:text-text-tertiary-dark">
+                  <Text style={[styles.scorerSubtitle, { color: colors.textTertiary }]}>
                     Sign in with your tournament credentials
                   </Text>
 
                   {/* Scan QR Code Button */}
                   <TouchableOpacity
-                    className="mb-5 w-full flex-row items-center justify-center gap-2 rounded-xl border-2 border-brand/30 bg-brand/10 py-4"
+                    style={styles.qrButton}
                     onPress={() => setShowScanner(true)}
                     activeOpacity={0.8}>
-                    <Text className="text-base font-bold text-brand">Scan QR Code</Text>
+                    <Text style={[styles.qrButtonText, { color: brandColor }]}>Scan QR Code</Text>
                   </TouchableOpacity>
 
-                  <View className="mb-5 flex-row items-center">
-                    <View className="h-[1px] flex-1 bg-border dark:bg-border-dark" />
-                    <Text className="mx-3 text-xs uppercase text-text-tertiary dark:text-text-tertiary-dark">
+                  <View style={styles.scorerDividerRow}>
+                    <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+                    <Text style={[styles.dividerText, { color: colors.textTertiary }]}>
                       or enter manually
                     </Text>
-                    <View className="h-[1px] flex-1 bg-border dark:bg-border-dark" />
+                    <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
                   </View>
 
-                  <View className="space-y-4">
+                  <View style={styles.gap16}>
                     <View>
-                      <Text className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-text-tertiary dark:text-text-tertiary-dark">
+                      <Text
+                        style={[
+                          styles.fieldLabel,
+                          styles.textCenter,
+                          { color: colors.textTertiary },
+                        ]}>
                         Tournament Code
                       </Text>
                       <TextInput
-                        className="w-full rounded-xl border-2 border-border bg-bg-secondary px-5 py-4 text-center text-lg font-bold tracking-widest text-text-primary dark:border-border-dark dark:bg-bg-secondary-dark dark:text-text-primary-dark"
+                        style={[
+                          styles.inputCentered,
+                          {
+                            borderColor: colors.border,
+                            backgroundColor: colors.bgSecondary,
+                            color: colors.textPrimary,
+                          },
+                        ]}
                         placeholder="ABC123"
                         placeholderTextColor="#94A3B8"
                         value={tournamentCode}
@@ -391,27 +449,48 @@ export default function SignInScreen() {
                         maxLength={6}
                       />
                       {tournamentInfo && (
-                        <View className="mt-2 rounded-lg border border-status-active-border/30 bg-status-active-bg p-2">
-                          <Text className="text-center text-sm text-status-active-text">
+                        <View
+                          style={[
+                            styles.tournamentInfoBox,
+                            {
+                              borderColor: "rgba(39,165,94,0.3)",
+                              backgroundColor: Colors.status.active.bg,
+                            },
+                          ]}>
+                          <Text
+                            style={[
+                              styles.tournamentInfoText,
+                              { color: Colors.status.active.text },
+                            ]}>
                             {formatTournamentName(tournamentInfo.name)}
                           </Text>
                         </View>
                       )}
                       {tournamentCode.length === 6 && tournamentInfo === null && (
-                        <View className="mt-2 rounded-lg border border-error/30 bg-error/10 p-2">
-                          <Text className="text-center text-sm text-error">
-                            Tournament not found
-                          </Text>
+                        <View style={styles.tournamentNotFoundBox}>
+                          <Text style={styles.tournamentNotFoundText}>Tournament not found</Text>
                         </View>
                       )}
                     </View>
 
                     <View>
-                      <Text className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-text-tertiary dark:text-text-tertiary-dark">
+                      <Text
+                        style={[
+                          styles.fieldLabel,
+                          styles.textCenter,
+                          { color: colors.textTertiary },
+                        ]}>
                         Username
                       </Text>
                       <TextInput
-                        className="w-full rounded-xl border-2 border-border bg-bg-secondary px-5 py-4 text-center text-base text-text-primary dark:border-border-dark dark:bg-bg-secondary-dark dark:text-text-primary-dark"
+                        style={[
+                          styles.inputCenteredBase,
+                          {
+                            borderColor: colors.border,
+                            backgroundColor: colors.bgSecondary,
+                            color: colors.textPrimary,
+                          },
+                        ]}
                         placeholder="Your username"
                         placeholderTextColor="#94A3B8"
                         value={username}
@@ -422,11 +501,23 @@ export default function SignInScreen() {
                     </View>
 
                     <View>
-                      <Text className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-text-tertiary dark:text-text-tertiary-dark">
+                      <Text
+                        style={[
+                          styles.fieldLabel,
+                          styles.textCenter,
+                          { color: colors.textTertiary },
+                        ]}>
                         Court PIN
                       </Text>
                       <TextInput
-                        className="w-full rounded-xl border-2 border-border bg-bg-secondary px-5 py-4 text-center text-lg font-bold tracking-widest text-text-primary dark:border-border-dark dark:bg-bg-secondary-dark dark:text-text-primary-dark"
+                        style={[
+                          styles.inputCentered,
+                          {
+                            borderColor: colors.border,
+                            backgroundColor: colors.bgSecondary,
+                            color: colors.textPrimary,
+                          },
+                        ]}
                         placeholder="ABC123"
                         placeholderTextColor="#94A3B8"
                         value={pin}
@@ -445,20 +536,20 @@ export default function SignInScreen() {
                     </View>
 
                     {error && (
-                      <View className="rounded-xl border border-error/30 bg-error/10 p-4">
-                        <Text className="text-center text-sm text-error">{error}</Text>
+                      <View style={styles.errorBox}>
+                        <Text style={styles.errorText}>{error}</Text>
                       </View>
                     )}
 
                     <TouchableOpacity
-                      className="mt-2 w-full items-center rounded-xl bg-brand py-5 shadow-lg shadow-brand/30"
+                      style={[styles.submitButton, { backgroundColor: brandColor }]}
                       onPress={handleScorerSubmit}
                       disabled={loading}
                       activeOpacity={0.8}>
                       {loading ? (
                         <ActivityIndicator color="white" />
                       ) : (
-                        <Text className="text-base font-bold text-white">Start Scoring</Text>
+                        <Text style={styles.submitButtonText}>Start Scoring</Text>
                       )}
                     </TouchableOpacity>
                   </View>
@@ -467,8 +558,8 @@ export default function SignInScreen() {
             </View>
 
             {/* Footer */}
-            <View className="mt-6 items-center">
-              <Text className="text-center font-sans text-xs text-text-tertiary dark:text-text-tertiary-dark">
+            <View style={styles.footer}>
+              <Text style={[styles.footerText, { color: colors.textTertiary }]}>
                 {loginType === "regular"
                   ? "Scorer access only. Contact your tournament organizer for credentials."
                   : "Get your code, username, and PIN from the tournament organizer."}
@@ -493,3 +584,229 @@ export default function SignInScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  flex1: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+  },
+  logoContainer: {
+    marginBottom: 32,
+    alignItems: "center",
+  },
+  logo: {
+    marginBottom: 8,
+    height: 112,
+    width: 112,
+  },
+  welcomeTitle: {
+    marginBottom: 4,
+    fontSize: 24,
+  },
+  welcomeSubtitle: {
+    fontSize: 14,
+  },
+  toggleContainer: {
+    marginBottom: 24,
+    flexDirection: "row",
+    borderRadius: 9999,
+    borderWidth: 1,
+    padding: 4,
+  },
+  toggleButton: {
+    flex: 1,
+    borderRadius: 9999,
+    paddingVertical: 10,
+  },
+  toggleText: {
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  card: {
+    borderRadius: 16,
+    padding: 32,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 25,
+    elevation: 10,
+  },
+  cardTitle: {
+    marginBottom: 4,
+    textAlign: "center",
+    fontSize: 20,
+  },
+  cardSubtitle: {
+    marginBottom: 24,
+    textAlign: "center",
+    fontSize: 14,
+  },
+  scorerSubtitle: {
+    marginBottom: 16,
+    textAlign: "center",
+    fontSize: 14,
+  },
+  gap12: {
+    gap: 12,
+  },
+  gap16: {
+    gap: 16,
+  },
+  oauthButton: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    borderRadius: 12,
+    borderWidth: 2,
+    paddingVertical: 16,
+  },
+  oauthButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  dividerRow: {
+    marginVertical: 20,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  scorerDividerRow: {
+    marginBottom: 20,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  dividerLine: {
+    height: 1,
+    flex: 1,
+  },
+  dividerText: {
+    marginHorizontal: 12,
+    fontSize: 12,
+    textTransform: "uppercase",
+  },
+  fieldLabel: {
+    marginBottom: 8,
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  textCenter: {
+    textAlign: "center",
+  },
+  input: {
+    width: "100%",
+    borderRadius: 12,
+    borderWidth: 2,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    fontSize: 16,
+  },
+  inputCentered: {
+    width: "100%",
+    borderRadius: 12,
+    borderWidth: 2,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "bold",
+    letterSpacing: 4,
+  },
+  inputCenteredBase: {
+    width: "100%",
+    borderRadius: 12,
+    borderWidth: 2,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    textAlign: "center",
+    fontSize: 16,
+  },
+  tournamentInfoBox: {
+    marginTop: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 8,
+  },
+  tournamentInfoText: {
+    textAlign: "center",
+    fontSize: 14,
+  },
+  tournamentNotFoundBox: {
+    marginTop: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(208,37,60,0.3)",
+    backgroundColor: "rgba(208,37,60,0.1)",
+    padding: 8,
+  },
+  tournamentNotFoundText: {
+    textAlign: "center",
+    fontSize: 14,
+    color: Colors.semantic.error,
+  },
+  errorBox: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(208,37,60,0.3)",
+    backgroundColor: "rgba(208,37,60,0.1)",
+    padding: 16,
+  },
+  errorText: {
+    textAlign: "center",
+    fontSize: 14,
+    color: Colors.semantic.error,
+  },
+  submitButton: {
+    marginTop: 8,
+    width: "100%",
+    alignItems: "center",
+    borderRadius: 12,
+    paddingVertical: 20,
+    shadowColor: "#70AC15",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  submitButtonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  qrButton: {
+    marginBottom: 20,
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "rgba(112,172,21,0.3)",
+    backgroundColor: "rgba(112,172,21,0.1)",
+    paddingVertical: 16,
+  },
+  qrButtonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  footer: {
+    marginTop: 24,
+    alignItems: "center",
+  },
+  footerText: {
+    textAlign: "center",
+    fontSize: 12,
+  },
+});

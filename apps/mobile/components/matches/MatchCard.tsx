@@ -1,7 +1,9 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
-import { statusStyles } from "../../utils/styles";
-import { formatTimeShort, getScoreDisplayCompact } from "../../utils/format";
+import { statusStyles } from "@/utils/styles";
+import { formatTimeShort, getScoreDisplayCompact } from "@/utils/format";
+import { useThemeColors } from "@/hooks/use-theme-colors";
+import { Colors } from "@/constants/colors";
 
 type MatchStatus = "pending" | "scheduled" | "live" | "completed" | "bye";
 
@@ -31,69 +33,86 @@ type Props = {
 };
 
 export function MatchCard({ match, onPress }: Props) {
+  const colors = useThemeColors();
   const status = statusStyles[match.status as MatchStatus] || statusStyles.pending;
+
+  const isWinner1 = match.winnerId === match.participant1?._id;
+  const isWinner2 = match.winnerId === match.participant2?._id;
+  const showScore = match.status !== "pending" && match.status !== "bye";
 
   return (
     <TouchableOpacity
-      className="relative mb-3 overflow-hidden rounded-2xl border border-border bg-bg-card p-5 shadow-lg shadow-black/10 dark:border-border-dark dark:bg-bg-card-dark"
+      style={[styles.card, { borderColor: colors.border, backgroundColor: colors.bgCard }]}
       onPress={onPress}
       activeOpacity={0.7}
       disabled={match.status === "bye"}>
-      <View className="absolute left-5 right-5 top-3 h-px bg-brand/30" />
+      <View
+        style={[
+          styles.topAccent,
+          {
+            backgroundColor: colors.isDark ? colors.brand.dark : colors.brand.DEFAULT,
+            opacity: 0.3,
+          },
+        ]}
+      />
+
       {/* Match Header */}
-      <View className="mb-3 flex-row items-center justify-between">
-        <Text className="text-xs font-medium text-text-tertiary dark:text-text-tertiary-dark">
+      <View style={styles.header}>
+        <Text style={[styles.headerText, { color: colors.textTertiary }]}>
           Round {match.round} • Match {match.matchNumber}
           {match.court ? ` • ${match.court}` : ""}
         </Text>
-        <View className={`rounded-full border px-3 py-1 ${status.bg} ${status.border}`}>
-          <Text className={`text-[10px] font-semibold uppercase ${status.text}`}>
-            {match.status}
-          </Text>
+        <View
+          style={[styles.statusBadge, { backgroundColor: status.bg, borderColor: status.border }]}>
+          <Text style={[styles.statusText, { color: status.text }]}>{match.status}</Text>
         </View>
       </View>
 
       {/* Participants */}
       <View>
-        <View className="flex-row items-center justify-between py-1">
+        <View style={styles.participantRow}>
           <Text
-            className={`flex-1 text-base ${
-              match.winnerId === match.participant1?._id
-                ? "font-bold text-text-primary dark:text-text-primary-dark"
-                : "text-text-secondary dark:text-text-secondary-dark"
-            }`}
+            style={[
+              styles.participantName,
+              isWinner1
+                ? { fontWeight: "bold", color: colors.textPrimary }
+                : { color: colors.textSecondary },
+            ]}
             numberOfLines={1}>
             {match.participant1?.displayName || "TBD"}
           </Text>
-          {match.status !== "pending" && match.status !== "bye" && (
+          {showScore && (
             <Text
-              className={`ml-2 text-lg ${
-                match.winnerId === match.participant1?._id
-                  ? "font-bold text-text-primary dark:text-text-primary-dark"
-                  : "text-text-secondary dark:text-text-secondary-dark"
-              }`}>
+              style={[
+                styles.score,
+                isWinner1
+                  ? { fontWeight: "bold", color: colors.textPrimary }
+                  : { color: colors.textSecondary },
+              ]}>
               {match.participant1Score}
             </Text>
           )}
         </View>
-        <View className="my-1 h-px bg-border/60 dark:bg-border-dark/60" />
-        <View className="flex-row items-center justify-between py-1">
+        <View style={[styles.divider, { backgroundColor: colors.border, opacity: 0.6 }]} />
+        <View style={styles.participantRow}>
           <Text
-            className={`flex-1 text-base ${
-              match.winnerId === match.participant2?._id
-                ? "font-bold text-text-primary dark:text-text-primary-dark"
-                : "text-text-secondary dark:text-text-secondary-dark"
-            }`}
+            style={[
+              styles.participantName,
+              isWinner2
+                ? { fontWeight: "bold", color: colors.textPrimary }
+                : { color: colors.textSecondary },
+            ]}
             numberOfLines={1}>
             {match.participant2?.displayName || "TBD"}
           </Text>
-          {match.status !== "pending" && match.status !== "bye" && (
+          {showScore && (
             <Text
-              className={`ml-2 text-lg ${
-                match.winnerId === match.participant2?._id
-                  ? "font-bold text-text-primary dark:text-text-primary-dark"
-                  : "text-text-secondary dark:text-text-secondary-dark"
-              }`}>
+              style={[
+                styles.score,
+                isWinner2
+                  ? { fontWeight: "bold", color: colors.textPrimary }
+                  : { color: colors.textSecondary },
+              ]}>
               {match.participant2Score}
             </Text>
           )}
@@ -102,16 +121,16 @@ export function MatchCard({ match, onPress }: Props) {
 
       {/* Scheduled Time */}
       {match.scheduledTime && (
-        <Text className="mt-2 text-xs text-text-tertiary dark:text-text-tertiary-dark">
+        <Text style={[styles.scheduledTime, { color: colors.textTertiary }]}>
           {formatTimeShort(match.scheduledTime)}
         </Text>
       )}
 
       {/* Live indicator */}
       {match.status === "live" && (
-        <View className="mt-3 flex-row items-center rounded-lg bg-status-live-bg p-2">
-          <View className="mr-2 h-2 w-2 rounded-full bg-status-live-border" />
-          <Text className="text-sm font-medium text-status-live-text">
+        <View style={[styles.liveIndicator, { backgroundColor: Colors.status.live.bg }]}>
+          <View style={[styles.liveDot, { backgroundColor: Colors.status.live.border }]} />
+          <Text style={[styles.liveText, { color: Colors.status.live.text }]}>
             {getScoreDisplayCompact(match)}
           </Text>
         </View>
@@ -119,3 +138,81 @@ export function MatchCard({ match, onPress }: Props) {
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    position: "relative",
+    marginBottom: 12,
+    overflow: "hidden",
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 20,
+  },
+  topAccent: {
+    position: "absolute",
+    left: 20,
+    right: 20,
+    top: 12,
+    height: 1,
+  },
+  header: {
+    marginBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  headerText: {
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  statusBadge: {
+    borderRadius: 9999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: "600",
+    textTransform: "uppercase",
+  },
+  participantRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 4,
+  },
+  participantName: {
+    flex: 1,
+    fontSize: 16,
+  },
+  score: {
+    marginLeft: 8,
+    fontSize: 18,
+  },
+  divider: {
+    height: 1,
+    marginVertical: 4,
+  },
+  scheduledTime: {
+    marginTop: 8,
+    fontSize: 12,
+  },
+  liveIndicator: {
+    marginTop: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 8,
+    padding: 8,
+  },
+  liveDot: {
+    marginRight: 8,
+    height: 8,
+    width: 8,
+    borderRadius: 4,
+  },
+  liveText: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+});

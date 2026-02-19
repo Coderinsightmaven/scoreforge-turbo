@@ -39,7 +39,7 @@ export function CourtPinQRDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
       <div className="w-full max-w-sm rounded-2xl bg-bg-primary p-6 shadow-xl">
         <h3 className="mb-1 text-center text-lg font-bold text-foreground font-[family-name:var(--font-display)]">
           {courtName}

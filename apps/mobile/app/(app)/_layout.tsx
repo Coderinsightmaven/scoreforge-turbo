@@ -1,11 +1,11 @@
 import { Stack } from "expo-router";
-import { useColorScheme } from "nativewind";
+import { useColorScheme } from "react-native";
 
-import { NavSheetProvider } from "../../components/navigation/NavSheet";
-import { getStackBackground } from "../../utils/theme";
+import { NavSheetProvider } from "@/components/navigation/NavSheet";
+import { getStackBackground } from "@/utils/theme";
 
 export default function AppLayout() {
-  const { colorScheme } = useColorScheme();
+  const colorScheme = useColorScheme();
   const stackBackground = getStackBackground(colorScheme);
 
   return (
@@ -19,7 +19,6 @@ export default function AppLayout() {
         <Stack.Screen name="dashboard" />
         <Stack.Screen name="quick-bracket" />
         <Stack.Screen name="settings" />
-        <Stack.Screen name="profile" />
         <Stack.Screen name="admin" />
         <Stack.Screen name="tournament/[id]" />
         <Stack.Screen name="match/[id]" />

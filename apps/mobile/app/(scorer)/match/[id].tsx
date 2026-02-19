@@ -1,15 +1,25 @@
 import { useQuery } from "convex/react";
 import { api } from "@repo/convex";
-import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Id } from "@repo/convex/dataModel";
 
-import { useTempScorer } from "../../../contexts/TempScorerContext";
-import { statusStyles } from "../../../utils/styles";
-import { formatTime, getScoreDisplay } from "../../../utils/format";
+import { useTempScorer } from "@/contexts/TempScorerContext";
+import { statusStyles } from "@/utils/styles";
+import { formatTime, getScoreDisplay } from "@/utils/format";
+import { useThemeColors } from "@/hooks/use-theme-colors";
+import { Colors, Fonts } from "@/constants/colors";
 
 export default function ScorerMatchDetailScreen() {
+  const colors = useThemeColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { session } = useTempScorer();
@@ -32,21 +42,26 @@ export default function ScorerMatchDetailScreen() {
 
   if (match === undefined) {
     return (
-      <View className="flex-1 items-center justify-center bg-bg-page dark:bg-bg-page-dark">
-        <ActivityIndicator size="large" color="#70AC15" />
+      <View style={[styles.centered, { backgroundColor: colors.bgPage }]}>
+        <ActivityIndicator size="large" color={Colors.brand.DEFAULT} />
       </View>
     );
   }
 
   if (match === null) {
     return (
-      <SafeAreaView className="flex-1 bg-bg-page dark:bg-bg-page-dark">
-        <View className="flex-1 items-center justify-center px-6">
-          <Text className="font-display-semibold text-lg text-text-primary dark:text-text-primary-dark">
+      <SafeAreaView style={[styles.flex1, { backgroundColor: colors.bgPage }]}>
+        <View style={[styles.centered, { paddingHorizontal: 24 }]}>
+          <Text
+            style={{
+              fontFamily: Fonts.displaySemibold,
+              fontSize: 18,
+              color: colors.textPrimary,
+            }}>
             Match not found
           </Text>
-          <TouchableOpacity className="mt-4" onPress={() => router.back()}>
-            <Text className="text-brand">Go back</Text>
+          <TouchableOpacity style={{ marginTop: 16 }} onPress={() => router.back()}>
+            <Text style={{ color: Colors.brand.DEFAULT }}>Go back</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -74,96 +89,138 @@ export default function ScorerMatchDetailScreen() {
   const status = statusStyles[match.status] || statusStyles.pending;
 
   return (
-    <SafeAreaView className="flex-1 bg-bg-page dark:bg-bg-page-dark">
+    <SafeAreaView style={[styles.flex1, { backgroundColor: colors.bgPage }]}>
       {/* Header */}
-      <View className="flex-row items-center bg-bg-card px-5 py-3 shadow-sm shadow-black/5 dark:bg-bg-card-dark">
+      <View style={[styles.detailHeader, { backgroundColor: colors.bgCard }]}>
         <TouchableOpacity
           onPress={() => router.back()}
-          className="mr-3 h-10 w-10 items-center justify-center rounded-lg bg-bg-secondary dark:bg-bg-secondary-dark">
-          <Text className="text-xl text-text-primary">←</Text>
+          style={[styles.backButton, { backgroundColor: colors.bgSecondary }]}>
+          <Text style={{ fontSize: 20, color: colors.textPrimary }}>←</Text>
         </TouchableOpacity>
-        <View className="flex-1">
-          <Text className="font-display-semibold text-lg text-text-primary dark:text-text-primary-dark">
+        <View style={styles.flex1}>
+          <Text
+            style={{
+              fontFamily: Fonts.displaySemibold,
+              fontSize: 18,
+              color: colors.textPrimary,
+            }}>
             Match Details
           </Text>
-          <Text className="text-sm text-text-tertiary dark:text-text-tertiary-dark">
+          <Text style={{ fontSize: 14, color: colors.textTertiary }}>
             Round {match.round} • Match {match.matchNumber}
           </Text>
         </View>
-        <View className={`rounded-lg border px-3 py-1.5 ${status.bg} ${status.border}`}>
-          <Text className={`text-sm font-medium capitalize ${status.text}`}>{match.status}</Text>
+        <View
+          style={[
+            styles.headerStatusBadge,
+            { backgroundColor: status.bg, borderColor: status.border },
+          ]}>
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: "500",
+              textTransform: "capitalize",
+              color: status.text,
+            }}>
+            {match.status}
+          </Text>
         </View>
       </View>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+      <ScrollView style={styles.flex1} contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
         {/* Score Card */}
-        <View className="mb-4 rounded-2xl bg-bg-card p-8 shadow-2xl shadow-black/10 dark:bg-bg-card-dark">
-          <View className="mb-4 items-center">
-            <Text className="text-xs font-semibold uppercase tracking-wide text-text-tertiary dark:text-text-tertiary-dark">
+        <View style={[styles.scoreCard, { backgroundColor: colors.bgCard }]}>
+          <View style={styles.scoreCardHeader}>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: "600",
+                textTransform: "uppercase",
+                letterSpacing: 1,
+                color: colors.textTertiary,
+              }}>
               Current Score
             </Text>
           </View>
 
           {/* Participant 1 */}
-          <View className="mb-4 flex-row items-center justify-between">
-            <View className="flex-1">
+          <View style={styles.participantScoreRow}>
+            <View style={styles.flex1}>
               <Text
-                className={`text-xl ${
-                  match.winnerId === match.participant1?._id
-                    ? "font-bold text-text-primary dark:text-text-primary-dark"
-                    : "text-text-secondary dark:text-text-secondary-dark"
-                }`}>
+                style={{
+                  fontSize: 20,
+                  fontWeight: match.winnerId === match.participant1?._id ? "700" : "400",
+                  color:
+                    match.winnerId === match.participant1?._id
+                      ? colors.textPrimary
+                      : colors.textSecondary,
+                }}>
                 {match.participant1?.displayName || "TBD"}
               </Text>
               {match.participant1?.seed && (
-                <Text className="text-sm text-text-tertiary dark:text-text-tertiary-dark">
+                <Text style={{ fontSize: 14, color: colors.textTertiary }}>
                   Seed #{match.participant1.seed}
                 </Text>
               )}
             </View>
             <Text
-              className={`font-display-bold text-5xl ${
-                match.winnerId === match.participant1?._id
-                  ? "text-brand"
-                  : "text-text-muted dark:text-text-muted-dark"
-              }`}>
+              style={{
+                fontFamily: Fonts.displayBold,
+                fontSize: 48,
+                color:
+                  match.winnerId === match.participant1?._id
+                    ? Colors.brand.DEFAULT
+                    : colors.textMuted,
+              }}>
               {match.participant1Score}
             </Text>
           </View>
 
-          <View className="my-3 h-0.5 bg-border/60 dark:bg-border-dark/60" />
+          <View style={[styles.scoreDivider, { backgroundColor: colors.border }]} />
 
           {/* Participant 2 */}
-          <View className="mt-4 flex-row items-center justify-between">
-            <View className="flex-1">
+          <View style={[styles.participantScoreRow, { marginTop: 16 }]}>
+            <View style={styles.flex1}>
               <Text
-                className={`text-xl ${
-                  match.winnerId === match.participant2?._id
-                    ? "font-bold text-text-primary dark:text-text-primary-dark"
-                    : "text-text-secondary dark:text-text-secondary-dark"
-                }`}>
+                style={{
+                  fontSize: 20,
+                  fontWeight: match.winnerId === match.participant2?._id ? "700" : "400",
+                  color:
+                    match.winnerId === match.participant2?._id
+                      ? colors.textPrimary
+                      : colors.textSecondary,
+                }}>
                 {match.participant2?.displayName || "TBD"}
               </Text>
               {match.participant2?.seed && (
-                <Text className="text-sm text-text-tertiary dark:text-text-tertiary-dark">
+                <Text style={{ fontSize: 14, color: colors.textTertiary }}>
                   Seed #{match.participant2.seed}
                 </Text>
               )}
             </View>
             <Text
-              className={`font-display-bold text-5xl ${
-                match.winnerId === match.participant2?._id
-                  ? "text-brand"
-                  : "text-text-muted dark:text-text-muted-dark"
-              }`}>
+              style={{
+                fontFamily: Fonts.displayBold,
+                fontSize: 48,
+                color:
+                  match.winnerId === match.participant2?._id
+                    ? Colors.brand.DEFAULT
+                    : colors.textMuted,
+              }}>
               {match.participant2Score}
             </Text>
           </View>
 
           {/* Detailed Score */}
           {match.tennisState && (
-            <View className="mt-4 rounded-xl bg-bg-secondary p-3 dark:bg-bg-secondary-dark">
-              <Text className="text-center text-sm font-medium text-text-secondary dark:text-text-secondary-dark">
+            <View style={[styles.detailedScore, { backgroundColor: colors.bgSecondary }]}>
+              <Text
+                style={{
+                  textAlign: "center",
+                  fontSize: 14,
+                  fontWeight: "500",
+                  color: colors.textSecondary,
+                }}>
                 {getScoreDisplay(match)}
               </Text>
             </View>
@@ -171,86 +228,109 @@ export default function ScorerMatchDetailScreen() {
         </View>
 
         {/* Match Info */}
-        <View className="mb-4 rounded-2xl border border-border bg-bg-card p-6 shadow-lg shadow-black/5 dark:border-border-dark dark:bg-bg-card-dark">
-          <Text className="mb-3 font-display-semibold text-sm uppercase text-text-tertiary dark:text-text-tertiary-dark">
+        <View
+          style={[
+            styles.infoCard,
+            {
+              borderColor: colors.border,
+              backgroundColor: colors.bgCard,
+            },
+          ]}>
+          <Text
+            style={{
+              marginBottom: 12,
+              fontFamily: Fonts.displaySemibold,
+              fontSize: 14,
+              textTransform: "uppercase",
+              color: colors.textTertiary,
+            }}>
             Match Info
           </Text>
 
           {match.court && (
-            <View className="mb-2 flex-row justify-between">
-              <Text className="text-text-secondary dark:text-text-secondary-dark">Court</Text>
-              <Text className="font-medium text-text-primary dark:text-text-primary-dark">
-                {match.court}
-              </Text>
+            <View style={styles.infoRow}>
+              <Text style={{ color: colors.textSecondary }}>Court</Text>
+              <Text style={{ fontWeight: "500", color: colors.textPrimary }}>{match.court}</Text>
             </View>
           )}
 
           {match.scheduledTime && (
-            <View className="mb-2 flex-row justify-between">
-              <Text className="text-text-secondary dark:text-text-secondary-dark">Scheduled</Text>
-              <Text className="font-medium text-text-primary dark:text-text-primary-dark">
+            <View style={styles.infoRow}>
+              <Text style={{ color: colors.textSecondary }}>Scheduled</Text>
+              <Text style={{ fontWeight: "500", color: colors.textPrimary }}>
                 {formatTime(match.scheduledTime)}
               </Text>
             </View>
           )}
 
           {match.startedAt && (
-            <View className="mb-2 flex-row justify-between">
-              <Text className="text-text-secondary dark:text-text-secondary-dark">Started</Text>
-              <Text className="font-medium text-text-primary dark:text-text-primary-dark">
+            <View style={styles.infoRow}>
+              <Text style={{ color: colors.textSecondary }}>Started</Text>
+              <Text style={{ fontWeight: "500", color: colors.textPrimary }}>
                 {formatTime(match.startedAt)}
               </Text>
             </View>
           )}
 
           {match.completedAt && (
-            <View className="flex-row justify-between">
-              <Text className="text-text-secondary dark:text-text-secondary-dark">Completed</Text>
-              <Text className="font-medium text-text-primary dark:text-text-primary-dark">
+            <View style={styles.infoRowLast}>
+              <Text style={{ color: colors.textSecondary }}>Completed</Text>
+              <Text style={{ fontWeight: "500", color: colors.textPrimary }}>
                 {formatTime(match.completedAt)}
               </Text>
             </View>
           )}
 
-          <View className="mt-2 flex-row justify-between">
-            <Text className="text-text-secondary dark:text-text-secondary-dark">Your Role</Text>
-            <Text className="font-medium capitalize text-brand">{match.myRole}</Text>
+          <View style={[styles.infoRowLast, { marginTop: 8 }]}>
+            <Text style={{ color: colors.textSecondary }}>Your Role</Text>
+            <Text
+              style={{
+                fontWeight: "500",
+                textTransform: "capitalize",
+                color: Colors.brand.DEFAULT,
+              }}>
+              {match.myRole}
+            </Text>
           </View>
         </View>
 
         {/* Score Button */}
         {canScore && (
           <TouchableOpacity
-            className={`rounded-2xl py-5 shadow-2xl ${
-              startDisabledDueToCourtConflict
-                ? "bg-brand/50 shadow-brand/10"
-                : "bg-brand shadow-brand/30"
-            }`}
+            style={[
+              styles.scoreButton,
+              {
+                backgroundColor: startDisabledDueToCourtConflict
+                  ? "rgba(112,172,21,0.5)"
+                  : Colors.brand.DEFAULT,
+                shadowColor: startDisabledDueToCourtConflict
+                  ? "rgba(112,172,21,0.1)"
+                  : "rgba(112,172,21,0.3)",
+              },
+            ]}
             onPress={() => router.push(`/(scorer)/scoring/${matchId}`)}
             disabled={startDisabledDueToCourtConflict}
             activeOpacity={0.8}>
-            <Text className="text-center text-lg font-bold text-white">
+            <Text style={styles.scoreButtonText}>
               {match.status === "live" ? "Continue Scoring" : "Start Scoring"}
             </Text>
           </TouchableOpacity>
         )}
         {startDisabledDueToCourtConflict && (
-          <View className="mt-3 rounded-2xl border border-brand/30 bg-brand-light px-4 py-3">
-            <Text className="text-center text-sm text-brand-text">{startDisabledReason}</Text>
+          <View style={styles.courtConflictBanner}>
+            <Text style={styles.courtConflictText}>{startDisabledReason}</Text>
           </View>
         )}
 
         {match.status === "completed" && (
-          <View className="rounded-2xl border border-status-active-border/30 bg-status-active-bg py-5">
-            <Text className="text-center text-lg font-semibold text-status-active-text">
-              Match Completed
-            </Text>
+          <View style={styles.completedBanner}>
+            <Text style={styles.completedText}>Match Completed</Text>
           </View>
         )}
 
         {match.tournamentStatus !== "active" && (
-          <View className="rounded-2xl bg-bg-secondary py-5 dark:bg-bg-secondary-dark">
-            <Text className="text-center text-sm text-text-tertiary dark:text-text-tertiary-dark">
+          <View style={[styles.inactiveBanner, { backgroundColor: colors.bgSecondary }]}>
+            <Text style={{ textAlign: "center", fontSize: 14, color: colors.textTertiary }}>
               Tournament is not active. Scoring is disabled.
             </Text>
           </View>
@@ -259,3 +339,133 @@ export default function ScorerMatchDetailScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  flex1: {
+    flex: 1,
+  },
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  detailHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  backButton: {
+    marginRight: 12,
+    height: 40,
+    width: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
+  },
+  headerStatusBadge: {
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  scoreCard: {
+    marginBottom: 16,
+    borderRadius: 16,
+    padding: 32,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 5,
+  },
+  scoreCardHeader: {
+    marginBottom: 16,
+    alignItems: "center",
+  },
+  participantScoreRow: {
+    marginBottom: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  scoreDivider: {
+    marginVertical: 12,
+    height: 2,
+    opacity: 0.6,
+  },
+  detailedScore: {
+    marginTop: 16,
+    borderRadius: 12,
+    padding: 12,
+  },
+  infoCard: {
+    marginBottom: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  infoRow: {
+    marginBottom: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  infoRowLast: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  scoreButton: {
+    borderRadius: 16,
+    paddingVertical: 20,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 16,
+    elevation: 5,
+  },
+  scoreButtonText: {
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  courtConflictBanner: {
+    marginTop: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(112,172,21,0.3)",
+    backgroundColor: Colors.brand.light,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  courtConflictText: {
+    textAlign: "center",
+    fontSize: 14,
+    color: Colors.brand.text,
+  },
+  completedBanner: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(39,165,94,0.3)",
+    backgroundColor: Colors.status.active.bg,
+    paddingVertical: 20,
+  },
+  completedText: {
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "600",
+    color: Colors.status.active.text,
+  },
+  inactiveBanner: {
+    borderRadius: 16,
+    paddingVertical: 20,
+  },
+});

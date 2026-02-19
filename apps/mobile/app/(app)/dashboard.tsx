@@ -7,19 +7,23 @@ import {
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
+  StyleSheet,
 } from "react-native";
 import { useMemo, useState } from "react";
 import { useRouter } from "expo-router";
 
-import { TournamentCard } from "../../components/tournaments/TournamentCard";
-import { OfflineBanner } from "../../components/OfflineBanner";
-import { AppHeader } from "../../components/navigation/AppHeader";
+import { TournamentCard } from "@/components/tournaments/TournamentCard";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import { AppHeader } from "@/components/navigation/AppHeader";
+import { useThemeColors } from "@/hooks/use-theme-colors";
+import { Colors, Fonts } from "@/constants/colors";
 
 export default function DashboardScreen() {
   const user = useQuery(api.users.currentUser);
   const tournaments = useQuery(api.tournaments.listMyTournaments, {});
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
+  const colors = useThemeColors();
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -36,22 +40,24 @@ export default function DashboardScreen() {
   );
   const firstName = user?.name?.split(" ")[0] || "there";
 
+  const brandColor = colors.isDark ? colors.brand.dark : colors.brand.DEFAULT;
+
   if (tournaments === undefined || user === undefined) {
     return (
-      <View className="flex-1 items-center justify-center bg-bg-page dark:bg-bg-page-dark">
+      <View style={[styles.loadingContainer, { backgroundColor: colors.bgPage }]}>
         <ActivityIndicator size="large" color="#70AC15" />
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-bg-page dark:bg-bg-page-dark">
+    <View style={[styles.root, { backgroundColor: colors.bgPage }]}>
       <AppHeader title="ScoreForge" subtitle="ScoreCommand Overview" />
       <OfflineBanner />
       <FlatList
         data={tournamentList}
         keyExtractor={(item) => item._id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+        contentContainerStyle={styles.listContent}
         removeClippedSubviews={true}
         maxToRenderPerBatch={10}
         windowSize={5}
@@ -59,16 +65,24 @@ export default function DashboardScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#70AC15" />
         }
         ListHeaderComponent={
-          <View className="mb-6 gap-4">
-            <View className="relative overflow-hidden rounded-3xl border border-border bg-bg-card p-6 shadow-lg shadow-black/10 dark:border-border-dark dark:bg-bg-card-dark">
-              <View className="absolute inset-x-0 top-0 h-1 bg-brand/70" />
-              <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted dark:text-text-muted-dark">
+          <View style={styles.headerSection}>
+            <View
+              style={[
+                styles.overviewCard,
+                { borderColor: colors.border, backgroundColor: colors.bgCard },
+              ]}>
+              <View style={[styles.topAccent, { backgroundColor: `${brandColor}B3` }]} />
+              <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>
                 ScoreCommand Overview
               </Text>
-              <Text className="mt-2 font-display-bold text-3xl text-text-primary dark:text-text-primary-dark">
+              <Text
+                style={[
+                  styles.welcomeText,
+                  { color: colors.textPrimary, fontFamily: Fonts.displayBold },
+                ]}>
                 Welcome back, {firstName}
               </Text>
-              <Text className="mt-2 text-sm text-text-secondary dark:text-text-secondary-dark">
+              <Text style={[styles.descriptionText, { color: colors.textSecondary }]}>
                 {tournamentList.length === 0
                   ? "No active tournaments right now."
                   : `You are tracking ${tournamentList.length} active tournament${
@@ -76,8 +90,8 @@ export default function DashboardScreen() {
                     } right now.`}
               </Text>
               {liveMatchCount > 0 && (
-                <View className="mt-4 self-start rounded-full border border-brand/40 bg-brand/10 px-3 py-1.5">
-                  <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand">
+                <View style={styles.liveBadge}>
+                  <Text style={[styles.liveBadgeText, { color: brandColor }]}>
                     {liveMatchCount} live match{liveMatchCount === 1 ? "" : "es"}
                   </Text>
                 </View>
@@ -86,19 +100,30 @@ export default function DashboardScreen() {
           </View>
         }
         ListEmptyComponent={
-          <View className="rounded-3xl border border-border bg-bg-card p-6 text-center shadow-sm shadow-black/5 dark:border-border-dark dark:bg-bg-card-dark">
-            <Text className="mb-2 text-center font-display-semibold text-2xl text-text-primary dark:text-text-primary-dark">
+          <View
+            style={[
+              styles.emptyCard,
+              { borderColor: colors.border, backgroundColor: colors.bgCard },
+            ]}>
+            <Text
+              style={[
+                styles.emptyTitle,
+                { color: colors.textPrimary, fontFamily: Fonts.displaySemibold },
+              ]}>
               No tournaments yet
             </Text>
-            <Text className="text-center text-sm text-text-secondary dark:text-text-secondary-dark">
+            <Text style={[styles.emptyDescription, { color: colors.textSecondary }]}>
               Ask a tournament organizer to add you as a scorer, or create your first tournament on
               the web app.
             </Text>
             <TouchableOpacity
-              className="mt-5 items-center rounded-2xl border border-border bg-bg-secondary px-4 py-3 dark:border-border-dark dark:bg-bg-secondary-dark"
+              style={[
+                styles.settingsButton,
+                { borderColor: colors.border, backgroundColor: colors.bgSecondary },
+              ]}
               onPress={() => router.push("/(app)/settings")}
               activeOpacity={0.7}>
-              <Text className="text-sm font-semibold uppercase tracking-[0.16em] text-text-primary dark:text-text-primary-dark">
+              <Text style={[styles.settingsButtonText, { color: colors.textPrimary }]}>
                 Open Settings
               </Text>
             </TouchableOpacity>
@@ -114,3 +139,104 @@ export default function DashboardScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  listContent: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  headerSection: {
+    marginBottom: 24,
+    gap: 16,
+  },
+  overviewCard: {
+    position: "relative",
+    overflow: "hidden",
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  topAccent: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 4,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.18 * 12,
+  },
+  welcomeText: {
+    marginTop: 8,
+    fontSize: 30,
+  },
+  descriptionText: {
+    marginTop: 8,
+    fontSize: 14,
+  },
+  liveBadge: {
+    marginTop: 16,
+    alignSelf: "flex-start",
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: "rgba(112,172,21,0.4)",
+    backgroundColor: "rgba(112,172,21,0.1)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  liveBadgeText: {
+    fontSize: 11,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.18 * 11,
+  },
+  emptyCard: {
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  emptyTitle: {
+    marginBottom: 8,
+    textAlign: "center",
+    fontSize: 24,
+  },
+  emptyDescription: {
+    textAlign: "center",
+    fontSize: 14,
+  },
+  settingsButton: {
+    marginTop: 20,
+    alignItems: "center",
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  settingsButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.16 * 14,
+  },
+});

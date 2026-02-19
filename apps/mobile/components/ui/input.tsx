@@ -1,29 +1,32 @@
 import * as React from "react";
-import { TextInput, type TextInputProps } from "react-native";
-import { useColorScheme } from "nativewind";
-
-import { cn } from "../../utils/cn";
-import { getPlaceholderColor } from "../../utils/theme";
+import { TextInput, StyleSheet, type TextInputProps, type ViewStyle } from "react-native";
+import { useThemeColors } from "@/hooks/use-theme-colors";
+import { Fonts } from "@/constants/colors";
 
 export type InputProps = TextInputProps & {
-  className?: string;
+  style?: ViewStyle;
 };
 
 export const Input = React.forwardRef<TextInput, InputProps>(
-  ({ className, placeholderTextColor, editable = true, ...props }, ref) => {
-    const { colorScheme } = useColorScheme();
-    const resolvedPlaceholder = placeholderTextColor ?? getPlaceholderColor(colorScheme);
+  ({ style, placeholderTextColor, editable = true, ...props }, ref) => {
+    const colors = useThemeColors();
+    const resolvedPlaceholder = placeholderTextColor ?? colors.textLight;
 
     return (
       <TextInput
         ref={ref}
         editable={editable}
         placeholderTextColor={resolvedPlaceholder}
-        className={cn(
-          "h-12 rounded-xl border border-border/80 bg-bg-secondary px-4 text-base text-text-primary dark:border-border-dark/80 dark:bg-bg-secondary-dark dark:text-text-primary-dark",
-          !editable && "opacity-60",
-          className
-        )}
+        style={[
+          styles.input,
+          {
+            borderColor: colors.border,
+            backgroundColor: colors.bgSecondary,
+            color: colors.textPrimary,
+          },
+          !editable && styles.disabled,
+          style,
+        ]}
         {...props}
       />
     );
@@ -31,3 +34,17 @@ export const Input = React.forwardRef<TextInput, InputProps>(
 );
 
 Input.displayName = "Input";
+
+const styles = StyleSheet.create({
+  input: {
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    fontFamily: Fonts.sans,
+  },
+  disabled: {
+    opacity: 0.6,
+  },
+});

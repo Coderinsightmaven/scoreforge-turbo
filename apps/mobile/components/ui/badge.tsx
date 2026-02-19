@@ -1,7 +1,13 @@
 import * as React from "react";
-import { Text, View, type ViewProps } from "react-native";
-
-import { cn } from "../../utils/cn";
+import {
+  Text,
+  View,
+  StyleSheet,
+  type ViewProps,
+  type ViewStyle,
+  type TextStyle,
+} from "react-native";
+import { useThemeColors } from "@/hooks/use-theme-colors";
 
 type BadgeVariant =
   | "default"
@@ -13,56 +19,86 @@ type BadgeVariant =
   | "live"
   | "gold";
 
-const badgeVariants: Record<BadgeVariant, string> = {
-  default:
-    "border-border/60 bg-bg-secondary text-text-muted dark:border-border-dark/60 dark:bg-bg-secondary-dark dark:text-text-muted-dark",
-  brand:
-    "border-brand/40 bg-brand/10 text-brand dark:border-brand-dark/40 dark:bg-brand-dark/15 dark:text-brand-dark",
-  success:
-    "border-success/40 bg-success/10 text-success dark:border-success-dark/40 dark:bg-success-dark/15 dark:text-success-dark",
-  warning:
-    "border-warning/40 bg-warning/10 text-warning dark:border-warning-dark/40 dark:bg-warning-dark/15 dark:text-warning-dark",
-  destructive:
-    "border-error/40 bg-error/10 text-error dark:border-error-dark/40 dark:bg-error-dark/15 dark:text-error-dark",
-  info: "border-info/40 bg-info/10 text-info dark:border-info-dark/40 dark:bg-info-dark/15 dark:text-info-dark",
-  live: "border-live/40 bg-live/10 text-live dark:border-live-dark/40 dark:bg-live-dark/15 dark:text-live-dark",
-  gold: "border-gold/40 bg-gold/10 text-gold dark:border-gold-dark/40 dark:bg-gold-dark/15 dark:text-gold-dark",
-};
-
 export type BadgeProps = ViewProps & {
   variant?: BadgeVariant;
-  className?: string;
-  textClassName?: string;
+  style?: ViewStyle;
+  textStyle?: TextStyle;
   children: React.ReactNode;
 };
 
-export function Badge({
-  variant = "default",
-  className,
-  textClassName,
-  children,
-  ...props
-}: BadgeProps) {
-  const badgeTextClassName = cn(
-    "text-[11px] font-semibold uppercase tracking-[0.18em]",
-    textClassName
-  );
+export function Badge({ variant = "default", style, textStyle, children, ...props }: BadgeProps) {
+  const colors = useThemeColors();
+
+  const variantColors: Record<BadgeVariant, { bg: string; text: string; border: string }> = {
+    default: { bg: colors.bgSecondary, text: colors.textMuted, border: colors.border },
+    brand: {
+      bg: colors.isDark ? "rgba(173,255,51,0.15)" : "rgba(112,172,21,0.1)",
+      text: colors.isDark ? colors.brand.dark : colors.brand.DEFAULT,
+      border: colors.isDark ? "rgba(173,255,51,0.4)" : "rgba(112,172,21,0.4)",
+    },
+    success: {
+      bg: colors.isDark ? "rgba(46,209,117,0.15)" : "rgba(39,165,94,0.1)",
+      text: colors.isDark ? colors.semantic.successDark : colors.semantic.success,
+      border: colors.isDark ? "rgba(46,209,117,0.4)" : "rgba(39,165,94,0.4)",
+    },
+    warning: {
+      bg: colors.isDark ? "rgba(244,163,42,0.15)" : "rgba(223,138,12,0.1)",
+      text: colors.isDark ? colors.semantic.warningDark : colors.semantic.warning,
+      border: colors.isDark ? "rgba(244,163,42,0.4)" : "rgba(223,138,12,0.4)",
+    },
+    destructive: {
+      bg: colors.isDark ? "rgba(235,71,93,0.15)" : "rgba(208,37,60,0.1)",
+      text: colors.isDark ? colors.semantic.errorDark : colors.semantic.error,
+      border: colors.isDark ? "rgba(235,71,93,0.4)" : "rgba(208,37,60,0.4)",
+    },
+    info: {
+      bg: colors.isDark ? "rgba(43,140,238,0.15)" : "rgba(24,107,191,0.1)",
+      text: colors.isDark ? colors.semantic.infoDark : colors.semantic.info,
+      border: colors.isDark ? "rgba(43,140,238,0.4)" : "rgba(24,107,191,0.4)",
+    },
+    live: {
+      bg: colors.isDark ? "rgba(238,56,43,0.15)" : "rgba(238,56,43,0.1)",
+      text: colors.semantic.live,
+      border: "rgba(238,56,43,0.4)",
+    },
+    gold: {
+      bg: colors.isDark ? "rgba(238,189,43,0.15)" : "rgba(207,161,23,0.1)",
+      text: colors.isDark ? colors.semantic.goldDark : colors.semantic.gold,
+      border: colors.isDark ? "rgba(238,189,43,0.4)" : "rgba(207,161,23,0.4)",
+    },
+  };
+
+  const vc = variantColors[variant];
+
   const content = React.Children.map(children, (child) => {
     if (typeof child === "string" || typeof child === "number") {
-      return <Text className={badgeTextClassName}>{child}</Text>;
+      return <Text style={[styles.text, { color: vc.text }, textStyle]}>{child}</Text>;
     }
     return child;
   });
 
   return (
     <View
-      className={cn(
-        "flex-row items-center rounded-full border px-3 py-1",
-        badgeVariants[variant],
-        className
-      )}
+      style={[styles.container, { backgroundColor: vc.bg, borderColor: vc.border }, style]}
       {...props}>
       {content}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 9999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  text: {
+    fontSize: 11,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.18 * 11,
+  },
+});

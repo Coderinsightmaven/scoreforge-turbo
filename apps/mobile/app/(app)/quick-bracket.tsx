@@ -1,15 +1,25 @@
 import { useMemo, useState } from "react";
-import { Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+} from "react-native";
 
-import { AppHeader } from "../../components/navigation/AppHeader";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
+import { AppHeader } from "@/components/navigation/AppHeader";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   generateBlankBracketStructure,
   updateParticipantName,
   type BlankMatch,
   type BlankParticipant,
-} from "../../utils/bracketUtils";
+} from "@/utils/bracketUtils";
+import { useThemeColors } from "@/hooks/use-theme-colors";
+import { Colors } from "@/constants/colors";
 
 type BracketFormat = "single_elimination" | "double_elimination";
 
@@ -27,6 +37,9 @@ export default function QuickBracketScreen() {
   const [title, setTitle] = useState("Tournament Bracket");
   const [editingParticipant, setEditingParticipant] = useState<BlankParticipant | null>(null);
   const [editValue, setEditValue] = useState("");
+  const colors = useThemeColors();
+
+  const brandColor = colors.isDark ? colors.brand.dark : colors.brand.DEFAULT;
 
   const rounds = useMemo(() => {
     if (!matches) return null;
@@ -74,48 +87,56 @@ export default function QuickBracketScreen() {
   };
 
   return (
-    <View className="flex-1 bg-bg-page dark:bg-bg-page-dark">
+    <View style={[styles.root, { backgroundColor: colors.bgPage }]}>
       <AppHeader title="Quick Bracket" subtitle="Instant bracket builder" />
-      <ScrollView className="flex-1 px-4" contentContainerStyle={{ paddingBottom: 32 }}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {!matches ? (
-          <View className="mt-4 rounded-3xl border border-border bg-bg-card p-6 shadow-sm shadow-black/5 dark:border-border-dark dark:bg-bg-card-dark">
-            <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted dark:text-text-muted-dark">
+          <View
+            style={[
+              styles.configCard,
+              { borderColor: colors.border, backgroundColor: colors.bgCard },
+            ]}>
+            <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>
               Configure bracket
             </Text>
-            <Text className="mt-2 text-sm text-text-secondary dark:text-text-secondary-dark">
+            <Text style={[styles.description, { color: colors.textSecondary }]}>
               Create a printable bracket without saving data.
             </Text>
 
-            <View className="mt-5 gap-4">
+            <View style={styles.configFields}>
               <View>
-                <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted dark:text-text-muted-dark">
+                <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>
                   Bracket title
                 </Text>
-                <Input value={title} onChangeText={setTitle} className="mt-2" />
+                <Input value={title} onChangeText={setTitle} style={styles.inputSpacing} />
               </View>
 
               <View>
-                <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted dark:text-text-muted-dark">
-                  Bracket size
-                </Text>
-                <View className="mt-2 flex-row flex-wrap gap-2">
+                <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Bracket size</Text>
+                <View style={styles.optionsRow}>
                   {sizeOptions.map((option) => {
                     const isSelected = option === size;
                     return (
                       <TouchableOpacity
                         key={option}
                         onPress={() => setSize(option)}
-                        className={`rounded-full border px-4 py-2 ${
+                        style={[
+                          styles.optionPill,
                           isSelected
-                            ? "border-brand/40 bg-brand/10"
-                            : "border-border bg-bg-secondary dark:border-border-dark dark:bg-bg-secondary-dark"
-                        }`}>
+                            ? {
+                                borderColor: "rgba(112,172,21,0.4)",
+                                backgroundColor: "rgba(112,172,21,0.1)",
+                              }
+                            : {
+                                borderColor: colors.border,
+                                backgroundColor: colors.bgSecondary,
+                              },
+                        ]}>
                         <Text
-                          className={`text-xs font-semibold uppercase tracking-[0.18em] ${
-                            isSelected
-                              ? "text-brand"
-                              : "text-text-secondary dark:text-text-secondary-dark"
-                          }`}>
+                          style={[
+                            styles.optionText,
+                            { color: isSelected ? brandColor : colors.textSecondary },
+                          ]}>
                           {option}
                         </Text>
                       </TouchableOpacity>
@@ -125,27 +146,31 @@ export default function QuickBracketScreen() {
               </View>
 
               <View>
-                <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted dark:text-text-muted-dark">
-                  Format
-                </Text>
-                <View className="mt-2 flex-row flex-wrap gap-2">
+                <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Format</Text>
+                <View style={styles.optionsRow}>
                   {(Object.keys(formatLabels) as BracketFormat[]).map((option) => {
                     const isSelected = option === format;
                     return (
                       <TouchableOpacity
                         key={option}
                         onPress={() => setFormat(option)}
-                        className={`rounded-full border px-4 py-2 ${
+                        style={[
+                          styles.optionPill,
                           isSelected
-                            ? "border-brand/40 bg-brand/10"
-                            : "border-border bg-bg-secondary dark:border-border-dark dark:bg-bg-secondary-dark"
-                        }`}>
+                            ? {
+                                borderColor: "rgba(112,172,21,0.4)",
+                                backgroundColor: "rgba(112,172,21,0.1)",
+                              }
+                            : {
+                                borderColor: colors.border,
+                                backgroundColor: colors.bgSecondary,
+                              },
+                        ]}>
                         <Text
-                          className={`text-xs font-semibold uppercase tracking-[0.16em] ${
-                            isSelected
-                              ? "text-brand"
-                              : "text-text-secondary dark:text-text-secondary-dark"
-                          }`}>
+                          style={[
+                            styles.formatOptionText,
+                            { color: isSelected ? brandColor : colors.textSecondary },
+                          ]}>
                           {formatLabels[option]}
                         </Text>
                       </TouchableOpacity>
@@ -160,20 +185,22 @@ export default function QuickBracketScreen() {
             </View>
           </View>
         ) : (
-          <View className="mt-4 gap-4">
-            <View className="rounded-3xl border border-border bg-bg-card p-6 shadow-sm shadow-black/5 dark:border-border-dark dark:bg-bg-card-dark">
-              <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted dark:text-text-muted-dark">
-                Bracket title
-              </Text>
-              <Input value={title} onChangeText={setTitle} className="mt-2" />
-              <View className="mt-4 flex-row gap-3">
+          <View style={styles.bracketContainer}>
+            <View
+              style={[
+                styles.bracketCard,
+                { borderColor: colors.border, backgroundColor: colors.bgCard },
+              ]}>
+              <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Bracket title</Text>
+              <Input value={title} onChangeText={setTitle} style={styles.inputSpacing} />
+              <View style={styles.startOverRow}>
                 <Button variant="outline" onPress={() => setMatches(null)}>
                   Start Over
                 </Button>
               </View>
             </View>
 
-            <View className="gap-4">
+            <View style={styles.roundsContainer}>
               {rounds?.winners.map(([round, roundMatches]) => (
                 <RoundSection
                   key={`winners-${round}`}
@@ -204,22 +231,21 @@ export default function QuickBracketScreen() {
       </ScrollView>
 
       <Modal transparent visible={Boolean(editingParticipant)} animationType="fade">
-        <Pressable
-          className="flex-1 items-center justify-center bg-black/50 px-6"
-          onPress={() => setEditingParticipant(null)}>
+        <Pressable style={styles.modalOverlay} onPress={() => setEditingParticipant(null)}>
           <Pressable
-            className="w-full rounded-3xl border border-border bg-bg-card p-6 shadow-lg shadow-black/20 dark:border-border-dark dark:bg-bg-card-dark"
+            style={[
+              styles.modalCard,
+              { borderColor: colors.border, backgroundColor: colors.bgCard },
+            ]}
             onPress={() => null}>
-            <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted dark:text-text-muted-dark">
-              Edit participant
-            </Text>
+            <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>Edit participant</Text>
             <Input
               value={editValue}
               onChangeText={setEditValue}
               placeholder="Enter participant name"
-              className="mt-3"
+              style={styles.modalInput}
             />
-            <View className="mt-4 flex-row justify-end gap-2">
+            <View style={styles.modalActions}>
               <Button variant="outline" onPress={() => setEditingParticipant(null)}>
                 Cancel
               </Button>
@@ -243,18 +269,18 @@ function RoundSection({
   matches: BlankMatch[];
   onSlotPress: (participant?: BlankParticipant) => void;
 }) {
+  const colors = useThemeColors();
+  const brandColor = colors.isDark ? colors.brand.dark : colors.brand.DEFAULT;
+
   return (
-    <View className="rounded-3xl border border-border bg-bg-card p-5 shadow-sm shadow-black/5 dark:border-border-dark dark:bg-bg-card-dark">
-      <Text className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted dark:text-text-muted-dark">
-        {title}
-      </Text>
-      <View className="mt-4 gap-3">
+    <View
+      style={[styles.roundCard, { borderColor: colors.border, backgroundColor: colors.bgCard }]}>
+      <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>{title}</Text>
+      <View style={styles.matchesList}>
         {matches.map((match) => (
-          <View
-            key={match.id}
-            className="rounded-2xl border border-border/70 dark:border-border-dark">
+          <View key={match.id} style={[styles.matchBox, { borderColor: `${colors.border}B3` }]}>
             <ParticipantSlot participant={match.participant1} onPress={onSlotPress} />
-            <View className="h-px bg-border/60 dark:bg-border-dark/60" />
+            <View style={[styles.matchDivider, { backgroundColor: `${colors.border}99` }]} />
             <ParticipantSlot participant={match.participant2} onPress={onSlotPress} />
           </View>
         ))}
@@ -270,6 +296,8 @@ function ParticipantSlot({
   participant?: BlankParticipant;
   onPress: (participant?: BlankParticipant) => void;
 }) {
+  const colors = useThemeColors();
+  const brandColor = colors.isDark ? colors.brand.dark : colors.brand.DEFAULT;
   const label = participant?.isPlaceholder ? "TBD" : participant?.displayName;
   const seed = participant?.seed ?? "-";
 
@@ -277,24 +305,185 @@ function ParticipantSlot({
     <TouchableOpacity
       onPress={() => onPress(participant)}
       disabled={!participant}
-      className="flex-row items-center gap-3 px-4 py-3">
-      <View className="h-8 w-8 items-center justify-center rounded-full bg-bg-secondary dark:bg-bg-secondary-dark">
-        <Text className="text-xs font-semibold text-text-muted dark:text-text-muted-dark">
-          {seed}
-        </Text>
+      style={styles.slotRow}>
+      <View style={[styles.seedCircle, { backgroundColor: colors.bgSecondary }]}>
+        <Text style={[styles.seedText, { color: colors.textMuted }]}>{seed}</Text>
       </View>
       <Text
-        className={`flex-1 text-sm font-semibold ${
-          participant?.isPlaceholder
-            ? "text-text-muted dark:text-text-muted-dark"
-            : "text-text-primary dark:text-text-primary-dark"
-        }`}
+        style={[
+          styles.participantName,
+          {
+            color: participant?.isPlaceholder ? colors.textMuted : colors.textPrimary,
+          },
+        ]}
         numberOfLines={1}>
         {label || "TBD"}
       </Text>
-      {participant ? (
-        <Text className="text-xs font-semibold uppercase tracking-[0.16em] text-brand">Edit</Text>
-      ) : null}
+      {participant ? <Text style={[styles.editLabel, { color: brandColor }]}>Edit</Text> : null}
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  scrollContent: {
+    paddingBottom: 32,
+  },
+  configCard: {
+    marginTop: 16,
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.18 * 12,
+  },
+  description: {
+    marginTop: 8,
+    fontSize: 14,
+  },
+  configFields: {
+    marginTop: 20,
+    gap: 16,
+  },
+  inputSpacing: {
+    marginTop: 8,
+  },
+  optionsRow: {
+    marginTop: 8,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  optionPill: {
+    borderRadius: 9999,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  optionText: {
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.18 * 12,
+  },
+  formatOptionText: {
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.16 * 12,
+  },
+  bracketContainer: {
+    marginTop: 16,
+    gap: 16,
+  },
+  bracketCard: {
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  startOverRow: {
+    marginTop: 16,
+    flexDirection: "row",
+    gap: 12,
+  },
+  roundsContainer: {
+    gap: 16,
+  },
+  roundCard: {
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  matchesList: {
+    marginTop: 16,
+    gap: 12,
+  },
+  matchBox: {
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  matchDivider: {
+    height: 1,
+  },
+  slotRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  seedCircle: {
+    height: 32,
+    width: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 9999,
+  },
+  seedText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  participantName: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  editLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.16 * 12,
+  },
+  modalOverlay: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    paddingHorizontal: 24,
+  },
+  modalCard: {
+    width: "100%",
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  modalInput: {
+    marginTop: 12,
+  },
+  modalActions: {
+    marginTop: 16,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 8,
+  },
+});

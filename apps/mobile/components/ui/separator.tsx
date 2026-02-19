@@ -1,10 +1,16 @@
 import * as React from "react";
-import { View, type ViewProps } from "react-native";
+import { View, StyleSheet, type ViewProps, type ViewStyle } from "react-native";
+import { useThemeColors } from "@/hooks/use-theme-colors";
 
-import { cn } from "../../utils/cn";
-
-export function Separator({ className, ...props }: ViewProps & { className?: string }) {
-  return (
-    <View className={cn("h-px w-full bg-border/60 dark:bg-border-dark/60", className)} {...props} />
-  );
+export function Separator({ style, ...props }: ViewProps & { style?: ViewStyle }) {
+  const colors = useThemeColors();
+  return <View style={[styles.separator, { backgroundColor: colors.border }, style]} {...props} />;
 }
+
+const styles = StyleSheet.create({
+  separator: {
+    height: 1,
+    width: "100%",
+    opacity: 0.6,
+  },
+});

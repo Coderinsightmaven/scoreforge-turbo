@@ -1,10 +1,10 @@
 import { Stack } from "expo-router";
-import { useColorScheme } from "nativewind";
+import { useColorScheme } from "react-native";
 
-import { getStackBackground } from "../../utils/theme";
+import { getStackBackground } from "@/utils/theme";
 
 export default function ScorerLayout() {
-  const { colorScheme } = useColorScheme();
+  const colorScheme = useColorScheme();
   const stackBackground = getStackBackground(colorScheme);
 
   return (

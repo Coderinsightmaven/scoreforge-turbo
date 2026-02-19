@@ -1,23 +1,33 @@
-import { View, Text } from "react-native";
-import { useNetworkStatus } from "../hooks/useNetworkStatus";
+import { View, Text, StyleSheet } from "react-native";
+import { useNetworkStatus } from "@/hooks/use-network-status";
+import { Colors } from "@/constants/colors";
 
-/**
- * A banner that appears at the top of the screen when the device is offline.
- * Returns null when connected, so it can be placed anywhere in the tree.
- */
 export function OfflineBanner() {
   const { isConnected, isInternetReachable } = useNetworkStatus();
 
-  // Show banner if explicitly disconnected or internet not reachable
   const isOffline = isConnected === false || isInternetReachable === false;
 
   if (!isOffline) return null;
 
   return (
-    <View className="border-b border-error/30 bg-error/10 px-4 py-2">
-      <Text className="text-center text-sm font-medium text-error">
-        No internet connection. Changes will sync when you reconnect.
-      </Text>
+    <View style={styles.banner}>
+      <Text style={styles.text}>No internet connection. Changes will sync when you reconnect.</Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  banner: {
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(208,37,60,0.3)",
+    backgroundColor: "rgba(208,37,60,0.1)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  text: {
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "500",
+    color: Colors.semantic.error,
+  },
+});

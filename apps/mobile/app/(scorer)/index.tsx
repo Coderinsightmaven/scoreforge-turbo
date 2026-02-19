@@ -10,18 +10,22 @@ import {
   RefreshControl,
   Alert,
   Image,
+  StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Id } from "@repo/convex/dataModel";
 
-import { useTempScorer } from "../../contexts/TempScorerContext";
-import { StatusFilter, MatchStatus } from "../../components/matches/StatusFilter";
-import { OfflineBanner } from "../../components/OfflineBanner";
-import { statusStyles } from "../../utils/styles";
-import { formatTournamentName } from "../../utils/format";
+import { useTempScorer } from "@/contexts/TempScorerContext";
+import { StatusFilter, MatchStatus } from "@/components/matches/StatusFilter";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import { statusStyles } from "@/utils/styles";
+import { formatTournamentName } from "@/utils/format";
+import { useThemeColors } from "@/hooks/use-theme-colors";
+import { Colors, Fonts } from "@/constants/colors";
 
 export default function ScorerHomeScreen() {
+  const colors = useThemeColors();
   const { session, signOut } = useTempScorer();
   const router = useRouter();
   const [statusFilter, setStatusFilter] = useState<MatchStatus | "all">("all");
@@ -97,45 +101,68 @@ export default function ScorerHomeScreen() {
 
   if (!session) {
     return (
-      <View className="flex-1 items-center justify-center bg-bg-page dark:bg-bg-page-dark">
-        <Text className="text-text-tertiary dark:text-text-tertiary-dark">Session not found</Text>
+      <View style={[styles.centered, { backgroundColor: colors.bgPage }]}>
+        <Text style={{ color: colors.textTertiary }}>Session not found</Text>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-bg-page dark:bg-bg-page-dark">
-      <SafeAreaView className="flex-1" edges={["top"]}>
+    <View style={[styles.flex1, { backgroundColor: colors.bgPage }]}>
+      <SafeAreaView style={styles.flex1} edges={["top"]}>
         <OfflineBanner />
         {/* Header */}
-        <View className="bg-bg-card px-5 py-4 shadow-sm shadow-black/5 dark:bg-bg-card-dark">
-          <View className="flex-row items-center justify-between">
+        <View style={[styles.header, { backgroundColor: colors.bgCard }]}>
+          <View style={styles.headerRow}>
             <Image
-              source={require("../../assets/logo.png")}
-              className="mr-3 h-12 w-12"
+              source={require("@/assets/images/icon.png")}
+              style={styles.logo}
               resizeMode="contain"
             />
-            <View className="flex-1">
-              <View className="mb-1 flex-row items-center">
-                <View className="mr-2 rounded-lg border border-brand/30 bg-brand/10 px-2.5 py-1">
-                  <Text className="text-xs font-bold text-brand">TEMP SCORER</Text>
+            <View style={styles.flex1}>
+              <View style={styles.badgeRow}>
+                <View style={styles.tempScorerBadge}>
+                  <Text style={styles.tempScorerText}>TEMP SCORER</Text>
                 </View>
               </View>
-              <Text className="font-display-bold text-lg text-text-primary dark:text-text-primary-dark">
+              <Text
+                style={{
+                  fontFamily: Fonts.displayBold,
+                  fontSize: 18,
+                  color: colors.textPrimary,
+                }}>
                 {session.displayName}
               </Text>
               {session.assignedCourt && (
-                <Text className="text-xs font-semibold text-brand">{session.assignedCourt}</Text>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "600",
+                    color: Colors.brand.DEFAULT,
+                  }}>
+                  {session.assignedCourt}
+                </Text>
               )}
-              <Text className="text-sm text-text-tertiary dark:text-text-tertiary-dark">
+              <Text style={{ fontSize: 14, color: colors.textTertiary }}>
                 {formatTournamentName(session.tournamentName)}
               </Text>
             </View>
             <TouchableOpacity
-              className="rounded-xl border border-border bg-bg-card px-3 py-2 dark:border-border-dark dark:bg-bg-card-dark"
+              style={[
+                styles.endSessionButton,
+                {
+                  borderColor: colors.border,
+                  backgroundColor: colors.bgCard,
+                },
+              ]}
               onPress={handleSignOut}
               activeOpacity={0.7}>
-              <Text className="text-sm font-medium text-text-primary dark:text-text-primary-dark">
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "500",
+                  color: colors.textPrimary,
+                }}>
                 End Session
               </Text>
             </TouchableOpacity>
@@ -143,14 +170,21 @@ export default function ScorerHomeScreen() {
         </View>
 
         {/* Status Filter */}
-        <View className="border-b border-border bg-bg-card px-5 py-2 dark:border-border-dark dark:bg-bg-card-dark">
+        <View
+          style={[
+            styles.filterBar,
+            {
+              borderBottomColor: colors.border,
+              backgroundColor: colors.bgCard,
+            },
+          ]}>
           <StatusFilter value={statusFilter} onChange={setStatusFilter} />
         </View>
 
         {/* Tournament Status Banner */}
         {tournament && tournament.status !== "active" && (
-          <View className="border-b border-brand/20 bg-brand-light px-4 py-2">
-            <Text className="text-center text-sm text-brand-text">
+          <View style={styles.tournamentBanner}>
+            <Text style={styles.tournamentBannerText}>
               Tournament is {tournament.status} - Scoring may be unavailable
             </Text>
           </View>
@@ -158,8 +192,8 @@ export default function ScorerHomeScreen() {
 
         {/* Matches List */}
         {matches === undefined ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#70AC15" />
+          <View style={styles.centered}>
+            <ActivityIndicator size="large" color={Colors.brand.DEFAULT} />
           </View>
         ) : (
           <FlatList
@@ -169,15 +203,15 @@ export default function ScorerHomeScreen() {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={onRefresh}
-                colors={["#70AC15"]}
-                tintColor="#70AC15"
+                colors={[Colors.brand.DEFAULT]}
+                tintColor={Colors.brand.DEFAULT}
               />
             }
-            contentContainerClassName="px-4 py-4"
-            ItemSeparatorComponent={() => <View className="h-3" />}
+            contentContainerStyle={styles.listContent}
+            ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
             ListEmptyComponent={
-              <View className="flex-1 items-center justify-center py-16">
-                <Text className="text-center text-text-tertiary dark:text-text-tertiary-dark">
+              <View style={styles.emptyContainer}>
+                <Text style={{ textAlign: "center", color: colors.textTertiary }}>
                   No matches found for this filter
                 </Text>
               </View>
@@ -197,47 +231,67 @@ export default function ScorerHomeScreen() {
               const status = statusStyles[item.status as MatchStatus] || statusStyles.pending;
               return (
                 <TouchableOpacity
-                  className={`rounded-2xl bg-bg-card p-5 shadow-lg shadow-black/5 dark:bg-bg-card-dark ${
+                  style={[
+                    styles.matchCard,
+                    { backgroundColor: colors.bgCard },
                     item.status === "live"
-                      ? "border-2 border-status-live-border"
-                      : "border border-border dark:border-border-dark"
-                  }`}
+                      ? { borderWidth: 2, borderColor: Colors.status.live.border }
+                      : { borderWidth: 1, borderColor: colors.border },
+                  ]}
                   onPress={() => router.push(`/(scorer)/match/${item._id}`)}
                   activeOpacity={0.7}>
-                  <View className="mb-2 flex-row items-center justify-between">
-                    <Text className="text-xs font-medium text-text-tertiary dark:text-text-tertiary-dark">
+                  <View style={styles.matchCardHeader}>
+                    <Text style={{ fontSize: 12, fontWeight: "500", color: colors.textTertiary }}>
                       R{item.round} - Match {item.matchNumber}
                     </Text>
                     <View
-                      className={`rounded-lg border px-2.5 py-0.5 ${status.bg} ${status.border}`}>
-                      <Text className={`text-xs font-semibold uppercase ${status.text}`}>
+                      style={[
+                        styles.statusBadge,
+                        {
+                          backgroundColor: status.bg,
+                          borderColor: status.border,
+                        },
+                      ]}>
+                      <Text style={[styles.statusText, { color: status.text }]}>
                         {item.status === "live" ? "LIVE" : item.status}
                       </Text>
                     </View>
                   </View>
 
-                  <View className="flex-row items-center justify-between">
-                    <View className="flex-1">
+                  <View style={styles.participantsRow}>
+                    <View style={styles.flex1}>
                       <Text
-                        className={`text-base font-semibold ${
-                          item.winnerId === item.participant1?._id
-                            ? "text-brand"
-                            : "text-text-primary dark:text-text-primary-dark"
-                        }`}
+                        style={{
+                          fontSize: 16,
+                          fontWeight: "600",
+                          color:
+                            item.winnerId === item.participant1?._id
+                              ? Colors.brand.DEFAULT
+                              : colors.textPrimary,
+                        }}
                         numberOfLines={1}>
                         {item.participant1?.displayName || "TBD"}
                       </Text>
                     </View>
-                    <Text className="mx-4 text-lg font-bold text-text-muted dark:text-text-muted-dark">
+                    <Text
+                      style={{
+                        marginHorizontal: 16,
+                        fontSize: 18,
+                        fontWeight: "700",
+                        color: colors.textMuted,
+                      }}>
                       vs
                     </Text>
-                    <View className="flex-1 items-end">
+                    <View style={[styles.flex1, { alignItems: "flex-end" }]}>
                       <Text
-                        className={`text-base font-semibold ${
-                          item.winnerId === item.participant2?._id
-                            ? "text-brand"
-                            : "text-text-primary dark:text-text-primary-dark"
-                        }`}
+                        style={{
+                          fontSize: 16,
+                          fontWeight: "600",
+                          color:
+                            item.winnerId === item.participant2?._id
+                              ? Colors.brand.DEFAULT
+                              : colors.textPrimary,
+                        }}
                         numberOfLines={1}>
                         {item.participant2?.displayName || "TBD"}
                       </Text>
@@ -245,17 +299,17 @@ export default function ScorerHomeScreen() {
                   </View>
 
                   {item.court && (
-                    <View className="mt-2 flex-row items-center">
-                      <Text className="text-xs text-text-tertiary dark:text-text-tertiary-dark">
+                    <View style={styles.courtRow}>
+                      <Text style={{ fontSize: 12, color: colors.textTertiary }}>
                         Court: {item.court}
                       </Text>
                     </View>
                   )}
 
                   {showTapToScore && (
-                    <View className="mt-3 items-center">
-                      <View className="rounded-lg border border-brand/30 bg-brand/10 px-4 py-1.5">
-                        <Text className="text-xs font-medium text-brand">Tap to score</Text>
+                    <View style={styles.tapToScoreContainer}>
+                      <View style={styles.tapToScoreBadge}>
+                        <Text style={styles.tapToScoreText}>Tap to score</Text>
                       </View>
                     </View>
                   )}
@@ -267,8 +321,8 @@ export default function ScorerHomeScreen() {
 
         {/* Session Expiry Warning */}
         {session.expiresAt && session.expiresAt - Date.now() < 2 * 60 * 60 * 1000 && (
-          <View className="border-t border-brand/20 bg-brand-light px-4 py-2">
-            <Text className="text-center text-xs text-brand-text">
+          <View style={styles.expiryBanner}>
+            <Text style={styles.expiryText}>
               Session expires in {Math.round((session.expiresAt - Date.now()) / (60 * 60 * 1000))}{" "}
               hours
             </Text>
@@ -278,3 +332,149 @@ export default function ScorerHomeScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  flex1: {
+    flex: 1,
+  },
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  logo: {
+    marginRight: 12,
+    height: 48,
+    width: 48,
+  },
+  badgeRow: {
+    marginBottom: 4,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  tempScorerBadge: {
+    marginRight: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(112,172,21,0.3)",
+    backgroundColor: "rgba(112,172,21,0.1)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  tempScorerText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: Colors.brand.DEFAULT,
+  },
+  endSessionButton: {
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  filterBar: {
+    borderBottomWidth: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
+  tournamentBanner: {
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(112,172,21,0.2)",
+    backgroundColor: Colors.brand.light,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  tournamentBannerText: {
+    textAlign: "center",
+    fontSize: 14,
+    color: Colors.brand.text,
+  },
+  listContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 64,
+  },
+  matchCard: {
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  matchCardHeader: {
+    marginBottom: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  statusBadge: {
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+  },
+  participantsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  courtRow: {
+    marginTop: 8,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  tapToScoreContainer: {
+    marginTop: 12,
+    alignItems: "center",
+  },
+  tapToScoreBadge: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(112,172,21,0.3)",
+    backgroundColor: "rgba(112,172,21,0.1)",
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+  },
+  tapToScoreText: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: Colors.brand.DEFAULT,
+  },
+  expiryBanner: {
+    borderTopWidth: 1,
+    borderTopColor: "rgba(112,172,21,0.2)",
+    backgroundColor: Colors.brand.light,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  expiryText: {
+    textAlign: "center",
+    fontSize: 12,
+    color: Colors.brand.text,
+  },
+});
