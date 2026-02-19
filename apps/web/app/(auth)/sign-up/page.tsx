@@ -420,6 +420,13 @@ export default function SignUpPage(): React.ReactNode {
               >
                 Privacy Policy
               </Link>
+              <span className="mx-2 text-muted-foreground">|</span>
+              <Link
+                href="/account-deletion"
+                className="font-semibold text-muted-foreground hover:text-brand"
+              >
+                Account Deletion
+              </Link>
             </div>
           </div>
         </div>

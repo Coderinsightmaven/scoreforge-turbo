@@ -208,12 +208,21 @@ export default function SettingsPage(): React.ReactNode {
 
               <div className="border-t border-border pt-4">
                 <p className="text-caption text-muted-foreground">Legal</p>
-                <Link
-                  href="/privacy"
-                  className="mt-2 inline-flex text-sm font-semibold text-foreground transition-colors hover:text-brand"
-                >
-                  View Privacy Policy
-                </Link>
+                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm font-semibold">
+                  <Link
+                    href="/privacy"
+                    className="inline-flex text-foreground transition-colors hover:text-brand"
+                  >
+                    View Privacy Policy
+                  </Link>
+                  <span className="text-muted-foreground">|</span>
+                  <Link
+                    href="/account-deletion"
+                    className="inline-flex text-foreground transition-colors hover:text-brand"
+                  >
+                    Account Deletion Info
+                  </Link>
+                </div>
               </div>
             </CardContent>
           </Card>

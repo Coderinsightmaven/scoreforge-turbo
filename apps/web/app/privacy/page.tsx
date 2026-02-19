@@ -172,6 +172,16 @@ export default function PrivacyPolicyPage(): React.ReactNode {
               <li>Create, rotate, revoke, and delete API keys in Settings.</li>
               <li>Delete your account from Settings to remove associated application data.</li>
               <li>
+                Public deletion instructions are available at{" "}
+                <Link
+                  href="/account-deletion"
+                  className="font-semibold text-foreground hover:text-brand"
+                >
+                  Account Deletion Request
+                </Link>
+                .
+              </li>
+              <li>
                 Quick Bracket mode can be used without an account and is intended for in-browser
                 bracket creation and printing.
               </li>
