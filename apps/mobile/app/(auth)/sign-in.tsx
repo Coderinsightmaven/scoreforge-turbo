@@ -18,6 +18,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -201,10 +202,12 @@ export default function SignInScreen() {
             keyboardShouldPersistTaps="always">
             {/* Logo & Branding */}
             <View className="mb-8 items-center">
-              <View className="mb-4 h-24 w-24 items-center justify-center rounded-3xl bg-brand shadow-2xl shadow-brand/30">
-                <Text className="font-display-bold text-4xl text-white">S</Text>
-              </View>
-              <Text className="mb-1 font-display-semibold text-2xl text-text-primary">
+              <Image
+                source={require("../../assets/logo.png")}
+                className="mb-2 h-28 w-28"
+                resizeMode="contain"
+              />
+              <Text className="mb-1 font-display-semibold text-2xl text-text-tertiary dark:text-text-tertiary-dark">
                 Welcome to ScoreForge
               </Text>
               <Text className="font-sans text-sm text-text-tertiary dark:text-text-tertiary-dark">

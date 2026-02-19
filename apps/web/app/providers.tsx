@@ -7,7 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { ReactNode } from "react";
 import { Toaster } from "sonner";
 import { ThemeSyncProvider } from "./components/ThemeSyncProvider";
-import { ScoreCommandOnboarding } from "./components/ScoreCommandOnboarding";
+import { CommandOnboarding } from "./components/CommandOnboarding";
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -17,7 +17,7 @@ export function Providers({ children }: { children: ReactNode }): ReactNode {
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <ThemeSyncProvider>
-            <ScoreCommandOnboarding>{children}</ScoreCommandOnboarding>
+            <CommandOnboarding>{children}</CommandOnboarding>
             <Toaster richColors closeButton toastOptions={{ style: { borderRadius: "6px" } }} />
           </ThemeSyncProvider>
         </ThemeProvider>

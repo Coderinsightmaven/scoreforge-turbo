@@ -2,7 +2,7 @@
   "name": "ScoreForge",
   "version": "1.0.0",
   "scripts": {
-    "dev": "expo start",
+    "dev": "expo start --clear",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "start": "expo start",

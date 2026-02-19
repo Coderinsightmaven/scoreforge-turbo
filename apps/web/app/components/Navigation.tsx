@@ -9,6 +9,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/app/components/Skeleton";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 import {
   Braces,
   ChevronLeft,
@@ -29,7 +30,7 @@ type NavigationProps = {
 
 const navItems = [
   {
-    label: "ScoreCommand",
+    label: "Command",
     href: "/dashboard",
     icon: Gauge,
     activePaths: ["/dashboard", "/tournaments", "/matches"],
@@ -90,14 +91,18 @@ export function Navigation({
               title="ScoreForge"
               className={cn("group flex items-center", collapsed ? "justify-center" : "gap-3")}
             >
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-brand/40 bg-brand/15 text-brand">
-                <Gauge className="h-5 w-5" />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="ScoreForge"
+                width={56}
+                height={56}
+                className="h-14 w-14 object-contain"
+              />
               {!collapsed && (
                 <div>
                   <p className="text-lg font-semibold text-foreground">ScoreForge</p>
                   <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                    ScoreCommand
+                    Command
                   </p>
                 </div>
               )}
@@ -258,13 +263,17 @@ export function Navigation({
         >
           <div className="flex items-center justify-between">
             <Link href="/dashboard" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-brand/40 bg-brand/15 text-brand">
-                <Gauge className="h-4 w-4" />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="ScoreForge"
+                width={48}
+                height={48}
+                className="h-12 w-12 object-contain"
+              />
               <div>
                 <p className="text-base font-semibold text-foreground">ScoreForge</p>
                 <p className="text-xs font-semibold uppercase tracking-[0.26em] text-muted-foreground">
-                  ScoreCommand
+                  Command
                 </p>
               </div>
             </Link>

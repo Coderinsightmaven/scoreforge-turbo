@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -89,6 +90,11 @@ export default function ScorerHomeScreen() {
         {/* Header */}
         <View className="bg-bg-card px-5 py-4 shadow-sm shadow-black/5 dark:bg-bg-card-dark">
           <View className="flex-row items-center justify-between">
+            <Image
+              source={require("../../assets/logo.png")}
+              className="mr-3 h-12 w-12"
+              resizeMode="contain"
+            />
             <View className="flex-1">
               <View className="mb-1 flex-row items-center">
                 <View className="mr-2 rounded-lg border border-brand/30 bg-brand/10 px-2.5 py-1">

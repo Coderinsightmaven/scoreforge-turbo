@@ -1,6 +1,15 @@
 import type { ReactNode } from "react";
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Dimensions, Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
+import {
+  Animated,
+  Dimensions,
+  Image,
+  Modal,
+  Pressable,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePathname, useRouter } from "expo-router";
 import { useClerk } from "@clerk/clerk-expo";
@@ -143,9 +152,11 @@ function NavSheet({ open, onClose }: NavSheetProps) {
           className="h-full bg-bg-primary px-5 dark:bg-bg-primary-dark">
           <SafeAreaView edges={[]} className="flex-1">
             <View className="mb-6 flex-row items-center gap-3">
-              <View className="h-11 w-11 items-center justify-center rounded-2xl bg-brand">
-                <Text className="font-display-bold text-2xl text-text-inverse">S</Text>
-              </View>
+              <Image
+                source={require("../../assets/logo.png")}
+                className="h-16 w-16"
+                resizeMode="contain"
+              />
               <View>
                 <Text className="font-display-semibold text-lg text-text-primary dark:text-text-primary-dark">
                   ScoreForge

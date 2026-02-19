@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowRight, Gauge, Loader2, ShieldCheck } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -92,22 +93,26 @@ export default function SignInPage(): React.ReactNode {
       <div className="hidden lg:flex lg:flex-col lg:justify-between px-10 py-12">
         <div className="space-y-10">
           <Link href="/" className="inline-flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-brand/40 bg-brand/15 text-brand">
-              <Gauge className="h-5 w-5" />
-            </div>
+            <Image
+              src="/logo.png"
+              alt="ScoreForge"
+              width={56}
+              height={56}
+              className="h-14 w-14 object-contain"
+            />
             <div>
               <p className="text-lg font-semibold text-foreground">ScoreForge</p>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                ScoreCommand
+                Command
               </p>
             </div>
           </Link>
 
           <div className="space-y-5">
-            <p className="text-caption text-muted-foreground">ScoreCommand Briefing</p>
+            <p className="text-caption text-muted-foreground">Command Briefing</p>
             <h1 className="text-display leading-[0.9]">Stay in sync with every match.</h1>
             <p className="text-body-lg text-muted-foreground">
-              Rejoin your ScoreCommand to manage brackets, monitor courts, and keep scoring live.
+              Rejoin your Command to manage brackets, monitor courts, and keep scoring live.
             </p>
           </div>
 
@@ -137,13 +142,17 @@ export default function SignInPage(): React.ReactNode {
         <div className="w-full max-w-md space-y-8">
           <div className="space-y-3 lg:hidden">
             <Link href="/" className="inline-flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-brand/40 bg-brand/15 text-brand">
-                <Gauge className="h-5 w-5" />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="ScoreForge"
+                width={52}
+                height={52}
+                className="h-13 w-13 object-contain"
+              />
               <div>
                 <p className="text-lg font-semibold text-foreground">ScoreForge</p>
                 <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                  ScoreCommand
+                  Command
                 </p>
               </div>
             </Link>
@@ -152,11 +161,20 @@ export default function SignInPage(): React.ReactNode {
           </div>
 
           <div className="surface-panel surface-panel-rail p-8">
-            <div className="mb-6 space-y-2">
-              <h2 className="text-heading text-foreground">Operator sign-in</h2>
-              <p className="text-sm text-muted-foreground">
-                Enter your credentials to access tournament ops.
-              </p>
+            <div className="mb-6 flex flex-col items-center space-y-4">
+              <Image
+                src="/logo.png"
+                alt="ScoreForge"
+                width={100}
+                height={100}
+                className="h-[100px] w-[100px] object-contain"
+              />
+              <div className="space-y-2 text-center">
+                <h2 className="text-heading text-foreground">Operator sign-in</h2>
+                <p className="text-sm text-muted-foreground">
+                  Enter your credentials to access tournament ops.
+                </p>
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -217,7 +235,7 @@ export default function SignInPage(): React.ReactNode {
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   <>
-                    Enter ScoreCommand
+                    Enter Command
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}

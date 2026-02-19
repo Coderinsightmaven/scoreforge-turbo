@@ -101,7 +101,7 @@ export default function FeaturePage({
                 <Authenticated>
                   <Button variant="brand" size="lg" asChild>
                     <Link href="/dashboard">
-                      Open ScoreCommand
+                      Open Command
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                   </Button>
@@ -235,7 +235,7 @@ export default function FeaturePage({
               <Authenticated>
                 <Button variant="brand" size="lg" asChild>
                   <Link href="/dashboard">
-                    Open ScoreCommand
+                    Open Command
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>

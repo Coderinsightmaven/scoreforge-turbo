@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Authenticated, Unauthenticated } from "convex/react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Braces, Zap, Users, LayoutDashboard } from "lucide-react";
@@ -69,6 +70,13 @@ export default function LandingPage(): React.ReactNode {
           className="container grid items-center gap-16 pb-20 pt-16 sm:pt-20 lg:grid-cols-[1.1fr_0.9fr]"
         >
           <div className="space-y-10">
+            <Image
+              src="/logo.png"
+              alt="ScoreForge"
+              width={120}
+              height={120}
+              className="h-[120px] w-[120px] object-contain animate-scaleIn"
+            />
             <div className="inline-flex items-center gap-2 rounded-full border border-brand/40 bg-brand/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-brand animate-scaleIn">
               <span className="live-dot" />
               Real-time tournament ops
@@ -82,8 +90,8 @@ export default function LandingPage(): React.ReactNode {
               className="max-w-xl text-body-lg text-muted-foreground animate-slideUp"
               style={{ animationDelay: "200ms", opacity: 0 }}
             >
-              ScoreForge centralizes brackets, live scoring, and court flow in one ScoreCommand.
-              Keep every match in sync, from the first serve to the final trophy.
+              ScoreForge centralizes brackets, live scoring, and court flow in one Command. Keep
+              every match in sync, from the first serve to the final trophy.
             </p>
             <div
               className="flex flex-wrap items-center gap-3 animate-slideUp"
@@ -92,7 +100,7 @@ export default function LandingPage(): React.ReactNode {
               <Authenticated>
                 <Button variant="brand" size="lg" asChild>
                   <Link href="/dashboard">
-                    Enter ScoreCommand
+                    Enter Command
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
@@ -100,7 +108,7 @@ export default function LandingPage(): React.ReactNode {
               <Unauthenticated>
                 <Button variant="brand" size="lg" asChild>
                   <Link href="/sign-up">
-                    Launch ScoreCommand
+                    Launch Command
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
@@ -256,8 +264,8 @@ export default function LandingPage(): React.ReactNode {
             className="text-muted-foreground"
             style={{ maxWidth: "32rem", fontSize: "1.15rem", lineHeight: 1.75 }}
           >
-            From bracket generation to court scheduling, ScoreForge, ScoreCommand gives your
-            operations team the visibility and speed required to run a full event.
+            From bracket generation to court scheduling, ScoreForge, Command gives your operations
+            team the visibility and speed required to run a full event.
           </p>
         </div>
 
@@ -323,8 +331,8 @@ export default function LandingPage(): React.ReactNode {
       <section id="ops-flow" className="container pb-28">
         <div className="surface-panel surface-panel-rail grid gap-12 p-10 lg:p-12 lg:grid-cols-[1.2fr_0.8fr]">
           <div>
-            <p className="text-caption text-muted-foreground">ScoreCommand Flow</p>
-            <h2 className="mt-5 text-hero">From setup to finals in a single ScoreCommand.</h2>
+            <p className="text-caption text-muted-foreground">Command Flow</p>
+            <h2 className="mt-5 text-hero">From setup to finals in a single Command.</h2>
             <p className="mt-6 text-body-lg text-muted-foreground">
               Keep your tournament moving without chasing spreadsheets or manual score updates.
               ScoreForge syncs brackets, courts, and scoring in one place.

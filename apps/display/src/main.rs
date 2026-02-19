@@ -12,7 +12,7 @@ fn main() -> eframe::Result {
     tracing_subscriber::fmt::init();
 
     let icon = {
-        let img = image::load_from_memory(include_bytes!("../assets/icon.jpg"))
+        let img = image::load_from_memory(include_bytes!("../assets/icon.png"))
             .expect("Failed to load app icon")
             .into_rgba8();
         let (w, h) = img.dimensions();

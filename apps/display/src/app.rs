@@ -9,12 +9,33 @@ use crate::state::{AppState, ProjectState};
 
 pub struct ScoreForgeApp {
     state: AppState,
+    logo_texture: Option<egui::TextureHandle>,
 }
 
 impl ScoreForgeApp {
     pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
         let state = AppState::new();
-        Self { state }
+        Self {
+            state,
+            logo_texture: None,
+        }
+    }
+
+    fn get_logo_texture(&mut self, ctx: &egui::Context) -> egui::TextureHandle {
+        if let Some(ref tex) = self.logo_texture {
+            return tex.clone();
+        }
+        let img = image::load_from_memory(include_bytes!("../assets/icon.png"))
+            .expect("Failed to load logo")
+            .into_rgba8();
+        let (w, h) = img.dimensions();
+        let color_image = egui::ColorImage::from_rgba_unmultiplied(
+            [w as usize, h as usize],
+            img.as_raw(),
+        );
+        let tex = ctx.load_texture("logo", color_image, egui::TextureOptions::LINEAR);
+        self.logo_texture = Some(tex.clone());
+        tex
     }
 
     fn show_dialogs(&mut self, ctx: &egui::Context) {
@@ -340,7 +361,11 @@ impl ScoreForgeApp {
             .frame(egui::Frame::NONE.fill(egui::Color32::from_gray(20)))
             .show(ctx, |ui| {
                 ui.vertical_centered(|ui| {
-                    ui.add_space(ui.available_height() * 0.15);
+                    ui.add_space(ui.available_height() * 0.10);
+
+                    let logo = self.get_logo_texture(ctx);
+                    ui.add(egui::Image::new(&logo).fit_to_exact_size(egui::vec2(100.0, 100.0)));
+                    ui.add_space(12.0);
 
                     ui.heading("ScoreForge Display");
                     ui.add_space(20.0);

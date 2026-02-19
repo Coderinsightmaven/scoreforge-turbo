@@ -125,14 +125,14 @@ function LoadingScreen(): React.JSX.Element {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
       <div className="flex flex-col items-center gap-4">
-        <div className="relative flex h-12 w-12 items-center justify-center rounded-full border border-border bg-secondary">
+        <div className="relative flex h-32 w-32 items-center justify-center rounded-full border border-border bg-secondary">
           <div className="absolute inset-0 rounded-full border-2 border-brand/70 animate-orbit" />
           <Image
             src="/logo.png"
             alt="ScoreForge"
-            width={64}
-            height={64}
-            className="h-7 w-7 object-contain"
+            width={100}
+            height={100}
+            className="h-[100px] w-[100px] object-contain"
           />
         </div>
         <p className="text-caption text-muted-foreground">Loading ops</p>

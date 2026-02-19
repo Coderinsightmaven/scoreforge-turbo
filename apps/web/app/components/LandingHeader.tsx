@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { Authenticated, AuthLoading, Unauthenticated } from "convex/react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Gauge, Loader2, Menu, X } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, Loader2, Menu, X } from "lucide-react";
 
 interface NavLink {
   href: string;
@@ -20,15 +21,19 @@ export function LandingHeader({ navLinks }: { navLinks: NavLink[] }) {
         {/* Top row: logo + hamburger (mobile) or logo + nav + CTA (desktop) */}
         <div className="flex items-center justify-between gap-4">
           <Link href="/" className="group flex items-center gap-2.5 sm:gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-brand/40 bg-brand/15 text-brand sm:h-10 sm:w-10">
-              <Gauge className="h-4 w-4 sm:h-5 sm:w-5" />
-            </div>
+            <Image
+              src="/logo.png"
+              alt="ScoreForge"
+              width={80}
+              height={80}
+              className="h-16 w-16 shrink-0 object-contain sm:h-20 sm:w-20"
+            />
             <div>
               <p className="text-base font-semibold leading-tight text-foreground sm:text-lg">
                 ScoreForge
               </p>
               <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground sm:text-xs">
-                ScoreCommand
+                Command
               </p>
             </div>
           </Link>
@@ -98,7 +103,7 @@ function AuthButtons() {
       <Authenticated>
         <Button variant="brand" size="sm" asChild className="w-full md:w-auto">
           <Link href="/dashboard">
-            Open ScoreCommand
+            Open Command
             <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>
@@ -109,7 +114,7 @@ function AuthButtons() {
         </Button>
         <Button variant="brand" size="sm" asChild className="w-full md:w-auto">
           <Link href="/sign-up">
-            Start ScoreCommand
+            Start Command
             <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>
