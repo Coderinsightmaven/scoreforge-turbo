@@ -7,8 +7,7 @@
       "favicon": "./assets/favicon.png"
     },
     "experiments": {
-      "tsconfigPaths": true,
-      "reactCompiler": true
+      "tsconfigPaths": true
     },
     "scheme": "scoreforge",
     "plugins": [
