@@ -7,6 +7,7 @@ import { internal } from "./_generated/api";
 import { errors } from "./lib/errors";
 import { canScoreTournament, getTournamentRole } from "./lib/accessControl";
 import { assertNotInMaintenance } from "./lib/maintenance";
+import { assertCourtAvailableForLiveMatch } from "./lib/courtAvailability";
 import {
   type TennisState,
   addToHistory,
@@ -857,6 +858,12 @@ export const undoTennisPoint = mutation({
     const isUndoingCompletion = match.status === "completed" && !previousSnapshot.isMatchComplete;
 
     if (isUndoingCompletion) {
+      await assertCourtAvailableForLiveMatch(ctx, {
+        tournamentId: match.tournamentId,
+        court: match.court,
+        excludeMatchId: match._id,
+      });
+
       // Revert match status, winnerId, and completedAt
       await ctx.db.patch("matches", args.matchId, {
         tennisState: restoredState,

@@ -48,25 +48,6 @@ export default function SignInScreen() {
 
   // Handle deep links from QR code scanning
   const url = Linking.useURL();
-  useEffect(() => {
-    if (url) {
-      const parsed = Linking.parse(url);
-      // Handle: scoreforge://scorer?code=ABC123&court=court-1
-      if (parsed.hostname === "scorer" || parsed.path === "scorer") {
-        setLoginType("scorer");
-        if (parsed.queryParams?.code) {
-          const code = String(parsed.queryParams.code);
-          handleCodeChange(code.toUpperCase().slice(0, 6));
-        }
-        if (parsed.queryParams?.court) {
-          setUsername(String(parsed.queryParams.court).toLowerCase());
-        }
-        if (parsed.queryParams?.pin) {
-          setPin(String(parsed.queryParams.pin).toUpperCase().slice(0, 6));
-        }
-      }
-    }
-  }, [url]);
 
   const handleOAuthSignIn = useCallback(async () => {
     try {
@@ -100,19 +81,42 @@ export default function SignInScreen() {
     name: string;
     sport: string;
   } | null>(null);
-  const handleCodeChange = async (code: string) => {
-    setTournamentCode(code);
-    if (code.length === 6) {
-      try {
-        const result = await lookupTournamentByCode({ code });
-        setTournamentInfo(result);
-      } catch {
+  const handleCodeChange = useCallback(
+    async (code: string) => {
+      setTournamentCode(code);
+      if (code.length === 6) {
+        try {
+          const result = await lookupTournamentByCode({ code });
+          setTournamentInfo(result);
+        } catch {
+          setTournamentInfo(null);
+        }
+      } else {
         setTournamentInfo(null);
       }
-    } else {
-      setTournamentInfo(null);
+    },
+    [lookupTournamentByCode]
+  );
+
+  useEffect(() => {
+    if (url) {
+      const parsed = Linking.parse(url);
+      // Handle: scoreforge://scorer?code=ABC123&court=court-1
+      if (parsed.hostname === "scorer" || parsed.path === "scorer") {
+        setLoginType("scorer");
+        if (parsed.queryParams?.code) {
+          const code = String(parsed.queryParams.code);
+          handleCodeChange(code.toUpperCase().slice(0, 6));
+        }
+        if (parsed.queryParams?.court) {
+          setUsername(String(parsed.queryParams.court).toLowerCase());
+        }
+        if (parsed.queryParams?.pin) {
+          setPin(String(parsed.queryParams.pin).toUpperCase().slice(0, 6));
+        }
+      }
     }
-  };
+  }, [url, handleCodeChange]);
 
   const handleRegularSubmit = async () => {
     if (!isLoaded) return;
@@ -140,7 +144,7 @@ export default function SignInScreen() {
       }
     } catch (err: unknown) {
       if (err && typeof err === "object" && "errors" in err) {
-        const clerkErr = err as { errors: Array<{ message: string }> };
+        const clerkErr = err as { errors: { message: string }[] };
         setError(clerkErr.errors[0]?.message ?? "Sign in failed");
       } else {
         setError("Something went wrong. Please try again.");

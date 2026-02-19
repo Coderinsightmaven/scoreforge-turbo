@@ -6,13 +6,15 @@ async function setupUser(
   t: ReturnType<typeof getTestContext>,
   overrides: { name?: string; email?: string } = {}
 ) {
+  const subject = `test|${overrides.email ?? "test@example.com"}|${Math.random().toString(36).slice(2)}`;
   const userId = await t.run(async (ctx) => {
     return await ctx.db.insert("users", {
       name: overrides.name ?? "Test User",
       email: overrides.email ?? "test@example.com",
+      externalId: subject,
     });
   });
-  const asUser = t.withIdentity({ subject: `${userId}|session123` });
+  const asUser = t.withIdentity({ subject });
   return { userId, asUser };
 }
 
@@ -73,10 +75,15 @@ describe("getOnboardingState", () => {
 
   it("returns hasName false when user has no name", async () => {
     const t = getTestContext();
+    const subject = `test|noname@example.com|${Math.random().toString(36).slice(2)}`;
     const userId = await t.run(async (ctx) => {
-      return await ctx.db.insert("users", { email: "noname@example.com" });
+      return await ctx.db.insert("users", {
+        name: "",
+        email: "noname@example.com",
+        externalId: subject,
+      });
     });
-    const asUser = t.withIdentity({ subject: `${userId}|session123` });
+    const asUser = t.withIdentity({ subject });
     const result = await asUser.query(api.users.getOnboardingState);
     expect(result).not.toBeNull();
     expect(result!.hasName).toBe(false);

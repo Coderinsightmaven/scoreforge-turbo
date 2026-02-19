@@ -31,6 +31,16 @@ export default function TennisScoringScreen() {
   const matchId = id as Id<"matches">;
 
   const match = useQuery(api.tennis.getTennisMatch, { matchId });
+  const matchDetails = useQuery(api.matches.getMatch, { matchId });
+  const liveMatches = useQuery(
+    api.matches.listMatches,
+    matchDetails
+      ? {
+          tournamentId: matchDetails.tournamentId as Id<"tournaments">,
+          status: "live",
+        }
+      : "skip"
+  );
   const initMatch = useMutation(api.tennis.initTennisMatch);
   const scorePoint = useMutation(api.tennis.scoreTennisPoint);
   const undoPoint = useMutation(api.tennis.undoTennisPoint);
@@ -41,6 +51,22 @@ export default function TennisScoringScreen() {
 
   const flash1 = useRef(new Animated.Value(0)).current;
   const flash2 = useRef(new Animated.Value(0)).current;
+  const shouldCheckCourt =
+    !!matchDetails &&
+    (matchDetails.status === "pending" || matchDetails.status === "scheduled") &&
+    !!matchDetails.court;
+  const isCourtAvailabilityLoading = shouldCheckCourt && liveMatches === undefined;
+  const hasCourtConflict =
+    shouldCheckCourt &&
+    (liveMatches ?? []).some(
+      (liveMatch) => liveMatch._id !== matchDetails._id && liveMatch.court === matchDetails.court
+    );
+  const startDisabledReason = isCourtAvailabilityLoading
+    ? "Checking court availability..."
+    : hasCourtConflict
+      ? `Court ${matchDetails?.court} already has a live match. Finish it before starting this one.`
+      : undefined;
+  const startDisabledDueToCourtConflict = !!startDisabledReason;
 
   const triggerFlash = (flashAnim: Animated.Value) => {
     flashAnim.setValue(1);
@@ -122,6 +148,10 @@ export default function TennisScoringScreen() {
   const isCompleted = match.status === "completed" || state?.isMatchComplete;
 
   const handleInitMatch = async (firstServer: number) => {
+    if (startDisabledDueToCourtConflict) {
+      return;
+    }
+
     try {
       await initMatch({ matchId, firstServer });
       if (match.status === "pending" || match.status === "scheduled") {
@@ -197,20 +227,35 @@ export default function TennisScoringScreen() {
           </Text>
 
           <TouchableOpacity
-            className="mb-4 w-full rounded-xl bg-brand py-4 shadow-lg shadow-brand/30"
-            onPress={() => handleInitMatch(1)}>
+            className={`mb-4 w-full rounded-xl py-4 ${
+              startDisabledDueToCourtConflict
+                ? "bg-brand/50 shadow-none"
+                : "bg-brand shadow-lg shadow-brand/30"
+            }`}
+            onPress={() => handleInitMatch(1)}
+            disabled={startDisabledDueToCourtConflict}>
             <Text className="text-center text-lg font-bold text-text-inverse dark:text-text-inverse-dark">
               {match.participant1?.displayName || "Player 1"}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            className="w-full rounded-xl border border-border bg-bg-secondary py-4 dark:border-border-dark dark:bg-bg-secondary-dark"
-            onPress={() => handleInitMatch(2)}>
+            className={`w-full rounded-xl border border-border py-4 dark:border-border-dark ${
+              startDisabledDueToCourtConflict
+                ? "bg-bg-secondary/70 dark:bg-bg-secondary-dark/70"
+                : "bg-bg-secondary dark:bg-bg-secondary-dark"
+            }`}
+            onPress={() => handleInitMatch(2)}
+            disabled={startDisabledDueToCourtConflict}>
             <Text className="text-center text-lg font-bold text-text-primary dark:text-text-primary-dark">
               {match.participant2?.displayName || "Player 2"}
             </Text>
           </TouchableOpacity>
+          {startDisabledDueToCourtConflict && (
+            <View className="mt-4 rounded-xl border border-brand/30 bg-brand-light px-4 py-3">
+              <Text className="text-center text-sm text-brand-text">{startDisabledReason}</Text>
+            </View>
+          )}
         </View>
       </SafeAreaView>
     );

@@ -15,6 +15,15 @@ export default function MatchDetailScreen() {
   const matchId = id as Id<"matches">;
 
   const match = useQuery(api.matches.getMatch, { matchId });
+  const liveMatches = useQuery(
+    api.matches.listMatches,
+    match
+      ? {
+          tournamentId: match.tournamentId as Id<"tournaments">,
+          status: "live",
+        }
+      : "skip"
+  );
 
   if (match === undefined) {
     return (
@@ -42,6 +51,20 @@ export default function MatchDetailScreen() {
   const canScore =
     match.tournamentStatus === "active" &&
     (match.status === "pending" || match.status === "scheduled" || match.status === "live");
+  const shouldCheckCourt =
+    (match.status === "pending" || match.status === "scheduled") && !!match.court;
+  const isCourtAvailabilityLoading = shouldCheckCourt && liveMatches === undefined;
+  const hasCourtConflict =
+    shouldCheckCourt &&
+    (liveMatches ?? []).some(
+      (liveMatch) => liveMatch._id !== match._id && liveMatch.court === match.court
+    );
+  const startDisabledReason = isCourtAvailabilityLoading
+    ? "Checking court availability..."
+    : hasCourtConflict
+      ? `Court ${match.court} already has a live match. Finish it before starting this one.`
+      : undefined;
+  const startDisabledDueToCourtConflict = !!startDisabledReason && match.status !== "live";
 
   const status = statusStyles[match.status] || statusStyles.pending;
 
@@ -201,13 +224,23 @@ export default function MatchDetailScreen() {
         {/* Score Button */}
         {canScore && (
           <TouchableOpacity
-            className="rounded-2xl bg-brand py-5 shadow-2xl shadow-brand/30"
+            className={`rounded-2xl py-5 shadow-2xl ${
+              startDisabledDueToCourtConflict
+                ? "bg-brand/50 shadow-brand/10"
+                : "bg-brand shadow-brand/30"
+            }`}
             onPress={() => router.push(`/(app)/scoring/${matchId}`)}
+            disabled={startDisabledDueToCourtConflict}
             activeOpacity={0.8}>
             <Text className="text-center text-lg font-bold text-white">
               {match.status === "live" ? "Continue Scoring" : "Start Scoring"}
             </Text>
           </TouchableOpacity>
+        )}
+        {startDisabledDueToCourtConflict && (
+          <View className="mt-3 rounded-2xl border border-brand/30 bg-brand-light px-4 py-3">
+            <Text className="text-center text-sm text-brand-text">{startDisabledReason}</Text>
+          </View>
         )}
 
         {match.status === "completed" && (

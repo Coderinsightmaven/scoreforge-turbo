@@ -1,6 +1,6 @@
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { View, ActivityIndicator, Text } from "react-native";
+import { View, ActivityIndicator, Text, Image } from "react-native";
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
 import { useState, useEffect, useCallback } from "react";
 import * as SecureStore from "expo-secure-store";
@@ -42,9 +42,11 @@ const THEME_PREFERENCE_KEY = "themePreference";
 function LoadingScreen() {
   return (
     <View className="flex-1 items-center justify-center bg-bg-page dark:bg-bg-page-dark">
-      <View className="mb-6 h-20 w-20 items-center justify-center rounded-2xl bg-brand shadow-lg shadow-brand/20">
-        <Text className="font-display-bold text-4xl text-white">S</Text>
-      </View>
+      <Image
+        source={require("../assets/logo.png")}
+        className="mb-6 h-28 w-28"
+        resizeMode="contain"
+      />
       <ActivityIndicator size="large" color="#70AC15" />
       <Text className="mt-4 font-sans-medium text-sm text-text-tertiary dark:text-text-tertiary-dark">
         Loading ScoreForge
@@ -216,11 +218,7 @@ export default function RootLayout() {
   });
 
   if (!fontsLoaded) {
-    return (
-      <View className="flex-1 items-center justify-center bg-bg-page dark:bg-bg-page-dark">
-        <ActivityIndicator size="large" color="#70AC15" />
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   return (

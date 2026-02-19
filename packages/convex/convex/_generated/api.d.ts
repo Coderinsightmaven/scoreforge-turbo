@@ -15,6 +15,7 @@ import type * as http from "../http.js";
 import type * as httpApi from "../httpApi.js";
 import type * as lib_accessControl from "../lib/accessControl.js";
 import type * as lib_bracketGenerator from "../lib/bracketGenerator.js";
+import type * as lib_courtAvailability from "../lib/courtAvailability.js";
 import type * as lib_crypto from "../lib/crypto.js";
 import type * as lib_csv from "../lib/csv.js";
 import type * as lib_errors from "../lib/errors.js";
@@ -49,6 +50,7 @@ declare const fullApi: ApiFromModules<{
   httpApi: typeof httpApi;
   "lib/accessControl": typeof lib_accessControl;
   "lib/bracketGenerator": typeof lib_bracketGenerator;
+  "lib/courtAvailability": typeof lib_courtAvailability;
   "lib/crypto": typeof lib_crypto;
   "lib/csv": typeof lib_csv;
   "lib/errors": typeof lib_errors;

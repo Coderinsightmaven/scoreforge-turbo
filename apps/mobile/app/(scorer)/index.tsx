@@ -52,6 +52,11 @@ export default function ScorerHomeScreen() {
     status: statusFilter === "all" ? undefined : statusFilter,
     tempScorerToken: session?.token,
   });
+  const liveMatches = useQuery(api.matches.listMatches, {
+    tournamentId: session?.tournamentId as Id<"tournaments">,
+    status: "live",
+    tempScorerToken: session?.token,
+  });
 
   // Filter to only show matches on this scorer's assigned court
   const matches = session?.assignedCourt
@@ -164,6 +169,16 @@ export default function ScorerHomeScreen() {
             }
             renderItem={({ item }) => {
               const isReady = item.participant1 && item.participant2 && item.status !== "completed";
+              const hasOtherLiveMatchOnSameCourt =
+                !!item.court &&
+                (liveMatches ?? []).some(
+                  (liveMatch) => liveMatch._id !== item._id && liveMatch.court === item.court
+                );
+              const showTapToScore =
+                isReady &&
+                item.status !== "live" &&
+                liveMatches !== undefined &&
+                !hasOtherLiveMatchOnSameCourt;
               const status = statusStyles[item.status as MatchStatus] || statusStyles.pending;
               return (
                 <TouchableOpacity
@@ -222,7 +237,7 @@ export default function ScorerHomeScreen() {
                     </View>
                   )}
 
-                  {isReady && item.status !== "live" && (
+                  {showTapToScore && (
                     <View className="mt-3 items-center">
                       <View className="rounded-lg border border-brand/30 bg-brand/10 px-4 py-1.5">
                         <Text className="text-xs font-medium text-brand">Tap to score</Text>

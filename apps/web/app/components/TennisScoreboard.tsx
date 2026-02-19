@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@repo/convex";
 import type { Id } from "@repo/convex/dataModel";
 import type { TennisState } from "@repo/convex/types/tennis";
@@ -38,6 +38,7 @@ export function TennisScoreboard({
 
   const isLive = status === "live";
   const canAct = canScore && isLive && !tennisState.isMatchComplete;
+  const showServingIndicator = isLive;
 
   const handleScorePoint = async (winner: 1 | 2) => {
     setLoading(true);
@@ -137,7 +138,7 @@ export function TennisScoreboard({
               style={{ display: "grid", gridTemplateColumns: gridCols }}
             >
               <div className="flex items-center gap-2 px-3">
-                {tennisState.servingParticipant === 1 && (
+                {showServingIndicator && tennisState.servingParticipant === 1 && (
                   <span className="w-2 h-2 bg-success rounded-full animate-pulse" title="Serving" />
                 )}
                 <span className="font-semibold text-text-primary truncate">{p1Name}</span>
@@ -183,7 +184,7 @@ export function TennisScoreboard({
               style={{ display: "grid", gridTemplateColumns: gridCols }}
             >
               <div className="flex items-center gap-2 px-3">
-                {tennisState.servingParticipant === 2 && (
+                {showServingIndicator && tennisState.servingParticipant === 2 && (
                   <span className="w-2 h-2 bg-success rounded-full animate-pulse" title="Serving" />
                 )}
                 <span className="font-semibold text-text-primary truncate">{p2Name}</span>
@@ -307,6 +308,8 @@ export function TennisMatchSetup({
   matchStatus,
   tennisConfig,
   tournamentStatus,
+  tournamentId,
+  matchCourt,
 }: {
   matchId: string;
   participant1Name: string;
@@ -318,11 +321,36 @@ export function TennisMatchSetup({
     setsToWin: number;
   };
   tournamentStatus?: string;
+  tournamentId?: string;
+  matchCourt?: string;
 }): React.ReactNode {
   const initTennisMatch = useMutation(api.tennis.initTennisMatch);
   const startMatch = useMutation(api.matches.startMatch);
   const [firstServer, setFirstServer] = useState(1);
   const [loading, setLoading] = useState(false);
+  const shouldCheckCourt =
+    !!matchCourt && !!tournamentId && (matchStatus === "pending" || matchStatus === "scheduled");
+  const liveMatches = useQuery(
+    api.matches.listMatches,
+    shouldCheckCourt
+      ? {
+          tournamentId: tournamentId as Id<"tournaments">,
+          status: "live",
+        }
+      : "skip"
+  );
+  const isCourtAvailabilityLoading = shouldCheckCourt && liveMatches === undefined;
+  const hasCourtConflict =
+    shouldCheckCourt &&
+    (liveMatches ?? []).some(
+      (liveMatch) => liveMatch._id !== matchId && liveMatch.court === matchCourt
+    );
+  const startDisabledReason = isCourtAvailabilityLoading
+    ? "Checking court availability..."
+    : hasCourtConflict
+      ? `Court ${matchCourt} already has a live match. Finish it before starting this one.`
+      : undefined;
+  const isStartDisabled = loading || !!startDisabledReason;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -415,11 +443,14 @@ export function TennisMatchSetup({
 
       <button
         type="submit"
-        disabled={loading}
-        className="w-full py-4 font-semibold text-text-inverse bg-brand rounded-lg hover:bg-brand-hover transition-all disabled:opacity-50"
+        disabled={isStartDisabled}
+        className="w-full py-4 font-semibold text-text-inverse bg-brand rounded-lg hover:bg-brand-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? "Starting..." : "Start Match"}
       </button>
+      {startDisabledReason && (
+        <p className="text-center text-xs text-warning">{startDisabledReason}</p>
+      )}
     </form>
   );
 }

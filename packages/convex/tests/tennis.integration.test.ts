@@ -13,13 +13,15 @@ async function setupUser(
   t: ReturnType<typeof getTestContext>,
   overrides: { name?: string; email?: string } = {}
 ) {
+  const subject = `test|${overrides.email ?? "test@example.com"}|${Math.random().toString(36).slice(2)}`;
   const userId = await t.run(async (ctx) => {
     return await ctx.db.insert("users", {
       name: overrides.name ?? "Test User",
       email: overrides.email ?? "test@example.com",
+      externalId: subject,
     });
   });
-  const asUser = t.withIdentity({ subject: `${userId}|session123` });
+  const asUser = t.withIdentity({ subject });
   return { userId, asUser };
 }
 
@@ -43,10 +45,15 @@ async function setupTennisMatch(
     participantType?: "individual" | "doubles" | "team";
   } = {}
 ) {
+  const subject = `test|tennis-owner|${Math.random().toString(36).slice(2)}`;
   const userId = await t.run(async (ctx) => {
-    return await ctx.db.insert("users", { name: "Test User", email: "test@example.com" });
+    return await ctx.db.insert("users", {
+      name: "Test User",
+      email: "test@example.com",
+      externalId: subject,
+    });
   });
-  const asUser = t.withIdentity({ subject: `${userId}|session123` });
+  const asUser = t.withIdentity({ subject });
 
   const data = await t.run(async (ctx) => {
     const tournamentId = await ctx.db.insert("tournaments", {
@@ -290,10 +297,12 @@ describe("getTennisMatch", () => {
     const t = getTestContext();
     const { matchId, tournamentId, userId } = await setupTennisMatch(t);
     // Create a scorer user and assign them
+    const scorerSubject = `test|scorer@example.com|${Math.random().toString(36).slice(2)}`;
     const scorerUserId = await t.run(async (ctx) => {
       const sId = await ctx.db.insert("users", {
         name: "Scorer",
         email: "scorer@example.com",
+        externalId: scorerSubject,
       });
       await ctx.db.insert("tournamentScorers", {
         tournamentId,
@@ -303,7 +312,7 @@ describe("getTennisMatch", () => {
       });
       return sId;
     });
-    const asScorer = t.withIdentity({ subject: `${scorerUserId}|session456` });
+    const asScorer = t.withIdentity({ subject: scorerSubject });
     const result = await asScorer.query(api.tennis.getTennisMatch, { matchId });
     expect(result).not.toBeNull();
     expect(result!.myRole).toBe("scorer");
@@ -1213,14 +1222,12 @@ describe("undoTennisPoint", () => {
     expect(state!.currentGamePoints).toEqual([0, 0]);
   });
 
-  it("throws when no history is available", async () => {
+  it("returns null when no history is available and no scoring progress exists", async () => {
     const t = getTestContext();
     const { asUser, matchId } = await setupAndInitMatch(t);
 
     // No points scored, so no history
-    await expect(asUser.mutation(api.tennis.undoTennisPoint, { matchId })).rejects.toThrow(
-      "No history available to undo"
-    );
+    await expect(asUser.mutation(api.tennis.undoTennisPoint, { matchId })).resolves.toBeNull();
   });
 
   it("throws when tennis state is not initialized", async () => {
@@ -1264,6 +1271,64 @@ describe("undoTennisPoint", () => {
     match = await getMatch(t, matchId);
     expect(match!.participant1Score).toBe(1);
     expect(match!.participant2Score).toBe(0);
+  });
+
+  it("rejects undoing completion when the same court already has a live match", async () => {
+    const t = getTestContext();
+    const { asUser, tournamentId, bracketId, matchId } = await setupAndInitMatch(t);
+
+    await scoreSet6_0(asUser, matchId, 1);
+    await scoreSet6_0(asUser, matchId, 1);
+
+    await t.run(async (ctx) => {
+      await ctx.db.patch(matchId, { court: "Court 1" });
+
+      const p3Id = await ctx.db.insert("tournamentParticipants", {
+        tournamentId,
+        bracketId,
+        type: "individual",
+        displayName: "Player 3",
+        seed: 3,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        pointsFor: 0,
+        pointsAgainst: 0,
+        createdAt: Date.now(),
+      });
+      const p4Id = await ctx.db.insert("tournamentParticipants", {
+        tournamentId,
+        bracketId,
+        type: "individual",
+        displayName: "Player 4",
+        seed: 4,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        pointsFor: 0,
+        pointsAgainst: 0,
+        createdAt: Date.now(),
+      });
+
+      await ctx.db.insert("matches", {
+        tournamentId,
+        bracketId,
+        round: 1,
+        matchNumber: 2,
+        participant1Id: p3Id,
+        participant2Id: p4Id,
+        participant1Score: 0,
+        participant2Score: 0,
+        status: "live",
+        court: "Court 1",
+        startedAt: Date.now(),
+        bracketType: "winners",
+      });
+    });
+
+    await expect(asUser.mutation(api.tennis.undoTennisPoint, { matchId })).rejects.toThrow(
+      "already has a live match"
+    );
   });
 
   it("restores tiebreak state on undo", async () => {
@@ -1385,10 +1450,12 @@ describe("authorization - assigned scorer can score", () => {
     const { matchId, tournamentId, userId } = await setupTennisMatch(t);
 
     // Create a scorer and assign them to the tournament
+    const scorerSubject = `test|scorer@example.com|${Math.random().toString(36).slice(2)}`;
     const scorerUserId = await t.run(async (ctx) => {
       const sId = await ctx.db.insert("users", {
         name: "Scorer",
         email: "scorer@example.com",
+        externalId: scorerSubject,
       });
       await ctx.db.insert("tournamentScorers", {
         tournamentId,
@@ -1398,7 +1465,7 @@ describe("authorization - assigned scorer can score", () => {
       });
       return sId;
     });
-    const asScorer = t.withIdentity({ subject: `${scorerUserId}|session456` });
+    const asScorer = t.withIdentity({ subject: scorerSubject });
 
     // Init match
     await asScorer.mutation(api.tennis.initTennisMatch, { matchId, firstServer: 1 });

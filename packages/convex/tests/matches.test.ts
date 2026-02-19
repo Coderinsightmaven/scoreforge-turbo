@@ -21,13 +21,15 @@ type MatchDetails = {
 // ============================================
 
 async function setupUser(t: TestCtx, overrides: { name?: string; email?: string } = {}) {
+  const subject = `test|${overrides.email ?? "test@example.com"}|${Math.random().toString(36).slice(2)}`;
   const userId = await t.run(async (ctx) => {
     return await ctx.db.insert("users", {
       name: overrides.name ?? "Test User",
       email: overrides.email ?? "test@example.com",
+      externalId: subject,
     });
   });
-  const asUser = t.withIdentity({ subject: `${userId}|session123` });
+  const asUser = t.withIdentity({ subject });
   return { userId, asUser };
 }
 
@@ -1120,6 +1122,122 @@ describe("startMatch", () => {
 
     await asScorer.mutation(api.matches.startMatch, { matchId });
 
+    const match = await t.run(async (ctx) => ctx.db.get(matchId));
+    expect(match!.status).toBe("live");
+  });
+
+  it("rejects starting a match when another live match is on the same court", async () => {
+    const t = getTestContext();
+    const { userId, asUser } = await setupUser(t);
+    const { tournamentId, bracketId, matchId } = await setupTournamentWithMatch(t, userId, {
+      matchStatus: "pending",
+    });
+
+    await t.run(async (ctx) => {
+      await ctx.db.patch(matchId, { court: "Court 1" });
+
+      const p3Id = await ctx.db.insert("tournamentParticipants", {
+        tournamentId,
+        bracketId,
+        type: "individual",
+        displayName: "Player 3",
+        seed: 3,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        pointsFor: 0,
+        pointsAgainst: 0,
+        createdAt: Date.now(),
+      });
+      const p4Id = await ctx.db.insert("tournamentParticipants", {
+        tournamentId,
+        bracketId,
+        type: "individual",
+        displayName: "Player 4",
+        seed: 4,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        pointsFor: 0,
+        pointsAgainst: 0,
+        createdAt: Date.now(),
+      });
+
+      await ctx.db.insert("matches", {
+        tournamentId,
+        bracketId,
+        round: 1,
+        matchNumber: 2,
+        participant1Id: p3Id,
+        participant2Id: p4Id,
+        participant1Score: 0,
+        participant2Score: 0,
+        status: "live",
+        court: "Court 1",
+        startedAt: Date.now(),
+        bracketType: "winners",
+      });
+    });
+
+    await expect(asUser.mutation(api.matches.startMatch, { matchId })).rejects.toThrow(
+      "already has a live match"
+    );
+  });
+
+  it("allows starting a match when a live match is on a different court", async () => {
+    const t = getTestContext();
+    const { userId, asUser } = await setupUser(t);
+    const { tournamentId, bracketId, matchId } = await setupTournamentWithMatch(t, userId, {
+      matchStatus: "pending",
+    });
+
+    await t.run(async (ctx) => {
+      await ctx.db.patch(matchId, { court: "Court 2" });
+
+      const p3Id = await ctx.db.insert("tournamentParticipants", {
+        tournamentId,
+        bracketId,
+        type: "individual",
+        displayName: "Player 3",
+        seed: 3,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        pointsFor: 0,
+        pointsAgainst: 0,
+        createdAt: Date.now(),
+      });
+      const p4Id = await ctx.db.insert("tournamentParticipants", {
+        tournamentId,
+        bracketId,
+        type: "individual",
+        displayName: "Player 4",
+        seed: 4,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        pointsFor: 0,
+        pointsAgainst: 0,
+        createdAt: Date.now(),
+      });
+
+      await ctx.db.insert("matches", {
+        tournamentId,
+        bracketId,
+        round: 1,
+        matchNumber: 2,
+        participant1Id: p3Id,
+        participant2Id: p4Id,
+        participant1Score: 0,
+        participant2Score: 0,
+        status: "live",
+        court: "Court 1",
+        startedAt: Date.now(),
+        bracketType: "winners",
+      });
+    });
+
+    await asUser.mutation(api.matches.startMatch, { matchId });
     const match = await t.run(async (ctx) => ctx.db.get(matchId));
     expect(match!.status).toBe("live");
   });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@repo/convex";
 import type { Id } from "@repo/convex/dataModel";
 import type { TennisState } from "@repo/convex/types/tennis";
@@ -313,6 +313,7 @@ export function FirstServerSetup({
   participant2Name,
   tennisConfig,
   matchStatus,
+  matchCourt,
 }: {
   matchId: string;
   tournamentId: string;
@@ -320,12 +321,36 @@ export function FirstServerSetup({
   participant2Name: string;
   tennisConfig?: { isAdScoring: boolean; setsToWin: number };
   matchStatus?: string;
+  matchCourt?: string;
 }): React.ReactNode {
   const [selectedServer, setSelectedServer] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
 
   const initTennisMatch = useMutation(api.tennis.initTennisMatch);
   const startMatch = useMutation(api.matches.startMatch);
+  const shouldCheckCourt =
+    !!matchCourt && (matchStatus === "pending" || matchStatus === "scheduled");
+  const liveMatches = useQuery(
+    api.matches.listMatches,
+    shouldCheckCourt
+      ? {
+          tournamentId: tournamentId as Id<"tournaments">,
+          status: "live",
+        }
+      : "skip"
+  );
+  const isCourtAvailabilityLoading = shouldCheckCourt && liveMatches === undefined;
+  const hasCourtConflict =
+    shouldCheckCourt &&
+    (liveMatches ?? []).some(
+      (liveMatch) => liveMatch._id !== matchId && liveMatch.court === matchCourt
+    );
+  const startDisabledReason = isCourtAvailabilityLoading
+    ? "Checking court availability..."
+    : hasCourtConflict
+      ? `Court ${matchCourt} already has a live match. Finish it before starting this one.`
+      : undefined;
+  const isStartDisabled = loading || !!startDisabledReason;
 
   const handleStart = async () => {
     setLoading(true);
@@ -454,11 +479,14 @@ export function FirstServerSetup({
         {/* Start Button */}
         <button
           onClick={handleStart}
-          disabled={loading}
-          className="w-full py-4 font-semibold text-text-inverse bg-success rounded-lg hover:opacity-90 transition-all disabled:opacity-50"
+          disabled={isStartDisabled}
+          className="w-full py-4 font-semibold text-text-inverse bg-success rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "Starting..." : "Start Tennis Match"}
         </button>
+        {startDisabledReason && (
+          <p className="mt-2 text-center text-xs text-warning">{startDisabledReason}</p>
+        )}
       </div>
     </div>
   );

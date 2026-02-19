@@ -6,13 +6,15 @@ import type { Id } from "../convex/_generated/dataModel";
 type TestCtx = ReturnType<typeof getTestContext>;
 
 async function setupUser(t: TestCtx, overrides: { name?: string; email?: string } = {}) {
+  const subject = `test|${overrides.email ?? "test@example.com"}|${Math.random().toString(36).slice(2)}`;
   const userId = await t.run(async (ctx) => {
     return await ctx.db.insert("users", {
       name: overrides.name ?? "Test User",
       email: overrides.email ?? "test@example.com",
+      externalId: subject,
     });
   });
-  const asUser = t.withIdentity({ subject: `${userId}|session123` });
+  const asUser = t.withIdentity({ subject });
   return { userId, asUser };
 }
 

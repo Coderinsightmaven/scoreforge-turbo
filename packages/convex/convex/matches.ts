@@ -8,6 +8,7 @@ import { errors } from "./lib/errors";
 import { canScoreTournament, getTournamentRole } from "./lib/accessControl";
 import { MAX_LENGTHS, validateStringLength } from "./lib/validation";
 import { assertNotInMaintenance } from "./lib/maintenance";
+import { assertCourtAvailableForLiveMatch } from "./lib/courtAvailability";
 
 // ============================================
 // Queries
@@ -745,6 +746,12 @@ export const startMatch = mutation({
     if (!match.participant1Id || !match.participant2Id) {
       throw errors.invalidState("Both participants must be assigned before starting");
     }
+
+    await assertCourtAvailableForLiveMatch(ctx, {
+      tournamentId: match.tournamentId,
+      court: match.court,
+      excludeMatchId: match._id,
+    });
 
     await ctx.db.patch("matches", args.matchId, {
       status: "live",

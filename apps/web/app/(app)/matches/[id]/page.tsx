@@ -31,6 +31,15 @@ export default function MatchDetailPage({
 }): React.ReactNode {
   const { id } = use(params);
   const match = useQuery(api.matches.getMatch, { matchId: id as Id<"matches"> });
+  const liveMatches = useQuery(
+    api.matches.listMatches,
+    match
+      ? {
+          tournamentId: match.tournamentId as Id<"tournaments">,
+          status: "live",
+        }
+      : "skip"
+  );
 
   if (match === undefined) {
     return <LoadingSkeleton />;
@@ -57,6 +66,19 @@ export default function MatchDetailPage({
   const needsSetup = isTennis && !match.tennisState;
   const isLive = match.status === "live";
   const isMatchComplete = match.tennisState?.isMatchComplete;
+  const shouldCheckCourt =
+    (match.status === "pending" || match.status === "scheduled") && !!match.court;
+  const isCourtAvailabilityLoading = shouldCheckCourt && liveMatches === undefined;
+  const hasCourtConflict =
+    shouldCheckCourt &&
+    (liveMatches ?? []).some(
+      (liveMatch) => liveMatch._id !== match._id && liveMatch.court === match.court
+    );
+  const startDisabledReason = isCourtAvailabilityLoading
+    ? "Checking court availability..."
+    : hasCourtConflict
+      ? `Court ${match.court} already has a live match. Finish it before starting this one.`
+      : undefined;
 
   // Full-screen scoring for live tennis matches
   if (isLive && !isMatchComplete && match.tennisState && canScore) {
@@ -188,6 +210,7 @@ export default function MatchDetailPage({
                 participant2Name={match.participant2.displayName}
                 tennisConfig={match.tennisConfig}
                 matchStatus={match.status}
+                startDisabledReason={startDisabledReason}
               />
             )}
 
@@ -228,7 +251,13 @@ export default function MatchDetailPage({
           {canScore &&
             !isByeMatch &&
             (match.sport !== "tennis" || !match.tennisState) &&
-            !needsSetup && <MatchActions match={match} tournamentStatus={match.tournamentStatus} />}
+            !needsSetup && (
+              <MatchActions
+                match={match}
+                tournamentStatus={match.tournamentStatus}
+                startDisabledReason={startDisabledReason}
+              />
+            )}
 
           {/* Match Info */}
           <div className="flex flex-wrap gap-6 border-t border-border/70 p-6">

@@ -13,18 +13,21 @@ export function InlineFirstServerSetup({
   participant2Name,
   tennisConfig,
   matchStatus,
+  startDisabledReason,
 }: {
   matchId: string;
   participant1Name: string;
   participant2Name: string;
   tennisConfig?: { isAdScoring: boolean; setsToWin: number };
   matchStatus?: string;
+  startDisabledReason?: string;
 }) {
   const [selectedServer, setSelectedServer] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
 
   const initTennisMatch = useMutation(api.tennis.initTennisMatch);
   const startMatch = useMutation(api.matches.startMatch);
+  const isStartDisabled = loading || !!startDisabledReason;
 
   const handleStart = async () => {
     setLoading(true);
@@ -145,11 +148,14 @@ export function InlineFirstServerSetup({
       {/* Start Button */}
       <button
         onClick={handleStart}
-        disabled={loading}
-        className="w-full py-3 font-semibold text-text-inverse bg-success rounded-lg hover:opacity-90 transition-all disabled:opacity-50"
+        disabled={isStartDisabled}
+        className="w-full py-3 font-semibold text-text-inverse bg-success rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? "Starting..." : "Start Tennis Match"}
       </button>
+      {startDisabledReason && (
+        <p className="mt-2 text-center text-xs text-warning">{startDisabledReason}</p>
+      )}
     </div>
   );
 }
