@@ -42,21 +42,36 @@ export default function ScorerHomeScreen() {
     }
   }, [session, sessionValid, signOut]);
 
-  const tournament = useQuery(api.tournaments.getTournament, {
-    tournamentId: session?.tournamentId as Id<"tournaments">,
-    tempScorerToken: session?.token,
-  });
+  const tournament = useQuery(
+    api.tournaments.getTournament,
+    session?.tournamentId
+      ? {
+          tournamentId: session.tournamentId as Id<"tournaments">,
+          tempScorerToken: session.token,
+        }
+      : "skip"
+  );
 
-  const allMatches = useQuery(api.matches.listMatches, {
-    tournamentId: session?.tournamentId as Id<"tournaments">,
-    status: statusFilter === "all" ? undefined : statusFilter,
-    tempScorerToken: session?.token,
-  });
-  const liveMatches = useQuery(api.matches.listMatches, {
-    tournamentId: session?.tournamentId as Id<"tournaments">,
-    status: "live",
-    tempScorerToken: session?.token,
-  });
+  const allMatches = useQuery(
+    api.matches.listMatches,
+    session?.tournamentId
+      ? {
+          tournamentId: session.tournamentId as Id<"tournaments">,
+          status: statusFilter === "all" ? undefined : statusFilter,
+          tempScorerToken: session.token,
+        }
+      : "skip"
+  );
+  const liveMatches = useQuery(
+    api.matches.listMatches,
+    session?.tournamentId
+      ? {
+          tournamentId: session.tournamentId as Id<"tournaments">,
+          status: "live",
+          tempScorerToken: session.token,
+        }
+      : "skip"
+  );
 
   // Filter to only show matches on this scorer's assigned court
   const matches = session?.assignedCourt

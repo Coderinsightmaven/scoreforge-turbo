@@ -413,6 +413,14 @@ export default function SignUpPage(): React.ReactNode {
             <Link href="/sign-in" className="font-semibold text-foreground hover:text-brand">
               Sign in
             </Link>
+            <div className="mt-2 text-xs">
+              <Link
+                href="/privacy"
+                className="font-semibold text-muted-foreground hover:text-brand"
+              >
+                Privacy Policy
+              </Link>
+            </div>
           </div>
         </div>
       </div>

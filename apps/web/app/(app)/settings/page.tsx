@@ -205,6 +205,16 @@ export default function SettingsPage(): React.ReactNode {
                   })}
                 </p>
               </div>
+
+              <div className="border-t border-border pt-4">
+                <p className="text-caption text-muted-foreground">Legal</p>
+                <Link
+                  href="/privacy"
+                  className="mt-2 inline-flex text-sm font-semibold text-foreground transition-colors hover:text-brand"
+                >
+                  View Privacy Policy
+                </Link>
+              </div>
             </CardContent>
           </Card>
 

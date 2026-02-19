@@ -356,6 +356,17 @@ export default function LandingPage(): React.ReactNode {
           </div>
         </div>
       </section>
+
+      <section className="container pb-10">
+        <div className="flex items-center justify-center border-t border-border/70 pt-6">
+          <Link
+            href="/privacy"
+            className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Privacy Policy
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }
