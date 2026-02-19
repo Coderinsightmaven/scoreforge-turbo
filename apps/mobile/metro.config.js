@@ -17,8 +17,7 @@ config.resolver.nodeModulesPaths = [
   path.resolve(monorepoRoot, "node_modules"),
 ];
 
-// Avoid pulling a second React instance from other workspace packages during EAS release bundling.
-config.resolver.disableHierarchicalLookup = true;
+// Keep React pinned to the app copy to avoid duplicate React instances in monorepo bundles.
 config.resolver.extraNodeModules = {
   react: path.resolve(projectRoot, "node_modules/react"),
   "react-dom": path.resolve(projectRoot, "node_modules/react-dom"),
