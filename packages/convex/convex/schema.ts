@@ -375,9 +375,10 @@ export default defineSchema({
   // Temporary scorers - lightweight accounts for tournament-specific scoring
   temporaryScorers: defineTable({
     tournamentId: v.id("tournaments"),
-    username: v.string(), // Simple identifier (e.g., "Court1")
-    pinHash: v.string(), // Hashed 4-6 digit PIN
-    displayName: v.string(), // Shown in UI
+    username: v.string(), // Slug of court name (e.g., "court-1")
+    pinHash: v.string(), // Hashed 6-char alphanumeric PIN
+    displayName: v.string(), // Court display name (e.g., "Court 1")
+    assignedCourt: v.optional(v.string()), // Court name from tournaments.courts[]
     createdBy: v.id("users"), // Tournament owner
     createdAt: v.number(),
     isActive: v.boolean(),

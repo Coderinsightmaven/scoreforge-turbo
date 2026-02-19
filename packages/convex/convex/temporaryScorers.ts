@@ -10,8 +10,7 @@ import { v } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
 import { errors } from "./lib/errors";
 import { assertNotInMaintenance } from "./lib/maintenance";
-import { validateStringLength, MAX_LENGTHS } from "./lib/validation";
-import { randomInt, randomString } from "./lib/crypto";
+import { randomString } from "./lib/crypto";
 import bcrypt from "bcryptjs";
 
 const SCORER_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -64,11 +63,13 @@ function generateScorerCode(): string {
   return randomString(6, SCORER_CODE_ALPHABET);
 }
 
+const PIN_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+
 /**
- * Generate a random 4-digit PIN
+ * Generate a random 6-character alphanumeric PIN (ambiguity-free charset)
  */
 function generatePin(): string {
-  return (1000 + randomInt(9000)).toString();
+  return randomString(6, PIN_ALPHABET);
 }
 
 /**
@@ -76,6 +77,17 @@ function generatePin(): string {
  */
 function generateSessionToken(): string {
   return randomString(64, SESSION_TOKEN_ALPHABET);
+}
+
+/**
+ * Convert a court name to a URL-safe username slug
+ */
+function slugifyCourt(court: string): string {
+  return court
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 /**
@@ -419,6 +431,7 @@ export const listTemporaryScorers = query({
       _id: v.id("temporaryScorers"),
       username: v.string(),
       displayName: v.string(),
+      assignedCourt: v.optional(v.string()),
       createdAt: v.number(),
       isActive: v.boolean(),
     })
@@ -449,9 +462,49 @@ export const listTemporaryScorers = query({
       _id: scorer._id,
       username: scorer.username,
       displayName: scorer.displayName,
+      assignedCourt: scorer.assignedCourt,
       createdAt: scorer.createdAt,
       isActive: scorer.isActive,
     }));
+  },
+});
+
+/**
+ * List court-bound scorers for a tournament (owner only).
+ * Used by the ScorersTab to show court scorers with status.
+ */
+export const getCourtScorers = query({
+  args: { tournamentId: v.id("tournaments") },
+  returns: v.array(
+    v.object({
+      _id: v.id("temporaryScorers"),
+      court: v.string(),
+      username: v.string(),
+      isActive: v.boolean(),
+      createdAt: v.number(),
+    })
+  ),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) return [];
+
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
+    if (!tournament || tournament.createdBy !== user._id) return [];
+
+    const scorers = await ctx.db
+      .query("temporaryScorers")
+      .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
+      .collect();
+
+    return scorers
+      .filter((s) => s.assignedCourt !== undefined)
+      .map((s) => ({
+        _id: s._id,
+        court: s.assignedCourt!,
+        username: s.username,
+        isActive: s.isActive,
+        createdAt: s.createdAt,
+      }));
   },
 });
 
@@ -519,6 +572,7 @@ export const verifySession = query({
       tournamentId: v.id("tournaments"),
       displayName: v.string(),
       username: v.string(),
+      assignedCourt: v.optional(v.string()),
       tournamentName: v.string(),
       sport: v.string(),
     }),
@@ -551,6 +605,7 @@ export const verifySession = query({
       tournamentId: scorer.tournamentId,
       displayName: scorer.displayName,
       username: scorer.username,
+      assignedCourt: scorer.assignedCourt,
       tournamentName: tournament.name,
       sport: tournament.sport,
     };
@@ -601,102 +656,6 @@ export const generateTournamentScorerCode = mutation({
 
     await ctx.db.patch("tournaments", args.tournamentId, { scorerCode: code });
     return code;
-  },
-});
-
-/**
- * Create a temporary scorer for a tournament (owner only)
- * Returns the scorer ID and the PIN (shown once)
- */
-export const createTemporaryScorer = mutation({
-  args: {
-    tournamentId: v.id("tournaments"),
-    username: v.string(),
-    displayName: v.string(),
-  },
-  returns: v.object({
-    scorerId: v.id("temporaryScorers"),
-    pin: v.string(),
-    scorerCode: v.string(),
-  }),
-  handler: async (ctx, args) => {
-    const user = await getCurrentUserOrThrow(ctx);
-    const userId = user._id;
-
-    await assertNotInMaintenance(ctx, userId);
-
-    const tournament = await ctx.db.get("tournaments", args.tournamentId);
-    if (!tournament) {
-      throw errors.notFound("Tournament");
-    }
-
-    if (tournament.createdBy !== userId) {
-      throw errors.unauthorized("Only the tournament owner can create temporary scorers");
-    }
-
-    // Validate input lengths
-    validateStringLength(args.displayName, "Display name", MAX_LENGTHS.scorerDisplayName);
-
-    // Validate username
-    const normalizedUsername = args.username.trim().toLowerCase();
-    if (normalizedUsername.length < 1 || normalizedUsername.length > 20) {
-      throw errors.invalidInput("Username must be between 1 and 20 characters");
-    }
-
-    if (!/^[a-z0-9_-]+$/.test(normalizedUsername)) {
-      throw errors.invalidInput(
-        "Username can only contain letters, numbers, underscores, and hyphens"
-      );
-    }
-
-    // Check for duplicate username in this tournament
-    const existing = await ctx.db
-      .query("temporaryScorers")
-      .withIndex("by_tournament_and_username", (q) =>
-        q.eq("tournamentId", args.tournamentId).eq("username", normalizedUsername)
-      )
-      .first();
-
-    if (existing) {
-      throw errors.conflict("A scorer with this username already exists for this tournament");
-    }
-
-    // Generate scorer code if tournament doesn't have one
-    let scorerCode = tournament.scorerCode;
-    if (!scorerCode) {
-      scorerCode = generateScorerCode();
-      let attempts = 0;
-      while (attempts < 10) {
-        const existingTournament = await ctx.db
-          .query("tournaments")
-          .withIndex("by_scorer_code", (q) => q.eq("scorerCode", scorerCode))
-          .first();
-        if (!existingTournament) break;
-        scorerCode = generateScorerCode();
-        attempts++;
-      }
-      await ctx.db.patch("tournaments", args.tournamentId, { scorerCode });
-    }
-
-    // Generate PIN and hash it
-    const pin = generatePin();
-    const pinHash = hashPin(pin);
-
-    const scorerId = await ctx.db.insert("temporaryScorers", {
-      tournamentId: args.tournamentId,
-      username: normalizedUsername,
-      pinHash,
-      displayName: args.displayName.trim() || normalizedUsername,
-      createdBy: userId,
-      createdAt: Date.now(),
-      isActive: true,
-    });
-
-    return {
-      scorerId,
-      pin,
-      scorerCode,
-    };
   },
 });
 
@@ -821,47 +780,6 @@ export const resetTemporaryScorerPin = mutation({
 });
 
 /**
- * Delete a temporary scorer permanently (owner only)
- */
-export const deleteTemporaryScorer = mutation({
-  args: { scorerId: v.id("temporaryScorers") },
-  returns: v.null(),
-  handler: async (ctx, args) => {
-    const user = await getCurrentUserOrThrow(ctx);
-    const userId = user._id;
-
-    await assertNotInMaintenance(ctx, userId);
-
-    const scorer = await ctx.db.get("temporaryScorers", args.scorerId);
-    if (!scorer) {
-      throw errors.notFound("Scorer");
-    }
-
-    const tournament = await ctx.db.get("tournaments", scorer.tournamentId);
-    if (!tournament) {
-      throw errors.notFound("Tournament");
-    }
-
-    if (tournament.createdBy !== userId) {
-      throw errors.unauthorized("Only the tournament owner can delete scorers");
-    }
-
-    // Delete all sessions for this scorer
-    const sessions = await ctx.db
-      .query("temporaryScorerSessions")
-      .withIndex("by_scorer", (q) => q.eq("scorerId", args.scorerId))
-      .collect();
-
-    for (const session of sessions) {
-      await ctx.db.delete("temporaryScorerSessions", session._id);
-    }
-
-    await ctx.db.delete("temporaryScorers", args.scorerId);
-    return null;
-  },
-});
-
-/**
  * Sign in as a temporary scorer (no auth required)
  * Returns a session token if credentials are valid
  * Includes rate limiting to prevent brute-force attacks
@@ -878,6 +796,7 @@ export const signIn = mutation({
       scorerId: v.id("temporaryScorers"),
       tournamentId: v.id("tournaments"),
       displayName: v.string(),
+      assignedCourt: v.optional(v.string()),
       tournamentName: v.string(),
       sport: v.string(),
       expiresAt: v.number(),
@@ -965,6 +884,7 @@ export const signIn = mutation({
       scorerId: scorer._id,
       tournamentId: tournament._id,
       displayName: scorer.displayName,
+      assignedCourt: scorer.assignedCourt,
       tournamentName: tournament.name,
       sport: tournament.sport,
       expiresAt,
@@ -1129,5 +1049,109 @@ export const deactivateAllForTournament = internalMutation({
     }
 
     return deactivated;
+  },
+});
+
+// ============================================
+// Court-based scorer generation
+// ============================================
+
+/**
+ * Auto-generate temporary scorers for each court in a tournament.
+ * Creates new scorers for courts that don't have one yet,
+ * and deactivates scorers for courts that were removed.
+ */
+export const generateCourtScorers = internalMutation({
+  args: {
+    tournamentId: v.id("tournaments"),
+    courts: v.array(v.string()),
+    createdBy: v.id("users"),
+  },
+  returns: v.array(
+    v.object({
+      court: v.string(),
+      username: v.string(),
+      pin: v.string(),
+      isNew: v.boolean(),
+    })
+  ),
+  handler: async (ctx, args) => {
+    const existingScorers = await ctx.db
+      .query("temporaryScorers")
+      .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
+      .collect();
+
+    const courtSet = new Set(args.courts);
+    const results: Array<{ court: string; username: string; pin: string; isNew: boolean }> = [];
+
+    // Ensure tournament has a scorer code
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
+    if (tournament && !tournament.scorerCode) {
+      let code = "";
+      let attempts = 0;
+      do {
+        code = generateScorerCode();
+        const existing = await ctx.db
+          .query("tournaments")
+          .filter((q) => q.eq(q.field("scorerCode"), code))
+          .first();
+        if (!existing) break;
+        attempts++;
+      } while (attempts < 10);
+      await ctx.db.patch("tournaments", args.tournamentId, { scorerCode: code });
+    }
+
+    // Create scorers for new courts
+    for (const court of args.courts) {
+      const slug = slugifyCourt(court);
+      const existing = existingScorers.find((s) => s.assignedCourt === court);
+
+      if (existing) {
+        // Court already has a scorer — reactivate if needed, but no new PIN
+        if (!existing.isActive) {
+          await ctx.db.patch("temporaryScorers", existing._id, { isActive: true });
+        }
+        results.push({
+          court,
+          username: existing.username,
+          pin: "", // PIN not available (only hash stored)
+          isNew: false,
+        });
+        continue;
+      }
+
+      // Generate new scorer for this court
+      const pin = generatePin();
+      const pinHash = hashPin(pin);
+
+      await ctx.db.insert("temporaryScorers", {
+        tournamentId: args.tournamentId,
+        username: slug,
+        pinHash,
+        displayName: court,
+        assignedCourt: court,
+        createdBy: args.createdBy,
+        createdAt: Date.now(),
+        isActive: true,
+      });
+
+      results.push({ court, username: slug, pin, isNew: true });
+    }
+
+    // Deactivate scorers for removed courts
+    for (const scorer of existingScorers) {
+      if (scorer.assignedCourt && !courtSet.has(scorer.assignedCourt)) {
+        await ctx.db.patch("temporaryScorers", scorer._id, { isActive: false });
+        const sessions = await ctx.db
+          .query("temporaryScorerSessions")
+          .withIndex("by_scorer", (q) => q.eq("scorerId", scorer._id))
+          .collect();
+        for (const session of sessions) {
+          await ctx.db.delete("temporaryScorerSessions", session._id);
+        }
+      }
+    }
+
+    return results;
   },
 });

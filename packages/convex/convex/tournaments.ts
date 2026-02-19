@@ -686,6 +686,15 @@ export const createTournament = mutation({
       maxParticipants: args.maxParticipants,
     });
 
+    // Auto-generate court scorers for each court
+    if (normalizedCourts.length > 0) {
+      await ctx.runMutation(internal.temporaryScorers.generateCourtScorers, {
+        tournamentId,
+        courts: normalizedCourts,
+        createdBy: userId,
+      });
+    }
+
     return tournamentId;
   },
 });
@@ -751,6 +760,48 @@ export const updateTournament = mutation({
     if (args.scoringConfig !== undefined) updates.scoringConfig = args.scoringConfig;
 
     await ctx.db.patch("tournaments", args.tournamentId, updates);
+    return null;
+  },
+});
+
+/**
+ * Update courts for a tournament and regenerate court scorers (owner only)
+ */
+export const updateCourts = mutation({
+  args: {
+    tournamentId: v.id("tournaments"),
+    courts: v.array(v.string()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUserOrThrow(ctx);
+    const userId = user._id;
+    await assertNotInMaintenance(ctx, userId);
+
+    const tournament = await ctx.db.get("tournaments", args.tournamentId);
+    if (!tournament) {
+      throw errors.notFound("Tournament");
+    }
+    if (tournament.createdBy !== userId) {
+      throw errors.unauthorized("Only the tournament owner can update courts");
+    }
+
+    // Normalize courts (same logic as createTournament)
+    const normalizedCourts = [...new Set(args.courts.map((c) => c.trim()).filter(Boolean))];
+    if (normalizedCourts.length === 0) {
+      throw errors.invalidInput("At least one court is required");
+    }
+    validateStringArrayLength(normalizedCourts, "courts", MAX_LENGTHS.courtName);
+
+    await ctx.db.patch("tournaments", args.tournamentId, { courts: normalizedCourts });
+
+    // Regenerate court scorers
+    await ctx.runMutation(internal.temporaryScorers.generateCourtScorers, {
+      tournamentId: args.tournamentId,
+      courts: normalizedCourts,
+      createdBy: userId,
+    });
+
     return null;
   },
 });

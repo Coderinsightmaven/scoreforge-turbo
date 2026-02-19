@@ -9,11 +9,17 @@ import { ConfirmDialog } from "@/app/components/ConfirmDialog";
 import { getDisplayMessage } from "@/lib/errors";
 import { TabSkeleton } from "@/app/components/TabSkeleton";
 import { ScorerCodeSection } from "./scorers/ScorerCodeSection";
-import { TemporaryScorersSection } from "./scorers/TemporaryScorersSection";
+import { CourtScorersSection } from "./scorers/CourtScorersSection";
+import { CourtPinQRDialog } from "./scorers/CourtPinQRDialog";
 import { AccountScorersSection } from "./scorers/AccountScorersSection";
 import { AddScorerModal } from "./scorers/AddScorerModal";
-import { CreateTempScorerModal } from "./scorers/CreateTempScorerModal";
 import { ResetPinModal } from "./scorers/ResetPinModal";
+
+interface QRDialogState {
+  court: string;
+  username: string;
+  pin?: string;
+}
 
 export function ScorersTab({ tournamentId }: { tournamentId: string }): React.ReactNode {
   // Regular scorers
@@ -22,8 +28,8 @@ export function ScorersTab({ tournamentId }: { tournamentId: string }): React.Re
   });
   const removeScorer = useMutation(api.tournamentScorers.removeScorer);
 
-  // Temporary scorers
-  const tempScorers = useQuery(api.temporaryScorers.listTemporaryScorers, {
+  // Court scorers
+  const courtScorers = useQuery(api.temporaryScorers.getCourtScorers, {
     tournamentId: tournamentId as Id<"tournaments">,
   });
   const scorerCode = useQuery(api.temporaryScorers.getScorerCode, {
@@ -32,14 +38,14 @@ export function ScorersTab({ tournamentId }: { tournamentId: string }): React.Re
   const deactivateTempScorer = useMutation(api.temporaryScorers.deactivateTemporaryScorer);
   const reactivateTempScorer = useMutation(api.temporaryScorers.reactivateTemporaryScorer);
   const resetTempScorerPin = useMutation(api.temporaryScorers.resetTemporaryScorerPin);
-  const deleteTempScorer = useMutation(api.temporaryScorers.deleteTemporaryScorer);
 
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showTempScorerModal, setShowTempScorerModal] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [resetPinResult, setResetPinResult] = useState<{ scorerId: string; pin: string } | null>(
     null
   );
+  const [courtPins, setCourtPins] = useState<Map<string, string>>(new Map());
+  const [qrDialog, setQrDialog] = useState<QRDialogState | null>(null);
   const [confirmState, setConfirmState] = useState<{
     action: () => void;
     title: string;
@@ -48,7 +54,7 @@ export function ScorersTab({ tournamentId }: { tournamentId: string }): React.Re
     variant: "danger" | "default";
   } | null>(null);
 
-  if (!scorers || tempScorers === undefined) {
+  if (!scorers || courtScorers === undefined) {
     return <TabSkeleton />;
   }
 
@@ -106,6 +112,11 @@ export function ScorersTab({ tournamentId }: { tournamentId: string }): React.Re
             scorerId: scorerId as Id<"temporaryScorers">,
           });
           setResetPinResult({ scorerId, pin: newPin });
+          // Store PIN so it shows inline for the court
+          const scorer = courtScorers.find((s) => s._id === scorerId);
+          if (scorer) {
+            setCourtPins((prev) => new Map(prev).set(scorer.court, newPin));
+          }
         } catch (err) {
           toast.error(getDisplayMessage(err) || "Failed to reset PIN");
         }
@@ -117,20 +128,20 @@ export function ScorersTab({ tournamentId }: { tournamentId: string }): React.Re
     });
   };
 
-  const handleDeleteTempScorer = (scorerId: string) => {
-    setConfirmState({
-      action: async () => {
-        try {
-          await deleteTempScorer({ scorerId: scorerId as Id<"temporaryScorers"> });
-        } catch (err) {
-          toast.error(getDisplayMessage(err) || "Failed to delete scorer");
-        }
-      },
-      title: "Delete Scorer",
-      description: "Permanently delete this scorer? This cannot be undone.",
-      confirmLabel: "Delete Scorer",
-      variant: "danger",
-    });
+  const handleShowQR = async (scorer: { _id: string; court: string; username: string }) => {
+    let pin = courtPins.get(scorer.court);
+    if (!pin) {
+      try {
+        pin = await resetTempScorerPin({
+          scorerId: scorer._id as Id<"temporaryScorers">,
+        });
+        setCourtPins((prev) => new Map(prev).set(scorer.court, pin!));
+      } catch (err) {
+        toast.error(getDisplayMessage(err) || "Failed to generate PIN");
+        return;
+      }
+    }
+    setQrDialog({ court: scorer.court, username: scorer.username, pin });
   };
 
   return (
@@ -138,14 +149,15 @@ export function ScorersTab({ tournamentId }: { tournamentId: string }): React.Re
       {/* Tournament Scorer Code */}
       {scorerCode && <ScorerCodeSection scorerCode={scorerCode} />}
 
-      {/* Temporary Scorers Section */}
-      <TemporaryScorersSection
-        tempScorers={tempScorers}
-        onCreateClick={() => setShowTempScorerModal(true)}
+      {/* Court Scorers Section */}
+      <CourtScorersSection
+        courtScorers={courtScorers}
+        courtPins={courtPins}
+        scorerCode={scorerCode ?? null}
+        onShowQR={handleShowQR}
         onResetPin={handleResetPin}
         onDeactivate={handleDeactivateTempScorer}
         onReactivate={handleReactivateTempScorer}
-        onDelete={handleDeleteTempScorer}
       />
 
       {/* Regular Scorers Section */}
@@ -161,11 +173,15 @@ export function ScorersTab({ tournamentId }: { tournamentId: string }): React.Re
         <AddScorerModal tournamentId={tournamentId} onClose={() => setShowAddModal(false)} />
       )}
 
-      {/* Create Temporary Scorer Modal */}
-      {showTempScorerModal && (
-        <CreateTempScorerModal
-          tournamentId={tournamentId}
-          onClose={() => setShowTempScorerModal(false)}
+      {/* QR Code Dialog */}
+      {qrDialog && scorerCode && (
+        <CourtPinQRDialog
+          open={!!qrDialog}
+          onClose={() => setQrDialog(null)}
+          courtName={qrDialog.court}
+          pin={qrDialog.pin ?? null}
+          scorerCode={scorerCode}
+          username={qrDialog.username}
         />
       )}
 

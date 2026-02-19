@@ -46,11 +46,16 @@ export default function ScorerHomeScreen() {
     tempScorerToken: session?.token,
   });
 
-  const matches = useQuery(api.matches.listMatches, {
+  const allMatches = useQuery(api.matches.listMatches, {
     tournamentId: session?.tournamentId as Id<"tournaments">,
     status: statusFilter === "all" ? undefined : statusFilter,
     tempScorerToken: session?.token,
   });
+
+  // Filter to only show matches on this scorer's assigned court
+  const matches = session?.assignedCourt
+    ? allMatches?.filter((m) => m.court === session.assignedCourt)
+    : allMatches;
 
   // Convex provides real-time updates; brief visual confirmation only
   const onRefresh = () => {
@@ -93,6 +98,9 @@ export default function ScorerHomeScreen() {
               <Text className="font-display-bold text-lg text-text-primary dark:text-text-primary-dark">
                 {session.displayName}
               </Text>
+              {session.assignedCourt && (
+                <Text className="text-xs font-semibold text-brand">{session.assignedCourt}</Text>
+              )}
               <Text className="text-sm text-text-tertiary dark:text-text-tertiary-dark">
                 {formatTournamentName(session.tournamentName)}
               </Text>

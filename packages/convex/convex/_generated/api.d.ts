@@ -21,6 +21,7 @@ import type * as lib_maintenance from "../lib/maintenance.js";
 import type * as lib_tennisScoring from "../lib/tennisScoring.js";
 import type * as lib_validation from "../lib/validation.js";
 import type * as matches from "../matches.js";
+import type * as migrations_migrateTemporaryScorers from "../migrations/migrateTemporaryScorers.js";
 import type * as publicApi from "../publicApi.js";
 import type * as reports from "../reports.js";
 import type * as scoringLogs from "../scoringLogs.js";
@@ -53,6 +54,7 @@ declare const fullApi: ApiFromModules<{
   "lib/tennisScoring": typeof lib_tennisScoring;
   "lib/validation": typeof lib_validation;
   matches: typeof matches;
+  "migrations/migrateTemporaryScorers": typeof migrations_migrateTemporaryScorers;
   publicApi: typeof publicApi;
   reports: typeof reports;
   scoringLogs: typeof scoringLogs;

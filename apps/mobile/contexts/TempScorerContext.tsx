@@ -6,6 +6,7 @@ export interface TempScorerSession {
   scorerId: string;
   tournamentId: string;
   displayName: string;
+  assignedCourt?: string;
   tournamentName: string;
   sport: string;
   expiresAt: number;
