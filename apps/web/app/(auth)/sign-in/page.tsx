@@ -2,6 +2,7 @@
 
 import { useSignIn } from "@clerk/nextjs";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,7 @@ function GoogleIcon({ className }: { className?: string }) {
 
 export default function SignInPage(): React.ReactNode {
   const { signIn, setActive, isLoaded } = useSignIn();
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -63,6 +65,7 @@ export default function SignInPage(): React.ReactNode {
       });
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
+        router.push("/dashboard");
       } else if (result.status === "needs_second_factor") {
         setError(
           "Two-factor authentication is required but not yet supported. Please contact an administrator."

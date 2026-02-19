@@ -4,6 +4,7 @@ import { useSignUp } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { api } from "@repo/convex";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,7 @@ function GoogleIcon({ className }: { className?: string }) {
 
 export default function SignUpPage(): React.ReactNode {
   const { signUp, setActive, isLoaded } = useSignUp();
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
@@ -93,6 +95,7 @@ export default function SignUpPage(): React.ReactNode {
       });
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
+        router.push("/dashboard");
       } else if (result.status === "missing_requirements") {
         await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
         setVerifying(true);
@@ -123,6 +126,7 @@ export default function SignUpPage(): React.ReactNode {
       });
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
+        router.push("/dashboard");
       } else {
         setError("Verification incomplete. Please try again.");
       }
