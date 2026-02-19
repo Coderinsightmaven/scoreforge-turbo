@@ -26,7 +26,6 @@ type LoginType = "regular" | "scorer";
 export default function SignInScreen() {
   const { signIn: clerkSignIn, setActive, isLoaded } = useSignIn();
   const { startOAuthFlow: startGoogleOAuth } = useOAuth({ strategy: "oauth_google" });
-  const { startOAuthFlow: startAppleOAuth } = useOAuth({ strategy: "oauth_apple" });
   const { setSession } = useTempScorer();
   const router = useRouter();
   const [loginType, setLoginType] = useState<LoginType>("regular");
@@ -43,24 +42,20 @@ export default function SignInScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleOAuthSignIn = useCallback(
-    async (provider: "google" | "apple") => {
-      try {
-        setError(null);
-        setLoading(true);
-        const startOAuth = provider === "google" ? startGoogleOAuth : startAppleOAuth;
-        const { createdSessionId, setActive: setOAuthActive } = await startOAuth();
-        if (createdSessionId && setOAuthActive) {
-          await setOAuthActive({ session: createdSessionId });
-        }
-      } catch (err) {
-        setError(getDisplayMessage(err));
-      } finally {
-        setLoading(false);
+  const handleOAuthSignIn = useCallback(async () => {
+    try {
+      setError(null);
+      setLoading(true);
+      const { createdSessionId, setActive: setOAuthActive } = await startGoogleOAuth();
+      if (createdSessionId && setOAuthActive) {
+        await setOAuthActive({ session: createdSessionId });
       }
-    },
-    [startGoogleOAuth, startAppleOAuth]
-  );
+    } catch (err) {
+      setError(getDisplayMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [startGoogleOAuth]);
 
   const signInTempScorer = useMutation(api.temporaryScorers.signIn);
   const lookupTournamentByCode = useMutation(api.temporaryScorers.getTournamentByCode);
@@ -271,7 +266,7 @@ export default function SignInScreen() {
                   <View className="gap-3">
                     <TouchableOpacity
                       className="w-full flex-row items-center justify-center gap-3 rounded-xl border-2 border-border bg-bg-secondary py-4 dark:border-border-dark dark:bg-bg-secondary-dark"
-                      onPress={() => handleOAuthSignIn("google")}
+                      onPress={handleOAuthSignIn}
                       disabled={loading}
                       activeOpacity={0.8}>
                       <Text className="text-base font-semibold text-text-primary dark:text-text-primary-dark">
@@ -279,19 +274,6 @@ export default function SignInScreen() {
                       </Text>
                       <Text className="text-base font-semibold text-text-primary dark:text-text-primary-dark">
                         Continue with Google
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      className="w-full flex-row items-center justify-center gap-3 rounded-xl border-2 border-border bg-bg-secondary py-4 dark:border-border-dark dark:bg-bg-secondary-dark"
-                      onPress={() => handleOAuthSignIn("apple")}
-                      disabled={loading}
-                      activeOpacity={0.8}>
-                      <Text className="text-base font-semibold text-text-primary dark:text-text-primary-dark">
-                        {Platform.OS === "ios" ? "\uF8FF" : ""}
-                      </Text>
-                      <Text className="text-base font-semibold text-text-primary dark:text-text-primary-dark">
-                        Continue with Apple
                       </Text>
                     </TouchableOpacity>
                   </View>
