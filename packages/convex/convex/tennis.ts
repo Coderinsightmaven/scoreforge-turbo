@@ -1231,7 +1231,7 @@ export const scoreTennisFault = mutation({
     }
 
     // The receiver (opposite of server) wins the point
-    const winner = (state.servingParticipant === 1 ? 2 : 1) as 1 | 2;
+    const winner: 1 | 2 = state.servingParticipant === 1 ? 2 : 1;
 
     // Process the point (same scoring logic as scoreTennisPoint)
     if (state.isTiebreak) {
