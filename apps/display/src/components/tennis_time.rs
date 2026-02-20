@@ -3,18 +3,12 @@ use egui::Rect;
 use super::ComponentStyle;
 use crate::data::live_data::TennisLiveData;
 
-/// Format elapsed milliseconds as H:MM:SS or MM:SS
+/// Format elapsed milliseconds as H:MM (e.g. "1:05")
 fn format_elapsed(elapsed_ms: u64) -> String {
-    let total_secs = elapsed_ms / 1000;
-    let hours = total_secs / 3600;
-    let minutes = (total_secs % 3600) / 60;
-    let seconds = total_secs % 60;
-
-    if hours > 0 {
-        format!("{}:{:02}:{:02}", hours, minutes, seconds)
-    } else {
-        format!("{}:{:02}", minutes, seconds)
-    }
+    let total_minutes = elapsed_ms / 60_000;
+    let hours = total_minutes / 60;
+    let minutes = total_minutes % 60;
+    format!("{}:{:02}", hours, minutes)
 }
 
 pub fn render_tennis_time(
@@ -50,7 +44,7 @@ pub fn render_tennis_time(
         }
     } else {
         // Designer preview
-        "12:34".to_string()
+        "0:12".to_string()
     };
 
     super::text::render_aligned_text(painter, rect, &text, style, zoom);
@@ -67,16 +61,16 @@ mod tests {
 
     #[test]
     fn format_elapsed_seconds() {
-        assert_eq!(format_elapsed(45_000), "0:45");
+        assert_eq!(format_elapsed(45_000), "0:00");
     }
 
     #[test]
     fn format_elapsed_minutes() {
-        assert_eq!(format_elapsed(123_000), "2:03");
+        assert_eq!(format_elapsed(123_000), "0:02");
     }
 
     #[test]
     fn format_elapsed_hours() {
-        assert_eq!(format_elapsed(3_661_000), "1:01:01");
+        assert_eq!(format_elapsed(3_661_000), "1:01");
     }
 }
