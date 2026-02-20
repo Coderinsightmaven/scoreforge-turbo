@@ -300,6 +300,8 @@ export default defineSchema({
     createdAt: v.number(),
     // For blank bracket feature - placeholder slots that can be filled in later
     isPlaceholder: v.optional(v.boolean()),
+    // ISO 3166-1 alpha-2 country code (lowercase, e.g., "us", "rs")
+    nationality: v.optional(v.string()),
   })
     .index("by_tournament", ["tournamentId"])
     .index("by_tournament_and_seed", ["tournamentId", "seed"])
@@ -441,4 +443,17 @@ export default defineSchema({
   })
     .index("by_identifier", ["identifier"])
     .index("by_window_start", ["windowStart"]),
+
+  // Player database - searchable directory of professional players
+  playerDatabase: defineTable({
+    name: v.string(), // Full player name
+    countryCode: v.string(), // ISO 3166-1 alpha-2 (lowercase, e.g., "us", "rs")
+    ranking: v.optional(v.number()), // Current ranking
+    tour: v.string(), // "ATP" or "WTA"
+    externalId: v.optional(v.string()), // player_id from dataset for dedup
+  })
+    .index("by_tour", ["tour"])
+    .index("by_tour_and_ranking", ["tour", "ranking"])
+    .index("by_external_id", ["externalId"])
+    .searchIndex("search_name", { searchField: "name" }),
 });
