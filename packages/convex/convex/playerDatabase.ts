@@ -96,6 +96,7 @@ export const upsertPlayerBatch = internalMutation({
         name: v.string(),
         countryCode: v.string(),
         tour: v.string(),
+        ranking: v.optional(v.number()),
       })
     ),
   },
@@ -114,6 +115,7 @@ export const upsertPlayerBatch = internalMutation({
           name: player.name,
           countryCode: player.countryCode,
           tour: player.tour,
+          ranking: player.ranking,
         });
       } else {
         await ctx.db.insert("playerDatabase", {
@@ -121,6 +123,7 @@ export const upsertPlayerBatch = internalMutation({
           name: player.name,
           countryCode: player.countryCode,
           tour: player.tour,
+          ranking: player.ranking,
         });
       }
 
