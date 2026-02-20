@@ -4,7 +4,7 @@
     "slug": "mobile",
     "version": "1.0.0",
     "orientation": "default",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/scoreforge-mobile.png",
     "scheme": "scoreforge",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -15,9 +15,9 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#ffffff",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/scoreforge-mobile.png",
+        "backgroundImage": "./assets/images/scoreforge-mobile.png",
+        "monochromeImage": "./assets/images/scoreforge-mobile.png"
       },
       "package": "app.scoreforge.mobile",
       "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"],
@@ -25,7 +25,7 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/scoreforge-mobile.png"
     },
     "plugins": [
       "expo-router",
@@ -38,7 +38,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/scoreforge-mobile.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",

@@ -115,7 +115,7 @@ export default function ScorerHomeScreen() {
         <View style={[styles.header, { backgroundColor: colors.bgCard }]}>
           <View style={styles.headerRow}>
             <Image
-              source={require("@/assets/images/icon.png")}
+              source={require("@/assets/images/scoreforge-mobile.png")}
               style={styles.logo}
               resizeMode="contain"
             />

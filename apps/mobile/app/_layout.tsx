@@ -47,7 +47,7 @@ function LoadingScreen() {
         { backgroundColor: isDark ? Colors.dark.bgPage : Colors.light.bgPage },
       ]}>
       <Image
-        source={require("@/assets/images/icon.png")}
+        source={require("@/assets/images/scoreforge-mobile.png")}
         style={styles.loadingLogo}
         resizeMode="contain"
       />

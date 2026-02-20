@@ -148,7 +148,7 @@ export default function SignInScreen() {
             {/* Logo & Branding */}
             <View style={styles.logoContainer}>
               <Image
-                source={require("@/assets/images/icon.png")}
+                source={require("@/assets/images/scoreforge-mobile.png")}
                 style={styles.logo}
                 resizeMode="contain"
               />
