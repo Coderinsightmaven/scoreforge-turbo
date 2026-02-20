@@ -1,7 +1,7 @@
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { View, ActivityIndicator, Text, Image, StyleSheet, useColorScheme } from "react-native";
-import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
+import { useConvexAuth } from "convex/react";
 import { useState, useEffect, useCallback } from "react";
 import * as SecureStore from "expo-secure-store";
 import { useFonts } from "expo-font";
@@ -67,54 +67,16 @@ function LoadingScreen() {
   );
 }
 
-function AuthRedirect() {
-  const segments = useSegments();
-  const router = useRouter();
-
-  return (
-    <>
-      <AuthLoading>
-        <LoadingScreen />
-      </AuthLoading>
-      <Unauthenticated>
-        <AuthRedirectHandler target="(auth)" segments={segments} router={router} />
-      </Unauthenticated>
-      <Authenticated>
-        <AuthRedirectHandler target="(app)" segments={segments} router={router} />
-      </Authenticated>
-    </>
-  );
-}
-
-function AuthRedirectHandler({
-  target,
-  segments,
-  router,
-}: {
-  target: string;
-  segments: string[];
-  router: ReturnType<typeof useRouter>;
-}) {
-  useEffect(() => {
-    const inTarget = segments[0] === target;
-    if (!inTarget) {
-      if (target === "(auth)") {
-        router.replace("/(auth)/sign-in");
-      } else {
-        router.replace("/(app)");
-      }
-    }
-  }, [target, segments, router]);
-
-  return null;
-}
+const AUTH_TIMEOUT_MS = 10000;
 
 function RootNavigation() {
   const colorScheme = useColorScheme();
   const stackBackground = getStackBackground(colorScheme);
+  const { isLoading: isAuthLoading, isAuthenticated } = useConvexAuth();
   const [tempScorerSession, setTempScorerSession] = useState<TempScorerSession | null>(null);
   const [themePreference, setThemePreferenceState] = useState<ThemePreference>("system");
   const [isLoadingSession, setIsLoadingSession] = useState(true);
+  const [authTimedOut, setAuthTimedOut] = useState(false);
   const segments = useSegments();
   const router = useRouter();
 
@@ -147,15 +109,48 @@ function RootNavigation() {
     loadSession();
   }, []);
 
+  // If Clerk auth is stuck loading for 10s, fall through to login
+  useEffect(() => {
+    if (!isAuthLoading) {
+      setAuthTimedOut(false);
+      return;
+    }
+    const timeout = setTimeout(() => setAuthTimedOut(true), AUTH_TIMEOUT_MS);
+    return () => clearTimeout(timeout);
+  }, [isAuthLoading]);
+
+  // Auth + temp scorer redirect logic
   useEffect(() => {
     if (isLoadingSession) return;
+
     if (tempScorerSession) {
-      const inScorer = segments[0] === "(scorer)";
-      if (!inScorer) {
+      if (segments[0] !== "(scorer)") {
         router.replace("/(scorer)");
       }
+      return;
     }
-  }, [tempScorerSession, isLoadingSession, segments, router]);
+
+    // Still loading auth and hasn't timed out — don't redirect yet
+    if (isAuthLoading && !authTimedOut) return;
+
+    if (isAuthenticated && !authTimedOut) {
+      if (segments[0] !== "(app)") {
+        router.replace("/(app)");
+      }
+    } else {
+      if (segments[0] !== "(auth)") {
+        router.replace("/(auth)/sign-in");
+      }
+    }
+  }, [
+    isLoadingSession,
+    isAuthLoading,
+    isAuthenticated,
+    authTimedOut,
+    tempScorerSession,
+    segments,
+    router,
+  ]);
 
   const handleSetSession = useCallback(async (session: TempScorerSession | null) => {
     setTempScorerSession(session);
@@ -186,14 +181,14 @@ function RootNavigation() {
     setThemePreference: handleSetThemePreference,
   };
 
-  if (isLoadingSession) {
+  // Block rendering until session is loaded AND auth has resolved (or timed out)
+  if (isLoadingSession || (isAuthLoading && !authTimedOut)) {
     return <LoadingScreen />;
   }
 
   return (
     <ThemePreferenceContext value={themeContextValue}>
       <TempScorerContext value={contextValue}>
-        {!tempScorerSession && <AuthRedirect />}
         <Stack
           screenOptions={{
             headerShown: false,

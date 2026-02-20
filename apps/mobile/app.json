@@ -20,12 +20,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "package": "app.scoreforge.mobile",
-      "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
-      ],
+      "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"],
       "edgeToEdgeEnabled": true
     },
     "web": {
