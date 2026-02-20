@@ -448,18 +448,43 @@ fn parse_match_data(val: &Value) -> Option<TennisLiveData> {
     // Tennis state
     let tennis_state = get_obj(match_obj, "tennisState");
 
-    let (sets, current_game_points, tiebreak_points, serving_player, is_tiebreak, is_match_complete) =
-        if let Some(ts) = tennis_state {
-            let sets = parse_sets(ts);
-            let game_points = parse_game_points(ts);
-            let tiebreak_points = parse_tiebreak_points(ts);
-            let serving = parse_serving_player(ts);
-            let tiebreak = matches!(ts.get("isTiebreak"), Some(Value::Boolean(true)));
-            let complete = matches!(ts.get("isMatchComplete"), Some(Value::Boolean(true)));
-            (sets, game_points, tiebreak_points, serving, tiebreak, complete)
-        } else {
-            (vec![], [0, 0], [0, 0], 1, false, false)
-        };
+    let (
+        sets,
+        current_game_points,
+        tiebreak_points,
+        serving_player,
+        is_tiebreak,
+        is_match_complete,
+        aces,
+        double_faults,
+        match_started_timestamp,
+        match_completed_at,
+    ) = if let Some(ts) = tennis_state {
+        let sets = parse_sets(ts);
+        let game_points = parse_game_points(ts);
+        let tiebreak_points = parse_tiebreak_points(ts);
+        let serving = parse_serving_player(ts);
+        let tiebreak = matches!(ts.get("isTiebreak"), Some(Value::Boolean(true)));
+        let complete = matches!(ts.get("isMatchComplete"), Some(Value::Boolean(true)));
+        let aces = parse_u32_pair(ts, "aces");
+        let double_faults = parse_u32_pair(ts, "doubleFaults");
+        let match_started_timestamp = get_i64(ts, "matchStartedTimestamp").map(|v| v as u64);
+        let match_completed_at = get_i64(ts, "completedAt").map(|v| v as u64);
+        (
+            sets,
+            game_points,
+            tiebreak_points,
+            serving,
+            tiebreak,
+            complete,
+            aces,
+            double_faults,
+            match_started_timestamp,
+            match_completed_at,
+        )
+    } else {
+        (vec![], [0, 0], [0, 0], 1, false, false, [0, 0], [0, 0], None, None)
+    };
 
     Some(TennisLiveData {
         player1_name,
@@ -472,6 +497,10 @@ fn parse_match_data(val: &Value) -> Option<TennisLiveData> {
         serving_player,
         is_tiebreak,
         is_match_complete,
+        aces,
+        double_faults,
+        match_started_timestamp,
+        match_completed_at,
     })
 }
 
@@ -523,6 +552,16 @@ fn parse_pairing_poll(val: &Value) -> PairingPollStatus {
         "expired" => PairingPollStatus::Expired,
         "invalid" => PairingPollStatus::Invalid,
         _ => PairingPollStatus::Unknown,
+    }
+}
+
+fn parse_u32_pair(obj: &BTreeMap<String, Value>, key: &str) -> [u32; 2] {
+    if let Some(arr) = get_array(obj, key) {
+        let p1 = arr.first().and_then(value_to_u32);
+        let p2 = arr.get(1).and_then(value_to_u32);
+        [p1.unwrap_or(0), p2.unwrap_or(0)]
+    } else {
+        [0, 0]
     }
 }
 

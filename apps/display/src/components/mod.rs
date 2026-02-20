@@ -3,6 +3,7 @@ pub mod image;
 pub mod tennis_name;
 pub mod tennis_score;
 pub mod tennis_serving;
+pub mod tennis_time;
 pub mod text;
 
 use std::path::Path;
@@ -82,6 +83,7 @@ pub enum ComponentType {
     TennisPlayerName,
     TennisDoublesName,
     TennisServingIndicator,
+    TennisMatchTime,
 }
 
 impl ComponentType {
@@ -96,6 +98,7 @@ impl ComponentType {
             Self::TennisPlayerName => "Player Name",
             Self::TennisDoublesName => "Doubles Name",
             Self::TennisServingIndicator => "Serving Indicator",
+            Self::TennisMatchTime => "Match Time",
         }
     }
 }
@@ -170,6 +173,7 @@ pub enum ComponentData {
         indicator_color: Color32,
         indicator_size: f32,
     },
+    TennisMatchTime,
 }
 
 // --- Scoreboard Component ---
@@ -213,6 +217,7 @@ impl ScoreboardComponent {
                 indicator_color: Color32::GREEN,
                 indicator_size: 12.0,
             },
+            ComponentType::TennisMatchTime => ComponentData::TennisMatchTime,
         };
 
         Self {
@@ -330,6 +335,15 @@ pub fn render_component(
                 *indicator_color,
                 *indicator_size * zoom,
                 live_data,
+            );
+        }
+        ComponentData::TennisMatchTime => {
+            tennis_time::render_tennis_time(
+                painter,
+                rect,
+                &component.style,
+                live_data,
+                zoom,
             );
         }
     }

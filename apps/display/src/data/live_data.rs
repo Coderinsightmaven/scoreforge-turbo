@@ -14,6 +14,10 @@ pub struct TennisLiveData {
     pub serving_player: u8,
     pub is_tiebreak: bool,
     pub is_match_complete: bool,
+    pub aces: [u32; 2],
+    pub double_faults: [u32; 2],
+    pub match_started_timestamp: Option<u64>,
+    pub match_completed_at: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -93,6 +97,10 @@ mod tests {
             serving_player: 1,
             is_tiebreak: false,
             is_match_complete: false,
+            aces: [0, 0],
+            double_faults: [0, 0],
+            match_started_timestamp: None,
+            match_completed_at: None,
         };
         let json = serde_json::to_string(&data).unwrap();
         let deserialized: TennisLiveData = serde_json::from_str(&json).unwrap();
@@ -132,6 +140,10 @@ mod tests {
             serving_player: 2,
             is_tiebreak: false,
             is_match_complete: false,
+            aces: [0, 0],
+            double_faults: [0, 0],
+            match_started_timestamp: None,
+            match_completed_at: None,
         };
         let json = serde_json::to_string(&data).unwrap();
         let deserialized: TennisLiveData = serde_json::from_str(&json).unwrap();

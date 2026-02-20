@@ -254,6 +254,9 @@ pub fn show_property_panel(ui: &mut egui::Ui, state: &mut AppState) {
                 );
             });
         }
+        ComponentData::TennisMatchTime => {
+            ui.label("Displays elapsed match time.");
+        }
     }
 
     // Drop the mutable borrow of comp (it's scoped to the block above via the match)

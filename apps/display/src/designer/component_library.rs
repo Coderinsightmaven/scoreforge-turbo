@@ -27,6 +27,7 @@ pub fn show_component_library(ui: &mut egui::Ui, state: &mut AppState) {
         ComponentType::TennisPlayerName,
         ComponentType::TennisDoublesName,
         ComponentType::TennisServingIndicator,
+        ComponentType::TennisMatchTime,
     ] {
         if ui.button(ct.label()).clicked() {
             add_component(state, *ct);
