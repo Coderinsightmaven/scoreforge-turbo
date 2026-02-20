@@ -77,6 +77,10 @@ export const tennisStateSnapshot = v.object({
   tiebreakTarget: v.optional(v.number()),
   tiebreakMode: v.optional(v.union(v.literal("set"), v.literal("match"))),
   isMatchComplete: v.boolean(),
+  // Stat tracking
+  aces: v.optional(v.array(v.number())),
+  doubleFaults: v.optional(v.array(v.number())),
+  faultState: v.optional(v.number()),
 });
 
 /**
@@ -113,6 +117,11 @@ export const tennisState = v.object({
   isMatchComplete: v.boolean(),
   // State history for undo (last 10 states)
   history: v.optional(v.array(tennisStateSnapshot)),
+  // Stat tracking
+  aces: v.optional(v.array(v.number())), // [p1Count, p2Count]
+  doubleFaults: v.optional(v.array(v.number())), // [p1Count, p2Count]
+  faultState: v.optional(v.number()), // 0 = no fault, 1 = first fault pending
+  matchStartedTimestamp: v.optional(v.number()), // Epoch ms, set on first point
 });
 
 /**
@@ -127,7 +136,10 @@ export const scoringLogAction = v.union(
   v.literal("init_match"),
   v.literal("score_point"),
   v.literal("undo"),
-  v.literal("set_server")
+  v.literal("set_server"),
+  v.literal("ace"),
+  v.literal("fault"),
+  v.literal("double_fault")
 );
 
 /**

@@ -9,6 +9,10 @@ export type TennisStateSnapshot = {
   tiebreakTarget?: number;
   tiebreakMode?: "set" | "match";
   isMatchComplete: boolean;
+  // Stat tracking
+  aces?: number[];
+  doubleFaults?: number[];
+  faultState?: number;
 };
 
 export type TennisState = {
@@ -29,6 +33,11 @@ export type TennisState = {
   tiebreakMode?: "set" | "match";
   isMatchComplete: boolean;
   history?: TennisStateSnapshot[];
+  // Stat tracking
+  aces?: number[];
+  doubleFaults?: number[];
+  faultState?: number;
+  matchStartedTimestamp?: number;
 };
 
 /**
@@ -46,6 +55,9 @@ export function createSnapshot(state: TennisState): TennisStateSnapshot {
     tiebreakTarget: state.tiebreakTarget,
     tiebreakMode: state.tiebreakMode,
     isMatchComplete: state.isMatchComplete,
+    aces: state.aces ? [...state.aces] : undefined,
+    doubleFaults: state.doubleFaults ? [...state.doubleFaults] : undefined,
+    faultState: state.faultState,
   };
 }
 

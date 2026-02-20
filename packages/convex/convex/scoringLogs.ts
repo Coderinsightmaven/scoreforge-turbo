@@ -304,7 +304,15 @@ type ScoringLog = {
   _creationTime: number;
   tournamentId: string;
   matchId: string;
-  action: "init_match" | "score_point" | "undo" | "set_server" | "adjust_score";
+  action:
+    | "init_match"
+    | "score_point"
+    | "undo"
+    | "set_server"
+    | "adjust_score"
+    | "ace"
+    | "fault"
+    | "double_fault";
   actorId?: string;
   actorName?: string;
   timestamp: number;
