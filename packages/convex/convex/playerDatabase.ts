@@ -1,4 +1,4 @@
-import { query, internalMutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getCurrentUserOrThrow } from "./users";
 
@@ -53,12 +53,24 @@ export const searchPlayers = query({
 
     // Browse by ranking path
     if (args.tour) {
+      // Fetch more than needed to filter out unranked, then sort by ranking
       const results = await ctx.db
         .query("playerDatabase")
         .withIndex("by_tour_and_ranking", (q) => q.eq("tour", args.tour!))
-        .take(limit);
+        .take(limit + 200);
 
-      return results.map((p) => ({
+      const ranked = results
+        .filter((p) => p.ranking !== undefined)
+        .sort((a, b) => (a.ranking ?? Infinity) - (b.ranking ?? Infinity))
+        .slice(0, limit);
+
+      // If we don't have enough ranked, fill with unranked
+      if (ranked.length < limit) {
+        const unranked = results.filter((p) => p.ranking === undefined);
+        ranked.push(...unranked.slice(0, limit - ranked.length));
+      }
+
+      return ranked.map((p) => ({
         _id: p._id,
         name: p.name,
         countryCode: p.countryCode,
@@ -131,5 +143,30 @@ export const upsertPlayerBatch = internalMutation({
     }
 
     return { upserted };
+  },
+});
+
+// ============================================
+// Cleanup
+// ============================================
+
+/**
+ * Remove players without a ranking (leftover from old seed format).
+ */
+export const removeUnrankedPlayers = mutation({
+  args: {},
+  returns: v.object({ removed: v.number() }),
+  handler: async (ctx): Promise<{ removed: number }> => {
+    await getCurrentUserOrThrow(ctx);
+
+    const allPlayers = await ctx.db.query("playerDatabase").collect();
+    let removed = 0;
+    for (const player of allPlayers) {
+      if (player.ranking === undefined) {
+        await ctx.db.delete("playerDatabase", player._id);
+        removed++;
+      }
+    }
+    return { removed };
   },
 });
