@@ -3,6 +3,7 @@ mod components;
 mod data;
 mod designer;
 mod display;
+pub mod flags;
 mod state;
 mod storage;
 

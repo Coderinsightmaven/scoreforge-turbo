@@ -9,6 +9,7 @@ use crate::components::{ComponentData, ScoreboardComponent, TextureCache};
 use crate::data::convex::ConvexManager;
 use crate::data::live_data::{ConnectionStep, LiveDataMessage, TennisLiveData, TournamentInfo};
 use crate::display::renderer::DisplayState;
+use crate::flags::FlagCache;
 use crate::storage::assets::AssetLibrary;
 use crate::storage::scoreboard::{AppConfig, ScoreboardFile};
 
@@ -295,6 +296,7 @@ pub struct AppState {
     // Assets (global)
     pub asset_library: AssetLibrary,
     pub texture_cache: TextureCache,
+    pub flag_cache: FlagCache,
 
     // Persistence
     pub config: AppConfig,
@@ -335,6 +337,7 @@ impl AppState {
             clipboard: Vec::new(),
             asset_library: AssetLibrary::new(),
             texture_cache: TextureCache::new(),
+            flag_cache: FlagCache::new(),
             config,
             show_new_dialog: false,
             show_connect_dialog: false,

@@ -607,6 +607,9 @@ impl eframe::App for ScoreForgeApp {
         // Load textures for any components that reference assets
         self.ensure_textures_loaded(ctx);
 
+        // Load embedded flag textures (no-op after first call)
+        self.state.flag_cache.ensure_loaded(ctx);
+
         // Sync display state for all active displays
         self.sync_all_display_states();
 
