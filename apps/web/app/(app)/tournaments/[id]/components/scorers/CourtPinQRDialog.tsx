@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { QRCodeSVG } from "qrcode.react";
 
 interface CourtPinQRDialogProps {
@@ -38,7 +39,7 @@ export function CourtPinQRDialog({
     setTimeout(() => setCopiedPin(false), 2000);
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
       <div className="w-full max-w-sm rounded-2xl bg-bg-primary p-6 shadow-xl">
         <h3 className="mb-1 text-center text-lg font-bold text-foreground font-[family-name:var(--font-display)]">
@@ -91,6 +92,7 @@ export function CourtPinQRDialog({
           Close
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
