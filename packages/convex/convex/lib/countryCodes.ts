@@ -11,7 +11,7 @@
  * Includes all Olympic nations whose IOC code differs from their ISO alpha-2 code,
  * plus common 3-letter codes that map directly (e.g. USA → us).
  */
-export const IOC_TO_ISO: Record<string, string> = {
+const IOC_TO_ISO: Record<string, string> = {
   // ── Americas ──────────────────────────────────────────────────────────────
   USA: "us",
   CAN: "ca",
@@ -54,6 +54,7 @@ export const IOC_TO_ISO: Record<string, string> = {
   CAY: "ky",
   IVB: "vg",
   ISV: "vi",
+  AHO: "an",
 
   // ── Europe ────────────────────────────────────────────────────────────────
   GBR: "gb",
