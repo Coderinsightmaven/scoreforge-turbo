@@ -1,7 +1,6 @@
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { View, ActivityIndicator, Text, Image, StyleSheet, useColorScheme } from "react-native";
-import { useConvexAuth } from "convex/react";
 import { useState, useEffect, useCallback } from "react";
 import * as SecureStore from "expo-secure-store";
 import { useFonts } from "expo-font";
@@ -67,16 +66,12 @@ function LoadingScreen() {
   );
 }
 
-const AUTH_TIMEOUT_MS = 10000;
-
 function RootNavigation() {
   const colorScheme = useColorScheme();
   const stackBackground = getStackBackground(colorScheme);
-  const { isLoading: isAuthLoading, isAuthenticated } = useConvexAuth();
   const [tempScorerSession, setTempScorerSession] = useState<TempScorerSession | null>(null);
   const [themePreference, setThemePreferenceState] = useState<ThemePreference>("system");
   const [isLoadingSession, setIsLoadingSession] = useState(true);
-  const [authTimedOut, setAuthTimedOut] = useState(false);
   const segments = useSegments();
   const router = useRouter();
 
@@ -109,17 +104,7 @@ function RootNavigation() {
     loadSession();
   }, []);
 
-  // If Clerk auth is stuck loading for 10s, fall through to login
-  useEffect(() => {
-    if (!isAuthLoading) {
-      setAuthTimedOut(false);
-      return;
-    }
-    const timeout = setTimeout(() => setAuthTimedOut(true), AUTH_TIMEOUT_MS);
-    return () => clearTimeout(timeout);
-  }, [isAuthLoading]);
-
-  // Auth + temp scorer redirect logic
+  // Routing: temp scorer session → scorer screens, otherwise → sign-in
   useEffect(() => {
     if (isLoadingSession) return;
 
@@ -127,30 +112,12 @@ function RootNavigation() {
       if (segments[0] !== "(scorer)") {
         router.replace("/(scorer)");
       }
-      return;
-    }
-
-    // Still loading auth and hasn't timed out — don't redirect yet
-    if (isAuthLoading && !authTimedOut) return;
-
-    if (isAuthenticated && !authTimedOut) {
-      if (segments[0] !== "(app)") {
-        router.replace("/(app)");
-      }
     } else {
       if (segments[0] !== "(auth)") {
         router.replace("/(auth)/sign-in");
       }
     }
-  }, [
-    isLoadingSession,
-    isAuthLoading,
-    isAuthenticated,
-    authTimedOut,
-    tempScorerSession,
-    segments,
-    router,
-  ]);
+  }, [isLoadingSession, tempScorerSession, segments, router]);
 
   const handleSetSession = useCallback(async (session: TempScorerSession | null) => {
     setTempScorerSession(session);
@@ -181,8 +148,7 @@ function RootNavigation() {
     setThemePreference: handleSetThemePreference,
   };
 
-  // Block rendering until session is loaded AND auth has resolved (or timed out)
-  if (isLoadingSession || (isAuthLoading && !authTimedOut)) {
+  if (isLoadingSession) {
     return <LoadingScreen />;
   }
 
@@ -195,7 +161,6 @@ function RootNavigation() {
             contentStyle: { backgroundColor: stackBackground },
           }}>
           <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(app)" />
           <Stack.Screen name="(scorer)" />
         </Stack>
         <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />

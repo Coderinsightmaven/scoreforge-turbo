@@ -1,5 +1,3 @@
-import { useSignIn, useSSO } from "@clerk/clerk-expo";
-import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import { useMutation } from "convex/react";
 import { api } from "@repo/convex";
@@ -25,21 +23,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { Colors, Fonts } from "@/constants/colors";
 
-WebBrowser.maybeCompleteAuthSession();
-
-type LoginType = "regular" | "scorer";
-
 export default function SignInScreen() {
-  const { signIn: clerkSignIn, setActive, isLoaded } = useSignIn();
-  const { startSSOFlow } = useSSO();
   const { setSession } = useTempScorer();
   const router = useRouter();
   const colors = useThemeColors();
-  const [loginType, setLoginType] = useState<LoginType>("regular");
-
-  // Regular login state
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
   // Scorer login state
   const [tournamentCode, setTournamentCode] = useState("");
@@ -52,30 +39,6 @@ export default function SignInScreen() {
 
   // Handle deep links from QR code scanning
   const url = Linking.useURL();
-
-  const handleOAuthSignIn = useCallback(async () => {
-    try {
-      setError(null);
-      setLoading(true);
-      const { createdSessionId, setActive: setOAuthActive } = await startSSOFlow({
-        strategy: "oauth_google",
-      });
-      if (createdSessionId && setOAuthActive) {
-        await setOAuthActive({ session: createdSessionId });
-      }
-    } catch (err) {
-      const message = getDisplayMessage(err);
-      if (message.includes("Missing external verification redirect URL")) {
-        setError(
-          "Google sign-in is not fully configured in Clerk for this app build. Check Native API and Google OAuth provider settings."
-        );
-      } else {
-        setError(message);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [startSSOFlow]);
 
   const signInTempScorer = useMutation(api.temporaryScorers.signIn);
   const lookupTournamentByCode = useMutation(api.temporaryScorers.getTournamentByCode);
@@ -107,7 +70,6 @@ export default function SignInScreen() {
       const parsed = Linking.parse(url);
       // Handle: scoreforge://scorer?code=ABC123&court=court-1
       if (parsed.hostname === "scorer" || parsed.path === "scorer") {
-        setLoginType("scorer");
         if (parsed.queryParams?.code) {
           const code = String(parsed.queryParams.code);
           handleCodeChange(code.toUpperCase().slice(0, 6));
@@ -121,42 +83,6 @@ export default function SignInScreen() {
       }
     }
   }, [url, handleCodeChange]);
-
-  const handleRegularSubmit = async () => {
-    if (!isLoaded) return;
-    if (!email || !password) {
-      setError("Please fill in all fields");
-      return;
-    }
-
-    setError(null);
-    setLoading(true);
-
-    try {
-      const result = await clerkSignIn.create({
-        identifier: email,
-        password,
-      });
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-      } else if (result.status === "needs_second_factor") {
-        setError("Two-factor authentication is required but not yet supported.");
-      } else if (result.status === "needs_new_password") {
-        setError("A password reset is required. Please reset your password on the web app.");
-      } else {
-        setError("Unable to complete sign in. Please try again.");
-      }
-    } catch (err: unknown) {
-      if (err && typeof err === "object" && "errors" in err) {
-        const clerkErr = err as { errors: { message: string }[] };
-        setError(clerkErr.errors[0]?.message ?? "Sign in failed");
-      } else {
-        setError("Something went wrong. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleScorerSubmit = async () => {
     if (!tournamentCode || !username || !pin) {
@@ -238,331 +164,157 @@ export default function SignInScreen() {
               </Text>
             </View>
 
-            {/* Login Mode Toggle */}
-            <View
-              style={[
-                styles.toggleContainer,
-                { borderColor: colors.border, backgroundColor: colors.bgCard },
-              ]}>
-              <TouchableOpacity
-                style={[
-                  styles.toggleButton,
-                  loginType === "regular" && { backgroundColor: brandColor },
-                ]}
-                onPress={() => {
-                  setLoginType("regular");
-                  setError(null);
-                }}
-                activeOpacity={0.8}>
-                <Text
-                  style={[
-                    styles.toggleText,
-                    {
-                      color: loginType === "regular" ? "#FFFFFF" : colors.textTertiary,
-                    },
-                  ]}>
-                  Account
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.toggleButton,
-                  loginType === "scorer" && { backgroundColor: brandColor },
-                ]}
-                onPress={() => {
-                  setLoginType("scorer");
-                  setError(null);
-                }}
-                activeOpacity={0.8}>
-                <Text
-                  style={[
-                    styles.toggleText,
-                    {
-                      color: loginType === "scorer" ? "#FFFFFF" : colors.textTertiary,
-                    },
-                  ]}>
-                  Scorer
-                </Text>
-              </TouchableOpacity>
-            </View>
-
             {/* Login Card */}
             <View style={[styles.card, { backgroundColor: colors.bgCard }]}>
-              {loginType === "regular" ? (
-                <>
-                  <Text
-                    style={[
-                      styles.cardTitle,
-                      { color: colors.textPrimary, fontFamily: Fonts.displayBold },
-                    ]}>
-                    Welcome Back
-                  </Text>
-                  <Text style={[styles.cardSubtitle, { color: colors.textTertiary }]}>
-                    Sign in with your account
-                  </Text>
+              <Text
+                style={[
+                  styles.cardTitle,
+                  { color: colors.textPrimary, fontFamily: Fonts.displayBold },
+                ]}>
+                Scorer Login
+              </Text>
+              <Text style={[styles.scorerSubtitle, { color: colors.textTertiary }]}>
+                Sign in with your tournament credentials
+              </Text>
 
-                  <View style={styles.gap12}>
-                    <TouchableOpacity
+              {/* Scan QR Code Button */}
+              <TouchableOpacity
+                style={styles.qrButton}
+                onPress={() => setShowScanner(true)}
+                activeOpacity={0.8}>
+                <Text style={[styles.qrButtonText, { color: brandColor }]}>Scan QR Code</Text>
+              </TouchableOpacity>
+
+              <View style={styles.dividerRow}>
+                <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+                <Text style={[styles.dividerText, { color: colors.textTertiary }]}>
+                  or enter manually
+                </Text>
+                <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+              </View>
+
+              <View style={styles.gap16}>
+                <View>
+                  <Text
+                    style={[styles.fieldLabel, styles.textCenter, { color: colors.textTertiary }]}>
+                    Tournament Code
+                  </Text>
+                  <TextInput
+                    style={[
+                      styles.inputCentered,
+                      {
+                        borderColor: colors.border,
+                        backgroundColor: colors.bgSecondary,
+                        color: colors.textPrimary,
+                      },
+                    ]}
+                    placeholder="ABC123"
+                    placeholderTextColor="#94A3B8"
+                    value={tournamentCode}
+                    onChangeText={(text) => handleCodeChange(text.toUpperCase().slice(0, 6))}
+                    autoCapitalize="characters"
+                    maxLength={6}
+                  />
+                  {tournamentInfo && (
+                    <View
                       style={[
-                        styles.oauthButton,
+                        styles.tournamentInfoBox,
                         {
-                          borderColor: colors.border,
-                          backgroundColor: colors.bgSecondary,
+                          borderColor: "rgba(39,165,94,0.3)",
+                          backgroundColor: Colors.status.active.bg,
                         },
-                      ]}
-                      onPress={handleOAuthSignIn}
-                      disabled={loading}
-                      activeOpacity={0.8}>
-                      <Text style={[styles.oauthButtonText, { color: colors.textPrimary }]}>G</Text>
-                      <Text style={[styles.oauthButtonText, { color: colors.textPrimary }]}>
-                        Continue with Google
+                      ]}>
+                      <Text
+                        style={[styles.tournamentInfoText, { color: Colors.status.active.text }]}>
+                        {formatTournamentName(tournamentInfo.name)}
                       </Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  <View style={styles.dividerRow}>
-                    <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-                    <Text style={[styles.dividerText, { color: colors.textTertiary }]}>
-                      or continue with email
-                    </Text>
-                    <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-                  </View>
-
-                  <View style={styles.gap16}>
-                    <View>
-                      <Text style={[styles.fieldLabel, { color: colors.textTertiary }]}>
-                        Email Address
-                      </Text>
-                      <TextInput
-                        style={[
-                          styles.input,
-                          {
-                            borderColor: colors.border,
-                            backgroundColor: colors.bgSecondary,
-                            color: colors.textPrimary,
-                          },
-                        ]}
-                        placeholder="you@example.com"
-                        placeholderTextColor="#94A3B8"
-                        value={email}
-                        onChangeText={setEmail}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        autoComplete="email"
-                      />
                     </View>
-
-                    <View>
-                      <Text style={[styles.fieldLabel, { color: colors.textTertiary }]}>
-                        Password
-                      </Text>
-                      <TextInput
-                        style={[
-                          styles.input,
-                          {
-                            borderColor: colors.border,
-                            backgroundColor: colors.bgSecondary,
-                            color: colors.textPrimary,
-                          },
-                        ]}
-                        placeholder="Enter your password"
-                        placeholderTextColor="#94A3B8"
-                        value={password}
-                        onChangeText={setPassword}
-                        secureTextEntry
-                        autoComplete="password"
-                      />
+                  )}
+                  {tournamentCode.length === 6 && tournamentInfo === null && (
+                    <View style={styles.tournamentNotFoundBox}>
+                      <Text style={styles.tournamentNotFoundText}>Tournament not found</Text>
                     </View>
+                  )}
+                </View>
 
-                    {error && (
-                      <View style={styles.errorBox}>
-                        <Text style={styles.errorText}>{error}</Text>
-                      </View>
-                    )}
-
-                    <TouchableOpacity
-                      style={[styles.submitButton, { backgroundColor: brandColor }]}
-                      onPress={handleRegularSubmit}
-                      disabled={loading}
-                      activeOpacity={0.8}>
-                      {loading ? (
-                        <ActivityIndicator color="white" />
-                      ) : (
-                        <Text style={styles.submitButtonText}>Sign In</Text>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                </>
-              ) : (
-                <>
+                <View>
                   <Text
+                    style={[styles.fieldLabel, styles.textCenter, { color: colors.textTertiary }]}>
+                    Username
+                  </Text>
+                  <TextInput
                     style={[
-                      styles.cardTitle,
-                      { color: colors.textPrimary, fontFamily: Fonts.displayBold },
-                    ]}>
-                    Scorer Login
+                      styles.inputCenteredBase,
+                      {
+                        borderColor: colors.border,
+                        backgroundColor: colors.bgSecondary,
+                        color: colors.textPrimary,
+                      },
+                    ]}
+                    placeholder="Your username"
+                    placeholderTextColor="#94A3B8"
+                    value={username}
+                    onChangeText={(text) => setUsername(text.toLowerCase())}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </View>
+
+                <View>
+                  <Text
+                    style={[styles.fieldLabel, styles.textCenter, { color: colors.textTertiary }]}>
+                    Court PIN
                   </Text>
-                  <Text style={[styles.scorerSubtitle, { color: colors.textTertiary }]}>
-                    Sign in with your tournament credentials
-                  </Text>
+                  <TextInput
+                    style={[
+                      styles.inputCentered,
+                      {
+                        borderColor: colors.border,
+                        backgroundColor: colors.bgSecondary,
+                        color: colors.textPrimary,
+                      },
+                    ]}
+                    placeholder="ABC123"
+                    placeholderTextColor="#94A3B8"
+                    value={pin}
+                    onChangeText={(text) =>
+                      setPin(
+                        text
+                          .toUpperCase()
+                          .replace(/[^A-Z0-9]/g, "")
+                          .slice(0, 6)
+                      )
+                    }
+                    autoCapitalize="characters"
+                    maxLength={6}
+                    autoCorrect={false}
+                  />
+                </View>
 
-                  {/* Scan QR Code Button */}
-                  <TouchableOpacity
-                    style={styles.qrButton}
-                    onPress={() => setShowScanner(true)}
-                    activeOpacity={0.8}>
-                    <Text style={[styles.qrButtonText, { color: brandColor }]}>Scan QR Code</Text>
-                  </TouchableOpacity>
-
-                  <View style={styles.scorerDividerRow}>
-                    <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-                    <Text style={[styles.dividerText, { color: colors.textTertiary }]}>
-                      or enter manually
-                    </Text>
-                    <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+                {error && (
+                  <View style={styles.errorBox}>
+                    <Text style={styles.errorText}>{error}</Text>
                   </View>
+                )}
 
-                  <View style={styles.gap16}>
-                    <View>
-                      <Text
-                        style={[
-                          styles.fieldLabel,
-                          styles.textCenter,
-                          { color: colors.textTertiary },
-                        ]}>
-                        Tournament Code
-                      </Text>
-                      <TextInput
-                        style={[
-                          styles.inputCentered,
-                          {
-                            borderColor: colors.border,
-                            backgroundColor: colors.bgSecondary,
-                            color: colors.textPrimary,
-                          },
-                        ]}
-                        placeholder="ABC123"
-                        placeholderTextColor="#94A3B8"
-                        value={tournamentCode}
-                        onChangeText={(text) => handleCodeChange(text.toUpperCase().slice(0, 6))}
-                        autoCapitalize="characters"
-                        maxLength={6}
-                      />
-                      {tournamentInfo && (
-                        <View
-                          style={[
-                            styles.tournamentInfoBox,
-                            {
-                              borderColor: "rgba(39,165,94,0.3)",
-                              backgroundColor: Colors.status.active.bg,
-                            },
-                          ]}>
-                          <Text
-                            style={[
-                              styles.tournamentInfoText,
-                              { color: Colors.status.active.text },
-                            ]}>
-                            {formatTournamentName(tournamentInfo.name)}
-                          </Text>
-                        </View>
-                      )}
-                      {tournamentCode.length === 6 && tournamentInfo === null && (
-                        <View style={styles.tournamentNotFoundBox}>
-                          <Text style={styles.tournamentNotFoundText}>Tournament not found</Text>
-                        </View>
-                      )}
-                    </View>
-
-                    <View>
-                      <Text
-                        style={[
-                          styles.fieldLabel,
-                          styles.textCenter,
-                          { color: colors.textTertiary },
-                        ]}>
-                        Username
-                      </Text>
-                      <TextInput
-                        style={[
-                          styles.inputCenteredBase,
-                          {
-                            borderColor: colors.border,
-                            backgroundColor: colors.bgSecondary,
-                            color: colors.textPrimary,
-                          },
-                        ]}
-                        placeholder="Your username"
-                        placeholderTextColor="#94A3B8"
-                        value={username}
-                        onChangeText={(text) => setUsername(text.toLowerCase())}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                      />
-                    </View>
-
-                    <View>
-                      <Text
-                        style={[
-                          styles.fieldLabel,
-                          styles.textCenter,
-                          { color: colors.textTertiary },
-                        ]}>
-                        Court PIN
-                      </Text>
-                      <TextInput
-                        style={[
-                          styles.inputCentered,
-                          {
-                            borderColor: colors.border,
-                            backgroundColor: colors.bgSecondary,
-                            color: colors.textPrimary,
-                          },
-                        ]}
-                        placeholder="ABC123"
-                        placeholderTextColor="#94A3B8"
-                        value={pin}
-                        onChangeText={(text) =>
-                          setPin(
-                            text
-                              .toUpperCase()
-                              .replace(/[^A-Z0-9]/g, "")
-                              .slice(0, 6)
-                          )
-                        }
-                        autoCapitalize="characters"
-                        maxLength={6}
-                        autoCorrect={false}
-                      />
-                    </View>
-
-                    {error && (
-                      <View style={styles.errorBox}>
-                        <Text style={styles.errorText}>{error}</Text>
-                      </View>
-                    )}
-
-                    <TouchableOpacity
-                      style={[styles.submitButton, { backgroundColor: brandColor }]}
-                      onPress={handleScorerSubmit}
-                      disabled={loading}
-                      activeOpacity={0.8}>
-                      {loading ? (
-                        <ActivityIndicator color="white" />
-                      ) : (
-                        <Text style={styles.submitButtonText}>Start Scoring</Text>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                </>
-              )}
+                <TouchableOpacity
+                  style={[styles.submitButton, { backgroundColor: brandColor }]}
+                  onPress={handleScorerSubmit}
+                  disabled={loading}
+                  activeOpacity={0.8}>
+                  {loading ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text style={styles.submitButtonText}>Start Scoring</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Footer */}
             <View style={styles.footer}>
               <Text style={[styles.footerText, { color: colors.textTertiary }]}>
-                {loginType === "regular"
-                  ? "Scorer access only. Contact your tournament organizer for credentials."
-                  : "Get your code, username, and PIN from the tournament organizer."}
+                Get your code, username, and PIN from the tournament organizer.
               </Text>
             </View>
           </ScrollView>
@@ -614,23 +366,6 @@ const styles = StyleSheet.create({
   welcomeSubtitle: {
     fontSize: 14,
   },
-  toggleContainer: {
-    marginBottom: 24,
-    flexDirection: "row",
-    borderRadius: 9999,
-    borderWidth: 1,
-    padding: 4,
-  },
-  toggleButton: {
-    flex: 1,
-    borderRadius: 9999,
-    paddingVertical: 10,
-  },
-  toggleText: {
-    textAlign: "center",
-    fontSize: 14,
-    fontWeight: "600",
-  },
   card: {
     borderRadius: 16,
     padding: 32,
@@ -645,42 +380,15 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 20,
   },
-  cardSubtitle: {
-    marginBottom: 24,
-    textAlign: "center",
-    fontSize: 14,
-  },
   scorerSubtitle: {
     marginBottom: 16,
     textAlign: "center",
     fontSize: 14,
   },
-  gap12: {
-    gap: 12,
-  },
   gap16: {
     gap: 16,
   },
-  oauthButton: {
-    width: "100%",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-    borderRadius: 12,
-    borderWidth: 2,
-    paddingVertical: 16,
-  },
-  oauthButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
   dividerRow: {
-    marginVertical: 20,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  scorerDividerRow: {
     marginBottom: 20,
     flexDirection: "row",
     alignItems: "center",
@@ -703,14 +411,6 @@ const styles = StyleSheet.create({
   },
   textCenter: {
     textAlign: "center",
-  },
-  input: {
-    width: "100%",
-    borderRadius: 12,
-    borderWidth: 2,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    fontSize: 16,
   },
   inputCentered: {
     width: "100%",
