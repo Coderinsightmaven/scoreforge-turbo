@@ -1,30 +1,21 @@
 {
   "cli": {
-    "version": ">= 14.0.0",
+    "version": ">= 18.0.1",
     "appVersionSource": "remote"
   },
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal",
-      "env": {
-        "EXPO_PUBLIC_CONVEX_URL": "https://knowing-alpaca-261.convex.cloud",
-        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_bm9ybWFsLW94LTQxLmNsZXJrLmFjY291bnRzLmRldiQ"
-      }
+      "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal",
-      "env": {
-        "EXPO_PUBLIC_CONVEX_URL": "https://knowing-alpaca-261.convex.cloud",
-        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_bm9ybWFsLW94LTQxLmNsZXJrLmFjY291bnRzLmRldiQ"
-      }
+      "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true,
-      "env": {
-        "EXPO_PUBLIC_CONVEX_URL": "https://helpful-oyster-185.convex.cloud",
-        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsuc2NvcmVmb3JnZS5hcHAk"
-      }
+      "autoIncrement": true
     }
+  },
+  "submit": {
+    "production": {}
   }
 }
