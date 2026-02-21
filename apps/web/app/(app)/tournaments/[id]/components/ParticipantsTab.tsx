@@ -94,7 +94,13 @@ export function ParticipantsTab({
                   {participant.seed || "-"}
                 </div>
                 <div className="flex-1">
-                  <span className="block font-medium text-foreground">
+                  <span className="flex items-center font-medium text-foreground">
+                    {participant.nationality && (
+                      <span
+                        className={`fi fi-${participant.nationality} mr-2 rounded-sm`}
+                        style={{ fontSize: "1em" }}
+                      />
+                    )}
                     {getParticipantDisplayName(participant)}
                   </span>
                 </div>
