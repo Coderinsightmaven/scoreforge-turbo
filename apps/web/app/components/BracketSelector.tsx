@@ -29,9 +29,7 @@ export function BracketSelector({
   onSelectBracket,
   showAddButton,
 }: BracketSelectorProps): React.ReactNode {
-  const [isOpen, setIsOpen] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const createFormRef = useRef<HTMLDivElement>(null);
   const createBracket = useMutation(api.tournamentBrackets.createBracket);
 
@@ -47,12 +45,9 @@ export function BracketSelector({
     tournamentId: tournamentId as Id<"tournaments">,
   });
 
-  // Close dropdown when clicking outside
+  // Close create form when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
       if (createFormRef.current && !createFormRef.current.contains(event.target as Node)) {
         setShowCreateForm(false);
       }
@@ -111,6 +106,17 @@ export function BracketSelector({
       toast.error(err instanceof Error ? err.message : "Failed to create bracket");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const statusIndicator = (status: Bracket["status"]) => {
+    switch (status) {
+      case "active":
+        return <span className="w-2 h-2 bg-success rounded-full animate-pulse" />;
+      case "completed":
+        return <span className="w-2 h-2 bg-gold rounded-full" />;
+      default:
+        return <span className="w-2 h-2 bg-text-muted/30 rounded-full" />;
     }
   };
 
@@ -243,104 +249,33 @@ export function BracketSelector({
     return null;
   }
 
-  // Find the selected bracket, or use the first one as fallback
-  const selectedBracket = selectedBracketId
-    ? brackets.find((b: Bracket) => b._id === selectedBracketId)
-    : brackets[0];
-
-  // Don't show selector if only one bracket exists
+  // Don't show selector if only one bracket exists and no add button
   if (brackets.length === 1 && !showAddButton) {
     return null;
   }
 
-  const statusIndicator = (status: Bracket["status"]) => {
-    switch (status) {
-      case "active":
-        return <span className="w-2 h-2 bg-success rounded-full animate-pulse" />;
-      case "completed":
-        return <span className="w-2 h-2 bg-gold rounded-full" />;
-      default:
-        return <span className="w-2 h-2 bg-text-muted/30 rounded-full" />;
-    }
-  };
-
-  const handleSelect = (bracketId: string) => {
-    onSelectBracket(bracketId);
-    setIsOpen(false);
-  };
-
   return (
     <div className="surface-panel p-3">
-      <div className="flex items-center gap-3 px-3">
-        {/* Dropdown */}
-        <div className="relative" ref={dropdownRef}>
+      <div className="flex flex-wrap items-center gap-2 px-3">
+        {brackets.map((bracket: Bracket) => (
           <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-bg-card border border-border rounded-xl hover:border-text-muted transition-all min-w-[200px]"
+            key={bracket._id}
+            onClick={() => onSelectBracket(bracket._id)}
+            className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${
+              selectedBracketId === bracket._id
+                ? "border-brand/40 bg-brand/10 text-brand"
+                : "border-transparent text-text-muted hover:bg-bg-secondary hover:text-text-primary"
+            }`}
           >
-            <div className="flex items-center gap-2 flex-1">
-              {selectedBracket && (
-                <>
-                  {statusIndicator(selectedBracket.status)}
-                  <span className="text-sm font-medium text-text-primary">
-                    {selectedBracket.name}
-                  </span>
-                  <span className="text-xs text-text-muted">
-                    ({selectedBracket.participantCount})
-                  </span>
-                </>
-              )}
-            </div>
-            <svg
-              className={`w-4 h-4 text-text-muted transition-transform ${isOpen ? "rotate-180" : ""}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
+            {statusIndicator(bracket.status)}
+            <span>{bracket.name}</span>
+            <span
+              className={`text-xs font-normal ${selectedBracketId === bracket._id ? "text-brand/60" : "text-text-muted"}`}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-            </svg>
+              ({bracket.participantCount})
+            </span>
           </button>
-
-          {/* Dropdown Menu */}
-          {isOpen && (
-            <div className="absolute top-full left-0 mt-2 w-full min-w-[280px] bg-bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden">
-              {/* Brackets list */}
-              {brackets.map((bracket: Bracket, index: number) => (
-                <button
-                  key={bracket._id}
-                  onClick={() => handleSelect(bracket._id)}
-                  className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
-                    selectedBracketId === bracket._id
-                      ? "bg-brand/10 text-brand"
-                      : "hover:bg-bg-secondary text-text-primary"
-                  } ${index < brackets.length - 1 ? "border-b border-border/50" : ""}`}
-                >
-                  <div className="flex items-center gap-2">
-                    {statusIndicator(bracket.status)}
-                    <span className="text-sm font-medium">{bracket.name}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-text-muted">
-                      {bracket.participantCount} participants
-                    </span>
-                    {selectedBracketId === bracket._id && (
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        ))}
 
         {/* Add bracket button */}
         {showAddButton && (
