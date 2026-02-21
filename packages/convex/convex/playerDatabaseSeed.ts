@@ -88,9 +88,8 @@ export const seedPlayerDatabase = action({
     const lines = csvText.split("\n");
 
     // Players CSV: player_id,name_first,name_last,hand,dob,ioc,height,wikidata_id
-    let imported = 0;
     let skipped = 0;
-    const batch: Array<{
+    const players: Array<{
       externalId: string;
       name: string;
       countryCode: string;
@@ -126,29 +125,22 @@ export const seedPlayerDatabase = action({
         continue;
       }
 
-      batch.push({
+      players.push({
         externalId: playerId,
         name: fullName,
         countryCode: isoCode,
         tour: args.tour,
         ranking,
       });
-
-      if (batch.length >= 100) {
-        const result = await ctx.runMutation(internal.playerDatabase.upsertPlayerBatch, {
-          players: batch.splice(0, 100),
-        });
-        imported += result.upserted;
-      }
     }
 
-    if (batch.length > 0) {
-      const result = await ctx.runMutation(internal.playerDatabase.upsertPlayerBatch, {
-        players: batch,
-      });
-      imported += result.upserted;
-    }
+    // Process all players in a single mutation to avoid write conflicts
+    // between concurrent batch mutations. With ~500-2000 ranked players per
+    // tour this stays well within Convex transaction limits.
+    const result = await ctx.runMutation(internal.playerDatabase.upsertPlayerBatch, {
+      players,
+    });
 
-    return { imported, skipped };
+    return { imported: result.upserted, skipped };
   },
 });
