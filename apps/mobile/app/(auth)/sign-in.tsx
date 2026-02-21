@@ -144,7 +144,9 @@ export default function SignInScreen() {
           style={styles.flex1}>
           <ScrollView
             contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="always">
+            keyboardShouldPersistTaps="always"
+            bounces
+            alwaysBounceVertical>
             {/* Logo & Branding */}
             <View style={styles.logoContainer}>
               <Image
@@ -346,7 +348,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: "center",
     paddingHorizontal: 24,
     paddingVertical: 32,
   },

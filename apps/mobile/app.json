@@ -4,7 +4,7 @@
     "slug": "mobile",
     "version": "1.0.0",
     "orientation": "default",
-    "icon": "./assets/images/scoreforge-mobile.png",
+    "icon": "./assets/images/scoreforge-icon-ios.png",
     "scheme": "scoreforge",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -15,9 +15,8 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#ffffff",
-        "foregroundImage": "./assets/images/scoreforge-mobile.png",
-        "backgroundImage": "./assets/images/scoreforge-mobile.png",
-        "monochromeImage": "./assets/images/scoreforge-mobile.png"
+        "foregroundImage": "./assets/images/scoreforge-adaptive-foreground.png",
+        "monochromeImage": "./assets/images/scoreforge-adaptive-foreground.png"
       },
       "package": "app.scoreforge.mobile",
       "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"],

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  Image,
   StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -97,6 +98,11 @@ export default function ScorerMatchDetailScreen() {
           style={[styles.backButton, { backgroundColor: colors.bgSecondary }]}>
           <Text style={{ fontSize: 20, color: colors.textPrimary }}>←</Text>
         </TouchableOpacity>
+        <Image
+          source={require("@/assets/images/scoreforge-mobile.png")}
+          style={styles.headerLogo}
+          resizeMode="contain"
+        />
         <View style={styles.flex1}>
           <Text
             style={{
@@ -366,6 +372,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 8,
+  },
+  headerLogo: {
+    marginRight: 12,
+    height: 36,
+    width: 36,
   },
   headerStatusBadge: {
     borderRadius: 8,

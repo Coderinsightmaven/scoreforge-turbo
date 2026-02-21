@@ -102,7 +102,7 @@ export default function ScorerHomeScreen() {
   if (!session) {
     return (
       <View style={[styles.centered, { backgroundColor: colors.bgPage }]}>
-        <Text style={{ color: colors.textTertiary }}>Session not found</Text>
+        <ActivityIndicator size="large" color={Colors.brand.DEFAULT} />
       </View>
     );
   }
