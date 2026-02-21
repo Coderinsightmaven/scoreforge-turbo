@@ -597,12 +597,12 @@ export default function ScorerTennisScoringScreen() {
                   },
             ]}
             onPress={handleUndo}
-            disabled={!state?.history?.length}>
+            disabled={!state}>
             <Text
               style={[
                 styles.undoText,
                 {
-                  color: state?.history?.length ? colors.textPrimary : colors.textMuted,
+                  color: state ? colors.textPrimary : colors.textMuted,
                 },
               ]}>
               ↩ Undo

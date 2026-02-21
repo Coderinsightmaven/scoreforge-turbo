@@ -1507,6 +1507,10 @@ export const undoTennisPoint = mutation({
         (match.tennisState.tiebreakPoints[1] ?? 0) === 0 &&
         !match.tennisState.isMatchComplete;
       if (hasNoProgress) {
+        // Clear tennis state so user can re-select the first server
+        await ctx.db.patch("matches", args.matchId, {
+          tennisState: undefined,
+        });
         return null;
       }
       throw errors.invalidState("No history available to undo");

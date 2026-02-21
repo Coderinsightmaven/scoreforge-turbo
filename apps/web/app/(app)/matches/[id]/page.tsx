@@ -203,7 +203,9 @@ export default function MatchDetailPage({
             !isByeMatch &&
             match.participant1 &&
             match.participant2 &&
-            (match.status === "pending" || match.status === "scheduled") &&
+            (match.status === "pending" ||
+              match.status === "scheduled" ||
+              match.status === "live") &&
             match.tournamentStatus === "active" && (
               <InlineFirstServerSetup
                 matchId={match._id}
