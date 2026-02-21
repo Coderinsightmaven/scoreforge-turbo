@@ -5,6 +5,7 @@ import type { Id, Doc } from "./_generated/dataModel";
 import {
   tournamentFormats,
   participantTypes,
+  bracketGender,
   bracketStatus,
   tennisConfig,
   tennisState,
@@ -32,6 +33,7 @@ export const listBrackets = query({
       format: v.optional(tournamentFormats),
       participantType: v.optional(participantTypes),
       maxParticipants: v.optional(v.number()),
+      gender: v.optional(bracketGender),
       tennisConfig: v.optional(tennisConfig),
       status: bracketStatus,
       displayOrder: v.number(),
@@ -83,6 +85,7 @@ export const listBrackets = query({
           format: bracket.format,
           participantType: bracket.participantType,
           maxParticipants: bracket.maxParticipants,
+          gender: bracket.gender,
           tennisConfig: bracket.tennisConfig,
           status: bracket.status,
           displayOrder: bracket.displayOrder,
@@ -114,6 +117,7 @@ export const getBracket = query({
       format: v.optional(tournamentFormats),
       participantType: v.optional(participantTypes),
       maxParticipants: v.optional(v.number()),
+      gender: v.optional(bracketGender),
       tennisConfig: v.optional(tennisConfig),
       status: bracketStatus,
       displayOrder: v.number(),
@@ -166,6 +170,7 @@ export const getBracket = query({
       format: bracket.format,
       participantType: bracket.participantType,
       maxParticipants: bracket.maxParticipants,
+      gender: bracket.gender,
       tennisConfig: bracket.tennisConfig,
       status: bracket.status,
       displayOrder: bracket.displayOrder,
@@ -347,6 +352,7 @@ export const createBracket = mutation({
     format: v.optional(tournamentFormats),
     participantType: v.optional(participantTypes),
     maxParticipants: v.optional(v.number()),
+    gender: v.optional(bracketGender),
     tennisConfig: v.optional(tennisConfig),
   },
   returns: v.id("tournamentBrackets"),
@@ -387,6 +393,7 @@ export const createBracket = mutation({
       format: args.format,
       participantType: args.participantType,
       maxParticipants: args.maxParticipants,
+      gender: args.gender,
       tennisConfig: args.tennisConfig,
       status: "draft",
       displayOrder: maxOrder + 1,
@@ -408,6 +415,7 @@ export const updateBracket = mutation({
     format: v.optional(tournamentFormats),
     participantType: v.optional(participantTypes),
     maxParticipants: v.optional(v.number()),
+    gender: v.optional(bracketGender),
     tennisConfig: v.optional(tennisConfig),
   },
   returns: v.null(),
@@ -436,6 +444,7 @@ export const updateBracket = mutation({
     if (args.format !== undefined) updates.format = args.format;
     if (args.participantType !== undefined) updates.participantType = args.participantType;
     if (args.maxParticipants !== undefined) updates.maxParticipants = args.maxParticipants;
+    if (args.gender !== undefined) updates.gender = args.gender;
     if (args.tennisConfig !== undefined) updates.tennisConfig = args.tennisConfig;
 
     await ctx.db.patch("tournamentBrackets", args.bracketId, updates);

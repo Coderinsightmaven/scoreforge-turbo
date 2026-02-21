@@ -46,6 +46,11 @@ export const participantTypes = v.union(
 );
 
 /**
+ * Bracket gender category — determines which player database tour to show
+ */
+export const bracketGender = v.union(v.literal("mens"), v.literal("womens"), v.literal("mixed"));
+
+/**
  * Tennis tournament configuration (set at tournament level)
  */
 export const tennisConfig = v.object({
@@ -328,6 +333,8 @@ export default defineSchema({
     format: v.optional(tournamentFormats), // Can override tournament format
     participantType: v.optional(participantTypes), // Can override participant type
     maxParticipants: v.optional(v.number()),
+    // Gender category — determines which player database tour to show
+    gender: v.optional(v.union(v.literal("mens"), v.literal("womens"), v.literal("mixed"))),
     // Sport-specific config overrides
     tennisConfig: v.optional(tennisConfig),
     // Status tracking

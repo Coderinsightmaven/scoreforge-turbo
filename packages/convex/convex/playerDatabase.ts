@@ -39,8 +39,10 @@ export const searchPlayers = query({
         .withSearchIndex("search_name", (q) => q.search("name", args.searchQuery!))
         .take(limit);
 
-      // Client-side filter by tour if specified
-      const filtered = args.tour ? results.filter((p) => p.tour === args.tour) : results;
+      // Client-side filter by tour if specified, always include CUSTOM players
+      const filtered = args.tour
+        ? results.filter((p) => p.tour === args.tour || p.tour === "CUSTOM")
+        : results;
 
       return filtered.map((p) => ({
         _id: p._id,
@@ -79,16 +81,81 @@ export const searchPlayers = query({
       }));
     }
 
-    // No tour filter, no search — return first N by creation order
-    const results = await ctx.db.query("playerDatabase").take(limit);
+    // No tour filter, no search — merge top-ranked from both ATP and WTA
+    const [atpResults, wtaResults, customResults] = await Promise.all([
+      ctx.db
+        .query("playerDatabase")
+        .withIndex("by_tour_and_ranking", (q) => q.eq("tour", "ATP"))
+        .take(limit + 200),
+      ctx.db
+        .query("playerDatabase")
+        .withIndex("by_tour_and_ranking", (q) => q.eq("tour", "WTA"))
+        .take(limit + 200),
+      ctx.db
+        .query("playerDatabase")
+        .withIndex("by_tour_and_ranking", (q) => q.eq("tour", "CUSTOM"))
+        .take(limit),
+    ]);
 
-    return results.map((p) => ({
+    const allRanked = [...atpResults, ...wtaResults]
+      .filter((p) => p.ranking !== undefined)
+      .sort((a, b) => (a.ranking ?? Infinity) - (b.ranking ?? Infinity))
+      .slice(0, limit);
+
+    // Append custom players if there's room
+    if (allRanked.length < limit) {
+      allRanked.push(...customResults.slice(0, limit - allRanked.length));
+    }
+
+    return allRanked.map((p) => ({
       _id: p._id,
       name: p.name,
       countryCode: p.countryCode,
       ranking: p.ranking,
       tour: p.tour,
     }));
+  },
+});
+
+// ============================================
+// Add Custom Player
+// ============================================
+
+/**
+ * Save a manually-entered player to the database for future reuse.
+ * Deduplicates by name (case-insensitive) within the "CUSTOM" tour.
+ */
+export const addCustomPlayer = mutation({
+  args: {
+    name: v.string(),
+    countryCode: v.optional(v.string()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args): Promise<null> => {
+    await getCurrentUserOrThrow(ctx);
+
+    const name = args.name.trim();
+    if (!name) return null;
+
+    // Check if a custom player with this name already exists
+    const existing = await ctx.db
+      .query("playerDatabase")
+      .withSearchIndex("search_name", (q) => q.search("name", name))
+      .take(20);
+
+    const alreadyExists = existing.some(
+      (p) => p.tour === "CUSTOM" && p.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if (alreadyExists) return null;
+
+    await ctx.db.insert("playerDatabase", {
+      name,
+      countryCode: args.countryCode || "",
+      tour: "CUSTOM",
+    });
+
+    return null;
   },
 });
 
@@ -162,7 +229,8 @@ export const removeUnrankedPlayers = mutation({
     const allPlayers = await ctx.db.query("playerDatabase").collect();
     let removed = 0;
     for (const player of allPlayers) {
-      if (player.ranking === undefined) {
+      // Only remove unranked ATP/WTA players, not custom players
+      if (player.ranking === undefined && player.tour !== "CUSTOM") {
         await ctx.db.delete("playerDatabase", player._id);
         removed++;
       }

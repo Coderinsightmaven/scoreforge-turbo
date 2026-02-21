@@ -17,10 +17,15 @@ interface ImportPlayersModalProps {
   isOpen: boolean;
   onClose: () => void;
   onImport: (players: { name: string; nationality: string }[]) => void;
+  bracketGender?: "mens" | "womens" | "mixed";
 }
 
-export function ImportPlayersModal({ isOpen, onClose, onImport }: ImportPlayersModalProps) {
-  const [selectedTour, setSelectedTour] = useState<"ATP" | "WTA">("ATP");
+export function ImportPlayersModal({
+  isOpen,
+  onClose,
+  onImport,
+  bracketGender,
+}: ImportPlayersModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPlayers, setSelectedPlayers] = useState<Map<string, Player>>(new Map());
   const [isSeeding, setIsSeeding] = useState(false);
@@ -46,11 +51,15 @@ export function ImportPlayersModal({ isOpen, onClose, onImport }: ImportPlayersM
     }
   }, [seedAction]);
 
+  // Map bracket gender to tour filter (undefined = show all)
+  const tourFilter =
+    bracketGender === "mens" ? "ATP" : bracketGender === "womens" ? "WTA" : undefined;
+
   const players = useQuery(
     api.playerDatabase.searchPlayers,
     isOpen
       ? {
-          tour: selectedTour,
+          tour: tourFilter,
           searchQuery: searchQuery.trim() || undefined,
           limit: 50,
         }
@@ -60,7 +69,6 @@ export function ImportPlayersModal({ isOpen, onClose, onImport }: ImportPlayersM
   // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
-      setSelectedTour("ATP");
       setSearchQuery("");
       setSelectedPlayers(new Map());
     }
@@ -91,6 +99,9 @@ export function ImportPlayersModal({ isOpen, onClose, onImport }: ImportPlayersM
     return null;
   }
 
+  const genderLabel =
+    bracketGender === "mens" ? "men's" : bracketGender === "womens" ? "women's" : undefined;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
@@ -119,32 +130,6 @@ export function ImportPlayersModal({ isOpen, onClose, onImport }: ImportPlayersM
             </button>
           </div>
 
-          {/* Tour selector */}
-          <div className="flex gap-2 mb-4">
-            <button
-              type="button"
-              onClick={() => setSelectedTour("ATP")}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
-                selectedTour === "ATP"
-                  ? "bg-brand text-black"
-                  : "bg-bg-secondary text-text-secondary hover:text-text-primary"
-              }`}
-            >
-              ATP
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedTour("WTA")}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
-                selectedTour === "WTA"
-                  ? "bg-brand text-black"
-                  : "bg-bg-secondary text-text-secondary hover:text-text-primary"
-              }`}
-            >
-              WTA
-            </button>
-          </div>
-
           {/* Search input */}
           <input
             type="text"
@@ -167,7 +152,7 @@ export function ImportPlayersModal({ isOpen, onClose, onImport }: ImportPlayersM
               {!searchQuery ? (
                 <>
                   <p className="text-text-primary text-sm font-medium">
-                    No {selectedTour} players in database
+                    No {genderLabel ?? ""} players in database
                   </p>
                   <p className="text-text-muted text-xs mt-1 mb-4">
                     Seed the database with ATP &amp; WTA players from the JeffSackmann tennis
@@ -227,12 +212,21 @@ export function ImportPlayersModal({ isOpen, onClose, onImport }: ImportPlayersM
                       </div>
 
                       {/* Flag */}
-                      <span className={`fi fi-${player.countryCode} text-lg flex-shrink-0`} />
+                      {player.countryCode && (
+                        <span className={`fi fi-${player.countryCode} text-lg flex-shrink-0`} />
+                      )}
 
                       {/* Name */}
                       <span className="text-sm text-text-primary font-medium flex-1 truncate">
                         {player.name}
                       </span>
+
+                      {/* Tour badge */}
+                      {!bracketGender && player.tour !== "CUSTOM" && (
+                        <span className="text-[10px] text-text-muted font-medium px-1.5 py-0.5 bg-bg-secondary rounded-full flex-shrink-0">
+                          {player.tour}
+                        </span>
+                      )}
 
                       {/* Ranking */}
                       {player.ranking && (

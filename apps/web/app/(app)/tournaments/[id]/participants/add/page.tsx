@@ -141,6 +141,7 @@ export default function AddParticipantPage({
   });
 
   const addParticipant = useMutation(api.tournamentParticipants.addParticipant);
+  const addCustomPlayer = useMutation(api.playerDatabase.addCustomPlayer);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -236,6 +237,13 @@ export default function AddParticipantPage({
             seed: names.length === 1 ? seedValue : undefined, // Only use seed for single participant
             nationality: names.length === 1 ? nationalityValue : undefined,
           });
+        }
+        // Save manually entered players to database for future reuse
+        for (const name of names) {
+          addCustomPlayer({
+            name,
+            countryCode: names.length === 1 ? nationalityValue : undefined,
+          }).catch(() => {}); // Fire-and-forget
         }
       } else if (bracketParticipantType === "doubles") {
         if (!player1Name.trim() || !player2Name.trim()) {
@@ -946,6 +954,7 @@ export default function AddParticipantPage({
         <ImportPlayersModal
           isOpen={showImportModal}
           onClose={() => setShowImportModal(false)}
+          bracketGender={selectedBracket?.gender}
           onImport={async (players) => {
             if (!selectedBracketId) {
               toast.error("Please select a bracket first");

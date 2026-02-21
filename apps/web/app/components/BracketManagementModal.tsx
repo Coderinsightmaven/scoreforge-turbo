@@ -52,6 +52,7 @@ type BracketItem = {
   maxParticipants?: number;
   format?: TournamentFormat;
   participantType?: ParticipantType;
+  gender?: "mens" | "womens" | "mixed";
 };
 
 export function BracketManagementModal({
@@ -65,6 +66,7 @@ export function BracketManagementModal({
     ""
   );
   const [newBracketMaxParticipants, setNewBracketMaxParticipants] = useState<string>("");
+  const [newBracketGender, setNewBracketGender] = useState<"mens" | "womens" | "mixed" | "">("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [orderedBrackets, setOrderedBrackets] = useState<BracketItem[]>([]);
@@ -105,11 +107,13 @@ export function BracketManagementModal({
         maxParticipants: newBracketMaxParticipants
           ? parseInt(newBracketMaxParticipants, 10)
           : undefined,
+        gender: newBracketGender || undefined,
       });
       setNewBracketName("");
       setNewBracketFormat("");
       setNewBracketParticipantType("");
       setNewBracketMaxParticipants("");
+      setNewBracketGender("");
       setIsCreating(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to create bracket");
@@ -274,6 +278,27 @@ export function BracketManagementModal({
 
                 <div>
                   <label className="block text-sm font-medium mb-1">
+                    Gender Category <span className="text-muted-foreground">(optional)</span>
+                  </label>
+                  <select
+                    value={newBracketGender}
+                    onChange={(e) =>
+                      setNewBracketGender(e.target.value as "mens" | "womens" | "mixed" | "")
+                    }
+                    className="w-full px-3 py-2 bg-card border border-border rounded-lg focus:outline-none focus:border-brand"
+                  >
+                    <option value="">Not set</option>
+                    <option value="mens">Men&apos;s</option>
+                    <option value="womens">Women&apos;s</option>
+                    <option value="mixed">Mixed</option>
+                  </select>
+                  <span className="block text-xs text-muted-foreground mt-1">
+                    Filters the player database when importing players
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
                     Max Participants <span className="text-muted-foreground">(optional)</span>
                   </label>
                   <input
@@ -305,6 +330,7 @@ export function BracketManagementModal({
                     setNewBracketFormat("");
                     setNewBracketParticipantType("");
                     setNewBracketMaxParticipants("");
+                    setNewBracketGender("");
                   }}
                   className="px-4 py-2 bg-secondary border border-border rounded-lg font-medium hover:bg-card transition-colors"
                 >
