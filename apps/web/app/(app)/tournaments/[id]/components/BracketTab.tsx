@@ -9,8 +9,22 @@ import { getDisplayMessage } from "@/lib/errors";
 import { EditableBracket, type Match } from "@/app/components/EditableBracket";
 import { TabSkeleton } from "@/app/components/TabSkeleton";
 import { getRoundName as getRoundNameUtil } from "@/lib/bracket";
+import { formatElapsedTime } from "@/lib/tennis";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+
+function MatchTimer({ startTimestamp }: { startTimestamp: number }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+  return (
+    <span className="text-[10px] text-muted-foreground font-mono">
+      {formatElapsedTime(now - startTimestamp)}
+    </span>
+  );
+}
 
 // Tennis score formatter for bracket display
 function formatTennisScoreForBracket(
@@ -308,7 +322,14 @@ export function BracketTab({
                     ? formatStartsInLabel(scheduledTime, now)
                     : null;
                   const showCompletedBadge = isCompletedMatch && !isByeMatch;
-                  const showMetaRow = showStartsIn || showCompletedBadge;
+                  const showLiveTimer =
+                    match.status === "live" &&
+                    typeof match.tennisState?.matchStartedTimestamp === "number";
+                  const showCompletedDuration =
+                    isCompletedMatch &&
+                    typeof match.tennisState?.matchStartedTimestamp === "number" &&
+                    typeof match.completedAt === "number";
+                  const showMetaRow = showStartsIn || showCompletedBadge || showLiveTimer;
 
                   const matchContent = (
                     <>
@@ -376,21 +397,37 @@ export function BracketTab({
                         )}
                       </div>
                       {showMetaRow && (
-                        <div
-                          className={`flex items-center px-3 pb-2 pt-1 ${
-                            showStartsIn ? "justify-between" : "justify-end"
-                          }`}
-                        >
-                          {showStartsIn && (
-                            <span className="text-[11px] font-medium text-muted-foreground">
-                              {startsInLabel}
-                            </span>
-                          )}
-                          {showCompletedBadge && (
-                            <span className="rounded bg-success/10 px-1.5 py-0.5 text-[9px] font-medium text-success">
-                              Completed
-                            </span>
-                          )}
+                        <div className="flex items-center justify-between px-3 pb-2 pt-1">
+                          <div>
+                            {showStartsIn && (
+                              <span className="text-[11px] font-medium text-muted-foreground">
+                                {startsInLabel}
+                              </span>
+                            )}
+                            {showLiveTimer && (
+                              <MatchTimer
+                                startTimestamp={match.tennisState!.matchStartedTimestamp!}
+                              />
+                            )}
+                          </div>
+                          <div>
+                            {showCompletedBadge && (
+                              <span className="rounded bg-success/10 px-1.5 py-0.5 text-[9px] font-medium text-success">
+                                Completed
+                                {showCompletedDuration && (
+                                  <>
+                                    {" "}
+                                    <span className="font-mono">
+                                      {formatElapsedTime(
+                                        match.completedAt! -
+                                          match.tennisState!.matchStartedTimestamp!
+                                      )}
+                                    </span>
+                                  </>
+                                )}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       )}
                       {isByeMatch && (

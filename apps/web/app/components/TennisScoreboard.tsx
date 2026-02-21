@@ -4,9 +4,9 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@repo/convex";
 import type { Id } from "@repo/convex/dataModel";
 import type { TennisState } from "@repo/convex/types/tennis";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getDisplayMessage } from "@/lib/errors";
-import { getPointDisplay, getGameStatus } from "@/lib/tennis";
+import { getPointDisplay, getGameStatus, formatElapsedTime } from "@/lib/tennis";
 import { toast } from "sonner";
 
 type Participant = {
@@ -22,6 +22,7 @@ type Props = {
   tennisState: TennisState;
   canScore: boolean;
   status: string;
+  completedAt?: number;
 };
 
 export function TennisScoreboard({
@@ -31,10 +32,18 @@ export function TennisScoreboard({
   tennisState,
   canScore,
   status,
+  completedAt,
 }: Props): React.ReactNode {
   const scorePoint = useMutation(api.tennis.scoreTennisPoint);
   const setServer = useMutation(api.tennis.setTennisServer);
   const [loading, setLoading] = useState(false);
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    if (!tennisState?.matchStartedTimestamp || tennisState?.isMatchComplete) return;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [tennisState?.matchStartedTimestamp, tennisState?.isMatchComplete]);
 
   const isLive = status === "live";
   const canAct = canScore && isLive && !tennisState.isMatchComplete;
@@ -91,6 +100,13 @@ export function TennisScoreboard({
         <span className="px-3 py-1 text-xs font-semibold text-text-muted bg-bg-secondary rounded-full">
           {tennisState.isAdScoring ? "Ad Scoring" : "No-Ad"}
         </span>
+        {tennisState.matchStartedTimestamp && (
+          <span className="px-3 py-1 text-xs font-semibold font-mono text-text-muted bg-bg-secondary rounded-full">
+            {tennisState.isMatchComplete && completedAt
+              ? formatElapsedTime(completedAt - tennisState.matchStartedTimestamp)
+              : formatElapsedTime(now - tennisState.matchStartedTimestamp)}
+          </span>
+        )}
       </div>
 
       {/* Main Scoreboard */}
@@ -224,6 +240,18 @@ export function TennisScoreboard({
           </div>
         );
       })()}
+
+      {/* Ace / Double Fault Stats */}
+      {(tennisState.aces || tennisState.doubleFaults) && (
+        <div className="flex justify-between text-xs text-muted-foreground px-2">
+          <span>
+            Aces: {tennisState.aces?.[0] ?? 0} - {tennisState.aces?.[1] ?? 0}
+          </span>
+          <span>
+            DFs: {tennisState.doubleFaults?.[0] ?? 0} - {tennisState.doubleFaults?.[1] ?? 0}
+          </span>
+        </div>
+      )}
 
       {/* Game Status */}
       {gameStatus && !tennisState.isMatchComplete && (

@@ -224,6 +224,7 @@ export const getBracketMatches = query({
           court: v.optional(v.string()),
           nextMatchId: v.optional(v.id("matches")),
           tennisState: v.optional(tennisState),
+          completedAt: v.optional(v.number()),
         })
       ),
     }),
@@ -317,6 +318,7 @@ export const getBracketMatches = query({
         court: match.court,
         nextMatchId: match.nextMatchId,
         tennisState: match.tennisState,
+        completedAt: match.completedAt,
       };
     });
 

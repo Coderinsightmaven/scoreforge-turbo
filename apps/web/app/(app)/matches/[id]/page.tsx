@@ -180,6 +180,7 @@ export default function MatchDetailPage({
                 tennisState={match.tennisState}
                 canScore={canScore}
                 status={match.status}
+                completedAt={match.completedAt}
               />
             ) : (
               <MatchPreview participant1={match.participant1} participant2={match.participant2} />
