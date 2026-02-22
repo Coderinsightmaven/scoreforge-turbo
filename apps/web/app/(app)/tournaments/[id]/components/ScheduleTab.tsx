@@ -45,6 +45,19 @@ function defaultStartTimestamp(): number {
   return d.getTime();
 }
 
+/** Return a date key string for grouping (e.g. "2026-03-15"). */
+function toDateKey(timestamp: number): string {
+  const d = new Date(timestamp);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/** Format a date key for display (e.g. "Sat Mar 15"). */
+function formatDayLabel(dateKey: string): string {
+  const d = new Date(dateKey + "T12:00:00"); // noon to avoid timezone edge cases
+  return d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+}
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -417,6 +430,30 @@ export function ScheduleTab({
 
   const courts = scheduleData?.courts ?? availableCourts ?? [];
 
+  // Multi-day support: extract unique dates from scheduled matches
+  const scheduleDays = useMemo(() => {
+    const dateSet = new Set<string>();
+    for (const m of scheduledMatches) {
+      if (m.scheduledTime) dateSet.add(toDateKey(m.scheduledTime));
+    }
+    return [...dateSet].sort();
+  }, [scheduledMatches]);
+
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+
+  // Determine which day to show — default to first day if none selected
+  const activeDay =
+    selectedDay && scheduleDays.includes(selectedDay) ? selectedDay : scheduleDays[0];
+
+  // Filter scheduled matches to the active day (only when multiple days exist)
+  const visibleScheduledMatches = useMemo(() => {
+    if (scheduleDays.length <= 1) return scheduledMatches;
+    if (!activeDay) return scheduledMatches;
+    return scheduledMatches.filter(
+      (m) => m.scheduledTime && toDateKey(m.scheduledTime) === activeDay
+    );
+  }, [scheduledMatches, scheduleDays, activeDay]);
+
   // Handlers
   const handleAutoSchedule = useCallback(async () => {
     const parsedStart = parseDateTimeInput(scheduleStartDate);
@@ -560,9 +597,27 @@ export function ScheduleTab({
       <div className="flex gap-4">
         {/* Timeline grid */}
         <div className="flex-1 surface-panel surface-panel-rail overflow-hidden">
+          {/* Day tabs — only shown when matches span multiple days */}
+          {scheduleDays.length > 1 && (
+            <div className="flex gap-1 p-2 border-b border-border bg-bg-secondary/50">
+              {scheduleDays.map((day) => (
+                <button
+                  key={day}
+                  onClick={() => setSelectedDay(day)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                    activeDay === day
+                      ? "bg-brand/10 text-brand border border-brand/40"
+                      : "text-muted-foreground hover:bg-bg-secondary hover:text-foreground border border-transparent"
+                  }`}
+                >
+                  {formatDayLabel(day)}
+                </button>
+              ))}
+            </div>
+          )}
           <ScheduleGrid
             courts={courts}
-            scheduledMatches={scheduledMatches}
+            scheduledMatches={visibleScheduledMatches}
             conflictMatchIds={conflictMatchIds}
             canManage={isEditable}
             durationMs={durationMs}
