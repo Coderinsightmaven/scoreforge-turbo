@@ -29,6 +29,7 @@ import type * as playerDatabase from "../playerDatabase.js";
 import type * as playerDatabaseSeed from "../playerDatabaseSeed.js";
 import type * as publicApi from "../publicApi.js";
 import type * as reports from "../reports.js";
+import type * as scheduling from "../scheduling.js";
 import type * as scoringLogs from "../scoringLogs.js";
 import type * as siteAdmin from "../siteAdmin.js";
 import type * as temporaryScorers from "../temporaryScorers.js";
@@ -67,6 +68,7 @@ declare const fullApi: ApiFromModules<{
   playerDatabaseSeed: typeof playerDatabaseSeed;
   publicApi: typeof publicApi;
   reports: typeof reports;
+  scheduling: typeof scheduling;
   scoringLogs: typeof scoringLogs;
   siteAdmin: typeof siteAdmin;
   temporaryScorers: typeof temporaryScorers;

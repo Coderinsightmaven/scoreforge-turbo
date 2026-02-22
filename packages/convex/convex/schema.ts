@@ -276,6 +276,9 @@ export default defineSchema({
     scorerCode: v.optional(v.string()),
     // Version counter for optimistic concurrency control during bracket generation
     bracketVersion: v.optional(v.number()),
+    // Scheduling configuration
+    defaultMatchDuration: v.optional(v.number()), // Estimated match duration in minutes (default: 90)
+    scheduleBuffer: v.optional(v.number()), // Minutes between matches on same court (default: 15)
   })
     .index("by_created_by", ["createdBy"])
     .index("by_created_by_and_status", ["createdBy", "status"])
@@ -390,7 +393,8 @@ export default defineSchema({
     .index("by_bracket_and_status", ["bracketId", "status"])
     .index("by_bracket_and_court", ["bracketId", "court"])
     .index("by_next_match", ["nextMatchId"])
-    .index("by_tournament_and_court", ["tournamentId", "court"]),
+    .index("by_tournament_and_court", ["tournamentId", "court"])
+    .index("by_tournament_and_scheduled_time", ["tournamentId", "scheduledTime"]),
 
   // Scoring input logs - audit log for all scoring actions
   scoringInputLogs: defineTable({

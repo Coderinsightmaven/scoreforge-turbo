@@ -21,13 +21,14 @@ import { BracketTab } from "./components/BracketTab";
 import { MatchesTab } from "./components/MatchesTab";
 import { ParticipantsTab } from "./components/ParticipantsTab";
 import { StandingsTab } from "./components/StandingsTab";
+import { ScheduleTab } from "./components/ScheduleTab";
 const BlankBracketModal = dynamic(() =>
   import("./components/BlankBracketModal").then((m) => ({ default: m.BlankBracketModal }))
 );
 
-type Tab = "bracket" | "matches" | "participants" | "standings" | "scorers";
+type Tab = "bracket" | "matches" | "participants" | "standings" | "schedule" | "scorers";
 
-const validTabs: Tab[] = ["bracket", "matches", "participants", "standings", "scorers"];
+const validTabs: Tab[] = ["bracket", "matches", "participants", "standings", "schedule", "scorers"];
 
 export default function TournamentDetailPage({
   params,
@@ -75,6 +76,7 @@ export default function TournamentDetailPage({
     ...(tournament.format === "round_robin"
       ? [{ id: "standings" as Tab, label: "Standings" }]
       : []),
+    ...(canManage ? [{ id: "schedule" as Tab, label: "Schedule" }] : []),
     ...(canManage ? [{ id: "scorers" as Tab, label: "Scorers" }] : []),
   ];
 
@@ -204,6 +206,17 @@ export default function TournamentDetailPage({
         )}
         {activeTab === "standings" && (
           <StandingsTab tournamentId={id} bracketId={selectedBracketId} />
+        )}
+        {activeTab === "schedule" && (
+          <ScheduleTab
+            tournamentId={id}
+            canManage={canManage}
+            availableCourts={tournament.courts}
+            tournamentStatus={tournament.status}
+            startDate={tournament.startDate}
+            defaultMatchDuration={tournament.defaultMatchDuration}
+            scheduleBuffer={tournament.scheduleBuffer}
+          />
         )}
         {activeTab === "scorers" && <ScorersTab tournamentId={id} />}
       </main>
